@@ -1,0 +1,39 @@
+local.nix
+
+# Devenv
+.devenv*
+devenv.local.nix
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
+
+# Devenv
+.devenv*
+devenv.local.nix
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
+
+*~
+.DS_Store
+.vim-test
+./tags
+.elixir_ls
+.envrc
+.projections.json
+.init.local.lua
+.direnv
+.mise.local.toml
+
+todo.txt
+
+.elixir-tools/
+.elixir-tools
+.lexical
+.node_modules
