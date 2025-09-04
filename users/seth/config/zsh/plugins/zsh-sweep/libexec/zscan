@@ -1,0 +1,131 @@
+#!/usr/bin/env zsh
+# Copyright (c) 2023 Sebastian Gniazdowski
+
+# Recognize and save info on run as `#!/usr/bin/env zsh` script
+[[ $0 != zsweep || -n $ZSH_SCRIPT ]]&&integer bescript=1
+
+# Set options
+builtin emulate -L zsh -o extendedglob -o noshortloops \
+            -o warncreateglobal -o typesetsilent -o nopromptsubst
+
+# $0 support
+0=${${(M)${0::=${(%):-%x}}:#/*}:-$PWD/$0}
+
+# Load initialization script
+source "$0:h:h"/libexec/zs::global-init.zsh
+
+# -v verbose
+# -G no cd, absolute paths
+# -s select visually
+# -# offset of the picked °feature° when multiple match
+# -l show files in the °feature°
+local -A Opts QData
+builtin zparseopts ${${(M)ZSH_VERSION:#(5.[8-9]|6.[0-9])}:+-F} \
+        -D -E -A Opts -- \
+        -dbg v -auto -func -script -src C:||return 7
+
+# Easy access var
+integer ndbg=1-$+Opts[--dbg]
+
+# Automatic -C value
+: ${Opts[-C]:=$PWD}
+
+# Get work directory path
+local WDIR=$Opts[-C]
+
+if [[ ! -d $WDIR ]];then
+    zsmsg -h {err}Error: The path {path}$WDIR{err} \
+        isn\'t a directory
+fi
+
+# Establish text editor
+util/zs::get-editor||return 1
+: ${QData[editor]::=$REPLY}
+
+local IN=$1 QED=$REPLY Q QE
+if [[ $IN == /* ]];then
+    WDIR=$IN:h
+    IN=$IN:t
+fi
+: ${QData[file-name]::=$IN:t}
+: ${QData[work-dir]::=$WDIR}
+
+if [[ ! -r $WDIR/$IN ]];then
+    zsmsg -h {err}Error:{txt} input file \
+        {quot}\"{file}$IN{quot}\"{txt} doesn\'t exist
+    return 1
+fi
+
+util/zs::read-file $WDIR/$IN normal-nojoin||return 1
+local -a content=("$reply[@]") checks out qarr
+local -aU qkeep
+local -A ErrMap
+integer RET QRET
+
+# Support --auto option
+if (($+Opts[--auto]));then
+    if [[ $IN == *.plugin.zsh ]];then
+        Opts[--src]=
+        zsmsg -h {note}Notice:{%} %bDetected type: {type}sourced script
+    elif [[ $IN == *.zsh ]];then
+        Opts[--script]=
+        zsmsg -h {note}Notice:{%} %bDetected type: {type}binary script
+    fi
+    if [[ $WDIR/$IN == */functions/* ]];then
+        Opts[--func]=
+        zsmsg -h {note}Notice:{%} %bDetected type: {type}function
+    elif [[ $WDIR/$IN == */bin/* ]];then
+        Opts[--script]=
+        zsmsg -h {note}Notice:{%} %bDetected type: {type}binary script
+    fi
+fi
+# Read checks removing comments
+checks=(${(f)"$(<$ZSDIR/checks.dat)"})
+eval ErrMap=\(${=$(<$ZSDIR/errmap.dat)}\)
+(($+Opts[--func]))&&checks=(${checks:#(script,#|src,#)#:*})
+(($+Opts[--script]))&&checks=(${checks:#(func,#|src,#)#:*})
+(($+Opts[--src]))&&checks=(${checks:#(func,#|script,#)#:*})
+
+if ((!$#content));then
+    zserr -h {file}$IN:t{%} empty, no content to verify
+    return 1
+fi
+
+for Q ($checks);do
+    local QC=${Q##((script,#|func,#|src,#)##):}
+    local QT=
+    [[ $Q == *script*:* ]]&&QT=script
+    [[ $Q == *func*:* ]]&&QT+=${QT:+,}func
+    [[ $Q == *src*:* ]]&&QT+=${QT:+,}sourced\ file
+
+    zsmsg {note}Notice:{%} running {type}%b${QT}${QT:+ }{%}check: \
+        {chk}%b${QC#\!}{warn}%b…
+
+    # Check is loaded properly?
+    if ! checks/zs::verify-check "$QC";then
+        zserr Couldn\'t find data of check {data}$QC{txt}, check installation
+        continue
+    fi
+    # Reset side vars
+    [[ $QC == *_PRE ]]&&{qkeep=() qarr=() qtmp=();}
+
+    #
+    # Main check exec code
+    #
+    repeat 1 {noglob checks/zs::run-check "$QC" content qarr;RET=$?;}
+    out=($reply)
+    QRET+=RET
+    if ((RET));then
+        for QE ($out);do
+            if ! util/zs::get-txt "$QE";then
+                zserr Couldn\'t found warning text of num. \
+                    {quot}\#{num}$QE
+            else
+                eval REPLY=\"$REPLY\"
+                zswarn -h ${(Q)REPLY}
+            fi
+        done
+    fi
+done
+
+return QRET

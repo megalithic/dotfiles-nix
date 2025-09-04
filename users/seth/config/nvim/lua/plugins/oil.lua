@@ -22,9 +22,8 @@ return {
     },
   },
   config = function()
-    local icons = Icons
-    local icon_file = vim.trim(icons.kind.File)
-    local icon_dir = vim.trim(icons.kind.Folder)
+    local icon_file = vim.trim(Icons.kind.File)
+    local icon_dir = vim.trim(Icons.kind.Folder)
     local permission_hlgroups = setmetatable({
       ["-"] = "OilPermissionNone",
       ["r"] = "OilPermissionRead",
@@ -123,6 +122,7 @@ return {
         ["gr"] = {
           callback = function()
             -- get the current directory
+            local oil = require("oil")
             local prefills = { paths = oil.get_current_dir() }
             local grug = require("grug-far")
             -- instance check
@@ -156,5 +156,44 @@ return {
         end,
       },
     })
+
+    require("ftplugin").extend("oil", {
+      keys = {},
+      opt = {
+        conceallevel = 3,
+        concealcursor = "n",
+        list = false,
+        wrap = false,
+        signcolumn = "no",
+      },
+      callback = function()
+        local map = function(keys, func, desc)
+          vim.keymap.set("n", keys, func, { buffer = 0, desc = "oil: " .. desc })
+        end
+
+        map("q", "<cmd>q<cr>", "quit")
+        map("<leader>ed", "<cmd>q<cr>", "quit")
+        map("<BS>", function()
+          require("oil").open()
+        end, "goto parent dir")
+        map("<localleader>ff", function()
+          local oil = require("oil")
+          local dir = oil.get_current_dir()
+          if vim.api.nvim_win_get_config(0).relative ~= "" then
+            vim.api.nvim_win_close(0, true)
+          end
+          mega.picker.find_files({ cwd = dir, hidden = true })
+        end, "find files in dir")
+        map("<localleader>a", function()
+          local oil = require("oil")
+          local dir = oil.get_current_dir()
+          if vim.api.nvim_win_get_config(0).relative ~= "" then
+            vim.api.nvim_win_close(0, true)
+          end
+          mega.picker.grep({ cwd = dir })
+        end, "grep files in dir")
+      end,
+    })
+    require("ftplugin").setup()
   end,
 }

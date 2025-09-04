@@ -1,0 +1,29 @@
+#!/usr/bin/env zsh
+
+util/zs::verify-cid() {
+
+# Set options
+builtin emulate -L zsh -o extendedglob -o noshortloops \
+                        -o warncreateglobal -o typesetsilent \
+                        -o nopromptsubst
+
+# Possibly fix $0 with a new trick – use of a %x prompt expansion
+0=${${(M)${0::=${(%):-%x}}:#/*}:-$PWD/$0}
+
+[[ $1 == -q ]]&&integer quiet=1&&shift
+local CID=$1
+ 
+if [[ $CID == WRONGSTR || $#CID -gt 40 ]];then
+    zsmsg $quiet %B{208}Error:{138}%b Got no commit hash \
+        (in %B{41}\"$CID[1,7]\"%b{138}…), exiting…
+    return 1
+fi
+
+if ! command git rev-parse --verify --quiet $CID\^{commit} ZSIO;then
+    zsmsg $quiet %B{208}Error:{138}%b Hash \"{33}$CID[1,7]{138}\"… \
+        isn\'t a commit, exiting…
+    return 1
+fi
+
+return 0
+}

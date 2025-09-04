@@ -47,6 +47,11 @@ local ft_ignores = {
   "DiffviewFiles",
   "DiffviewFilePanel",
   "neotest-summary",
+  "edgy",
+  "msg",
+  "cmd",
+  "pager",
+  "dialog",
 }
 
 local bt_ignores = {
@@ -96,9 +101,12 @@ local function is_ignored(bufnr)
   -- local win_count = #vim.api.nvim_tabpage_list_wins(0)
   -- dd(win_count)
 
+  -- P(vim.bo[bufnr].buftype, vim.bo[bufnr].filetype)
+
   local should_ignore = vim.g.focus_disable == true
     or vim.w.focus_disable == true
     or vim.b.focus_disable == true
+    or not vim.api.nvim_buf_is_valid(bufnr)
     or vim.tbl_contains(bt_ignores, vim.bo[bufnr].buftype)
     or vim.tbl_contains(ft_ignores, vim.bo[bufnr].filetype)
     or vim.bo[bufnr].filetype == ""

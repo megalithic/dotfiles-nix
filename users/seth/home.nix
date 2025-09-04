@@ -1,14 +1,23 @@
+# REFS:
+# useful hm and darwin config with nvim/mise use/xdgConfig/home.file/more: https://github.com/yoshi12u/dotfile
+# mise, hm, darwin, jujutsu, and more: https://github.com/schemar/dotfiles
+# again, darwin, hm, mise, neat packages setup per host: https://github.com/matchai/dotfiles/blob/main/apps/packages.nix
+# neat python packages setup: https://github.com/f4z3r/nix/blob/42bd1f6d5eee0f6227e841568d79965a227193b6/home/home.nix#L189
+# devshells and flake-utils: https://github.com/PorcoRosso85/dev/blob/main/flake.nix
 { pkgs
 , lib
 , inputs
+, system
+, currentSystemVersion
 , ...
 }:
 
 {
+  environment.systemPackages = [ inputs.agenix.packages.${system}.default ];
 
   imports = [
     ./packages.nix
-
+    ./homebrew.nix
     #   ./git.nix
     #   ./helix.nix
     #   ./himalaya.nix
@@ -16,6 +25,7 @@
     #   ./starship.nix
     #   ./tmux.nix
   ];
+
 
 
   xdg.enable = true;
@@ -53,7 +63,12 @@
   '';
 
   home = {
-    stateVersion = "24.05"; # Please read the comment before changing.
+    # Necessary for home-manager to work with flakes, otherwise it will
+    # look for a nixpkgs channel.
+    stateVersion =
+      if pkgs.stdenv.isDarwin
+      then currentSystemVersion
+      else system.stateVersion;
 
     sessionVariables = {
       ANTHROPIC_API_KEY = "op://Private/Claude/credential";
@@ -61,8 +76,12 @@
   };
 
   programs = {
+    # Let Home Manager install and manage itself.
+    home-manager.enable = true;
+
     # get nightly
-    # neovim.package = inputs.neovim-nightly-overlay.packages.${pkgs.system}.default;
+    neovim.package = inputs.neovim-nightly-overlay.packages.${pkgs.system}.default;
+
     # fish = {
     #   enable = true;
     #   interactiveShellInit = ''
@@ -72,6 +91,26 @@
     #     opencode = "op run --no-masking -- opencode";
     #   };
     # };
+
+
+    chromium = {
+      enable = true;
+      package = pkgs.brave-nightly;
+      extensions = [
+        { id = "cjpalhdlnbpafiamejdnhcphjbkeiagm"; } # ublock origin
+      ];
+      commandLineArgs = [
+        "--disable-features=WebRtcAllowInputVolumeAdjustment"
+      ];
+    };
+
+    # alts: https://github.com/nmattia/niv?tab=readme-ov-file#getting-started
+    nh = {
+      enable = true;
+      package = pkgs.unstable.nh;
+      clean.enable = true;
+      flake = ../../.;
+    };
 
     direnv = {
       enable = true;
@@ -105,12 +144,6 @@
       };
     };
 
-    nh = {
-      enable = true;
-      clean.enable = true;
-      flake = ../../.;
-    };
-
     yazi = {
       enable = true;
       enableFishIntegration = true;
@@ -119,6 +152,32 @@
     zoxide = {
       enable = true;
       enableFishIntegration = true;
+    };
+  };
+
+
+  programs.ssh.matchBlocks."* \"test -z $SSH_TTY\"".identityAgent = "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
+
+  programs.mise = {
+    enable = true;
+    enableZshIntegration = true;
+
+    settings = {
+      auto_install = true;
+    };
+
+    globalConfig = {
+      tools = {
+        elixir = "1.18.4-otp-27"; # alts: 1.18.4-otp-28
+        erlang = "27.3.4.1"; # alts: 28.0.1
+        python = "3.13.4";
+        rust = "beta";
+        node = "lts";
+        pnpm = "latest";
+        aws-cli = "2";
+        claude = "latest";
+        gemini-cli = "latest";
+      };
     };
   };
 

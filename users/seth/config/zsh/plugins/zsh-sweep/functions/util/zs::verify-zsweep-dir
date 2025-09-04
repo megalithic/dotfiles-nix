@@ -1,0 +1,23 @@
+#!/usr/bin/env zsh
+
+util/zs::verify-zsweep-dir() {
+
+# Set options
+builtin emulate -L zsh -o extendedglob -o noshortloops \
+                        -o warncreateglobal -o typesetsilent \
+                        -o nopromptsubst
+
+# Possibly fix $0 with a new trick – use of a %x prompt expansion
+0=${${(M)${0::=${(%):-%x}}:#/*}:-$PWD/$0}
+: ${ZSDIR:=$0:h:h}
+
+if [[ ! -d $ZSDIR || ! -f $0 || ! -r $0 ]];then
+    zswarn -h cannot find/read program \
+        directory of %B{204}$ZSNICK%f%b, wrong or empty \
+        {39}\$ZSDIR%f \(currently set to: {41}${ZSDIR:-(NULL)}%f\)
+    return 1
+fi
+
+return 0
+
+}

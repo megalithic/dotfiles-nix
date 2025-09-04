@@ -1,39 +1,25 @@
 { pkgs, ... }: {
   home.packages = with pkgs;
     [
-      # -- from evan
-      amber
-      unstable.claude-code
-      unstable.devenv
-      gh
-      gum
-      harper
-      lua-language-server
-      markdown-oxide
-      nixd
-      nixfmt-rfc-style
-      unstable.opencode
-      ripgrep
-      fd
-      sd
-      sesh
-      smartcat
-
-      # -- from motch
-      argc
       actionlint
       alejandra
+      amber
+      argc
       autoconf
       autogen
       automake
+      basedpyright
+      bash-language-server
       bat
       beam.packages.erlang_28.elixir_1_18
       beam.packages.erlang_28.erlang
       btop
       cachix
+      charm-freeze
       chromedriver
       cmake
       delta
+      deno
       direnv
       docker
       docker-compose
@@ -42,49 +28,77 @@
       fd
       figlet
       fswatch
+      fzf
       gawk
+      gettext
       gh
+      ghc
       git
       git-lfs
+      gum
+      harper
       hyperfine
       jq
+      jujutsu
       just
       lazydocker
       lazygit
-      lua5_1
-      luarocks
       lua-language-server
-      # mise
+      lua5_1
+      lua
+      luarocks
+      markdown-oxide
+      marksman
+      mise-flake.packages.${system}.mise
       neovim
       neovim-remote
       nil
-      nixd
       nix-direnv
-      bash-language-server
-      yaml-language-server
+      nixd
+      nixfmt-rfc-style
+      ninja
+      nodePackages_latest.bash-language-server
+      nodePackages_latest.typescript-language-server
+      node
       nodejs
       openssl
+      pkg-config
+      pnpm
+      prettierd
+      python3
       ripgrep
+      ruff
+      # rust
       rust-analyzer
+      sd
       selenium-server-standalone
+      sesh
       shellcheck
       shfmt
       silicon
-      charm-freeze
-      silver-searcher
-      sqlite
+      smartcat
       sqlite-interactive
-      starship
       stylua
       tailwindcss-language-server
+      taplo
       tmux
-      twm
       tokei
       tree-sitter
+      twm
+      typescript
+      unstable.claude-code
+      unstable.devenv
+      unstable.opencode
       vim
       vscode-langservers-extracted
+      vtsls
+      weechat
+      wget
+      yaml-language-server
       yarn
+      zig
       zk
+      zls
       zsh
     ]
     ++ (

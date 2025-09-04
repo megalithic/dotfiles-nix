@@ -1,0 +1,42 @@
+#!/usr/bin/env zsh
+# -*- mode: sh;sh-indentation: 4;indent-tabs-mode: nil;sh-basic-offset: 4; -*-
+#
+# Copyright (c) 2023 Sebastian Gniazdowski
+#
+
+checks/zs::run-check() {
+
+# Recognize and save info on run as `#!/usr/bin/env zsh` script
+[[ $0 != xzmsg || -n $ZSH_SCRIPT ]]&&integer bescript=1
+
+
+builtin emulate -L zsh -o extendedglob -o noshortloops \
+                        -o warncreateglobal -o typesetsilent \
+                        -o nopromptsubst
+
+# Set $0 with a new trik - use of %x prompt expansion
+0=${${(M)${0::=${(%):-%x}}:#/*}:-$PWD/$0}
+: ${ZSDIR:=$0:h:h:h}
+
+#
+# The proper code
+#
+
+local CHECK=$1 CONTENT_VARNAME=$2 MARR_VARNAME=$3
+local -a content=("${(P@)CONTENT_VARNAME}") save qtmp
+integer RET
+
+if (($#content));then
+    source $ZSDIR/libexec/zs::std-vars.inc.zsh
+    repeat 1 {noglob zsfilt -v "$MARR_VARNAME" "$CHECK" -- "$content[@]";RET=$?;}
+    ((RET))&&save+=($ErrMap[${CHECK#\!}])
+else
+    zserr -h file empty, no content to verify
+fi
+#print -Pl %F{33}Content\ after\ °%Bzsfilt%b°:%f $reply %K{220}END%k \
+    #——\$arr——: $arr
+
+reply=($save)
+return $#reply
+# vim:ft=zsh:sw=4:sts=4:et # vim:ft=zsh:sw=4:sts=4:et# vim:ft=zsh:sw=4:sts=4:et
+}

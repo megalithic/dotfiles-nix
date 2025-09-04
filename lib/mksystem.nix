@@ -6,44 +6,43 @@
 ,
 }:
 
-name:
-{ system
-, user
-, script
+hostname:
+{ arch
+, username
+, script ? null
+, version ? "25.05"
 , darwin ? false
-, wsl ? false
 ,
 }:
 
 let
-  # True if this is a WSL system.
-  isWSL = wsl;
+  pkgs = nixpkgs.legacyPackages.${arch};
+
+  isDarwin = darwin;
 
   # True if Linux, which is a heuristic for not being Darwin.
-  # isLinux = !darwin && !isWSL;
+  # isLinux = !isDarwin;
 
   # The config files for this system.
-  machineConfig = ../machines/${name}.nix;
-  userOSConfig = ../users/${user}/${if darwin then "darwin" else "nixos"}.nix;
-  userHMConfig = ../users/${user}/home-manager.nix;
+  machineConfig = ../machines/${hostname}.nix;
+  userOSConfig = ../users/${username}/${if darwin then "darwin" else "nixos"}.nix;
+  userHMConfig = ../users/${username}/home.nix;
 
   # NixOS vs nix-darwin functionst
-  systemFunc = if darwin then inputs.darwin.lib.darwinSystem else nixpkgs.lib.nixosSystem;
-  home-manager =
-    if darwin then inputs.home-manager.darwinModules else inputs.home-manager.nixosModules;
+  system = if isDarwin then inputs.nix-darwin.lib.darwinSystem else nixpkgs.lib.nixosSystem;
+  homeManager =
+    if isDarwin then inputs.home-manager.darwinModules else inputs.home-manager.nixosModules;
 
-
-  pkgs = nixpkgs.legacyPackages.${system};
-  init = pkgs.writeShellApplication {
-    name = "init";
-    text = script;
-  };
+  init =
+    if (script != null) then pkgs.writeShellApplication { name = "init"; text = script; } else false;
 in
-systemFunc rec {
-  inherit system;
+system rec {
+  inherit arch;
 
   modules = [
-    { type = "app"; program = "${init}/bin/init"; }
+    # maybe run init scripts for a system
+    (if init then { type = "app"; program = "${init}/bin/init"; } else { })
+
     # Apply our overlays. Overlays are keyed by system type so we have
     # to go through and apply our system type. We do this first so
     # the overlays are available globally.
@@ -52,30 +51,37 @@ systemFunc rec {
     # Allow unfree packages.
     { nixpkgs.config.allowUnfree = true; }
 
-
-
-    # Bring in WSL if this is a WSL build
-    (if isWSL then inputs.nixos-wsl.nixosModules.wsl else { })
+    # This value determines the NixOS release from which the default
+    # settings for stateful data, like file locations and database versions
+    # on your system were taken. It‘s perfectly fine and recommended to leave
+    # this value at the release version of the first install of this system.
+    # Before changing this value read the documentation for this option
+    # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
+    # https://nixos.org/manual/nixos/stable/index.html#sec-upgrading
+    { system.stateVersion = if isDarwin then 5 else version; }
 
     machineConfig
     userOSConfig
-    home-manager.home-manager
+    homeManager.home-manager
     {
       home-manager.useGlobalPkgs = true;
       home-manager.useUserPackages = true;
-      home-manager.users.${user} = import userHMConfig;
-      home-manager.extraSpecialArgs = { inherit inputs; };
+      home-manager.users.${username} = import userHMConfig { inherit version; };
+      home-manager.extraSpecialArgs = { inherit inputs; inherit username; inherit version; };
     }
 
     # We expose some extra arguments so that our modules can parameterize
     # better based on these values.
     {
       config._module.args = {
-        currentSystem = system;
-        currentSystemName = name;
-        currentSystemUser = user;
-        inherit isWSL;
+        currentSystemArch = arch;
+        currentSystemHostname = hostname;
+        currentSystemUsername = username;
+        currentSystemVersion = version;
+
         inherit inputs;
+        inherit system;
+        inherit pkgs;
       };
     }
   ];

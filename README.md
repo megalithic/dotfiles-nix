@@ -13,16 +13,16 @@
 
 ## 🚀 Installation
 
-Install [Lix](https://lix.systems/), an implementation of Nix.
+Install [Determinate `nix` Installer](https://github.com/DeterminateSystems/nix-installer).
 
 ```bash
-curl -sSf -L https://install.lix.systems/lix | sh -s -- install
+curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
 ```
 
 Run the installer
 
 ```bash
-nix run github:mhanberg/.dotfiles
+nix run github:megalithic/dotfiles-nix
 ```
 
 ## Usage

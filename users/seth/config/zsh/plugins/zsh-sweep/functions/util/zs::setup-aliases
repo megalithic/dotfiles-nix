@@ -1,0 +1,42 @@
+#!/usr/bin/env zsh
+
+util/zs::setup-aliases() {
+
+#
+# Copyright (c) 2023 Sebastian Gniazdowski
+#
+
+# Set options
+builtin emulate -L zsh -o extendedglob -o noshortloops \
+                        -o warncreateglobal -o typesetsilent \
+                        -o nopromptsubst
+
+# Possibly fix $0 with a new trick – use of a %x prompt expansion
+0=${${(M)${0::=${(%):-%x}}:#/*}:-$PWD/$0}
+: ${ZSAES:=$ZSDIR/aliases}
+
+typeset -gA ZS
+typeset -g REPLY
+
+# Input/options
+local -A Opts
+builtin zparseopts ${${(M)ZSH_VERSION:#(5.[8-9]|6.[0-9])}:+-F} -D -E -A Opts -- -c || return 1
+
+if [[ ! -d $ZSAES ]];then
+    print 'ZshSweep:' error: alias dir not set (\$ZSAES)
+    return 1
+fi
+
+local DIR dirs=($ZSAES $ZSAES/checks $ZSAES/results)
+
+for DIR ($dirs);do
+    # Set up aliases (global, suffix and the proper ones)
+    [[ -f $DIR/*[^~](#qNY1.,@) ]]&&for REPLY in $DIR/*[^~](N.,@);do
+        REPLY="$REPLY:t=$(<$REPLY)"
+        alias "${${REPLY#*=}%%:*}" "${(M)REPLY##[^=]##}=${REPLY#*:}"
+        ZS[${(M)REPLY##[^=]##}]=${REPLY#*:}
+    done
+done
+REPLY=
+
+}

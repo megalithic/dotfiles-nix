@@ -20,7 +20,7 @@ devenv.local.nix
 # pre-commit
 .pre-commit-config.yaml
 
-*~
+# *~
 .DS_Store
 .vim-test
 ./tags
@@ -37,3 +37,6 @@ todo.txt
 .elixir-tools
 .lexical
 .node_modules
+.opencode
+.claude
+!.ignore

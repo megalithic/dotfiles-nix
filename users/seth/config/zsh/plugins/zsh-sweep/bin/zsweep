@@ -1,0 +1,82 @@
+#!/usr/bin/env zsh
+# Copyright (c) 2023 Sebastian Gniazdowski
+#
+# zsqb – zs…quote…braces
+#
+
+# Run as script?
+[[ $0 != zsweep ]]&&integer bescript=1
+
+# Set options
+builtin emulate -L zsh -o extendedglob -o noshortloops \
+                        -o warncreateglobal -o typesetsilent \
+                        -o nopromptsubst
+
+# Set $0 with a new trik - use of %x prompt expansion
+0=${${(M)${0::=${(%):-%x}}:#/*}:-$PWD/$0}
+: ${ZSDIR:=$0:h:h}
+
+# Load initialization script
+source "$0:h:h"/libexec/zs::global-init.zsh
+
+local -A Opts
+local -a opts failed
+local QE
+integer QRET QEC
+
+builtin zparseopts ${${(M)ZSH_VERSION:#(5.[8-9]|6.[0-9])}:+-F} \
+        -D -E -A Opts -- \
+        v h=opts -help=opts -auto=opts -func=opts -script=opts \
+            -src=opts -dbg=opts C:=opts||return 7
+
+if (($+Opts[-h]||$+Opts[--help]));then
+    zsmsg {pre}%BUsage:{%} zsweep \
+            [{opt}--help{%}/{opt}-h{%}] \
+            [{opt}-C{dir}%b work-dir{%}] \
+            [{opt}--auto{%}] [{opt}--func{%}]{nl} \
+            "               " [{opt}--script{%}] [{opt}--src{%}] \
+            [{opt}--dbg{%}]{nl}
+    zsmsg  \
+            {opt}--help{%}/{opt}-h{%} ${(l:6:):-}\
+                            – this message\
+            {nl}{opt}%b-C{dir}%b work-dir{%} ${(l:4:):-} –\
+                        like {opt}%b-C{%} in {nick}Git{%} – first cd to a dir\
+            {nl}{opt}%b--auto{%} ${(l:9:):-} –\
+                        guess type of {nick}Zsh{%} file\
+            {nl}{opt}%b--func{%} ${(l:9:):-} –\
+                    set input file type to {type}function\
+            {nl}{opt}%b--script{%} ${(l:7:):-} –\
+                    set input file type to {type}binary-script \
+            {nl}{opt}%b--src{%} ${(l:10:):-} –\
+                    set input file type to {type}sourced-script \
+            {nl}{opt}%b--dbg{%} ${(l:10:):-} –\
+                    enable debug messages
+    return 0
+fi
+
+((!$+Opts[--src]&&!$+Opts[--func]&&!$+Opts[--script]&&!$+Opts[--auto]))&& \
+                zswarn None of the opts \
+                    {opt}${(j:{txt}, {opt}:):-${=:---func --script \
+                    --src --auto}}{txt} given, will run all-kind checks \
+                    on all input files
+# Process each file
+for QE;do
+    print
+    zsmsg -h {err}Notice:{%} scanning file: {quot}•{warn}${(U)QE}{quot}•{%}…
+    (($+Opts[-C]))&&zsmsg -h {err}Notice:{%} work dir set to: {path}$Opts[-C]
+    print
+    $ZSDIR/libexec/zscan $opts $QE
+    QEC=!!$?
+    QRET+=QEC
+    ((QEC))&&failed+=($QE)
+done
+
+if ((QRET));then
+    zswarn -h returning non-zero exit code
+    zswarn -h the {num}$QRET{%}/{num}$#{%} failed files are:\
+        {nl}{pre}·{file}${(j:{nl}{pre}·{file}:)failed}{%}
+else
+    zsmsg -h no errors occurred, all {num}$#{%} files passed
+fi
+return QRET
+

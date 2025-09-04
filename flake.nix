@@ -1,13 +1,32 @@
+# REF: Some useful resources
+#
+# https://nix.dev/
+# https://nixos.org/guides/nix-pills/
+# https://nix-community.github.io/awesome-nix/
+# https://serokell.io/blog/practical-nix-flakes
+# https://zero-to-nix.com/
+# https://wiki.nixos.org/wiki/Flakes
+# https://rconybea.github.io/web/nix/nix-for-your-own-project.html
+
 {
   description = "megadotfiles";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    # Master nixpkgs is used for really bleeding edge packages. Warning
+    # that this is extremely unstable and shouldn't be relied on. Its
+    # mostly for testing.
+    nixpkgs-master.url = "github:nixos/nixpkgs";
+    nixpkgs-update.url = "github:ryantm/nixpkgs-update";
 
     home-manager = {
       url = "github:nix-community/home-manager/release-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    nix-homebrew = {
+      url = "github:zhaofengli-wip/nix-homebrew";
     };
 
     nix-darwin = {
@@ -22,47 +41,100 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
-    nh = {
-      url = "github:nix-community/nh";
+    nil = {
+      url = "github:oxalica/nil";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    weechat-scripts = {
+      url = "github:weechat/scripts";
+      flake = false;
+    };
+
+    yazi = {
+      url = "github:sxyazi/yazi";
+    };
+
+    yazi-plugins = {
+      url = "github:yazi-rs/plugins";
+      flake = false;
+    };
+
+    yazi-glow = {
+      url = "github:Reledia/glow.yazi";
+      flake = false;
+    };
+
+    nur = {
+      url = "github:nix-community/nur";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    gh-gfm-preview = {
+      url = "github:thiagokokada/gh-gfm-preview";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    emmylua-analyzer-rust = {
+      url = "github:EmmyLuaLs/emmylua-analyzer-rust";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    jujutsu.url = "github:martinvonz/jj";
+
+
+    agenix = {
+      url = "github:ryantm/agenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    #
+    # sops-nix = {
+    #   url = "github:Mic92/sops-nix";
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    # };
   };
+
+
   outputs =
-    { self, nixpkgs, ... }@inputs:
+    { self, nixpkgs, home-manager, nix-darwin, nixpkgs-update, ... }@inputs:
     let
       overlays = [
         # This overlay makes unstable packages available through pkgs.unstable
-        (final: prev: {
+
+        inputs.jujutsu.overlays.default
+        # inputs.agenix.homeManagerModules.default
+
+        (final: prev: rec {
           unstable = import inputs.nixpkgs-unstable {
             inherit (prev) system;
             config.allowUnfree = true;
           };
 
-          inherit (inputs.nixpkgs-unstable.legacyPackages.${prev.system}) nh;
+          # gh CLI on stable has bugs.
+          inherit (unstable.legacyPackages.${prev.system}) gh;
+
+          # Want the latest version of these
+          inherit (unstable.legacyPackages.${prev.system}) claude-code;
         })
       ];
 
       mkSystem = import ./lib/mksystem.nix {
-        inherit overlays nixpkgs inputs;
+        inherit nixpkgs overlays inputs;
       };
     in
     {
-      # NOTE: for other systems when we get them:
-      # nixosConfigurations.meganix = mkSystem "linux" {
-      #   system = "x86_64-linux";
-      #   user = "seth";
-      # };
       darwinConfigurations.megabookpro = mkSystem "megabookpro" {
-        system = "aarch64-darwin";
-        user = "seth";
+        arch = "aarch64-darwin";
+        username = "seth";
         darwin = true;
-        # HT: @mhanberg
-        # REF: https://github.com/mhanberg/.dotfiles/blob/main/flake.nix#L99-L104
+        version = "25.05";
         script = ''
-          git clone https://github.com/megalithic/dotfiles-nix ~/.dotfiles
+          # HT: @mhanberg
+          # REF: https://github.com/mhanberg/.dotfiles/blob/main/flake.nix#L99-L104
+          git clone https://github.com/megalithic/dotfiles-nix ~/.dotfiles-nix
           bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-          nix run nix-darwin -- switch --flake ~/.dotfiles
-          nix run home-manager/master -- switch --flake ~/.dotfiles
+          nix run nix-darwin -- switch --flake ~/.dotfiles-nix
+          nix run home-manager/master -- switch --flake ~/.dotfiles-nix
         '';
       };
     };
