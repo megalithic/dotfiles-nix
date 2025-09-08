@@ -3,6 +3,30 @@ local M = {}
 -- add binaries installed by mason.nvim to path
 vim.env.PATH = vim.env.PATH .. (vim.g.is_windows and ";" or ":") .. vim.fn.stdpath("data") .. "/mason/bin"
 
+local enabled_plugins = {
+  "lsp",
+  "statusline",
+  "statuscolumn",
+  -- "fakecolumn",
+  "undo",
+  -- "term",
+  -- "abbreviations",
+  -- -- "winbar",
+  -- -- "tabline",
+  -- -- "megaterm",
+  -- "repls",
+  "cursorline",
+  -- "colorcolumn",
+  "windows",
+  -- "numbers",
+  -- "clipboard",
+  -- "folds",
+  -- "dotenv",
+  -- "notes",
+  "filetypes",
+  -- "chat",
+}
+
 local uname = vim.uv.os_uname().sysname
 local is_macos = uname == "Darwin"
 local is_linux = uname == "Linux"
@@ -88,27 +112,7 @@ M.g = {
   -- ruby_host_prog = vim.env.XDG_DATA_HOME .. "/mise/installs/ruby/latest/bin/ruby",
   -- node_host_prog = vim.env.XDG_DATA_HOME .. "/mise/installs/node/latest/bin/node",
   --
-  enabled_plugins = {
-    "lsp",
-    "statusline",
-    "statuscolumn",
-    -- "term",
-    -- "abbreviations",
-    -- -- "winbar",
-    -- -- "tabline",
-    -- -- "megaterm",
-    -- "repls",
-    "cursorline",
-    -- "colorcolumn",
-    "windows",
-    -- "numbers",
-    -- "clipboard",
-    -- "folds",
-    -- "dotenv",
-    -- "notes",
-    -- "filetypes",
-    -- "chat",
-  },
+  enabled_plugins = enabled_plugins,
   treesitter_ignored_langs = {}, -- alt: { "svg", "json", "heex", "jsonc" }
   treesitter_ensure_installed = {
     "bash",
@@ -471,5 +475,25 @@ vim.filetype.add({
     [pattern] = "sql.dbee",
   },
 })
+
+-- HT: https://github.com/tjdevries/config.nvim/blob/master/plugin/clipboard.lua
+if vim.env.SSH_CONNECTION then
+  local function vim_paste()
+    local content = vim.fn.getreg('"')
+    return vim.split(content, "\n")
+  end
+
+  vim.g.clipboard = {
+    name = "OSC 52",
+    copy = {
+      ["+"] = require("vim.ui.clipboard.osc52").copy("+"),
+      ["*"] = require("vim.ui.clipboard.osc52").copy("*"),
+    },
+    paste = {
+      ["+"] = vim_paste,
+      ["*"] = vim_paste,
+    },
+  }
+end
 
 return M

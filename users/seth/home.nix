@@ -16,6 +16,12 @@
 # sops use and more from an nvim plugin dev: https://github.com/stefanboca/nixfiles/blob/main/hosts/common/default.nix
 # nvim jj stuff: https://github.com/stefanboca/nvim/blob/main/lua/my/langs/jujutsu.lua
 # nerd-font: https://github.com/ahmedelgabri/dotfiles/blob/main/flake.nix#L153
+# nix/elixir/dev shell flakes: https://github.com/jurraca/elixir-templates/blob/main/shell/flake.nix
+# one of the first nix config setups i looked at aside from evan and motch's: https://github.com/y3owk1n/nix-system-config-v2/blob/main/darwin/shared/darwin.nix
+# example flake for a project: https://github.com/elixir-tools/next-ls/blob/main/flake.nix
+# usage for agenix and neat interpolation of lua/nix: https://github.com/tomaskala/infra/blob/main/hosts/gordon/work.nix
+# 1password config things: https://github.com/jc00ke/dotfiles/blob/main/.config/1Password/ssh/agent.toml
+# ssh config to work with ssh/1password: https://github.com/jc00ke/dotfiles/blob/main/.ssh/config
 
 # -------------------------------------------------------------------------------------------------
 
@@ -97,6 +103,7 @@
     # get nightly
     neovim.package = inputs.neovim-nightly-overlay.packages.${pkgs.system}.default;
 
+    # REF: https://github.com/gbroques/dotfiles/blob/main/fish/.config/fish/config.fish
     # fish = {
     #   enable = true;
     #   interactiveShellInit = ''

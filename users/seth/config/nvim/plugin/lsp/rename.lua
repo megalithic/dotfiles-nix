@@ -2,6 +2,7 @@ local M = {}
 local BORDER_STYLE = vim.g.border
 
 -- populate qf list with changes (if multiple files modified)
+-- TODO: possible rewrite to this: https://github.com/mcauley-penney/nvim/blob/main/lua/aucmd/rename.lua
 function M.rename(client)
   local rename_prompt = ""
   local default_rename_prompt = " -> "

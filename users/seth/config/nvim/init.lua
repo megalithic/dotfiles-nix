@@ -21,7 +21,9 @@ vim.api.nvim_create_autocmd("FileType", {
 vim.deprecate = function() end -- no-op deprecation messages
 local ok, mod_or_err = pcall(require, "globals")
 if ok then
-  mod_or_err.version()
+  if not vim.g.started_by_firenvim then
+    mod_or_err.version()
+  end
   require("options")
   require("commands")
   require("autocmds")

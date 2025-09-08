@@ -1,3 +1,7 @@
+if not Plugin_enabled() then
+  return
+end
+
 local M = {}
 
 local ns = vim.api.nvim_create_namespace("hl_undo")

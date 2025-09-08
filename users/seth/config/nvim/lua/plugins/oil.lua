@@ -156,44 +156,5 @@ return {
         end,
       },
     })
-
-    require("ftplugin").extend("oil", {
-      keys = {},
-      opt = {
-        conceallevel = 3,
-        concealcursor = "n",
-        list = false,
-        wrap = false,
-        signcolumn = "no",
-      },
-      callback = function()
-        local map = function(keys, func, desc)
-          vim.keymap.set("n", keys, func, { buffer = 0, desc = "oil: " .. desc })
-        end
-
-        map("q", "<cmd>q<cr>", "quit")
-        map("<leader>ed", "<cmd>q<cr>", "quit")
-        map("<BS>", function()
-          require("oil").open()
-        end, "goto parent dir")
-        map("<localleader>ff", function()
-          local oil = require("oil")
-          local dir = oil.get_current_dir()
-          if vim.api.nvim_win_get_config(0).relative ~= "" then
-            vim.api.nvim_win_close(0, true)
-          end
-          mega.picker.find_files({ cwd = dir, hidden = true })
-        end, "find files in dir")
-        map("<localleader>a", function()
-          local oil = require("oil")
-          local dir = oil.get_current_dir()
-          if vim.api.nvim_win_get_config(0).relative ~= "" then
-            vim.api.nvim_win_close(0, true)
-          end
-          mega.picker.grep({ cwd = dir })
-        end, "grep files in dir")
-      end,
-    })
-    require("ftplugin").setup()
   end,
 }
