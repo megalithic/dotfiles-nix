@@ -10,6 +10,7 @@
 # nvim and dotfiles for codespaces, zsh and more: https://github.com/SushyDev/dotfiles
 # also, from same author as above (sushydev - nix-plist-manager author): https://github.com/SushyDev/nixdarwin/tree/main
 # showing how to use nvim in nix with package setup local to nvim.nix and xdgConfig: https://github.com/noghartt/nixcfg/blob/main/nix/home/nvim.nix
+# ai ethanholz dudes nix setup:  https://tangled.sh/@ethanholz.com/nix-config/blob/main/lib/shared/lsp.nix
 
 # -------------------------------------------------------------------------------------------------
 
