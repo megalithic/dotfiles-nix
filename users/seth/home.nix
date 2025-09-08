@@ -11,6 +11,11 @@
 # also, from same author as above (sushydev - nix-plist-manager author): https://github.com/SushyDev/nixdarwin/tree/main
 # showing how to use nvim in nix with package setup local to nvim.nix and xdgConfig: https://github.com/noghartt/nixcfg/blob/main/nix/home/nvim.nix
 # ai ethanholz dudes nix setup:  https://tangled.sh/@ethanholz.com/nix-config/blob/main/lib/shared/lsp.nix
+# tom miller himself: https://src.bhamops.com/tom/nix/src/branch/master/flake.nix
+# devshells and git commit hooks; wild stuff: https://github.com/khaneliman/khanelivim/blob/main/flake/dev/git-hooks.nix
+# sops use and more from an nvim plugin dev: https://github.com/stefanboca/nixfiles/blob/main/hosts/common/default.nix
+# nvim jj stuff: https://github.com/stefanboca/nvim/blob/main/lua/my/langs/jujutsu.lua
+# nerd-font: https://github.com/ahmedelgabri/dotfiles/blob/main/flake.nix#L153
 
 # -------------------------------------------------------------------------------------------------
 
