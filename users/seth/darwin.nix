@@ -1,14 +1,19 @@
-{ self, pkgs, lib, ... }:
+{ self, pkgs, lib, currentSystemHostname, currentSystemUsername, ... }:
 
 {
   nix.enable = false;
+  nix.extraOptions = ''
+    extra-platforms = x86_64-darwin aarch64-darwin
+  '';
+
+  nix.linux-builder.enable = true;
   nix.settings = {
     experimental-features = [
       "nix-command"
       "flakes"
     ];
     accept-flake-config = true;
-    trusted-users = [ "seth" "root" ];
+    trusted-users = [ "${currentSystemUsername}" "root" ];
   };
   nix.channel = { enable = false; };
   nix.gc = {
@@ -28,8 +33,8 @@
 
   system.configurationRevision = self.rev or self.dirtyRev or null;
 
-  users.users.seth = {
-    home = "/Users/seth";
+  users.users."${currentSystemUsername}" = {
+    home = "/Users/${currentSystemUsername}";
     shell = pkgs.zsh;
   };
 
@@ -73,9 +78,9 @@
   ];
 
   system = {
-    primaryUser = "seth";
+    primaryUser = "${currentSystemUsername}";
     defaults = {
-      screencapture.location = "~/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder/screenshots";
+      # screencapture.location = "~/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder/screenshots";
       dock = {
         autohide = true;
         orientation = "bottom";
@@ -106,6 +111,7 @@
       CustomUserPreferences."org.hammerspoon.Hammerspoon" = {
         MJConfigFile = "~/.config/hammerspoon/init.lua";
       };
+      loginwindow.LoginwindowText = "${currentSystemHostname}";
     };
     # karabiner-elements.enable = true;
     # keyboard = {

@@ -1,9 +1,18 @@
 # REFS:
+# huge amount of info on agenix, darwin, docker, devops nix things: https://github.com/carjorvaz/nixos/blob/master/hosts/mac.nix
 # useful hm and darwin config with nvim/mise use/xdgConfig/home.file/more: https://github.com/yoshi12u/dotfile
 # mise, hm, darwin, jujutsu, and more: https://github.com/schemar/dotfiles
-# again, darwin, hm, mise, neat packages setup per host: https://github.com/matchai/dotfiles/blob/main/apps/packages.nix
-# neat python packages setup: https://github.com/f4z3r/nix/blob/42bd1f6d5eee0f6227e841568d79965a227193b6/home/home.nix#L189
+# again, darwin, hm, mise/mise hooks/moretools, neat packages setup per host: https://github.com/matchai/dotfiles/blob/main/apps/packages.nix
+# neat python packages setup: https://github.com/f4z3r/nix/blob/master/home/home.nix#L189
 # devshells and flake-utils: https://github.com/PorcoRosso85/dev/blob/main/flake.nix
+# setup agenix for secrets: https://github.com/ryantm/agenix?tab=readme-ov-file#using-agenix-with-home-manager
+# use of home.file examples: https://github.com/neuralgremlin/dotfiles/blob/main/nix/home.nix#L28-L37
+# nvim and dotfiles for codespaces, zsh and more: https://github.com/SushyDev/dotfiles
+# also, from same author as above (sushydev - nix-plist-manager author): https://github.com/SushyDev/nixdarwin/tree/main
+# showing how to use nvim in nix with package setup local to nvim.nix and xdgConfig: https://github.com/noghartt/nixcfg/blob/main/nix/home/nvim.nix
+
+# -------------------------------------------------------------------------------------------------
+
 { pkgs
 , lib
 , inputs
@@ -147,11 +156,13 @@
     yazi = {
       enable = true;
       enableFishIntegration = true;
+      enableZshIntegration = true;
     };
 
     zoxide = {
       enable = true;
       enableFishIntegration = true;
+      enableZshIntegration = true;
     };
   };
 
@@ -160,6 +171,7 @@
 
   programs.mise = {
     enable = true;
+    enableFishIntegration = true;
     enableZshIntegration = true;
 
     settings = {

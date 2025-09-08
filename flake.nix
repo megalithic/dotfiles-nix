@@ -133,6 +133,7 @@
           # REF: https://github.com/mhanberg/.dotfiles/blob/main/flake.nix#L99-L104
           git clone https://github.com/megalithic/dotfiles-nix ~/.dotfiles-nix
           bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          bash -c "$(softwareupdate --install-rosetta --agree-to-licens)e"
           nix run nix-darwin -- switch --flake ~/.dotfiles-nix
           nix run home-manager/master -- switch --flake ~/.dotfiles-nix
         '';
