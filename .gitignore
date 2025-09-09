@@ -4,9 +4,6 @@ local.nix
 .devenv*
 devenv.local.nix
 
-# direnv
-.direnv
-
 # pre-commit
 .pre-commit-config.yaml
 
@@ -16,9 +13,6 @@ devenv.local.nix
 
 # direnv
 .direnv
-
-# pre-commit
-.pre-commit-config.yaml
 
 # *~
 .DS_Store
@@ -40,3 +34,4 @@ todo.txt
 .opencode
 .claude
 !.ignore
+.jj

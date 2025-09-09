@@ -49,6 +49,9 @@ system rec {
     # the overlays are available globally.
     { nixpkgs.overlays = overlays; }
 
+    # The platform the configuration will be used on.
+    { nixpkgs.hostPlatform = "${arch}"; }
+
     # Allow unfree packages.
     { nixpkgs.config.allowUnfree = true; }
 
@@ -67,8 +70,14 @@ system rec {
     {
       home-manager.useGlobalPkgs = true;
       home-manager.useUserPackages = true;
-      home-manager.users.${username} = import userHMConfig;
-      home-manager.extraSpecialArgs = { inherit inputs; inherit username; inherit version; };
+      home-manager.users.${username} = import userHMConfig {
+        currentSystemArch = arch;
+        currentSystemHostname = hostname;
+        currentSystemUsername = username;
+        currentSystemVersion = version;
+
+        inherit inputs;
+      };
     }
 
     # We expose some extra arguments so that our modules can parameterize
@@ -81,8 +90,6 @@ system rec {
         currentSystemVersion = version;
 
         inherit inputs;
-        inherit system;
-        inherit pkgs;
       };
     }
   ];

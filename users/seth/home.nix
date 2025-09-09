@@ -27,22 +27,34 @@
 
 # -------------------------------------------------------------------------------------------------
 
+{ inputs, ... }:
+
 { pkgs
 , lib
-, inputs
 , system
-, username
-, version
 , currentSystemVersion
 , ...
 }:
 
+let
+  inherit (pkgs.stdenv) isDarwin;
+  inherit (pkgs.stdenv) isLinux;
+
+  # For our MANPAGER env var
+  # https://github.com/sharkdp/bat/issues/1145
+  manpager = pkgs.writeShellScriptBin "manpager" (if isDarwin then ''
+    sh -c 'col -bx | bat -l man -p'
+  '' else ''
+    cat "$1" | col -bx | bat --language man --style plain
+  '');
+in
 {
   environment.systemPackages = [ inputs.agenix.packages.${system}.default ];
 
   imports = [
     ./packages.nix
     ./homebrew.nix
+    ./fonts.nix
     #   ./git.nix
     #   ./helix.nix
     #   ./himalaya.nix
@@ -54,38 +66,42 @@
 
 
   xdg.enable = true;
-  # TODO: move this to ./home-manager/modules/darwin or something
+
   xdg.configFile."hammerspoon" = lib.mkIf pkgs.stdenv.isDarwin {
     source = config/hammerspoon;
   };
+
   xdg.configFile."kanata" = lib.mkIf pkgs.stdenv.isDarwin {
     source = config/kanata;
   };
+
   xdg.configFile."nvim".source = config/nvim;
+
   xdg.configFile."tmux".source = config/tmux;
+
   xdg.configFile."ghostty".source = config/ghostty;
 
-  xdg.configFile."opencode/opencode.json".text = ''
-    {
-      "$schema": "https://opencode.ai/config.json",
-      "provider": {
-        "ollama": {
-          "npm": "@ai-sdk/openai-compatible",
-          "name": "Ollama (local)",
-          "options": {
-            "baseURL": "http://localhost:11434/v1"
-          },
-          "models": {
-            "gpt-oss:20b": {
-              "name": "GPT OSS:20b"
-            }
-          }
-        }
-      },
-      "model": "anthropic/claude-sonnet-4-20250514",
-      "small_model": "anthropic/claude-3-5-haiku-20241022"
-    }
-  '';
+  # xdg.configFile."opencode/opencode.json".text = ''
+  #   {
+  #     "$schema": "https://opencode.ai/config.json",
+  #     "provider": {
+  #       "ollama": {
+  #         "npm": "@ai-sdk/openai-compatible",
+  #         "name": "Ollama (local)",
+  #         "options": {
+  #           "baseURL": "http://localhost:11434/v1"
+  #         },
+  #         "models": {
+  #           "gpt-oss:20b": {
+  #             "name": "GPT OSS:20b"
+  #           }
+  #         }
+  #       }
+  #     },
+  #     "model": "anthropic/claude-sonnet-4-20250514",
+  #     "small_model": "anthropic/claude-3-5-haiku-20241022"
+  #   }
+  # '';
 
   home = {
     # Necessary for home-manager to work with flakes, otherwise it will
@@ -96,7 +112,13 @@
       else system.stateVersion;
 
     sessionVariables = {
-      ANTHROPIC_API_KEY = "op://Private/Claude/credential";
+      LANG = "en_US.UTF-8";
+      LC_CTYPE = "en_US.UTF-8";
+      LC_ALL = "en_US.UTF-8";
+      EDITOR = "nvim";
+      PAGER = "less -FirSwX";
+      MANPAGER = "${manpager}/bin/manpager";
+      ANTHROPIC_API_KEY = "op://Shared/Claude/credential";
     };
   };
 
@@ -108,20 +130,20 @@
     neovim.package = inputs.neovim-nightly-overlay.packages.${pkgs.system}.default;
 
     # REF: https://github.com/gbroques/dotfiles/blob/main/fish/.config/fish/config.fish
-    # fish = {
-    #   enable = true;
-    #   interactiveShellInit = ''
-    #     set fish_greeting # N/A
-    #   '';
-    #   shellAliases = {
-    #     opencode = "op run --no-masking -- opencode";
-    #   };
-    # };
+    fish = {
+      enable = true;
+      interactiveShellInit = ''
+        set fish_greeting # N/A
+      '';
+      shellAliases = {
+        opencode = "op run --no-masking -- opencode";
+      };
+    };
 
 
     chromium = {
       enable = true;
-      package = pkgs.brave-nightly;
+      package = pkgs.unstable.brave-nightly;
       extensions = [
         { id = "cjpalhdlnbpafiamejdnhcphjbkeiagm"; } # ublock origin
       ];
@@ -181,34 +203,34 @@
       enableFishIntegration = true;
       enableZshIntegration = true;
     };
-  };
 
+    ssh = { matchBlocks."* \"test -z $SSH_TTY\"".identityAgent = "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"; };
+    mise = {
+      enable = true;
+      enableFishIntegration = true;
+      enableZshIntegration = true;
 
-  programs.ssh.matchBlocks."* \"test -z $SSH_TTY\"".identityAgent = "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
+      settings = {
+        auto_install = true;
+      };
 
-  programs.mise = {
-    enable = true;
-    enableFishIntegration = true;
-    enableZshIntegration = true;
-
-    settings = {
-      auto_install = true;
-    };
-
-    globalConfig = {
-      tools = {
-        elixir = "1.18.4-otp-27"; # alts: 1.18.4-otp-28
-        erlang = "27.3.4.1"; # alts: 28.0.1
-        python = "3.13.4";
-        rust = "beta";
-        node = "lts";
-        pnpm = "latest";
-        aws-cli = "2";
-        claude = "latest";
-        gemini-cli = "latest";
+      globalConfig = {
+        tools = {
+          elixir = "1.18.4-otp-27"; # alts: 1.18.4-otp-28
+          erlang = "27.3.4.1"; # alts: 28.0.1
+          python = "3.13.4";
+          rust = "beta";
+          node = "lts";
+          pnpm = "latest";
+          aws-cli = "2";
+          claude = "latest";
+          gemini-cli = "latest";
+        };
       };
     };
+    bat.enable = true;
+    ripgrep.enable = true;
+    jq.enable = true;
   };
 
-  # services.ollama.enable = true;
 }

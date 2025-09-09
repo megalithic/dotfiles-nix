@@ -1,42 +1,14 @@
-{ self, pkgs, lib, currentSystemHostname, currentSystemUsername, ... }:
+# NOTE: docs for nix-darwin found
+# https://daiderd.com/nix-darwin/manual/index.html
+
+{ inputs, pkgs, currentSystemHostname, currentSystemUsername, ... }:
 
 {
-  nix.enable = false;
-  nix.extraOptions = ''
-    extra-platforms = x86_64-darwin aarch64-darwin
-  '';
-
-  nix.linux-builder.enable = true;
-  nix.settings = {
-    experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
-    accept-flake-config = true;
-    trusted-users = [ "${currentSystemUsername}" "root" ];
-  };
-  nix.channel = { enable = false; };
-  nix.gc = {
-    automatic = true;
-    interval = {
-      Weekday = 1;
-      Hour = 0;
-      Minute = 0;
-    };
-    options = "--delete-older-than 8d";
-  };
-
-  # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
-  nixpkgs.config.allowBroken = true;
-  nixpkgs.hostPlatform = "aarch64-darwin";
-
-  system.configurationRevision = self.rev or self.dirtyRev or null;
-
   users.users."${currentSystemUsername}" = {
     home = "/Users/${currentSystemUsername}";
-    shell = pkgs.zsh;
+    shell = pkgs.fish;
   };
+
 
   environment.systemPackages = [
     pkgs.just
@@ -47,14 +19,14 @@
     pkgs.fd
     pkgs.sd
     pkgs.zoxide
-    pkgs.docker
-    pkgs.docker-compose
-    pkgs.docker-credential-helpers
-    pkgs.colima
-    pkgs.uv
+    # pkgs.docker
+    # pkgs.docker-compose
+    # pkgs.docker-credential-helpers
+    # pkgs.colima
+    # pkgs.uv
     pkgs.defaultbrowser
     pkgs.firefox
-    pkgs.google-chrome
+    pkgs.chromium
     pkgs.brave-nightly
     pkgs.kanata
     pkgs.karabiner-elements.driver
@@ -62,21 +34,22 @@
     pkgs.obsidian
   ];
 
-  # environment.extraInit = ''
-  #   export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
-  # '';
-
   # Enable fish and zsh
   programs.zsh.enable = true;
   programs.fish.enable = true;
   programs._1password.enable = true;
 
-  # services = { };
+  # services.postgresql = {
+  #   enable = true;
+  #   package = pkgs.postgresql_17;
+  # };
 
-  fonts.packages = [
-    pkgs.atkinson-hyperlegible
-    pkgs.jetbrains-mono
-  ];
+  # extra host specs
+  # https://github.com/nix-darwin/nix-darwin/issues/1035
+  # networking.extraHosts = ''
+  #   127.0.0.1   kubernetes.docker.internal
+  #   127.0.0.1   kubernetes.default.svc.cluster.local
+  # '';
 
   system = {
     primaryUser = "${currentSystemUsername}";

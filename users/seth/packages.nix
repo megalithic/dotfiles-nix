@@ -23,6 +23,8 @@
       direnv
       docker
       docker-compose
+      docker-compose-language-service
+      dockerfile-language-server-nodejs
       eza
       fastfetch
       fd
@@ -35,20 +37,36 @@
       ghc
       git
       git-lfs
+      # remember to disable ipv6, otherwise super slow gcloud
+      # networksetup -setv6off Wi-Fi
+      (google-cloud-sdk.withExtraComponents (
+        with pkgs.google-cloud-sdk.components;
+        [
+          gke-gcloud-auth-plugin
+          package-go-module
+          pubsub-emulator
+        ]
+      ))
+      google-cloud-sql-proxy
       gum
       harper
       hyperfine
       jq
       jujutsu
       just
+      kubectl
+      kubectx
+      kubernetes-helm
       lazydocker
       lazygit
       lua
       lua-language-server
       lua5_1
       luarocks
+      mcphub # used in codecompanion
       markdown-oxide
       marksman
+      minikube
       mise-flake.packages.${system}.mise
       neovim
       neovim-remote
@@ -57,15 +75,20 @@
       nix-direnv
       nixd
       nixfmt-rfc-style
-      # node
-      # nodejs
-      nodePackages_latest.bash-language-server
+      nodejs_24
+      nodePackages.prettier
+      nodePackages.prettierd
+      nodePackages.vscode-json-languageserver
+      # nodePackages_latest.bash-language-server
       nodePackages_latest.typescript-language-server
       openssl
       pkg-config
-      pnpm
-      prettierd
-      python3
+      # pnpm
+      # prettierd
+      python313
+      python313Packages.ipython
+      python313Packages.sqlfmt
+      # vectorcode # used in codecompanion
       ripgrep
       ruff
       # rust
@@ -79,10 +102,15 @@
       smartcat
       sqlite-interactive
       stylua
+      tailscale
       tailwindcss-language-server
       taplo
+      terraform
+      terraform-ls
+      tflint
       tmux
       tokei
+      tree
       tree-sitter
       twm
       typescript
@@ -90,11 +118,13 @@
       unstable.devenv
       unstable.opencode
       vim
+      vim-language-server
       vscode-langservers-extracted
       vtsls
       weechat
       wget
       yaml-language-server
+      yamllint
       yarn
       zig
       zk
