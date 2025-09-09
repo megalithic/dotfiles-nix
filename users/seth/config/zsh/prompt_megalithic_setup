@@ -1,7 +1,6 @@
 #!/usr/bin/env zsh
 
-# HT: @akinsho / @sindresorhus/pure
-# REF: https://github.com/nicknisi/dotfiles/blob/main/zsh/prompt.zsh
+# HT: @akinsho / @sindresorhus / @nicknisi / @evantravers
 
 # NOTES:
 # git:
@@ -27,6 +26,9 @@
 # \e[25l  => will hide the text cursor
 # \e[25h  => will show the text cursor
 #
+#
+# TODO: add jj support, HT @evantravers: https://github.com/evantravers/dotfiles/blob/1edae2cf4192063c141f80ad974d989d931e0219/users/evantravers/starship.nix
+# TODO: fancying up the prompt even more: https://github.com/lewis6991/fancy-prompt
 
 autoload -U colors && colors # Enable colors in prompt
 
