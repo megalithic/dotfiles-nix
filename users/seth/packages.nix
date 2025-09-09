@@ -43,9 +43,9 @@
       just
       lazydocker
       lazygit
+      lua
       lua-language-server
       lua5_1
-      lua
       luarocks
       markdown-oxide
       marksman
@@ -53,14 +53,14 @@
       neovim
       neovim-remote
       nil
+      ninja
       nix-direnv
       nixd
       nixfmt-rfc-style
-      ninja
+      # node
+      # nodejs
       nodePackages_latest.bash-language-server
       nodePackages_latest.typescript-language-server
-      node
-      nodejs
       openssl
       pkg-config
       pnpm

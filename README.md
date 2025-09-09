@@ -1,7 +1,7 @@
-```sh
+```bash
 ┌┬┐┌─┐┌─┐┌─┐┬  ┬┌┬┐┬ ┬┬┌─┐
-│││├┤ │ ┬├─┤│  │ │ ├─┤││
-┴ ┴└─┘└─┘┴ ┴┴─┘┴ ┴ ┴ ┴┴└─┘nix'd
+│││├┤ │ ┬├─┤│  │ │ ├─┤││   (nix'd)
+┴ ┴└─┘└─┘┴ ┴┴─┘┴ ┴ ┴ ┴┴└─┘
 @megalithic 🗿
 ```
 
@@ -13,7 +13,7 @@
 
 ## 🚀 Installation
 
-Install [Determinate `nix` Installer](https://github.com/DeterminateSystems/nix-installer).
+Install [Determinate `nix`](https://github.com/DeterminateSystems/nix-installer).
 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
@@ -40,6 +40,7 @@ Available recipes:
     update          # updates brew, flake, and runs home-manager
     update-brew     # update and upgrade homebrew packages
     update-flake    # update your flake.lock
+    upgrade-nix     # upgrades nix
 
 ```
 

@@ -11,8 +11,14 @@ update-flake:
   else
     echo "committing flake.lock"
     git add flake.lock
-    git commit -m "chore(nix): update flake.lock"
+    git commit -m "chore(nix): updates flake.lock"
   fi
+
+# upgrades nix
+upgrade-nix:
+  sudo --preserve-env=PATH nix run \
+     --experimental-features "nix-command flakes" \
+     upgrade-nix \
 
 # run home-manager switch
 hm:

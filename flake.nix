@@ -46,34 +46,34 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    weechat-scripts = {
-      url = "github:weechat/scripts";
-      flake = false;
-    };
+    # weechat-scripts = {
+    #   url = "github:weechat/scripts";
+    #   flake = false;
+    # };
 
-    yazi = {
-      url = "github:sxyazi/yazi";
-    };
-
-    yazi-plugins = {
-      url = "github:yazi-rs/plugins";
-      flake = false;
-    };
-
-    yazi-glow = {
-      url = "github:Reledia/glow.yazi";
-      flake = false;
-    };
+    # yazi = {
+    #   url = "github:sxyazi/yazi";
+    # };
+    #
+    # yazi-plugins = {
+    #   url = "github:yazi-rs/plugins";
+    #   flake = false;
+    # };
+    #
+    # yazi-glow = {
+    #   url = "github:Reledia/glow.yazi";
+    #   flake = false;
+    # };
 
     nur = {
       url = "github:nix-community/nur";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    gh-gfm-preview = {
-      url = "github:thiagokokada/gh-gfm-preview";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    # gh-gfm-preview = {
+    #   url = "github:thiagokokada/gh-gfm-preview";
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    # };
 
     emmylua-analyzer-rust = {
       url = "github:EmmyLuaLs/emmylua-analyzer-rust";
@@ -82,12 +82,11 @@
 
     jujutsu.url = "github:martinvonz/jj";
 
-
     agenix = {
       url = "github:ryantm/agenix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    #
+
     # sops-nix = {
     #   url = "github:Mic92/sops-nix";
     #   inputs.nixpkgs.follows = "nixpkgs";
@@ -99,11 +98,9 @@
     { self, nixpkgs, home-manager, nix-darwin, nixpkgs-update, ... }@inputs:
     let
       overlays = [
-        # This overlay makes unstable packages available through pkgs.unstable
-
         inputs.jujutsu.overlays.default
-        # inputs.agenix.homeManagerModules.default
 
+        # This overlay makes unstable packages available through pkgs.unstable
         (final: prev: rec {
           unstable = import inputs.nixpkgs-unstable {
             inherit (prev) system;
@@ -129,13 +126,31 @@
         darwin = true;
         version = "25.05";
         script = ''
-          # HT: @mhanberg
-          # REF: https://github.com/mhanberg/.dotfiles/blob/main/flake.nix#L99-L104
-          git clone https://github.com/megalithic/dotfiles-nix ~/.dotfiles-nix
-          bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-          bash -c "$(softwareupdate --install-rosetta --agree-to-license)"
-          nix run nix-darwin -- switch --flake ~/.dotfiles-nix
-          nix run home-manager/master -- switch --flake ~/.dotfiles-nix
+                    # HT: @mhanberg
+                    # REF: https://github.com/mhanberg/.dotfiles/blob/main/flake.nix#L99-L104
+          # if command -v xcode-select >/dev/null; then
+          # 		log_info "Xcode already installed"
+          # 	else
+          # 		log_success "Installing Xcode"
+          # 		xcode-select --install
+          # 		if [[ "$ARCH" == 'arm64' ]]; then
+          # 			log_success "Installing Rosetta"
+          # 			sudo -u "$SUDO_USER" softwareupdate --install-rosetta --agree-to-license
+          # 		fi
+          # 	fi
+                    echo "hi from echo"
+                    cowsay "hi from cowsay"
+                    pkgs.cowsay "hi from pkgs.cowsay"
+                    bash -c "$(echo "echo from bash -c echo")"
+                    bash -c "$(cowsay "cowsay from bash -c cowsay")"
+
+                    # bash -c "$(xcode-select --install)"
+                    # bash -c "$(sudo -u $(whoami) softwareupdate --install-rosetta --agree-to-license)"
+                    # git clone https://github.com/megalithic/dotfiles-nix ~/.dotfiles-nix
+                    # bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+                    #
+                    # nix run nix-darwin -- switch --flake ~/.dotfiles-nix
+                    # nix run home-manager/master -- switch --flake ~/.dotfiles-nix
         '';
       };
     };

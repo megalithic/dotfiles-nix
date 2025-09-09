@@ -9,7 +9,10 @@
 hostname:
 { arch
 , username
-, script ? null
+, script ? ''
+    git clone https://github.com/megalithic/.dotfiles-nix ~/.dotfiles-nix
+    nix run home-manager/master -- switch --flake ~/.dotfiles-nix
+  ''
 , version ? "25.05"
 , darwin ? false
 ,
@@ -28,20 +31,18 @@ let
   userOSConfig = ../users/${username}/${if darwin then "darwin" else "nixos"}.nix;
   userHMConfig = ../users/${username}/home.nix;
 
-  # NixOS vs nix-darwin functionst
+  # NixOS vs nix-darwin functions
   system = if isDarwin then inputs.nix-darwin.lib.darwinSystem else nixpkgs.lib.nixosSystem;
   homeManager =
     if isDarwin then inputs.home-manager.darwinModules else inputs.home-manager.nixosModules;
-
-  init =
-    if (script != null) then pkgs.writeShellApplication { name = "init"; text = script; } else false;
+  init = pkgs.writeShellApplication { name = "init"; text = script; };
 in
 system rec {
   inherit arch;
 
   modules = [
-    # maybe run init scripts for a system
-    (if init then { type = "app"; program = "${init}/bin/init"; } else { })
+    # run init scripts for a system
+    { type = "app"; program = "${init}/bin/init"; }
 
     # Apply our overlays. Overlays are keyed by system type so we have
     # to go through and apply our system type. We do this first so
@@ -66,7 +67,7 @@ system rec {
     {
       home-manager.useGlobalPkgs = true;
       home-manager.useUserPackages = true;
-      home-manager.users.${username} = import userHMConfig { inherit version; };
+      home-manager.users.${username} = import userHMConfig;
       home-manager.extraSpecialArgs = { inherit inputs; inherit username; inherit version; };
     }
 

@@ -163,4 +163,18 @@ vim.api.nvim_create_autocmd("BufWinLeave", {
 
 Load_macros(M)
 
+M.augroup("Utilities", {
+  {
+    event = { "VimResized", "WinResized" },
+    desc = "Automatically resize windows in all tabpages when resizing Vim (and use our golden ratio resizer)",
+    command = function(args)
+      vim.cmd.tabdo("wincmd =")
+
+      vim.schedule(function()
+        pcall(mega.resize_windows, args.buf)
+      end)
+    end,
+  },
+})
+
 return M

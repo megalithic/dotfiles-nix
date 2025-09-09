@@ -44,13 +44,14 @@
     pkgs.fzf
     pkgs.git
     pkgs.ripgrep
+    pkgs.fd
+    pkgs.sd
     pkgs.zoxide
     pkgs.docker
     pkgs.docker-compose
     pkgs.docker-credential-helpers
     pkgs.colima
     pkgs.uv
-    pkgs.bartender
     pkgs.defaultbrowser
     pkgs.firefox
     pkgs.google-chrome
@@ -67,7 +68,7 @@
 
   # Enable fish and zsh
   programs.zsh.enable = true;
-  programs.fish.enable = false;
+  programs.fish.enable = true;
   programs._1password.enable = true;
 
   # services = { };
@@ -87,8 +88,8 @@
         show-process-indicators = true;
         show-recents = false;
         static-only = true;
-        mru-spaces = true;
-        tilesize = 39;
+        mru-spaces = false;
+        tilesize = 30;
       };
       finder = {
         AppleShowAllExtensions = true;
@@ -97,27 +98,79 @@
         ShowPathbar = true;
       };
       trackpad = {
-        Clicking = true;
-        TrackpadRightClick = true;
+        Clicking = true; # enable tap to click
+        TrackpadRightClick = true; # enable two finger right click
+        TrackpadThreeFingerDrag = true; # enable three finger drag
       };
       NSGlobalDomain = {
-        AppleKeyboardUIMode = 3;
+        "com.apple.swipescrolldirection" = false; # enable natural scrolling(default to true)
+        "com.apple.sound.beep.feedback" = 0; # disable beep sound when pressing volume up/down key
         "com.apple.keyboard.fnState" = true;
+        AppleKeyboardUIMode = 3; # Mode 3 enables full keyboard control.
+        AppleInterfaceStyle = "Dark";
+        ApplePressAndHoldEnabled = false; # enable press and hold
         NSAutomaticWindowAnimationsEnabled = false;
         NSWindowShouldDragOnGesture = true;
-        KeyRepeat = 2;
-        AppleInterfaceStyle = "Dark";
+        _HIHideMenuBar = false; # hide menu bar
+        # sets how long it takes before it starts repeating.
+        InitialKeyRepeat = 15; # normal minimum is 15 (225 ms), maximum is 120 (1800 ms)
+        # sets how fast it repeats once it starts.
+        KeyRepeat = 2; # normal minimum is 2 (30 ms), maximum is 120 (1800 ms)
       };
-      CustomUserPreferences."org.hammerspoon.Hammerspoon" = {
-        MJConfigFile = "~/.config/hammerspoon/init.lua";
+      CustomUserPreferences = {
+        NSGlobalDomain = {
+          # Add a context menu item for showing the Web Inspector in web views
+          WebKitDeveloperExtras = true;
+          # automatically switch to a new space when switching to the application
+          AppleSpacesSwitchOnActivate = true;
+        };
+        "com.apple.desktopservices" = {
+          # Avoid creating .DS_Store files on network or USB volumes
+          DSDontWriteNetworkStores = true;
+          DSDontWriteUSBStores = true;
+        };
+        "com.apple.spaces" = {
+          "spans-displays" = 0; # Display have seperate spaces
+        };
+        "com.apple.WindowManager" = {
+          EnableStandardClickToShowDesktop = 0; # Click wallpaper to reveal desktop
+          StandardHideDesktopIcons = 0; # Show items on desktop
+          HideDesktop = 0; # Do not hide items on desktop & stage manager
+          StageManagerHideWidgets = 0;
+          StandardHideWidgets = 0;
+        };
+        "com.apple.screensaver" = {
+          # Require password immediately after sleep or screen saver begins
+          askForPassword = 1;
+          askForPasswordDelay = 0;
+        };
+        # "com.apple.screencapture" = {
+        #   location = "~/Desktop";
+        #   type = "png";
+        # };
+        "com.apple.AdLib" = {
+          allowApplePersonalizedAdvertising = false;
+        };
+        # Prevent Photos from opening automatically when devices are plugged in
+        "com.apple.ImageCapture".disableHotPlug = true;
+
+        "org.hammerspoon.Hammerspoon" = {
+          MJConfigFile = "~/.config/hammerspoon/init.lua";
+        };
       };
-      loginwindow.LoginwindowText = "${currentSystemHostname}";
+
+      loginwindow = {
+        GuestEnabled = false; # disable guest user
+        SHOWFULLNAME = false; # show full name in login window
+        LoginwindowText = "${currentSystemHostname}";
+      };
     };
-    # karabiner-elements.enable = true;
-    # keyboard = {
-    #   enableKeyMapping = true;
-    #   remapCapsLockToControl = true;
-    # };
+
+    keyboard = {
+      enableKeyMapping = true;
+      # TODO: does kanata handle this now?
+      # remapCapsLockToControl = true;
+    };
   };
 
   security.pam.services.sudo_local.touchIdAuth = true;

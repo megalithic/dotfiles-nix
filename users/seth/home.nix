@@ -22,6 +22,8 @@
 # usage for agenix and neat interpolation of lua/nix: https://github.com/tomaskala/infra/blob/main/hosts/gordon/work.nix
 # 1password config things: https://github.com/jc00ke/dotfiles/blob/main/.config/1Password/ssh/agent.toml
 # ssh config to work with ssh/1password: https://github.com/jc00ke/dotfiles/blob/main/.ssh/config
+# develop.nix example: https://github.com/PorcoRosso85/dev/blob/main/develop.nix
+# brilliant use of mkOutOfStoreSymlink and other goodies in nix/darwin/home-manager: https://github.com/MattiasMTS/dotfiles/blob/main/home/default.nix#L12
 
 # -------------------------------------------------------------------------------------------------
 
@@ -29,6 +31,8 @@
 , lib
 , inputs
 , system
+, username
+, version
 , currentSystemVersion
 , ...
 }:
