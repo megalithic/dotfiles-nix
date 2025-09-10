@@ -1,10 +1,16 @@
+if true then
+  return {}
+end
+
 -- REF:
 --
 -- ollama-copilot??
 -- https://github.com/ViViDboarder/vim-settings/blob/master/neovim/lua/plugins/ollama_copilot.lua
 local key = function(mode, lhs, rhs, opts)
   local defaults = { silent = true, noremap = true }
-  if type(opts) == "string" then defaults.desc = opts end
+  if type(opts) == "string" then
+    defaults.desc = opts
+  end
   opts = type(opts) == "table" and opts or {}
   vim.keymap.set(mode, lhs, rhs, vim.tbl_extend("force", defaults, opts))
 end
@@ -73,15 +79,25 @@ return {
     config = function()
       local plugin = require("codecompanion")
 
-      local toggle_chat_buffer = function() plugin.toggle() end
+      local toggle_chat_buffer = function()
+        plugin.toggle()
+      end
 
-      local ask_inline = function() plugin.prompt("inline") end
+      local ask_inline = function()
+        plugin.prompt("inline")
+      end
 
-      local ask_lsp_diagnostics = function() plugin.prompt("lsp") end
+      local ask_lsp_diagnostics = function()
+        plugin.prompt("lsp")
+      end
 
-      local ask_explain_snippet = function() plugin.prompt("explain") end
+      local ask_explain_snippet = function()
+        plugin.prompt("explain")
+      end
 
-      local ask_fix_snippet = function() plugin.prompt("fix") end
+      local ask_fix_snippet = function()
+        plugin.prompt("fix")
+      end
 
       key({ "n", "v" }, "<localleader>aa", toggle_chat_buffer, "AI: Toggle chat buffer")
       key({ "n", "v" }, "<localleader>al", ask_lsp_diagnostics, "AI: Explain LSP diagnostics")
@@ -131,7 +147,9 @@ return {
                 modes = {
                   n = "q",
                 },
-                callback = function(chat) chat.ui:hide() end,
+                callback = function(chat)
+                  chat.ui:hide()
+                end,
                 description = "AI: Hide the chat buffer",
               },
             },
@@ -198,17 +216,47 @@ return {
       vim.api.nvim_create_autocmd("RecordingLeave", { command = "NeoCodeium enable" })
     end,
     keys = {
-      { "<C-y>", function() require("neocodeium").accept() end, mode = "i", desc = "󰚩 Accept full suggestion" },
-      { "<C-t>", function() require("neocodeium").accept_line() end, mode = "i", desc = "󰚩 Accept line" },
+      {
+        "<C-y>",
+        function()
+          require("neocodeium").accept()
+        end,
+        mode = "i",
+        desc = "󰚩 Accept full suggestion",
+      },
+      {
+        "<C-t>",
+        function()
+          require("neocodeium").accept_line()
+        end,
+        mode = "i",
+        desc = "󰚩 Accept line",
+      },
       {
         "<C-c>",
-        function() require("neocodeium").clear() end,
+        function()
+          require("neocodeium").clear()
+        end,
         mode = "i",
         desc = "󰚩 Clear suggestion",
       },
       -- { "<C-w>", function() require("neocodeium").accept_word() end, mode = "i", desc = "󰚩 Accept word" },
-      { "<A-n>", function() require("neocodeium").cycle(1) end, mode = "i", desc = "󰚩 Next suggestion" },
-      { "<A-p>", function() require("neocodeium").cycle(-1) end, mode = "i", desc = "󰚩 Prev suggestion" },
+      {
+        "<A-n>",
+        function()
+          require("neocodeium").cycle(1)
+        end,
+        mode = "i",
+        desc = "󰚩 Next suggestion",
+      },
+      {
+        "<A-p>",
+        function()
+          require("neocodeium").cycle(-1)
+        end,
+        mode = "i",
+        desc = "󰚩 Prev suggestion",
+      },
       {
         "<leader>oa",
         function()

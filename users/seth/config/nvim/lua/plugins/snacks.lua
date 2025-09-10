@@ -1,14 +1,25 @@
+if false then
+  return {}
+end
+
 return {
   {
     "folke/snacks.nvim",
+    lazy = false,
     opts = {
       picker = {
+        previewers = {
+          jj = {
+            delta = true,
+          },
+        },
         win = {
           -- input window
           input = {
             keys = {
               ["<Esc>"] = { "close", mode = { "n", "i" } },
               ["<C-c>"] = { "cancel", mode = "i" },
+              ["<CR>"] = { "edit_vsplit", mode = { "i", "n" } },
               -- ["<CR>"] = { "edit_vsplit", mode = { "i", "n" } },
               -- ["<c-e>"] = { "confirm", mode = { "i", "n" } },
             },
@@ -17,47 +28,186 @@ return {
           list = {
             wo = { foldcolumn = "0", number = false, relativenumber = false },
             keys = {
-              ["<CR>"] = { "edit_vsplit" },
+              ["<CR>"] = { "edit_vsplit", mode = { "i", "n" } },
               ["<c-e>"] = { "confirm" },
             },
           },
           preview = { wo = { foldcolumn = "0" } },
         },
         layout = { preset = "ivy" },
-        smart = {
-          multi = { "buffers", "recent", "files" },
-          format = "file", -- use `file` format for all sources
-          matcher = {
-            cwd_bonus = true, -- boost cwd matches
-            frecency = true, -- use frecency boosting
-            sort_empty = true, -- sort even when the filter is empty
+        sources = {
+          smart = {
+            multi = { "buffers", "recent", "files" },
+            sort = { fields = { "source_id" } }, -- source_id:asc, source_id:desc
+            format = "file", -- use `file` format for all sources
+            matcher = {
+              cwd_bonus = true, -- boost cwd matches
+              frecency = true, -- use frecency boosting
+              sort_empty = true, -- sort even when the filter is empty
+            },
+            transform = "unique_file",
           },
-          transform = "unique_file",
-        },
-        undo = {
-          finder = "vim_undo",
-          format = "undo",
-          preview = "diff",
-          confirm = "item_action",
-          win = {
-            preview = { wo = { number = false, relativenumber = false, signcolumn = "no" } },
-            input = {
-              keys = {
-                ["<c-y>"] = { "yank_add", mode = { "n", "i" } },
-                ["<c-s-y>"] = { "yank_del", mode = { "n", "i" } },
+          undo = {
+            finder = "vim_undo",
+            format = "undo",
+            preview = "diff",
+            confirm = "item_action",
+            win = {
+              preview = { wo = { number = false, relativenumber = false, signcolumn = "no" } },
+              input = {
+                keys = {
+                  ["<c-y>"] = { "yank_add", mode = { "n", "i" } },
+                  ["<c-s-y>"] = { "yank_del", mode = { "n", "i" } },
+                },
               },
             },
+            actions = {
+              yank_add = { action = "yank", field = "added_lines" },
+              yank_del = { action = "yank", field = "removed_lines" },
+            },
+            icons = { tree = { last = "┌╴" } }, -- the tree is upside down
+            diff = {
+              ctxlen = 4,
+              ignore_cr_at_eol = true,
+              ignore_whitespace_change_at_eol = true,
+              indent_heuristic = true,
+            },
           },
-          actions = {
-            yank_add = { action = "yank", field = "added_lines" },
-            yank_del = { action = "yank", field = "removed_lines" },
-          },
-          icons = { tree = { last = "┌╴" } }, -- the tree is upside down
-          diff = {
-            ctxlen = 4,
-            ignore_cr_at_eol = true,
-            ignore_whitespace_change_at_eol = true,
-            indent_heuristic = true,
+          jj_log = {
+            title = "jj log",
+            supports_live = false,
+            reversed = nil,
+            cwd = nil,
+            args = nil,
+            finder = function(opts, ctx)
+              local cwd
+              cwd = opts and opts.cwd or vim.uv.cwd() or "."
+              cwd = svim.fs.normalize(cwd)
+              cwd = vim.fs.root(cwd or 0, ".jj")
+              if not cwd then
+                Snacks.notify.error("Cannot find `.jj` folder. To initialize a repository use `jj git init .`")
+                ctx.picker.closed = true
+                return {}
+              end
+              local template = [[
+            separate("\0",
+              self.change_id().shortest(),
+              self.change_id().shortest(8),
+              commit_timestamp(self).format("%Y-%m-%d %H:%M"),
+              commit_id.shortest(8),
+              if(description,
+                description.first_line(),
+                label(
+                  if(empty, "empty"),
+                  if(root, "root()", description_placeholder)
+                ),
+              )
+            ) ++ "\n"
+          ]]
+              local cmd = "jj"
+              local args = {
+                "log",
+                "--color=never",
+                "--no-graph",
+                "--template=" .. template,
+              }
+              if opts.reversed then
+                table.insert(args, "--reversed")
+              end
+              vim.list_extend(args, opts.args or {})
+              return require("snacks.picker.source.proc").proc({
+                opts,
+                {
+                  cmd = cmd,
+                  args = args,
+                  cwd = cwd,
+                  ---@param item snacks.picker.finder.Item
+                  transform = function(item)
+                    local data = vim.split(item.text, "\0")
+                    item.cwd = cwd
+                    item.change_id_prefix = data[1]
+                    item.change_id = data[2]
+                    item.date = data[3]
+                    item.commit = data[4]
+                    item.description = data[5]
+                  end,
+                },
+              }, ctx)
+            end,
+            format = function(item)
+              local ret = {} ---@type snacks.picker.Highlight[]
+              table.insert(ret, { item.change_id_prefix, "SnacksPickerGitCommit" })
+              table.insert(ret, { item.change_id:sub(#item.change_id_prefix + 1), "SnacksPickerDimmed" })
+              table.insert(ret, { " " })
+              table.insert(ret, { item.date, "SnacksPickerGitDate" })
+              table.insert(ret, { " " })
+              table.insert(ret, { item.commit, "SnacksPickerGitStatusModified" })
+              table.insert(ret, { " " })
+              local desc = item.description ---@type string
+              local desc_hl = "SnacksPickerGitMsg"
+              if desc == "root()" then
+                desc_hl = "SnacksPickerGitStatusStaged"
+              end
+              if desc == "(no description set)" then
+                desc_hl = "SnacksPickerDimmed"
+              end
+              -- Highlight description
+              -- See https://github.com/folke/snacks.nvim/blob/bc0630e43be5699bb94dadc302c0d21615421d93/lua/snacks/picker/format.lua#L179-L204
+              local type, scope, breaking, body = desc:match("^(%S+)%s*(%(.-%))(!?):%s*(.*)$")
+              if not type then
+                type, breaking, body = desc:match("^(%S+)(!?):%s*(.*)$")
+              end
+              if type and body then
+                local dimmed = vim.tbl_contains({ "chore", "bot", "build", "ci", "style", "test" }, type)
+                desc_hl = dimmed and "SnacksPickerDimmed" or "SnacksPickerGitMsg"
+                table.insert(ret, {
+                  type,
+                  breaking ~= "" and "SnacksPickerGitBreaking"
+                    or dimmed and "SnacksPickerBold"
+                    or "SnacksPickerGitType",
+                })
+                if scope and scope ~= "" then
+                  table.insert(ret, { scope, "SnacksPickerGitScope" })
+                end
+                if breaking ~= "" then
+                  table.insert(ret, { "!", "SnacksPickerGitBreaking" })
+                end
+                table.insert(ret, { ":", "SnacksPickerDelim" })
+                table.insert(ret, { " " })
+                desc = body
+              end
+              table.insert(ret, { desc, desc_hl })
+              Snacks.picker.highlight.markdown(ret)
+              Snacks.picker.highlight.highlight(ret, { ["#%d+"] = "SnacksPickerGitIssue" })
+              return ret
+            end,
+            preview = function(ctx)
+              local M = require("snacks.picker.preview")
+              local cmd = { "jj", "log", "-r=" .. ctx.item.change_id }
+              local preview_opts = vim.tbl_deep_extend("keep", ctx.picker.opts.previewers.jj or {}, {
+                delta = false,
+              })
+              if preview_opts.delta then
+                -- TIP: Disable noisy warning
+                -- jj config set --user 'merge-tools.delta.diff-expected-exit-codes' '[0, 1]'
+                table.insert(cmd, "--tool=delta")
+              else
+                table.insert(cmd, "--git")
+              end
+              M.cmd(cmd, ctx)
+            end,
+            confirm = function(picker, item)
+              picker:close()
+              local target = item.change_id
+              vim.system({ "jj", "edit", target }, { cwd = item.cwd }, function(sys)
+                if sys.code == 0 then
+                  Snacks.notify.info("Edit " .. target, { title = "Snacks Picker" })
+                else
+                  Snacks.notify.error(sys.stderr)
+                end
+              end)
+            end,
+            sort = { fields = { "score:desc", "idx" } },
           },
         },
       },
@@ -74,7 +224,9 @@ return {
               Snacks.notify.warn("No file under cursor")
             else
               self:hide()
-              vim.schedule(function() vim.cmd("e " .. f) end)
+              vim.schedule(function()
+                vim.cmd("e " .. f)
+              end)
             end
           end,
           term_normal = {
@@ -139,49 +291,57 @@ return {
       -- if vim.g.picker ~= "snacks" then return {} end
 
       local Snacks = require("snacks")
-      -- local function with_title(opts, extra)
-      --   extra = extra or {}
-      --   local path = opts.cwd or opts.path or extra.cwd or extra.path or nil
-      --   local title = ""
-      --   local buf_path = vim.fn.expand("%:p:h")
-      --   local cwd = vim.fn.getcwd()
-      --   if extra["title"] ~= nil then
-      --     title = fmt("%s (%s):", extra.title, vim.fs.basename(path or vim.uv.cwd() or ""))
-      --   else
-      --     if path ~= nil and buf_path ~= cwd then
-      --       title = require("plenary.path"):new(buf_path):make_relative(cwd)
-      --     else
-      --       title = vim.fn.fnamemodify(cwd, ":t")
-      --     end
-      --   end
 
-      --   return vim.tbl_extend("force", opts, {
-      --     win = { title = title },
-      --   }, extra or {})
-      -- end
+      local function with_title(opts)
+        -- extra = extra or {}
+        -- local path = opts.cwd or opts.path or extra.cwd or extra.path or nil
+        -- local title = ""
+        -- local buf_path = vim.fn.expand("%:p:h")
+        -- local cwd = vim.fn.getcwd()
+        -- if extra["title"] ~= nil then
+        --   title = fmt("%s (%s):", extra.title, vim.fs.basename(path or vim.uv.cwd() or ""))
+        -- else
+        --   if path ~= nil and buf_path ~= cwd then
+        --     title = require("plenary.path"):new(buf_path):make_relative(cwd)
+        --   else
+        --     title = vim.fn.fnamemodify(cwd, ":t")
+        --   end
+        -- end
+        --
+        -- return vim.tbl_extend("force", opts, {
+        --   win = { title = title },
+        -- }, extra or {})
+        return opts
+      end
 
-      local function desc(d) return "[+pick (snacks)] " .. d end
+      local function desc(d)
+        return "[+pick (snacks)] " .. d
+      end
+
       return {
+        -- {
+        --   "yoz",
+        --   function()
+        --     Snacks.zen.zoom()
+        --   end,
+        --   desc = "toggle windowzoom",
+        -- },
         {
-          "yoz",
-          function() Snacks.zen.zoom() end,
-          desc = "toggle windowzoom",
-        },
-        {
-          "<leader>fF",
+          "<leader>ff",
           function()
-            Snacks.picker.smart({
-              -- exclude = { "@types/" },
+            Snacks.picker.smart(with_title({
+              title = "find files (smartly)",
               hidden = false,
               ignored = false,
+              filter = { cwd = true },
               matcher = {
                 cwd_bonus = true,
                 frecency = true,
                 sort_empty = true,
               },
-            })
+            }))
           end,
-          desc = desc("find files (smart)"),
+          desc = desc("find files (smartly)"),
         },
         -- {
         --   "<leader>fF",
@@ -210,7 +370,9 @@ return {
         -- },
         {
           "<leader>fu",
-          function() Snacks.picker.undo() end,
+          function()
+            Snacks.picker.undo({ layout = "ivy" })
+          end,
           desc = desc("undo"),
         },
         -- {
@@ -224,24 +386,17 @@ return {
         --   desc = desc("undo"),
         -- },
         {
-          "<leader>ss",
-          function() Snacks.picker.grep({ hidden = false, ignored = false }) end,
+          "<leader>a",
+          function()
+            Snacks.picker.grep({ hidden = false, ignored = false, layout = "ivy" })
+          end,
           desc = "grep",
         },
         {
-          "<leader>sS",
-          function() Snacks.picker.grep_word({ hidden = false, ignored = false }) end,
-          desc = "visual selection or word",
-          mode = { "n", "x" },
-        },
-        {
-          "<leader>sa",
-          function() Snacks.picker.grep({ hidden = true, ignored = true }) end,
-          desc = "grep",
-        },
-        {
-          "<leader>sA",
-          function() Snacks.picker.grep_word({ hidden = true, ignored = true }) end,
+          "<leader>A",
+          function()
+            Snacks.picker.grep_word({ hidden = false, ignored = false, layout = "ivy" })
+          end,
           desc = "visual selection or word",
           mode = { "n", "x" },
         },

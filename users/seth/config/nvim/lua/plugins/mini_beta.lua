@@ -1,3 +1,7 @@
+if true then
+  return {}
+end
+
 ---Check if buffers are unsaved and prompt to save changes, continue without saving, or cancel operation
 ---@param all_buffers? boolean Check all buffers, or only current. Defaults to `true`
 ---@return boolean proceed `true` if OK to continue with action, `false` if user cancelled
@@ -125,6 +129,32 @@ local function mini_clue_setup()
       { mode = "n", keys = "<leader>o", desc = "+orgmode" },
       { mode = "n", keys = "<leader>s", desc = "+session" },
       { mode = "n", keys = "<leader>t", desc = "+toggle" },
+    },
+
+    window = {
+      -- Floating window config
+      config = function(bufnr)
+        local max_width = 0
+        for _, line in ipairs(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)) do
+          max_width = math.max(max_width, vim.fn.strchars(line))
+        end
+
+        -- Keep some right padding.
+        max_width = max_width + 2
+
+        return {
+          border = "rounded",
+          -- Dynamic width capped at 45.
+          width = math.min(45, max_width),
+        }
+      end,
+
+      -- Delay before showing clue window
+      delay = 300,
+
+      -- Keys to scroll inside the clue window
+      scroll_down = "<C-d>",
+      scroll_up = "<C-u>",
     },
   })
 end
@@ -650,7 +680,8 @@ end
 return {
   "echasnovski/mini.nvim",
   version = false,
-  priority = 100,
+  lazy = false,
+  priority = 1000,
   config = function()
     mini_ai_setup()
 
@@ -658,9 +689,7 @@ return {
 
     mini_bracketed_setup()
 
-    if vim.fn.has("nvim-0.10") ~= 1 then
-      require("mini.comment").setup({})
-    end
+    require("mini.comment").setup({})
 
     mini_diff_setup()
 

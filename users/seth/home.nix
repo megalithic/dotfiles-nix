@@ -91,117 +91,146 @@ in
       MANPAGER = "${manpager}/bin/manpager";
       ANTHROPIC_API_KEY = "op://Shared/Claude/credential";
     };
-  };
 
-  programs = {
-    # Let Home Manager install and manage itself.
-    home-manager.enable = true;
-
-    # get nightly
-    neovim.package = inputs.neovim-nightly-overlay.packages.${pkgs.system}.default;
-
-    # REF: https://github.com/gbroques/dotfiles/blob/main/fish/.config/fish/config.fish
-    fish = {
-      enable = true;
-      interactiveShellInit = ''
-        set fish_greeting # N/A
-      '';
-      shellAliases = {
-        opencode = "op run --no-masking -- opencode";
+    file = {
+      ".config/starship.toml" = {
+        source = ./config/starship.toml;
       };
     };
 
+    programs = {
+      # Let Home Manager install and manage itself.
+      home-manager.enable = true;
 
-    chromium = {
-      enable = true;
-      package = pkgs.unstable.brave-nightly;
-      extensions = [
-        { id = "cjpalhdlnbpafiamejdnhcphjbkeiagm"; } # ublock origin
-      ];
-      commandLineArgs = [
-        "--disable-features=WebRtcAllowInputVolumeAdjustment"
-      ];
-    };
+      # get nightly
+      neovim = {
+        enable = true;
+        package = inputs.neovim-nightly-overlay.packages.${pkgs.system}.default;
+        defaultEditor = true;
+        # Use init.lua for standard neovim settings
+        extraLuaConfig = lib.fileContents config/nvim/init.lua;
+      };
 
-    # alts: https://github.com/nmattia/niv?tab=readme-ov-file#getting-started
-    nh = {
-      enable = true;
-      package = pkgs.unstable.nh;
-      clean.enable = true;
-      flake = ../../.;
-    };
-
-    direnv = {
-      enable = true;
-      nix-direnv.enable = true;
-    };
-
-    jujutsu = {
-      enable = true;
-      package = pkgs.unstable.jujutsu;
-      settings = {
-        user = {
-          name = "Seth Messer";
-          email = "seth@megalithic.io";
-        };
-        ui.default-command = "log";
-        fix.tools.nixfmt = {
-          command = [ "${lib.getExe pkgs.nixfmt-rfc-style}" "$path" ];
-          patterns = [ "glob:'**/*.nix'" ];
-        };
-        templates.draft_commit_description = ''
-          concat(
-            coalesce(description, default_commit_description, "\n"),
-            surround(
-              "\nJJ: This commit contains the following changes:\n", "",
-              indent("JJ:     ", diff.stat(72)),
-            ),
-            "\nJJ: ignore-rest\n",
-            diff.git(),
-          )
+      # REF: https://github.com/gbroques/dotfiles/blob/main/fish/.config/fish/config.fish
+      fish = {
+        enable = true;
+        interactiveShellInit = ''
+          set fish_greeting # N/A
         '';
-      };
-    };
-
-    yazi = {
-      enable = true;
-      enableFishIntegration = true;
-      enableZshIntegration = true;
-    };
-
-    zoxide = {
-      enable = true;
-      enableFishIntegration = true;
-      enableZshIntegration = true;
-    };
-
-    ssh = { matchBlocks."* \"test -z $SSH_TTY\"".identityAgent = "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"; };
-    mise = {
-      enable = true;
-      enableFishIntegration = true;
-      enableZshIntegration = true;
-
-      settings = {
-        auto_install = true;
-      };
-
-      globalConfig = {
-        tools = {
-          elixir = "1.18.4-otp-27"; # alts: 1.18.4-otp-28
-          erlang = "27.3.4.1"; # alts: 28.0.1
-          python = "3.13.4";
-          rust = "beta";
-          node = "lts";
-          pnpm = "latest";
-          aws-cli = "2";
-          claude = "latest";
-          gemini-cli = "latest";
+        shellAliases = {
+          opencode = "op run --no-masking -- opencode";
         };
       };
-    };
-    bat.enable = true;
-    ripgrep.enable = true;
-    jq.enable = true;
-  };
 
-}
+
+      chromium = {
+        enable = true;
+        package = pkgs.unstable.brave-nightly;
+        extensions = [
+          { id = "cjpalhdlnbpafiamejdnhcphjbkeiagm"; } # ublock origin
+        ];
+        commandLineArgs = [
+          "--disable-features=WebRtcAllowInputVolumeAdjustment"
+        ];
+      };
+
+      # alts: https://github.com/nmattia/niv?tab=readme-ov-file#getting-started
+      nh = {
+        enable = true;
+        package = pkgs.unstable.nh;
+        clean.enable = true;
+        flake = ../../.;
+      };
+
+      direnv = {
+        enable = true;
+        nix-direnv.enable = true;
+      };
+
+      jujutsu = {
+        enable = true;
+        package = pkgs.unstable.jujutsu;
+        settings = {
+          user = {
+            name = "Seth Messer";
+            email = "seth@megalithic.io";
+          };
+          ui.default-command = "log";
+          fix.tools.nixfmt = {
+            command = [ "${lib.getExe pkgs.nixfmt-rfc-style}" "$path" ];
+            patterns = [ "glob:'**/*.nix'" ];
+          };
+          templates.draft_commit_description = ''
+            concat(
+              coalesce(description, default_commit_description, "\n"),
+              surround(
+                "\nJJ: This commit contains the following changes:\n", "",
+                indent("JJ:     ", diff.stat(72)),
+              ),
+              "\nJJ: ignore-rest\n",
+              diff.git(),
+            )
+          '';
+        };
+      };
+
+      programs.tmux = {
+        enable = true;
+        escapeTime = 10;
+        prefix = "C-space";
+        sensibleOnTop = false;
+        shell = "${pkgs.fish}/bin/fish";
+        # shell = "${pkgs.zsh}/bin/zsh";
+        terminal = "xterm-ghostty";
+
+        extraConfig = lib.fileContents config/tmux/tmux.conf;
+
+        plugins = with pkgs.tmuxPlugins; [
+          pain-control
+          sessionist
+          yank
+        ];
+      };
+
+      yazi = {
+        enable = true;
+        enableFishIntegration = true;
+        enableZshIntegration = true;
+      };
+
+      zoxide = {
+        enable = true;
+        enableFishIntegration = true;
+        enableZshIntegration = true;
+      };
+
+      ssh = { matchBlocks."* \"test -z $SSH_TTY\"".identityAgent = "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"; };
+      mise = {
+        enable = true;
+        enableFishIntegration = true;
+        enableZshIntegration = true;
+
+        settings = {
+          auto_install = true;
+        };
+
+        globalConfig = {
+          tools = {
+            elixir = "1.18.4-otp-27"; # alts: 1.18.4-otp-28
+            erlang = "27.3.4.1"; # alts: 28.0.1
+            python = "3.13.4";
+            rust = "beta";
+            node = "lts";
+            pnpm = "latest";
+            aws-cli = "2";
+            claude = "latest";
+            gemini-cli = "latest";
+          };
+        };
+      };
+      bat.enable = true;
+      ripgrep.enable = true;
+      jq.enable = true;
+    };
+
+  }

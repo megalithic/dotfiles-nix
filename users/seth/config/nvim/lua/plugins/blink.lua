@@ -110,14 +110,13 @@ return {
           default = function(_ctx)
             local success, node = pcall(vim.treesitter.get_node)
             if success and node and vim.tbl_contains({ "comment", "line_comment", "block_comment" }, node:type()) then
-              return { "spell", "path", "buffer" }
+              return { "spell", "path", "buffer", "codecompanion", "opencode" }
             else
-              return { "lsp", "path", "snippets", "spell", "buffer" }
+              return { "lsp", "path", "snippets", "spell", "buffer", "codecompanion", "opencode" }
             end
           end,
 
           per_filetype = {
-            codecompanion = { "codecompanion" }, -- Add any other source to include here
             sql = { "lsp", "dadbod", "dbee", "buffer" }, -- Add any other source to include here
           },
           providers = {
