@@ -1,5 +1,0 @@
-${${(A)tmparr::=${(f)$(<$ZSDIR/data/17_recommended_0_assignment)}}+}\
-%b\$0 assignment is missing, it should be: {nl}\
-{err}·{txt}$(zsqb -o $tmparr[@])
-
-

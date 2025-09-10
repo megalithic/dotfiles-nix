@@ -1,6 +1,8 @@
 # config suggestions:
 # https://github.com/jj-vcs/jj/discussions/5812
 
+"$schema" = "https://jj-vcs.github.io/jj/v0.33.0/config-schema.json"
+
 [user]
 name = "Seth Messer"
 email = "seth@megalithic.io"
