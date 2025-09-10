@@ -9,7 +9,6 @@
     shell = pkgs.fish;
   };
 
-
   environment.systemPackages = [
     pkgs.just
     pkgs.bat
@@ -51,6 +50,10 @@
   #   127.0.0.1   kubernetes.default.svc.cluster.local
   # '';
 
+  networking.hostName = "${currentSystemHostname}";
+  time.timeZone = "America/New_York";
+
+  # REF: https://github.com/appaquet/dotfiles/blob/master/darwin/mbpapp/system.nix
   system = {
     primaryUser = "${currentSystemUsername}";
     defaults = {
@@ -64,11 +67,16 @@
         mru-spaces = false;
         tilesize = 30;
       };
+      spaces = {
+        spans-displays = false; # each screen has their own spaces
+      };
       finder = {
         AppleShowAllExtensions = true;
         FXDefaultSearchScope = "SCcf";
         FXEnableExtensionChangeWarning = false;
         ShowPathbar = true;
+        QuitMenuItem = true; # enable quit menu item
+        ShowStatusBar = true; # show status bar
       };
       trackpad = {
         Clicking = true; # enable tap to click
@@ -101,9 +109,6 @@
           # Avoid creating .DS_Store files on network or USB volumes
           DSDontWriteNetworkStores = true;
           DSDontWriteUSBStores = true;
-        };
-        "com.apple.spaces" = {
-          "spans-displays" = 0; # Display have seperate spaces
         };
         "com.apple.WindowManager" = {
           EnableStandardClickToShowDesktop = 0; # Click wallpaper to reveal desktop

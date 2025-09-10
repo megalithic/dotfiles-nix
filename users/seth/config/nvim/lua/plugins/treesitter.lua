@@ -1,3 +1,7 @@
+if vim.g.treesitter_branch == "master" then
+  return {}
+end
+
 local include_surrounding_whitespace = {
   ["@function.outer"] = true,
   ["@class.outer"] = true,

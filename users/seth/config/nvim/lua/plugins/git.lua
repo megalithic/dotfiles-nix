@@ -5,22 +5,49 @@ local git_keys = {}
 
 if vim.g.gitter == "neogit" then
   git_keys = {
-    { "<leader>gS", function() require("neogit").open() end, desc = "neogit: open status buffer" },
-    { "<leader>gg", function() require("neogit").open() end, desc = "neogit: open status buffer" },
+    {
+      "<leader>gS",
+      function()
+        require("neogit").open()
+      end,
+      desc = "neogit: open status buffer",
+    },
+    {
+      "<leader>gg",
+      function()
+        require("neogit").open()
+      end,
+      desc = "neogit: open status buffer",
+    },
     {
       "<localleader>gc",
-      function() require("neogit").open({ "commit", "-v" }) end,
+      function()
+        require("neogit").open({ "commit", "-v" })
+      end,
       desc = "neogit: open commit buffer",
     },
-    { "<localleader>gl", function() require("neogit").popups.pull.create() end, desc = "neogit: pull commit(s)" },
-    { "<localleader>gp", function() require("neogit").popups.push.create() end, desc = "neogit: push commit(s)" },
+    {
+      "<localleader>gl",
+      function()
+        require("neogit").popups.pull.create()
+      end,
+      desc = "neogit: pull commit(s)",
+    },
+    {
+      "<localleader>gp",
+      function()
+        require("neogit").popups.push.create()
+      end,
+      desc = "neogit: push commit(s)",
+    },
     {
       "<localleader>gbb",
       function()
         local line = vim.api.nvim_win_get_cursor(0)[1]
         local line_range = line .. "," .. line
 
-        local annotation = vim.fn.systemlist("git annotate -M --porcelain " .. vim.fn.expand("%:p") .. " -L" .. line_range)[1]
+        local annotation =
+          vim.fn.systemlist("git annotate -M --porcelain " .. vim.fn.expand("%:p") .. " -L" .. line_range)[1]
         if vim.v.shell_error ~= 0 then
           vim.notify(annotation, vim.log.levels.ERROR)
           return
@@ -87,6 +114,13 @@ elseif vim.g.gitter == "fugitive" then
 end
 
 return {
+  {
+    "julienvincent/hunk.nvim",
+    cmd = { "DiffEditor" },
+    config = function()
+      require("hunk").setup()
+    end,
+  },
   -- Here is a more advanced example where we pass configuration
   -- options to `gitsigns.nvim`. This is equivalent to the following Lua:
   --    require('gitsigns').setup({ ... })
@@ -154,21 +188,39 @@ return {
       on_attach = function(bufnr)
         local gs = package.loaded.gitsigns
 
-        local function map(mode, l, r, opts) vim.keymap.set(mode, l, r, opts) end
-        local function nmap(l, r, desc) map("n", l, r, { desc = desc }) end
-        local function bmap(l, r, desc) map("n", l, r, { buffer = bufnr, desc = desc }) end
-        local function hmap(l, r, desc) map({ "n", "v" }, l, r, { buffer = bufnr, desc = desc }) end
+        local function map(mode, l, r, opts)
+          vim.keymap.set(mode, l, r, opts)
+        end
+        local function nmap(l, r, desc)
+          map("n", l, r, { desc = desc })
+        end
+        local function bmap(l, r, desc)
+          map("n", l, r, { buffer = bufnr, desc = desc })
+        end
+        local function hmap(l, r, desc)
+          map({ "n", "v" }, l, r, { buffer = bufnr, desc = desc })
+        end
 
-        nmap("<leader>gm", function() gs.setqflist("all") end, "git: list modified in quickfix")
+        nmap("<leader>gm", function()
+          gs.setqflist("all")
+        end, "git: list modified in quickfix")
 
         map("n", "[h", function()
-          if vim.wo.diff then return "[c" end
-          vim.schedule(function() gs.nav_hunk("prev") end)
+          if vim.wo.diff then
+            return "[c"
+          end
+          vim.schedule(function()
+            gs.nav_hunk("prev")
+          end)
           return "<Ignore>"
         end, { expr = true, desc = "git: prev hunk" })
         map("n", "]h", function()
-          if vim.wo.diff then return "]c" end
-          vim.schedule(function() gs.nav_hunk("next") end)
+          if vim.wo.diff then
+            return "]c"
+          end
+          vim.schedule(function()
+            gs.nav_hunk("next")
+          end)
           return "<Ignore>"
         end, { expr = true, desc = "git: next hunk" })
 
@@ -181,17 +233,27 @@ return {
         hmap("<localleader>hw", gs.toggle_word_diff, "git(hunk): toggle word diff")
 
         hmap("<localleader>gs", gs.stage_hunk, "git(hunk): stage hunk")
-        map("x", "<localleader>gs", function() gs.stage_hunk({ vim.fn.line("."), vim.fn.line("v") }) end)
+        map("x", "<localleader>gs", function()
+          gs.stage_hunk({ vim.fn.line("."), vim.fn.line("v") })
+        end)
         hmap("<localleader>gr", gs.reset_hunk, "git(hunk): reset hunk")
-        map("x", "<localleader>gr", function() gs.reset_hunk({ vim.fn.line("."), vim.fn.line("v") }) end)
+        map("x", "<localleader>gr", function()
+          gs.reset_hunk({ vim.fn.line("."), vim.fn.line("v") })
+        end)
         hmap("<localleader>gu", gs.undo_stage_hunk, "git(hunk): undo staged hunk")
-        map("x", "<localleader>gu", function() gs.undo_stage_hunk({ vim.fn.line("."), vim.fn.line("v") }) end)
+        map("x", "<localleader>gu", function()
+          gs.undo_stage_hunk({ vim.fn.line("."), vim.fn.line("v") })
+        end)
 
         bmap("<localleader>gS", gs.stage_buffer, "git: stage buffer")
         bmap("<localleader>gR", gs.reset_buffer, "git: reset buffer")
 
-        bmap("<localleader>gd", function() gs.diffthis() end, "git: diff this")
-        bmap("<localleader>gD", function() gs.diffthis("~") end, "git: diff this against ~")
+        bmap("<localleader>gd", function()
+          gs.diffthis()
+        end, "git: diff this")
+        bmap("<localleader>gD", function()
+          gs.diffthis("~")
+        end, "git: diff this against ~")
 
         -- Text object
         map({ "o", "x" }, "ih", ":<C-U>Gitsigns select_hunk<CR>", { desc = "git: select hunk" })
@@ -220,7 +282,9 @@ return {
             buffer = vim.api.nvim_get_current_buf(),
             silent = true,
           }
-          local function map(mode, lhs, rhs) vim.keymap.set(mode, lhs, rhs, opts) end
+          local function map(mode, lhs, rhs)
+            vim.keymap.set(mode, lhs, rhs, opts)
+          end
           map("n", "q", "<cmd>cquit!<CR>")
           map("i", "<C-d>", "<Plug>(committia-scroll-diff-down-half)")
           map("i", "<C-u>", "<Plug>(committia-scroll-diff-up-half)")
@@ -420,7 +484,9 @@ return {
               end)
             end, { desc = "git-[c]onflict: next conflict" })
 
-            if pcall(require, "fidget") then vim.cmd("Fidget suppress true") end
+            if pcall(require, "fidget") then
+              vim.cmd("Fidget suppress true")
+            end
             mega.notify(string.format("%s Conflicts detected.", icons.lsp.error))
           end,
         },
@@ -429,7 +495,9 @@ return {
           pattern = { "GitConflictResolved" },
           command = function(args)
             vim.b[args.buf].git_conflict_detected = false
-            if pcall(require, "fidget") then vim.cmd("Fidget suppress false") end
+            if pcall(require, "fidget") then
+              vim.cmd("Fidget suppress false")
+            end
             mega.notify(string.format("%s All conflicts resolved!", icons.lsp.ok))
           end,
         },
@@ -448,7 +516,9 @@ return {
     keys = {
       { "<localleader>gB", "<Cmd>GitBlameOpenCommitURL<CR>", desc = "git blame: open commit url", mode = "n" },
     },
-    init = function() vim.g.gitblame_enabled = 0 end,
+    init = function()
+      vim.g.gitblame_enabled = 0
+    end,
   },
   {
     "linrongbin16/gitlinker.nvim",

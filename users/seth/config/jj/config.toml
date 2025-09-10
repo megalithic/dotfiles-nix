@@ -10,7 +10,8 @@ sign-on-push = true
 subprocess = true
 
 [ui]
-diff-editor = ":builtin"
+# diff-editor = ":builtin"
+diff-editor = ["nvim", "-c", "DiffEditor $left $right $output"]
 default-command = "log"
 
 [aliases]

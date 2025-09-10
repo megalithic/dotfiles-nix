@@ -113,6 +113,7 @@ M.g = {
   -- node_host_prog = vim.env.XDG_DATA_HOME .. "/mise/installs/node/latest/bin/node",
   --
   enabled_plugins = enabled_plugins,
+  treesitter_branch = "master",
   treesitter_ignored_langs = {}, -- alt: { "svg", "json", "heex", "jsonc" }
   treesitter_ensure_installed = {
     "bash",

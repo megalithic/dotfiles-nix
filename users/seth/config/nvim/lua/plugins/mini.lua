@@ -1,3 +1,7 @@
+if true then
+  return {}
+end
+
 return {
   { "nvim-mini/mini.jump", enabled = false, version = false, opts = {} },
   { "nvim-mini/mini.icons", version = false, opts = {} },
@@ -501,9 +505,13 @@ return {
 
       MiniPick.registry.fffiles = run
 
+      -- FIXME: https://github.com/JulesNP/nvim/blob/main/lua/plugins/mini.lua#L733
       vim.keymap.set("n", "<leader>sf", function()
         MiniPick.registry.fffiles()
-      end, { desc = "[S]earch [F]iles" }) -- See https://github.com/nvim-mini/mini.nvim/discussions/1873
+      end, { desc = "[s]earch [f]iles" }) -- See https://github.com/nvim-mini/mini.nvim/discussions/1873
+      vim.keymap.set("n", "<leader>sg", function()
+        require("mini.pick").builtin.live_grep()
+      end, { desc = "[s]earch [g]rep" }) -- See https://github.com/nvim-mini/mini.nvim/discussions/1873
     end,
   },
   {
