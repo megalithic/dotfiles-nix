@@ -23,7 +23,8 @@ return {
               -- ["<CR>"] = { "edit_vsplit", mode = { "i", "n" } },
               -- ["<c-e>"] = { "confirm", mode = { "i", "n" } },
             },
-            wo = { foldcolumn = "0", number = false, relativenumber = false },
+            b = { signcolumn = "no", statuscolumn = "", foldcolumn = "0", number = false, relativenumber = false },
+            wo = { signcolumn = "no", statuscolumn = "", foldcolumn = "0", number = false, relativenumber = false },
           },
           list = {
             wo = { foldcolumn = "0", number = false, relativenumber = false },
@@ -293,24 +294,25 @@ return {
       local Snacks = require("snacks")
 
       local function with_title(opts)
-        -- extra = extra or {}
-        -- local path = opts.cwd or opts.path or extra.cwd or extra.path or nil
-        -- local title = ""
-        -- local buf_path = vim.fn.expand("%:p:h")
-        -- local cwd = vim.fn.getcwd()
-        -- if extra["title"] ~= nil then
-        --   title = fmt("%s (%s):", extra.title, vim.fs.basename(path or vim.uv.cwd() or ""))
-        -- else
-        --   if path ~= nil and buf_path ~= cwd then
-        --     title = require("plenary.path"):new(buf_path):make_relative(cwd)
-        --   else
-        --     title = vim.fn.fnamemodify(cwd, ":t")
-        --   end
-        -- end
-        --
-        -- return vim.tbl_extend("force", opts, {
-        --   win = { title = title },
-        -- }, extra or {})
+        local default_opts = { title = "", filter = { cwd = false, paths = nil } }
+        opts = vim.tbl_deep_extend("force", default_opts, opts or {})
+
+        local title = ""
+        local path = opts.filter.cwd and vim.fn.getcwd() or nil
+        local buf_path = vim.fn.expand("%:p:h")
+        local cwd = vim.fn.getcwd()
+
+        if opts.title ~= "" then
+          title = string.format("%s: %s", opts.title, vim.fs.basename(path))
+        else
+          if path ~= nil and buf_path ~= cwd and pcall(require, "plenary.path") then
+            title = require("plenary.path"):new(buf_path):make_relative(cwd)
+          else
+            title = vim.fn.fnamemodify(cwd, ":t")
+          end
+        end
+
+        opts.title = title
         return opts
       end
 
@@ -331,6 +333,7 @@ return {
           function()
             Snacks.picker.smart(with_title({
               title = "find files (smartly)",
+              prompt = "",
               hidden = false,
               ignored = false,
               filter = { cwd = true },
@@ -338,6 +341,19 @@ return {
                 cwd_bonus = true,
                 frecency = true,
                 sort_empty = true,
+                history_bonus = true,
+                filename_bonus = true,
+              },
+              win = {
+                input = {
+                  keys = {
+                    ["<c-f>"] = { "toggle_follow", mode = { "i", "n" } },
+                    ["<c-h>"] = { "toggle_hidden", mode = { "i", "n" } },
+                    ["<c-i>"] = { "toggle_ignored", mode = { "i", "n" } },
+                    ["<c-m>"] = { "toggle_maximize", mode = { "i", "n" } },
+                    ["<c-p>"] = { "toggle_preview", mode = { "i", "n" } },
+                  },
+                },
               },
             }))
           end,

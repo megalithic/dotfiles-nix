@@ -1,9 +1,7 @@
 local U = require("utils")
 
 local M = {}
-local grp
-local augrp = vim.api.nvim_create_augroup
-local aucmd = vim.api.nvim_create_autocmd
+local map = vim.keymap.set
 
 ---@class Autocommand
 ---@field desc string
@@ -71,11 +69,6 @@ function M.augroup(name, commands)
   return id
 end
 
-vim.api.nvim_create_autocmd("FocusGained", {
-  desc = "Update file when it changes",
-  command = "checktime",
-})
-
 vim.api.nvim_create_autocmd("FileType", {
   desc = "Enable wrap and spell in these filetypes",
   pattern = { "gitcommit", "markdown", "text", "log", "typst" },
@@ -85,85 +78,257 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
-vim.api.nvim_create_autocmd("BufReadPre", {
-  desc = "Clear the last used search pattern when opening a new buffer",
-  pattern = "*",
-  callback = function()
-    vim.fn.setreg("/", "") -- Clears the search register
-    vim.cmd('let @/ = ""') -- Clear the search register using Vim command
-  end,
-})
-vim.api.nvim_create_autocmd("TextYankPost", {
-  group = vim.api.nvim_create_augroup("HighlightOnYank", { clear = true }),
-  callback = function()
-    vim.hl.on_yank({ timeout = 230, higroup = "Visual" })
-  end,
-  desc = "highlight on yank",
-})
-
-vim.api.nvim_create_autocmd("BufReadPost", {
-  group = vim.api.nvim_create_augroup("GotoLastLoc", { clear = true }),
-  callback = function()
-    local mark = vim.api.nvim_buf_get_mark(0, '"')
-    local lcount = vim.api.nvim_buf_line_count(0)
-    if mark[1] > 0 and mark[1] <= lcount then
-      pcall(vim.api.nvim_win_set_cursor, 0, mark)
-    end
-  end,
-  desc = "last loc",
-})
-
-vim.api.nvim_create_autocmd("BufWritePre", {
-  group = vim.api.nvim_create_augroup("MakeExecutable", { clear = true }),
-  pattern = { "*.sh", "*.bash", "*.zsh" },
-  callback = function()
-    vim.fn.system("chmod +x " .. vim.fn.expand("%"))
-  end,
-  desc = "make executable",
-})
-
----- during editing
-grp = augrp("Editing", { clear = true })
-vim.api.nvim_create_autocmd({ "BufEnter", "CursorMoved", "CursorHoldI" }, {
-  group = grp,
-  callback = function()
-    local win_h = vim.api.nvim_win_get_height(0)
-    local off = math.min(vim.o.scrolloff, math.floor(win_h / 2))
-    local dist = vim.fn.line("$") - vim.fn.line(".")
-    local rem = vim.fn.line("w$") - vim.fn.line("w0") + 1
-
-    if dist < off and win_h - rem + dist < off then
-      local view = vim.fn.winsaveview()
-      view.topline = view.topline + off - (win_h - rem + dist)
-      vim.fn.winrestview(view)
-    end
-  end,
-  desc = "When at eob, bring the current line towards center screen",
+M.augroup("Filetypes", {
+  {
+    event = { "FileType" },
+    pattern = { "gitcommit", "markdown", "text", "log", "typst" },
+    desc = "Enable wrap and spell in these filetypes",
+    command = function(args)
+      vim.opt_local.wrap = true
+      vim.opt_local.spell = true
+    end,
+  },
+  {
+    event = { "FileType" },
+    pattern = "*",
+    desc = "close certain file types with `q`",
+    command = function(args)
+      -- local is_unmapped = vim.fn.hasmapto("q", "n") == 0
+      local is_eligible =
+        -- is_unmapped
+        vim.wo.previewwindow or vim.tbl_contains({}, vim.bo[args.buf].buftype) or vim.tbl_contains({
+          "help",
+          "git-status",
+          "git-log",
+          "oil",
+          "dbui",
+          "fugitive",
+          "fugitiveblame",
+          "LuaTree",
+          "log",
+          "tsplayground",
+          "startuptime",
+          "outputpanel",
+          "preview",
+          "qf",
+          "man",
+          "terminal",
+          "lspinfo",
+          "neotest-output",
+          "neotest-output-panel",
+          "query",
+          "elixirls",
+        }, vim.bo[args.buf].filetype)
+      if is_eligible then
+        vim.kepmap.set("n", "q", function()
+          if vim.fn.winnr("$") ~= 1 then
+            vim.api.nvim_win_close(0, true)
+            vim.cmd("wincmd p")
+          end
+        end, { buffer = args.buf, nowait = true, desc = "buffer quiter" })
+      end
+    end,
+  },
 })
 
-grp = augrp("Entering", { clear = true })
-vim.api.nvim_create_autocmd("VimResized", {
-  group = grp,
-  command = [[tabdo wincmd =]],
+M.augroup("Reading", {
+  {
+    event = { "BufReadPre" },
+    desc = "Clear the last used search pattern when opening a new buffer",
+    pattern = "*",
+    command = function()
+      vim.fn.setreg("/", "") -- Clears the search register
+      vim.cmd('let @/ = ""') -- Clear the search register using Vim command
+    end,
+  },
+  {
+    event = { "BufReadPost" },
+    desc = "Restore last cursor location",
+    command = function(args)
+      local mark = vim.api.nvim_buf_get_mark(args.buf, '"')
+      local line_count = vim.api.nvim_buf_line_count(args.buf)
+      if mark[1] > 0 and mark[1] <= line_count then
+        if pcall(vim.api.nvim_win_set_cursor, 0, mark) then
+          vim.api.nvim_win_set_cursor(0, mark)
+        else
+          vim.cmd('normal! g`"zz')
+        end
+      else
+        local line = vim.fn.line("'`")
+        if
+          line > 1
+          and line <= vim.fn.line("$")
+          and vim.bo.filetype ~= "commit"
+          and vim.fn.index({ "xxd", "gitrebase" }, vim.bo.filetype) == -1
+        then
+          vim.cmd('normal! g`"')
+        end
+      end
+    end,
+  },
 })
 
-aucmd("BufWinEnter", {
-  group = grp,
-  command = "silent! loadview",
-  desc = "Restore view settings",
+M.augroup("Writing", {
+  {
+    event = { "BufWritePre" },
+    desc = "chmod +x shell scripts on-demand",
+    command = function(args)
+      -- string.match(vim.api.nvim_buf_get_lines(0, 0, 1, false)[1], "^#!")
+      -- string.match(vim.api.nvim_buf_get_lines(0, 0, 1, false)[1], ".+/bin/.+")
+      local not_executable = vim.fn.getfperm(vim.fn.expand("%")):sub(3, 3) ~= "x"
+      local has_shebang = string.match(vim.fn.getline(1), "^#!")
+      local has_bin = string.match(vim.fn.getline(1), "/bin/")
+      -- TODO: check certain filetypes, { "*.sh", "*.bash", "*.zsh" }
+      if not_executable and has_shebang and has_bin then
+        vim.notify(fmt("made %s executable", args.file), L.INFO)
+        vim.fn.system("chmod a+x " .. vim.fn.expand("%"))
+        -- vim.defer_fn(vim.cmd.edit, 100)
+      end
+    end,
+  },
+
+  {
+    event = { "BufWritePre" },
+    once = false,
+    command = function()
+      local function auto_mkdir(dir, force)
+        if not dir or string.len(dir) == 0 then
+          return
+        end
+        local stats = vim.uv.fs_stat(dir)
+        local is_directory = (stats and stats.type == "directory") or false
+        if string.match(dir, "^%w%+://") or is_directory or string.match(dir, "^suda:") then
+          return
+        end
+        if not force then
+          vim.fn.inputsave()
+          local result = vim.fn.input(string.format('"%s" does not exist. Create? [y/N]', dir), "")
+          if string.len(result) == 0 then
+            print("Canceled")
+            return
+          end
+          vim.fn.inputrestore()
+        end
+        vim.fn.mkdir(dir, "p")
+      end
+
+      auto_mkdir(vim.fn.expand("<afile>:p:h"), vim.v.cmdbang)
+    end,
+  },
 })
 
----- Upon leaving a buffer
-grp = augrp("Entering", { clear = true })
-vim.api.nvim_create_autocmd("BufWinLeave", {
-  group = grp,
-  command = "silent! mkview",
-  desc = "Create view settings",
+M.augroup("Editing", {
+  {
+    event = { "FocusGained", "BufEnter", "CursorHold", "CursorHoldI", "TermClose" },
+    pattern = "*",
+    command = function()
+      -- Don’t interfere while editing a command line or in terminal‑insert mode
+      if
+        vim.fn.mode():match("[ciR!t]") == nil
+        and vim.fn.getcmdwintype() == ""
+        and vim.fn.bufname("%") ~= ""
+        and vim.fn.filereadable(vim.fn.bufname("%"))
+      then
+        vim.cmd.checktime()
+      end
+    end,
+    desc = "Reload buffer if the underlying file was changed",
+  },
+  {
+    desc = "Highlight when yanking (copying) text",
+    event = { "TextYankPost" },
+    command = function()
+      vim.highlight.on_yank({ timeout = 250, on_visual = false, higroup = "VisualYank" }) -- or "Visual"
+    end,
+  },
+  {
+    event = { "BufWinLeave", "BufLeave", "FocusLost" },
+    desc = "Automatically update and write modified buffer on certain events",
+    command = function(ctx)
+      local saveInstantly = ctx.event == "FocusLost" or ctx.event == "BufLeave"
+      local bufnr = ctx.buf
+      local bo = vim.bo[bufnr]
+      local b = vim.b[bufnr]
+      if bo.buftype ~= "" or bo.ft == "gitcommit" or bo.readonly then
+        return
+      end
+      if b.saveQueued and not saveInstantly then
+        return
+      end
+
+      b.saveQueued = true
+      vim.defer_fn(function()
+        if not vim.api.nvim_buf_is_valid(bufnr) then
+          return
+        end
+        -- `noautocmd` prevents weird cursor movement
+        vim.api.nvim_buf_call(bufnr, function()
+          vim.cmd("silent! noautocmd lockmarks update!")
+        end)
+        b.saveQueued = false
+      end, saveInstantly and 0 or 2000)
+    end,
+  },
 })
 
-Load_macros(M)
+M.augroup("Entering", {
+  {
+    event = { "BufWinEnter" },
+    desc = "Restore view settings",
+    command = "silent! loadview",
+  },
+  {
+    event = { "BufWinEnter", "FileType" },
+    command = function(args)
+      local ignore_buftype = { "quickfix", "nofile", "help", "prompt" }
+      local ignore_filetype = { "gitcommit", "gitrebase", "svn", "hgcommit" }
+      if vim.tbl_contains(ignore_buftype, vim.bo.buftype) then
+        return
+      end
 
-M.augroup("Utilities", {
+      if vim.tbl_contains(ignore_filetype, vim.bo.filetype) then
+        -- reset cursor to first line
+        vim.cmd.normal({ "gg", bang = true })
+        return
+      end
+
+      -- If a line has already been specified on the command line, we are done
+      --   nvim file +num
+      if vim.api.nvim_win_get_cursor(0)[1] > 1 then
+        return
+      end
+
+      local last_line = vim.fn.line([['"]])
+      local buff_last_line = vim.api.nvim_buf_line_count(0)
+
+      -- If the last line is set and the less than the last line in the buffer
+      if last_line > 0 and last_line <= buff_last_line then
+        local win_last_line = vim.fn.line("w$")
+        local win_first_line = vim.fn.line("w0")
+        -- Check if the last line of the buffer is the same as the win
+        if win_last_line == buff_last_line then
+          -- Set line to last line edited
+          vim.cmd.normal({ "g`", bang = true })
+        -- Try to center
+        elseif buff_last_line - last_line > ((win_last_line - win_first_line) / 2) - 1 then
+          vim.cmd.normal({ 'g`"zz', bang = true })
+        else
+          vim.cmd.normal({ [[G'"<c-e>]], bang = true })
+        end
+      end
+    end,
+  },
+})
+
+M.augroup("Leaving", {
+  {
+    event = { "VimResized", "WinResized" },
+    desc = "Create view settings",
+    command = "silent! mkview",
+  },
+})
+
+M.augroup("Resizing", {
   {
     event = { "VimResized", "WinResized" },
     desc = "Automatically resize windows in all tabpages when resizing Vim (and use our golden ratio resizer)",
@@ -176,5 +341,211 @@ M.augroup("Utilities", {
     end,
   },
 })
+
+M.augroup("EnterLeaveBehaviours", {
+  {
+    desc = "Enable things on *Enter",
+    event = { "BufEnter", "WinEnter" },
+    command = function(evt)
+      vim.defer_fn(function()
+        local ibl_ok, ibl = pcall(require, "ibl")
+        if ibl_ok then
+          ibl.setup_buffer(evt.buf, { indent = { char = vim.g.indent_char } })
+        end
+      end, 1)
+      vim.wo.cursorline = true
+      -- if not vim.g.started_by_firenvim then require("colorizer").attach_to_buffer(evt.buf) end
+    end,
+  },
+  {
+    desc = "Disable things on *Leave",
+    event = { "BufLeave", "WinLeave" },
+    command = function(evt)
+      vim.defer_fn(function()
+        local ibl_ok, ibl = pcall(require, "ibl")
+        if ibl_ok then
+          ibl.setup_buffer(evt.buf, { indent = { char = "" } })
+        end
+      end, 1)
+      vim.wo.cursorline = false
+      -- if not vim.g.started_by_firenvim then require("colorizer").detach_from_buffer(evt.buf) end
+    end,
+  },
+})
+
+M.augroup("InsertBehaviours", {
+  {
+    enabled = not vim.g.started_by_firenvim,
+    desc = "OnInsertEnter",
+    event = { "InsertEnter" },
+    command = function(_evt)
+      vim.diagnostic.enable(not vim.diagnostic.is_enabled())
+    end,
+  },
+  {
+    enabled = not vim.g.started_by_firenvim,
+    desc = "OnInsertLeave",
+    event = { "InsertLeave" },
+    command = function(_evt)
+      vim.diagnostic.enable(true)
+    end,
+  },
+})
+
+M.augroup("Utilities", {
+  {
+    event = "BufWritePost",
+    pattern = ".envrc",
+    command = function()
+      if vim.fn.executable("direnv") then
+        vim.cmd([[silent !direnv allow %]])
+      end
+    end,
+  },
+  {
+    event = "BufWritePost",
+    pattern = "*/spell/*.add",
+    command = "silent! :mkspell! %",
+  },
+  {
+    event = { "BufEnter", "BufRead", "BufNewFile" },
+    buffer = 0,
+    desc = "Extreeeeme `gf` open behaviour",
+    command = function(args)
+      map("n", "gf", function()
+        local target = vim.fn.expand("<cfile>")
+
+        -- FIXME: get working with ghostty
+        -- if U.is_image(target) then
+        --   local root_dir = require("config.utils.lsp").root_dir({ ".git" })
+        --   target = target:gsub("./samples", fmt("%s/samples", root_dir))
+        --   return require("config.utils").preview_file(target)
+        -- end
+
+        -- FIXME: update tern related things to new things
+
+        -- go to linear ticket
+        if target:match("TRN-") then
+          local url = fmt("https://linear.app/ternit/issue/%s", target)
+          vim.notify(fmt("Opening linear ticket %s at %s", target, url))
+          vim.fn.jobstart(fmt("%s %s", vim.g.open_command, url))
+
+          return false
+        end
+
+        -- go to PR for specific repos
+        if target:match("^PR%-([DIR|BELL|RET|MOB]*)#(%d*)") then
+          local repo_abbr, pr_num = target:match("^PR%-([DIR|BELL|RET|MOB]*)#(%d*)")
+          local repos = {
+            DIR = "director",
+            BELL = "bellhop",
+            RET = "retriever",
+            MOB = "ternreturns",
+          }
+
+          local url = fmt("https://github.com/TernSystems/%s/pull/%s", repos[repo_abbr], pr_num)
+          vim.notify(fmt("Opening PR %d on %s", pr_num, repos[repo_abbr]))
+          vim.fn.jobstart(fmt("%s %s", vim.g.open_command, url))
+
+          return false
+        end
+
+        -- go to hex packages
+        if args.file:match("mix.exs") then
+          local line = vim.fn.getline(".")
+          local _, _, pkg, _ = string.find(line, [[^%s*{:(.*), %s*"(.*)"}]])
+
+          local url = fmt("https://hexdocs.pm/%s/", pkg)
+          vim.notify(fmt("Opening %s at %s", pkg, url))
+          vim.fn.jobstart(fmt("%s %s", vim.g.open_command, url))
+
+          return false
+        end
+
+        -- go to node packages
+        if args.file:match("package.json") then
+          local line = vim.fn.getline(".")
+          local _, _, pkg, _ = string.find(line, [[^%s*"(.*)":%s*"(.*)"]])
+
+          local url = fmt("https://www.npmjs.com/package/%s", pkg)
+          vim.notify(fmt("Opening %s at %s", pkg, url))
+          vim.fn.jobstart(fmt("%s %s", vim.g.open_command, url))
+
+          return false
+        end
+
+        -- go to web address
+        if target:match("https://") then
+          return vim.cmd("norm gx")
+        end
+
+        -- a normal file, so do the normal go-to-file thing
+        if not target or #vim.split(target, "/") ~= 2 then
+          return vim.cmd("norm! gf")
+        end
+
+        -- maybe it's a github repo? try it and see..
+        local url = fmt("https://github.com/%s", target)
+        vim.fn.jobstart(fmt("%s %s", vim.g.open_command, url))
+        vim.notify(fmt("Opening %s at %s", target, url))
+      end, { desc = "[g]oto [f]ile (on steroids)" })
+    end,
+  },
+  {
+    event = { "BufRead", "BufNewFile" },
+    pattern = "*/doc/*.txt",
+    command = function(args)
+      vim.bo.filetype = "help"
+    end,
+  },
+  {
+    event = { "BufRead", "BufNewFile" },
+    pattern = "package.json",
+    command = function(args)
+      map({ "n" }, "gx", function()
+        local line = vim.fn.getline(".")
+        local _, _, pkg, _ = string.find(line, [[^%s*"(.*)":%s*"(.*)"]])
+
+        if pkg then
+          local url = "https://www.npmjs.com/package/" .. pkg
+          vim.ui.open(url)
+        end
+      end, { buffer = true, silent = true, desc = "[g]o to node [p]ackage" })
+    end,
+  },
+  {
+    event = { "BufRead", "BufNewFile" },
+    pattern = "mix.exs",
+    command = function(args)
+      map({ "n" }, "gx", function()
+        local line = vim.fn.getline(".")
+        local _, _, pkg, _ = string.find(line, [[^%s*{:(.*), %s*"(.*)"}]])
+
+        if pkg then
+          local url = fmt("https://hexdocs.pm/%s/", pkg)
+          vim.ui.open(url)
+        end
+      end, { buffer = true, silent = true, desc = "[g]o to hex [p]ackage" })
+    end,
+  },
+  -- {
+  --   event = { "BufEnter", "CursorMoved", "CursorHoldI" },
+  --   desc = "When at eob, bring the current line towards center screen",
+  --   command = function(args)
+  --     local win_h = vim.api.nvim_win_get_height(0)
+  --     local off = math.min(vim.o.scrolloff, math.floor(win_h / 2))
+  --     local dist = vim.fn.line("$") - vim.fn.line(".")
+  --     local rem = vim.fn.line("w$") - vim.fn.line("w0") + 1
+
+  --     if dist < off and win_h - rem + dist < off then
+  --       local view = vim.fn.winsaveview()
+  --       view.topline = view.topline + off - (win_h - rem + dist)
+  --       vim.fn.winrestview(view)
+  --     end
+  --   end,
+  -- },
+})
+
+Load_macros(M)
 
 return M
