@@ -9,10 +9,10 @@
 hostname:
 { arch
 , username
-, script ? ''
-    git clone https://github.com/megalithic/.dotfiles-nix ~/.dotfiles-nix
-    nix run home-manager/master -- switch --flake ~/.dotfiles-nix
-  ''
+# , script ? ''
+#     git clone https://github.com/megalithic/.dotfiles-nix ~/.dotfiles-nix
+#     nix run home-manager/master -- switch --flake ~/.dotfiles-nix
+#   ''
 , version ? "25.05"
 , darwin ? false
 ,
@@ -35,14 +35,14 @@ let
   system = if isDarwin then inputs.nix-darwin.lib.darwinSystem else nixpkgs.lib.nixosSystem;
   homeManager =
     if isDarwin then inputs.home-manager.darwinModules else inputs.home-manager.nixosModules;
-  init = pkgs.writeShellApplication { name = "init"; text = script; };
+  # init = pkgs.writeShellApplication { name = "init"; text = script; };
 in
 system rec {
   inherit arch;
 
   modules = [
     # run init scripts for a system
-    { type = "app"; program = "${init}/bin/init"; }
+    # { type = "app"; program = "${init}/bin/init"; }
 
     # Apply our overlays. Overlays are keyed by system type so we have
     # to go through and apply our system type. We do this first so

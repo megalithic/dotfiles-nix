@@ -118,40 +118,51 @@
       mkSystem = import ./lib/mksystem.nix {
         inherit nixpkgs overlays inputs;
       };
+      mkInit =
+        { system
+        , script ? ''
+            git clone https://github.com/mhanberg/.dotfiles ~/.dotfiles
+            nix run home-manager/master -- switch --flake ~/.dotfiles
+          ''
+        ,
+        }:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+          init = pkgs.writeShellApplication {
+            name = "init";
+            text = script;
+          };
+        in
+        {
+          type = "app";
+          program = "${init}/bin/init";
+        };
     in
     {
-      darwinConfigurations.megabookpro = mkSystem "megabookpro" {
-        arch = "aarch64-darwin";
-        username = "seth";
-        darwin = true;
-        version = "25.05";
+      apps."aarch64-darwin".default = mkInit {
+        system = "aarch64-darwin";
         script = ''
-                    # HT: @mhanberg
-                    # REF: https://github.com/mhanberg/.dotfiles/blob/main/flake.nix#L99-L104
-          # if command -v xcode-select >/dev/null; then
-          # 		log_info "Xcode already installed"
-          # 	else
-          # 		log_success "Installing Xcode"
-          # 		xcode-select --install
-          # 		if [[ "$ARCH" == 'arm64' ]]; then
-          # 			log_success "Installing Rosetta"
-          # 			sudo -u "$SUDO_USER" softwareupdate --install-rosetta --agree-to-license
-          # 		fi
-          # 	fi
                     echo "hi from echo"
                     cowsay "hi from cowsay"
                     pkgs.cowsay "hi from pkgs.cowsay"
                     bash -c "$(echo "echo from bash -c echo")"
                     bash -c "$(cowsay "cowsay from bash -c cowsay")"
 
-                    # bash -c "$(xcode-select --install)"
-                    # bash -c "$(sudo -u $(whoami) softwareupdate --install-rosetta --agree-to-license)"
-                    # git clone https://github.com/megalithic/dotfiles-nix ~/.dotfiles-nix
-                    # bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-                    #
-                    # nix run nix-darwin -- switch --flake ~/.dotfiles-nix
-                    # nix run home-manager/master -- switch --flake ~/.dotfiles-nix
+
+          # git clone https://github.com/mhanberg/.dotfiles ~/.dotfiles
+          # bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          # nix run nix-darwin -- switch --flake ~/.dotfiles
+          # nix run home-manager/master -- switch --flake ~/.dotfiles
         '';
+      };
+      # apps."x86_64-linux".default = mkInit { system = "x86_64-linux"; };
+      # apps."aarch64-linux".default = mkInit { system = "aarch64-linux"; };
+
+      darwinConfigurations.megabookpro = mkSystem "megabookpro" {
+        arch = "aarch64-darwin";
+        username = "seth";
+        darwin = true;
+        version = "25.05";
       };
     };
 }
