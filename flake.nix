@@ -118,11 +118,18 @@
       mkSystem = import ./lib/mksystem.nix {
         inherit nixpkgs overlays inputs;
       };
+
       mkInit =
         { system
         , script ? ''
-            git clone https://github.com/mhanberg/.dotfiles ~/.dotfiles
-            nix run home-manager/master -- switch --flake ~/.dotfiles
+                    echo "hi from echo"
+                    cowsay "hi from cowsay"
+                    pkgs.cowsay "hi from pkgs.cowsay"
+                    bash -c "$(echo "echo from bash -c echo")"
+                    bash -c "$(cowsay "cowsay from bash -c cowsay")"
+
+            # git clone https://github.com/mhanberg/.dotfiles ~/.dotfiles
+            # nix run home-manager/master -- switch --flake ~/.dotfiles
           ''
         ,
         }:
