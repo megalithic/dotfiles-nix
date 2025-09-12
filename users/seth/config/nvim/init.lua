@@ -3,9 +3,9 @@ vim.loader.enable()
 require("vim._extui").enable({
   enable = true,
   msg = {
-    -- msg: like the notifier.nvim plugin
+    -- msg: similar rendering to the notifier.nvim plugin
     -- cmd: normal cmd mode looking stuff
-    target = "msg",
+    target = "cmd",
     timeout = vim.g.extui_msg_timeout or 5000,
   },
 })
@@ -21,30 +21,23 @@ vim.api.nvim_create_autocmd("FileType", {
 vim.deprecate = function() end -- no-op deprecation messages
 local ok, mod_or_err = pcall(require, "globals")
 if ok then
-  if not vim.g.started_by_firenvim then
-    mod_or_err.version()
-  end
+  -- if not vim.g.started_by_firenvim then
+  --   mod_or_err.version()
+  -- end
   require("options")
   require("commands")
   require("autocmds")
   require("keymaps")
+
   -- [[ Install `lazy.nvim` plugin manager ]]
   --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
-  local lazy_path = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-  -- local lazypath = vim.fs.joinpath(vim.fn.stdpath("data"), "site", "pack", "core", "opt", "lazy.nvim")
-  if not vim.uv.fs_stat(lazy_path) then
-    vim.fn.system({
-      "git",
-      "clone",
-      "--filter=blob:none",
-      "--single-branch",
-      "https://github.com/folke/lazy.nvim.git",
-      lazy_path,
-    })
+  local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+  if not vim.uv.fs_stat(lazypath) then
+    local lazyrepo = "https://github.com/folke/lazy.nvim.git"
+    vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath })
   end ---@diagnostic disable-next-line: undefined-field
 
-  vim.opt.rtp:prepend(lazy_path)
-
+  vim.opt.rtp:prepend(lazypath)
   -- settings and autocmds must load before plugins,
   -- but we can manually enable caching before both
   -- of these for optimal performance
@@ -97,9 +90,6 @@ if ok then
       backdrop = 100,
     },
   })
-
-  -- require("lazy")
-  -- require("backpack").setup()
 else
   vim.notify("Error loading `globals.lua`; unable to continue...\n" .. mod_or_err)
 end

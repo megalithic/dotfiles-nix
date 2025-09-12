@@ -516,8 +516,4 @@ Augroup("mega_mvim.ui.statuscolumn", {
       mega.ui.statuscolumn.set(args.buf, false)
     end,
   },
-  -- {
-  --   event = { "BufWinLeave" },
-  --   command = function(args) mega.ui.statuscolumn.set(args.buf, false) end,
-  -- },
 })

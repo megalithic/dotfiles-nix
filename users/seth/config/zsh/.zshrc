@@ -3,7 +3,7 @@
 # zmodload zsh/zprof # -> top of your .zshrc file
 
 # set -o vi
-set -o emacs
+# set -o emacs
 
 # -- required helpers and our env variables
 ZLIB="$ZDOTDIR/lib"
@@ -52,7 +52,8 @@ zsh_add_file "lib/mise.zsh"
 zsh_add_file "lib/nix.zsh"
 
 # -- prompt
-if exists starship; then
+# if exists starship; then
+#
   bindkey -v # enables vi mode, using -e = emacs
   export KEYTIMEOUT=1
 
@@ -111,10 +112,11 @@ if exists starship; then
   cursor_mode
 
   eval "$(starship init zsh)"
-else
-  autoload -U promptinit && promptinit # Enable prompt themes
-  prompt megalithic                    # Set custom megalithic prompt
-fi
+
+# else
+#   autoload -U promptinit && promptinit # Enable prompt themes
+#   prompt megalithic                    # Set custom megalithic prompt
+# fi
 
 # replaces ctrl_r keybinding for faster, more robust history search
 # zsh_add_file "lib/mcfly.zsh"

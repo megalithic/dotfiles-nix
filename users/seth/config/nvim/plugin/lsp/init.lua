@@ -519,44 +519,6 @@ local function make_keymaps(client, bufnr)
       end
     end
 
-    local function input(old_val)
-      local Input = require("nui.input")
-      local event = require("nui.utils.autocmd").event
-
-      local opts = {
-        relative = "cursor",
-        position = {
-          row = 1,
-          col = 0,
-        },
-        size = 20,
-        border = {
-          style = "rounded",
-          text = {
-            top = "[Input]",
-            top_align = "left",
-          },
-        },
-        win_options = {
-          winhighlight = "Normal:Normal",
-        },
-      }
-
-      return Input(opts, {
-        prompt = string.format("%s > ", old_val),
-        default_value = old_val,
-        on_close = function()
-          print("Input closed!")
-        end,
-        on_submit = function(value)
-          print("Value submitted: ", value)
-        end,
-        on_change = function(value)
-          print("Value changed: ", value)
-        end,
-      })
-    end
-
     local ns = vim.api.nvim_create_namespace("LspRenamespace")
 
     client:request("textDocument/references", params, function(_, result)
@@ -627,7 +589,7 @@ local function make_keymaps(client, bufnr)
 
   lsp_method(client, "textDocument/references")(function()
     map("n", "gr", function()
-      MiniPick.registry.LspPicker("references", true)
+      vim.cmd.Pick('lsp scope="references"')
       -- require("fzf-lua").lsp_references({
       --   include_declaration = false,
       --   ignore_current_line = true,
@@ -652,7 +614,8 @@ local function make_keymaps(client, bufnr)
     nmap("gd", function()
       -- require("telescope").lsp_definitions({ jump1 = true })
 
-      MiniPick.registry.LspPicker("definition", true)
+      vim.cmd.Pick('lsp scope="definitions"')
+      -- MiniPick.registry.LspPicker("definition", true)
     end, "[g]oto [d]efinition")
     -- nmap(
     --   "gd",
@@ -738,6 +701,26 @@ function M.on_attach(client, bufnr, _client_id)
         client.server_capabilities.documentRangeFormattingProvider = false
       end
     end
+
+    vim.api.nvim_create_autocmd("BufWritePre", {
+      pattern = "*",
+      callback = function(args)
+        require("conform").format({
+          bufnr = args.buf,
+          async = true,
+          lsp_format = "fallback",
+          timeout_ms = 5000,
+          filter = function(client, exclusions)
+            local client_name = type(client) == "table" and client.name or client
+            exclusions = exclusions or disabled_lsp_formatting
+
+            P(client_name, exclusions)
+
+            return not exclusions or not vim.tbl_contains(exclusions, client_name)
+          end,
+        })
+      end,
+    })
 
     -- Auto-formatting on save
     -- if not lsp_method(client, methods.textDocument_willSaveWaitUntil) then

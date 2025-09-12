@@ -120,7 +120,7 @@ M.augroup("Filetypes", {
           "elixirls",
         }, vim.bo[args.buf].filetype)
       if is_eligible then
-        vim.kepmap.set("n", "q", function()
+        map("n", "q", function()
           if vim.fn.winnr("$") ~= 1 then
             vim.api.nvim_win_close(0, true)
             vim.cmd("wincmd p")

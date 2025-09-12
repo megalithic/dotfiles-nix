@@ -392,7 +392,7 @@ return {
   {
     "rachartier/tiny-inline-diagnostic.nvim",
     event = "VeryLazy",
-    priority = 1000, -- needs to be loaded in first
+    priority = 2000, -- needs to be loaded in first
     opts = {
       hi = {
         error = "DiagnosticError",

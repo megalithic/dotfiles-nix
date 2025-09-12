@@ -1,8 +1,11 @@
+if true then
+  return {}
+end
+
 local fmt = string.format
 
-local SETTINGS = require("options")
-local icons = Icons
-local default_prompt = icons.misc.search .. "  "
+local default_prompt = Icons.misc.search .. "  "
+local prompt = default_prompt
 
 local function with_title(opts, rest)
   opts = opts or {}
@@ -30,27 +33,6 @@ local function with_title(opts, rest)
 
   return title_config
 end
-
--- local function with_title(title, icon, opts)
---   opts = opts or {}
---   icon = icon or ""
-
---   local path = opts.cwd or opts.path or nil
---   local buf_path = vim.fn.expand("%:p:h")
---   local cwd = vim.fn.getcwd()
-
---   if title ~= nil then
---     title = string.format("%s %s (%s)", icon, title, vim.fs.basename(path or vim.uv.cwd() or ""))
---   else
---     if path ~= nil and buf_path ~= cwd then
---       title = require("plenary.path"):new(buf_path):make_relative(cwd)
---     else
---       title = vim.fn.fnamemodify(cwd, ":t")
---     end
---   end
-
---   return title
--- end
 
 local function ivy(opts)
   opts = opts or {}
@@ -90,7 +72,7 @@ local function dropdown(opts, ...)
   opts["winopts"] = opts.winopts or {}
 
   return vim.tbl_deep_extend("force", {
-    prompt = prompt,
+    -- prompt = ",
     fzf_opts = { ["--layout"] = "reverse" },
     winopts = {
       title_pos = opts["winopts"].title and "center" or nil,
@@ -116,8 +98,8 @@ end
 
 local fzf = setmetatable({}, {
   __index = function(_, key)
-    return function(...)
-      local topts = ... or {}
+    return function(topts)
+      local topts = topts or {}
       local fzf_lua = require("fzf-lua")
 
       local get_selection = function()
@@ -151,7 +133,56 @@ local fzf = setmetatable({}, {
       --   --   multi_rg(with_title(topts, { title = "multi_rg" }))
 
       if key == "smart" then
-        require("fzf-lua-enchanted-files").files(ivy(with_title(topts, { title = "smartly find files" })))
+        local opts = vim.tbl_deep_extend("force", topts, { title = "smart find" })
+        require("fzf-lua-enchanted-files").files(with_title(opts))
+        -- fzf_lua.global({
+        --   pickers = function()
+        --     local clients = fzf_lua.utils.lsp_get_clients({ bufnr = fzf_lua.utils.CTX().bufnr })
+        --     local doc_sym_supported = vim.iter(clients):any(function(client)
+        --       return client:supports_method("textDocument/documentSymbol")
+        --     end)
+        --     local wks_sym_supported = vim.iter(clients):any(function(client)
+        --       return client:supports_method("workspace/symbol")
+        --     end)
+        --     return {
+        --       -- { "frecency", desc = "Frecency" },
+        --       -- { "combine", pickers = "frecency;files", desc = "Files" },
+        --       { "files", desc = "Files" },
+        --       { "frecency", desc = "Frecency", prefix = "%" },
+        --       { "buffers", desc = "Buffers", prefix = "$" },
+        --       doc_sym_supported and {
+        --         "lsp_document_symbols",
+        --         desc = "Symbols (buf)",
+        --         prefix = "@",
+        --         opts = { no_autoclose = true },
+        --       } or {
+        --         "btags",
+        --         desc = "Tags (buf)",
+        --         prefix = "@",
+        --         opts = {
+        --           previewer = { _ctor = require("fzf-lua.previewer").builtin.tags },
+        --           fn_transform = [[return require("fzf-lua.make_entry").tag]],
+        --         },
+        --       },
+        --       wks_sym_supported and {
+        --         "lsp_workspace_symbols",
+        --         desc = "Symbols (project)",
+        --         prefix = "#",
+        --         opts = { no_autoclose = true },
+        --       } or {
+        --         "tags",
+        --         desc = "Tags (project)",
+        --         prefix = "#",
+        --         opts = {
+        --           previewer = { _ctor = require("fzf-lua.previewer").builtin.tags },
+        --           fn_transform = [[return require("fzf-lua.make_entry").tag]],
+        --           rg_opts = "--no-heading --color=always --smart-case",
+        --           grep_opts = "--color=auto --perl-regexp",
+        --         },
+        --       },
+        --     }
+        --   end,
+        -- })
       elseif key == "files" then
         fzf_lua[key](with_title(topts, { title = "find files" }))
       else
@@ -189,64 +220,6 @@ local function title(title, icon, opts)
   return title
 end
 
--- local function ivy(opts, ...)
---   opts = opts or {}
---   opts["winopts"] = opts.winopts or {}
-
---   local ivy_config = vim.tbl_deep_extend("force", {
---     prompt = prompt,
---     fzf_opts = { ["--layout"] = "reverse" },
---     winopts = {
---       title_pos = opts["winopts"].title and "center" or nil,
---       height = 0.35,
---       width = 1.00,
---       row = 1,
---       col = 1,
---       border = { " ", " ", " ", " ", " ", " ", " ", " " },
---       preview = {
---         layout = "flex",
---         hidden = "nohidden",
---         flip_columns = 130,
---         scrollbar = "float",
---         scrolloff = "-1",
---         scrollchars = { "█", "░" },
---       },
---     },
---   }, opts, ...)
-
---   return ivy_config
--- end
-
--- local function dropdown(opts, ...)
---   -- dd(I(opts))
---   opts = opts or {}
---   opts["winopts"] = opts.winopts or {}
-
---   return vim.tbl_deep_extend("force", {
---     prompt = prompt,
---     fzf_opts = { ["--layout"] = "reverse" },
---     winopts = {
---       title_pos = opts["winopts"].title and "center" or nil,
---       height = 0.70,
---       width = 0.45,
---       row = 0.1,
---       col = 0.5,
---       preview = { hidden = "hidden", layout = "vertical", vertical = "up:50%" },
---     },
---   }, opts, ...)
--- end
-
--- local function cursor_dropdown(opts)
---   return dropdown({
---     winopts = {
---       row = 1,
---       relative = "cursor",
---       height = 0.33,
---       width = 0.25,
---     },
---   }, opts)
--- end
-
 local function file_picker(opts_or_cwd)
   if type(opts_or_cwd) == "table" then
     fzf.files(ivy(opts_or_cwd))
@@ -255,71 +228,133 @@ local function file_picker(opts_or_cwd)
   end
 end
 
-local keys = {}
-if vim.g.picker == "fzf_lua" then
-  keys = {
+local keys = {
 
-    { "<leader>fa", "<Cmd>FzfLua<CR>", desc = "builtins" },
-    { "<leader>ff", file_picker, desc = "find files" },
-    { "<leader>fo", fzf.oldfiles, desc = "oldfiles" },
-    { "<leader>fr", fzf.resume, desc = "resume picker" },
-    { "<leader>fh", fzf.highlights, desc = "highlights" },
-    { "<leader>fm", fzf.marks, desc = "marks" },
-    { "<leader>fk", fzf.keymaps, desc = "keymaps" },
-    { "<leader>flw", fzf.diagnostics_workspace, desc = "workspace diagnostics" },
-    { "<leader>fls", fzf.lsp_document_symbols, desc = "document symbols" },
-    { "<leader>flS", fzf.lsp_live_workspace_symbols, desc = "workspace symbols" },
-    { "<leader>f?", fzf.help_tags, desc = "help" },
-    { "<leader>fgb", fzf.git_branches, desc = "branches" },
-    { "<leader>fgc", fzf.git_commits, desc = "commits" },
-    { "<leader>fgB", fzf.git_bcommits, desc = "buffer commits" },
-    { "<leader>fb", fzf.buffers, desc = "buffers" },
-    { "<leader>a", fzf.live_grep_glob, desc = "live grep" },
-    { "<leader>A", fzf.grep_cword, desc = "grep (under cursor)" },
-    { "<leader>A", fzf.grep_visual, desc = "grep (visual selection)", mode = "v" },
-    { "<leader>fva", fzf.autocmds, desc = "autocommands" },
-    { "<leader>fp", fzf.registers, desc = "registers" },
-    {
-      "<leader>fd",
-      function()
-        file_picker(vim.env.DOTFILES)
-      end,
-      desc = "dotfiles",
-    },
-    {
-      "<leader>fc",
-      function()
-        file_picker(vim.g.vim_path)
-      end,
-      desc = "nvim config",
-    },
-    {
-      "<leader>fn",
-      function()
-        file_picker(vim.g.neorg_path)
-      end,
-      desc = "neorg files",
-    },
-    -- { "<leader>fN", function() file_picker(env.SYNC_DIR .. "/notes/neorg") end, desc = "norg files" },
+  { "<leader>fa", "<Cmd>FzfLua<CR>", desc = "builtins" },
+  {
+    "<leader>ff",
+    fzf.smart,
+    -- function()
+    --   -- fzf.combine({ pickers = "frecency;buffer" })
+    -- end,
+    desc = "find files",
+  },
+  { "<leader>fo", fzf.oldfiles, desc = "oldfiles" },
+  { "<leader>fr", fzf.resume, desc = "resume picker" },
+  { "<leader>fh", fzf.highlights, desc = "highlights" },
+  { "<leader>fm", fzf.marks, desc = "marks" },
+  { "<leader>fk", fzf.keymaps, desc = "keymaps" },
+  { "<leader>flw", fzf.diagnostics_workspace, desc = "workspace diagnostics" },
+  { "<leader>fls", fzf.lsp_document_symbols, desc = "document symbols" },
+  { "<leader>flS", fzf.lsp_live_workspace_symbols, desc = "workspace symbols" },
+  { "<leader>f?", fzf.help_tags, desc = "help" },
+  { "<leader>fgb", fzf.git_branches, desc = "branches" },
+  { "<leader>fgc", fzf.git_commits, desc = "commits" },
+  { "<leader>fgB", fzf.git_bcommits, desc = "buffer commits" },
+  { "<leader>fb", fzf.buffers, desc = "buffers" },
+  { "<leader>a", fzf.live_grep_glob, desc = "live grep" },
+  { "<leader>A", fzf.grep_cword, desc = "grep (under cursor)" },
+  { "<leader>A", fzf.grep_visual, desc = "grep (visual selection)", mode = "v" },
+  { "<leader>fva", fzf.autocmds, desc = "autocommands" },
+  { "<leader>fp", fzf.registers, desc = "registers" },
+  {
+    "<leader>fd",
+    function()
+      file_picker(vim.env.DOTFILES)
+    end,
+    desc = "dotfiles",
+  },
+  {
+    "<leader>fc",
+    function()
+      file_picker(vim.g.vim_path)
+    end,
+    desc = "nvim config",
+  },
+  -- { "<leader>fN", function() file_picker(env.SYNC_DIR .. "/notes/neorg") end, desc = "norg files" },
 
-    -- {
-    --   "<C-p>",
-    --   function() require("fzf-lua-frecency").frecency({ display_score = true, cwd_only = true, fzf_opts = { ["--no-sort"] = false } }) end,
-    --   desc = "Frecency (project)",
-    -- },
-    -- { "<leader>fH", function() require("fzf-lua-frecency").frecency({ display_score = true }) end, desc = "Frecency (All)" },
-    -- {
-    --   "<leader>fh",
-    --   function() require("fzf-lua-frecency").frecency({ display_score = true, cwd_only = vim.fn.expand("$HOME") ~= vim.uv.cwd() and true }) end,
-    --   desc = "Frecency (cwd)",
-    -- },
-  }
-end
+  -- {
+  --   "<C-p>",
+  --   function() require("fzf-lua-frecency").frecency({ display_score = true, cwd_only = true, fzf_opts = { ["--no-sort"] = false } }) end,
+  --   desc = "Frecency (project)",
+  -- },
+  -- { "<leader>fH", function() require("fzf-lua-frecency").frecency({ display_score = true }) end, desc = "Frecency (All)" },
+  -- {
+  --   "<leader>fh",
+  --   function() require("fzf-lua-frecency").frecency({ display_score = true, cwd_only = vim.fn.expand("$HOME") ~= vim.uv.cwd() and true }) end,
+  --   desc = "Frecency (cwd)",
+  -- },
+}
 -- table.insert(keys, { "<leader>sa", fzf.live_grep_glob, desc = "live grep" })
 
 table.insert(keys, {
   "<c-p>",
-  fzf.smart,
+  function()
+    local actions = require("fzf-lua").actions
+
+    fzf.smart({
+
+      actions = {
+        default = {
+          ["default"] = actions.file_vsplit,
+          ["ctrl-s"] = actions.file_split,
+          ["ctrl-t"] = actions.file_tabedit,
+          ["ctrl-o"] = actions.file_edit_or_qf,
+          ["ctrl-i"] = actions.toggle_ignore,
+          ["ctrl-h"] = actions.toggle_hidden,
+          ["ctrl-q"] = actions.file_sel_to_qf,
+          ["ctrl-l"] = actions.file_sel_to_ll,
+          ["ctrl-g"] = actions.arg_add,
+        },
+      },
+    })
+    -- require("fzf-lua").global()
+    -- FzfLua.global({
+    --   pickers = function()
+    --     local clients = FzfLua.utils.lsp_get_clients({ bufnr = FzfLua.utils.CTX().bufnr })
+    --     local doc_sym_supported = vim.iter(clients):any(function(client)
+    --       return client:supports_method("textDocument/documentSymbol")
+    --     end)
+    --     local wks_sym_supported = vim.iter(clients):any(function(client)
+    --       return client:supports_method("workspace/symbol")
+    --     end)
+    --     return {
+    --       { "frecency", desc = "Frecency" },
+    --       { "buffers", desc = "Bufs", prefix = "$" },
+    --       doc_sym_supported and {
+    --         "lsp_document_symbols",
+    --         desc = "Symbols (buf)",
+    --         prefix = "@",
+    --         opts = { no_autoclose = true },
+    --       } or {
+    --         "btags",
+    --         desc = "Tags (buf)",
+    --         prefix = "@",
+    --         opts = {
+    --           previewer = { _ctor = require("fzf-lua.previewer").builtin.tags },
+    --           fn_transform = [[return require("fzf-lua.make_entry").tag]],
+    --         },
+    --       },
+    --       wks_sym_supported and {
+    --         "lsp_workspace_symbols",
+    --         desc = "Symbols (project)",
+    --         prefix = "#",
+    --         opts = { no_autoclose = true },
+    --       } or {
+    --         "tags",
+    --         desc = "Tags (project)",
+    --         prefix = "#",
+    --         opts = {
+    --           previewer = { _ctor = require("fzf-lua.previewer").builtin.tags },
+    --           fn_transform = [[return require("fzf-lua.make_entry").tag]],
+    --           rg_opts = "--no-heading --color=always --smart-case",
+    --           grep_opts = "--color=auto --perl-regexp",
+    --         },
+    --       },
+    --     }
+    --   end,
+    -- })
+  end,
   desc = "find files (smart)",
 })
 
@@ -327,16 +362,28 @@ return {
   {
     "ibhagwan/fzf-lua",
     cmd = { "FzfLua" },
-    dependencies = { "nvim-tree/nvim-web-devicons", "elanmed/fzf-lua-frecency.nvim" },
+    dependencies = {
+      "nvim-tree/nvim-web-devicons",
+      { "elanmed/fzf-lua-frecency.nvim", opts = {} },
+      {
+        "otavioschwanck/fzf-lua-enchanted-files",
+        init = function()
+          -- Modern configuration using vim.g
+          vim.g.fzf_lua_enchanted_files = {
+            history_file = vim.fn.stdpath("data") .. "/fzf-lua-enchanted-files-history.json",
+            max_history_per_cwd = 50,
+          }
+        end,
+      },
+    },
     keys = keys,
     config = function()
       local lsp_kind = require("lspkind")
       local fzf_lua = require("fzf-lua")
       local actions = fzf_lua.actions
 
-      require("fzf-lua-frecency").setup()
-
-      fzf.setup({
+      fzf_lua.setup({
+        { "ivy", "hide" },
         defaults = {
           file_icons = true,
         },
@@ -345,7 +392,7 @@ return {
           ["--reverse"] = false,
           ["--layout"] = "reverse", -- "default" or "reverse"
           ["--scrollbar"] = "▓",
-          ["--ellipsis"] = icons.misc.ellipsis,
+          ["--ellipsis"] = Icons.misc.ellipsis,
         },
         winopts = {
           treesitter = {
@@ -408,18 +455,34 @@ return {
           },
         },
         actions = {
-          files = {
-            ["ctrl-o"] = actions.file_edit_or_qf,
-            ["ctrl-x"] = actions.arg_add,
-            ["ctrl-g"] = actions.arg_add,
-            ["ctrl-s"] = actions.file_split,
+          default = {
             ["default"] = actions.file_vsplit,
+            ["ctrl-s"] = actions.file_split,
             ["ctrl-t"] = actions.file_tabedit,
+            ["ctrl-o"] = actions.file_edit_or_qf,
+            ["ctrl-i"] = actions.toggle_ignore,
+            ["ctrl-h"] = actions.toggle_hidden,
+            ["ctrl-q"] = actions.file_sel_to_qf,
+            ["ctrl-l"] = actions.file_sel_to_ll,
+            ["ctrl-g"] = actions.arg_add,
+          },
+          files = {
+            ["default"] = actions.file_vsplit,
+            ["ctrl-s"] = actions.file_split,
+            ["ctrl-t"] = actions.file_tabedit,
+            ["ctrl-o"] = actions.file_edit_or_qf,
+            ["ctrl-i"] = actions.toggle_ignore,
+            ["ctrl-h"] = actions.toggle_hidden,
+
             ["ctrl-q"] = actions.file_sel_to_qf,
             ["alt-q"] = actions.file_sel_to_ll,
-            ["ctrl-l"] = { fn = actions.arg_add, exec_silent = true },
+            ["ctrl-x"] = actions.arg_add,
+            ["ctrl-g"] = actions.arg_add,
+            -- ["ctrl-l"] = { fn = actions.arg_add, exec_silent = true },
           },
           grep = {
+            ["ctrl-i"] = actions.toggle_ignore,
+            ["ctrl-h"] = actions.toggle_hidden,
             ["ctrl-o"] = actions.file_edit_or_qf,
             ["ctrl-l"] = actions.arg_add,
             ["ctrl-s"] = actions.file_split,
@@ -430,6 +493,10 @@ return {
             ["ctrl-g"] = "",
             ["ctrl-r"] = actions.grep_lgrep,
           },
+        },
+        frecency = {
+          cwd_only = true,
+          display_score = false,
         },
         highlights = {
           prompt = prompt,
@@ -571,12 +638,12 @@ return {
             winopts = { title = title("commits", "") },
           },
           icons = {
-            ["M"] = { icon = icons.git.mod, color = "yellow" },
-            ["D"] = { icon = icons.git.remove, color = "red" },
-            ["A"] = { icon = icons.git.add, color = "green" },
-            ["R"] = { icon = icons.git.rename, color = "yellow" },
-            ["C"] = { icon = icons.git.mod, color = "yellow" },
-            ["T"] = { icon = icons.git.mod, color = "magenta" },
+            ["M"] = { icon = Icons.git.mod, color = "yellow" },
+            ["D"] = { icon = Icons.git.remove, color = "red" },
+            ["A"] = { icon = Icons.git.add, color = "green" },
+            ["R"] = { icon = Icons.git.rename, color = "yellow" },
+            ["C"] = { icon = Icons.git.mod, color = "yellow" },
+            ["T"] = { icon = Icons.git.mod, color = "magenta" },
             ["?"] = { icon = "?", color = "magenta" },
           },
         },
@@ -585,17 +652,6 @@ return {
       fzf.register_ui_select(dropdown({
         winopts = { title = title("select one of:"), height = 0.33, row = 0.5 },
       }))
-    end,
-  },
-  {
-    "otavioschwanck/fzf-lua-enchanted-files",
-    dependencies = { "ibhagwan/fzf-lua" },
-    config = function()
-      -- Modern configuration using vim.g
-      vim.g.fzf_lua_enchanted_files = {
-        history_file = vim.fn.stdpath("data") .. "/fzf-lua-enchanted-files-history.json",
-        max_history_per_cwd = 50,
-      }
     end,
   },
 }

@@ -237,28 +237,14 @@ return {
     },
     dependencies = { "nvim-treesitter/nvim-treesitter" },
   },
-  {
-    "yorickpeterse/nvim-tree-pairs",
-    main = "tree-pairs",
-    opts = {},
-    keys = {
-      { "%", mode = { "n", "v", "o" } },
-    },
-  },
-  {
-    "laytan/tailwind-sorter.nvim",
-    cond = false,
-    event = "VeryLazy",
-    dependencies = {
-      "nvim-treesitter/nvim-treesitter",
-      "nvim-lua/plenary.nvim",
-    },
-    build = "cd formatter && npm i && npm run build",
-    opts = {
-      on_save_enabled = true,
-      on_save_pattern = { "*.html", "*.js", "*.jsx", "*.tsx", "*.twig", "*.hbs", "*.php", "*.heex", ".ex" }, -- The file patterns to watch and sort.
-    },
-  },
+  -- {
+  --   "yorickpeterse/nvim-tree-pairs",
+  --   main = "tree-pairs",
+  --   opts = {},
+  --   keys = {
+  --     { "%", mode = { "n", "v", "o" } },
+  --   },
+  -- },
   {
     "HiPhish/rainbow-delimiters.nvim",
     dependencies = { "nvim-treesitter/nvim-treesitter" },

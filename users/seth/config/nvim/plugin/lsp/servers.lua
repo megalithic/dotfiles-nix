@@ -331,7 +331,7 @@ M = {
       },
     }
   end,
-  emmylua_ls = {},
+  -- emmylua_ls = {},
   lua_ls = function()
     local path = vim.split(package.path, ";")
     table.insert(path, "lua/?.lua")
@@ -345,7 +345,7 @@ M = {
     local wezterm = ("%s/nvim/lazy/wezterm-types/types"):format(fn.stdpath("data"))
 
     return {
-      enabled = false,
+      enabled = true,
       cmd = { "lua-language-server" },
       manual_install = true,
       filetypes = { "lua" },

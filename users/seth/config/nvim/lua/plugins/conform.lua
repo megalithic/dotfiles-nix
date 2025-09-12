@@ -3,26 +3,12 @@
 local timeout_ms = 1500
 local lsp_fallback = true
 
-vim.api.nvim_create_autocmd("BufWritePre", {
-  pattern = "*",
-  callback = function(args)
-    require("conform").format({ bufnr = args.buf })
-  end,
-})
-
 Command("ToggleAutoFormat", function()
   vim.g.disable_autoformat = not vim.g.disable_autoformat
   if vim.g.disable_autoformat then
     vim.notify("Disabled auto-formatting.", L.WARN)
   else
     vim.notify("Enabled auto-formatting.", L.INFO)
-    -- NOTE: probably better to NOT run formatter (elixir related formatting is wonky)
-    -- require("conform").format({
-    --   timeout_ms = timeout_ms,
-    --   lsp_fallback = lsp_fallback,
-    --   filter = U.lsp.formatting_filter,
-    --   bufnr = 0,
-    -- })
   end
 end, {})
 
@@ -50,36 +36,8 @@ return {
   init = function()
     vim.o.formatexpr = "v:lua.require'conform'.formatexpr()"
   end,
-  config = function(_, opts)
-    if vim.g.started_by_firenvim then
-      opts.format_on_save = false
-      opts.format_after_save = false
-    end
-
-    require("conform.formatters.stylua").env = {
-      XDG_CONFIG_HOME = vim.fn.stdpath("config"),
-    }
-    require("conform.formatters.injected").options.ignore_errors = true
-    local util = require("conform.util")
-    local clang_format = require("conform.formatters.clang_format")
-    local deno_fmt = require("conform.formatters.deno_fmt")
-    local ruff = require("conform.formatters.ruff_format")
-    local shfmt = require("conform.formatters.shfmt")
-    util.add_formatter_args(clang_format, {
-      "--style=file",
-    })
-    util.add_formatter_args(deno_fmt, { "--single-quote", "--prose-wrap", "preserve" }, { append = true })
-    util.add_formatter_args(ruff, { "--config", "format.quote-style = 'single'" }, { append = true })
-    util.add_formatter_args(shfmt, {
-      "--indent",
-      "2",
-      -- Case Indentation
-      "-ci",
-      -- Space after Redirect carets (`foo > bar`)
-      "-sr",
-    })
-
-    require("conform").setup({
+  config = function()
+    local opts = {
       formatters = {
         ["eslint_d"] = {
           command = "eslint_d",
@@ -172,26 +130,35 @@ return {
       default_format_opts = {
         lsp_format = "fallback",
       },
-      format_on_save = function(bufnr)
-        if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then
-          return
-        end
+    }
+    if vim.g.started_by_firenvim then
+      opts.format_on_save = false
+      opts.format_after_save = false
+    end
 
-        return {
-          timeout_ms = timeout_ms,
-          lsp_fallback = lsp_fallback,
-          quiet = true,
-          filter = function(client, exclusions)
-            local client_name = type(client) == "table" and client.name or client
-            exclusions = exclusions or vim.g.formatter_exclusions
-            if not exclusions then
-              return false
-            end
-
-            return not vim.tbl_contains(exclusions, client_name)
-          end,
-        }
-      end,
+    require("conform.formatters.stylua").env = {
+      XDG_CONFIG_HOME = vim.fn.stdpath("config"),
+    }
+    require("conform.formatters.injected").options.ignore_errors = true
+    local util = require("conform.util")
+    local clang_format = require("conform.formatters.clang_format")
+    local deno_fmt = require("conform.formatters.deno_fmt")
+    local ruff = require("conform.formatters.ruff_format")
+    local shfmt = require("conform.formatters.shfmt")
+    util.add_formatter_args(clang_format, {
+      "--style=file",
     })
+    util.add_formatter_args(deno_fmt, { "--single-quote", "--prose-wrap", "preserve" }, { append = true })
+    util.add_formatter_args(ruff, { "--config", "format.quote-style = 'single'" }, { append = true })
+    util.add_formatter_args(shfmt, {
+      "--indent",
+      "2",
+      -- Case Indentation
+      "-ci",
+      -- Space after Redirect carets (`foo > bar`)
+      "-sr",
+    })
+
+    require("conform").setup(opts)
   end,
 }
