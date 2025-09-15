@@ -9,7 +9,10 @@
     shell = pkgs.fish;
   };
 
-  imports = [./fonts.nix];
+  imports = [
+    ./fonts.nix
+    ./homebrew.nix
+  ];
 
   environment.systemPackages = [
     pkgs.just

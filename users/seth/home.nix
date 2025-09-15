@@ -18,13 +18,14 @@ let
   '' else ''
     cat "$1" | col -bx | bat --language man --style plain
   '');
+
+  lang = "en_US.UTF-8";
 in
 {
   # environment.systemPackages = [ inputs.agenix.packages.${system}.default ];
 
   imports = [
     ./packages.nix
-    ./homebrew.nix
     #   ./git.nix
     #   ./helix.nix
     #   ./himalaya.nix
@@ -83,10 +84,11 @@ in
       then currentSystemVersion
       else system.stateVersion;
 
+
     sessionVariables = {
-      LANG = "en_US.UTF-8";
-      LC_CTYPE = "en_US.UTF-8";
-      LC_ALL = "en_US.UTF-8";
+      LANG = "${lang}";
+      LC_CTYPE = "${lang}";
+      LC_ALL = "${lang}";
       EDITOR = "nvim";
       PAGER = "less -FirSwX";
       MANPAGER = "${manpager}/bin/manpager";
