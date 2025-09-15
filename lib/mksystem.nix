@@ -11,7 +11,6 @@ name:
 , username
 , darwin ? false
 , version ? "25.05"
-,
 }:
 
 let
@@ -74,18 +73,27 @@ systemFn rec {
 
         inherit inputs;
       };
+      home-manager.extraSpecialArgs = { inherit inputs; };
     }
 
     # We expose some extra arguments so that our modules can parameterize
     # better based on these values.
-    {
+    # {
+    #   config._module.args = {
+    #     currentSystemArch = "${system}";
+    #     currentSystemHostname = "${name}";
+    #     currentSystemUsername = "${username}";
+    #     currentSystemVersion = "${version}";
+    #
+    #     inherit inputs;
+    #   };
+    # }
+{
       config._module.args = {
-        currentSystemArch = "${system}";
-        currentSystemHostname = "${name}";
-        currentSystemUsername = "${username}";
-        currentSystemVersion = "${version}";
-
-        inherit inputs;
+        currentSystemArch = system;
+        currentSystemHostname = name;
+        currentSystemUsername = username;
+        inputs = inputs;
       };
     }
   ];
