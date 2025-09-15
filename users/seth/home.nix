@@ -25,7 +25,6 @@ in
   imports = [
     ./packages.nix
     ./homebrew.nix
-    ./fonts.nix
     #   ./git.nix
     #   ./helix.nix
     #   ./himalaya.nix

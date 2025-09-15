@@ -9,6 +9,8 @@
     shell = pkgs.fish;
   };
 
+  imports = [./fonts.nix];
+
   environment.systemPackages = [
     pkgs.just
     pkgs.bat
