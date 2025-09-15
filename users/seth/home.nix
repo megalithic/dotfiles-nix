@@ -202,7 +202,7 @@ in
       };
     };
 
-    programs.tmux = {
+    tmux = {
       enable = true;
       escapeTime = 10;
       prefix = "C-space";
