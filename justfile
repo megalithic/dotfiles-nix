@@ -22,12 +22,20 @@ upgrade-nix:
 
 # run home-manager switch
 hm:
-  home-manager switch --flake ~/.dotfiles -b backup
+  home-manager switch --flake . -b backup
+
+news:
+  home-manager news --flake .
+
+# rebuild nix darwin
+[macos]
+build:
+  sudo nix --experimental-features 'nix-command flakes' run nix-darwin -- switch --flake .#megabookpro
 
 # rebuild nix darwin
 [macos]
 rebuild:
-  sudo darwin-rebuild switch --flake ~/.dotfiles
+  sudo darwin-rebuild switch --flake .
 
 # update and upgrade homebrew packages
 [macos]
@@ -47,12 +55,3 @@ fix-shell-files:
 # updates brew, flake, and runs home-manager
 [macos]
 update: update-brew update-flake hm
-
-news:
-  home-manager news --flake .
-
-
-# legacy dotbot usages
-[macos]
-link:
-  source ~/.dotfiles/install --only link

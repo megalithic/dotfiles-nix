@@ -166,7 +166,7 @@
       # apps."aarch64-linux".default = mkInit { system = "aarch64-linux"; };
 
       darwinConfigurations.megabookpro = mkSystem "megabookpro" {
-        arch = "aarch64-darwin";
+        system = "aarch64-darwin";
         username = "seth";
         darwin = true;
         version = "25.05";

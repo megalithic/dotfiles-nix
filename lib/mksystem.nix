@@ -6,20 +6,16 @@
 ,
 }:
 
-hostname:
-{ arch
+name:
+{ system
 , username
-# , script ? ''
-#     git clone https://github.com/megalithic/.dotfiles-nix ~/.dotfiles-nix
-#     nix run home-manager/master -- switch --flake ~/.dotfiles-nix
-#   ''
-, version ? "25.05"
 , darwin ? false
+, version ? "25.05"
 ,
 }:
 
 let
-  pkgs = nixpkgs.legacyPackages.${arch};
+  # pkgs = nixpkgs.legacyPackages.${system};
 
   isDarwin = darwin;
 
@@ -27,18 +23,18 @@ let
   # isLinux = !isDarwin;
 
   # The config files for this system.
-  machineConfig = ../machines/${hostname}.nix;
+  machineConfig = ../machines/${name}.nix;
   userOSConfig = ../users/${username}/${if darwin then "darwin" else "nixos"}.nix;
   userHMConfig = ../users/${username}/home.nix;
 
   # NixOS vs nix-darwin functions
-  system = if isDarwin then inputs.nix-darwin.lib.darwinSystem else nixpkgs.lib.nixosSystem;
+  systemFn = if isDarwin then inputs.nix-darwin.lib.darwinSystem else nixpkgs.lib.nixosSystem;
   homeManager =
     if isDarwin then inputs.home-manager.darwinModules else inputs.home-manager.nixosModules;
   # init = pkgs.writeShellApplication { name = "init"; text = script; };
 in
-system rec {
-  inherit arch;
+systemFn rec {
+  inherit system;
 
   modules = [
     # run init scripts for a system
@@ -50,7 +46,7 @@ system rec {
     { nixpkgs.overlays = overlays; }
 
     # The platform the configuration will be used on.
-    { nixpkgs.hostPlatform = "${arch}"; }
+    { nixpkgs.hostPlatform = "${system}"; }
 
     # Allow unfree packages.
     { nixpkgs.config.allowUnfree = true; }
@@ -71,10 +67,10 @@ system rec {
       home-manager.useGlobalPkgs = true;
       home-manager.useUserPackages = true;
       home-manager.users.${username} = import userHMConfig {
-        currentSystemArch = arch;
-        currentSystemHostname = hostname;
-        currentSystemUsername = username;
-        currentSystemVersion = version;
+        currentSystemArch = "${system}";
+        currentSystemHostname = "${name}";
+        currentSystemUsername = "${username}";
+        currentSystemVersion = "${version}";
 
         inherit inputs;
       };
@@ -84,10 +80,10 @@ system rec {
     # better based on these values.
     {
       config._module.args = {
-        currentSystemArch = arch;
-        currentSystemHostname = hostname;
-        currentSystemUsername = username;
-        currentSystemVersion = version;
+        currentSystemArch = "${system}";
+        currentSystemHostname = "${name}";
+        currentSystemUsername = "${username}";
+        currentSystemVersion = "${version}";
 
         inherit inputs;
       };

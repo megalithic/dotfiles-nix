@@ -65,7 +65,26 @@ return {
     end,
   },
   { "nvim-mini/mini.extra", version = false, opts = {} },
-  { "nvim-mini/mini.pick", version = false, opts = {} },
+  {
+    "nvim-mini/mini.pick",
+    version = false,
+    opts = {},
+    config = function(_, opts)
+      require("mini.pick").setup(opts)
+
+      local ok_mini_smart_pick, mini_smart_pick =
+        pcall(dofile, vim.fn.stdpath("config") .. "/after/plugin/mini_smart_pick.lua")
+
+      if ok_mini_smart_pick then
+        vim.keymap.set("n", "<leader>ff", mini_smart_pick.picker)
+      end
+
+      vim.keymap.set("n", "<leader>a", "<cmd>Pick grep_live<cr>", { desc = "Find with live grep" })
+      -- vim.keymap.set("n", "<leader>a", "<cmd>Pick grep<cr>", { desc = "Find with grep" })
+      vim.keymap.set("x", "<leader>A", 'y<cmd>Pick grep<cr><c-r>"<cr>', { desc = "Find current selection" })
+      vim.keymap.set("n", "<leader>A", "<cmd>Pick grep pattern='<cword>'<cr>", { desc = "Find current word" })
+    end,
+  },
   {
     "nvim-mini/mini.surround",
     keys = {
@@ -346,13 +365,13 @@ return {
         clues = {
           { mode = "n", keys = "<leader>e", desc = "+explore/edit files" },
           { mode = "n", keys = "<leader>f", desc = "+find (" .. "default" .. ")" },
+          { mode = "n", keys = "<leader>s", desc = "+search" },
           { mode = "n", keys = "<leader>t", desc = "+terminal" },
           { mode = "n", keys = "<leader>r", desc = "+repl" },
           { mode = "n", keys = "<leader>l", desc = "+lsp" },
           { mode = "n", keys = "<leader>n", desc = "+notes" },
           { mode = "n", keys = "<leader>g", desc = "+git" },
           { mode = "n", keys = "<leader>p", desc = "+plugins" },
-          { mode = "n", keys = "<leader>z", desc = "+zk" },
           { mode = "n", keys = "<localleader>g", desc = "+git" },
           { mode = "n", keys = "<localleader>h", desc = "+git hunk" },
           { mode = "n", keys = "<localleader>t", desc = "+test" },
