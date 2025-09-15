@@ -49,6 +49,7 @@ systemFn rec {
 
     # Allow unfree packages.
     { nixpkgs.config.allowUnfree = true; }
+    { nixpkgs.config.allowUnsupportedSystem = true; }
 
     # This value determines the NixOS release from which the default
     # settings for stateful data, like file locations and database versions
@@ -88,12 +89,12 @@ systemFn rec {
     #     inherit inputs;
     #   };
     # }
-{
+    {
       config._module.args = {
         currentSystemArch = system;
         currentSystemHostname = name;
         currentSystemUsername = username;
-        inputs = inputs;
+        inherit inputs;
       };
     }
   ];
