@@ -153,16 +153,16 @@ in
     };
 
 
-    chromium = {
-      enable = true;
-      package = pkgs.unstable.brave-nightly;
-      extensions = [
-        { id = "cjpalhdlnbpafiamejdnhcphjbkeiagm"; } # ublock origin
-      ];
-      commandLineArgs = [
-        "--disable-features=WebRtcAllowInputVolumeAdjustment"
-      ];
-    };
+    # chromium = {
+    #   enable = true;
+    #   package = pkgs.unstable.brave-nightly;
+    #   extensions = [
+    #     { id = "cjpalhdlnbpafiamejdnhcphjbkeiagm"; } # ublock origin
+    #   ];
+    #   commandLineArgs = [
+    #     "--disable-features=WebRtcAllowInputVolumeAdjustment"
+    #   ];
+    # };
 
     # alts: https://github.com/nmattia/niv?tab=readme-ov-file#getting-started
     nh = {
