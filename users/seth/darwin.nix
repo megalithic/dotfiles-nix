@@ -1,7 +1,7 @@
 # NOTE: docs for nix-darwin found
 # https://daiderd.com/nix-darwin/manual/index.html
 
-{ inputs, pkgs, currentSystemHostname, currentSystemUsername, ... }:
+{ pkgs, currentSystemHostname, currentSystemUsername, ... }:
 
 {
   users.users."${currentSystemUsername}" = {
