@@ -72,6 +72,46 @@ return {
     config = function(_, opts)
       require("mini.pick").setup(opts)
 
+      local setup_target_win_preview = function()
+        local opts = MiniPick.get_picker_opts()
+        local show, preview, choose = opts.source.show, opts.source.preview, opts.source.choose
+
+        -- Prepare preview and initial buffers
+        local preview_buf_id = vim.api.nvim_create_buf(false, true)
+        local win_target = MiniPick.get_picker_state().windows.target
+        local init_target_buf = vim.api.nvim_win_get_buf(win_target)
+        vim.api.nvim_win_set_buf(win_target, preview_buf_id)
+
+        -- Hook into source's methods
+        opts.source.show = function(...)
+          show(...)
+          local cur_item = MiniPick.get_picker_matches().current
+          if cur_item == nil then
+            return
+          end
+          preview(preview_buf_id, cur_item)
+        end
+
+        local needs_init_buf_restore = true
+        opts.source.choose = function(...)
+          needs_init_buf_restore = false
+          choose(...)
+        end
+
+        MiniPick.set_picker_opts(opts)
+
+        -- Set up buffer cleanup
+        local cleanup = function()
+          if needs_init_buf_restore then
+            vim.api.nvim_win_set_buf(win_target, init_target_buf)
+          end
+          vim.api.nvim_buf_delete(preview_buf_id, { force = true })
+        end
+        vim.api.nvim_create_autocmd("User", { pattern = "MiniPickStop", once = true, callback = cleanup })
+      end
+
+      vim.api.nvim_create_autocmd("User", { pattern = "MiniPickStart", callback = setup_target_win_preview })
+
       local ok_mini_smart_pick, mini_smart_pick =
         pcall(dofile, vim.fn.stdpath("config") .. "/after/plugin/mini_smart_pick.lua")
 

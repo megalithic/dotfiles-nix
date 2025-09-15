@@ -1,7 +1,11 @@
 -- REF:
 -- - https://github.com/ahmedelgabri/dotfiles/blob/5ceb4f3220980f95bc674b0785c920fbd9fc45ed/config/nvim/lua/plugins/formatter.lua#L75
-local timeout_ms = 1500
-local lsp_fallback = true
+vim.api.nvim_create_autocmd("BufWritePre", {
+  pattern = "*",
+  callback = function(args)
+    require("conform").format({ bufnr = args.buf })
+  end,
+})
 
 Command("ToggleAutoFormat", function()
   vim.g.disable_autoformat = not vim.g.disable_autoformat
