@@ -14,30 +14,32 @@
     ./homebrew.nix
   ];
 
-  environment.systemPackages = with pkgs;
+  environment.systemPackages =
     [
-      just
-      bat
-      fzf
-      git
-      ripgrep
-      fd
-      sd
-      zoxide
-      # docker
-      # docker-compose
-      # docker-credential-helpers
-      # colima
-      # uv
-      defaultbrowser
-      firefox
-      chromium
-      unstable.brave-nightly
-      kanata
-      karabiner-elements.driver
-      keycastr
-      obsidian
-    ] ++ [ inputs.agenix.packages.${currentSystemArch}.default ];
+      pkgs.just
+      pkgs.bat
+      pkgs.fzf
+      pkgs.git
+      pkgs.ripgrep
+      pkgs.fd
+      pkgs.sd
+      pkgs.zoxide
+      # pkgs.docker
+      # pkgs.docker-compose
+      # pkgs.docker-credential-helpers
+      # pkgs.colima
+      # pkgs.uv
+      pkgs.defaultbrowser
+      pkgs.firefox
+      pkgs.chromium
+      pkgs.brave
+      pkgs.kanata
+      pkgs.karabiner-elements.driver
+      pkgs.keycastr
+      pkgs.obsidian
+
+      inputs.agenix.packages.${currentSystemArch}.default
+    ];
 
   # Enable fish and zsh
   programs.zsh.enable = true;
