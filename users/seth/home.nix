@@ -1,9 +1,11 @@
-{ inputs, ... }:
+{ inputs
+, currentSystemVersion
+, ...
+}:
 
 { pkgs
 , lib
 , system
-, currentSystemVersion
 , ...
 }:
 

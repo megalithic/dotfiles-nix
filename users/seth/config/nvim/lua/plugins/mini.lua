@@ -109,7 +109,6 @@ return {
         end
         vim.api.nvim_create_autocmd("User", { pattern = "MiniPickStop", once = true, callback = cleanup })
       end
-
       vim.api.nvim_create_autocmd("User", { pattern = "MiniPickStart", callback = setup_target_win_preview })
 
       local ok_mini_smart_pick, mini_smart_pick =
