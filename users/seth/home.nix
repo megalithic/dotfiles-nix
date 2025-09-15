@@ -20,7 +20,7 @@ let
   '');
 in
 {
-  environment.systemPackages = [ inputs.agenix.packages.${system}.default ];
+  # environment.systemPackages = [ inputs.agenix.packages.${system}.default ];
 
   imports = [
     ./packages.nix

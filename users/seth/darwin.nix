@@ -1,7 +1,7 @@
 # NOTE: docs for nix-darwin found
 # https://daiderd.com/nix-darwin/manual/index.html
 
-{ pkgs, currentSystemHostname, currentSystemUsername, ... }:
+{ inputs, pkgs, currentSystemHostname, currentSystemArch, currentSystemUsername, ... }:
 
 {
   users.users."${currentSystemUsername}" = {
@@ -31,6 +31,8 @@
     pkgs.karabiner-elements.driver
     pkgs.keycastr
     pkgs.obsidian
+
+    inputs.agenix.packages.${currentSystemArch}.default
   ];
 
   # Enable fish and zsh
