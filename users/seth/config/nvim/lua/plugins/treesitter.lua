@@ -2,6 +2,8 @@ if vim.g.treesitter_branch == "master" then
   return {}
 end
 
+-- REF: https://github.com/madmaxieee/nvim-config/blob/2eb05a43d0e9bb8875d2301e03a4ed352d1ac2a4/lua/plugins/nvim-treesitter.lua
+
 local include_surrounding_whitespace = {
   ["@function.outer"] = true,
   ["@class.outer"] = true,
