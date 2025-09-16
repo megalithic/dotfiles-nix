@@ -32,3 +32,4 @@ General links and references to things I need to do/remember for my dotfiles/nix
 - youtube guy from england and his config: https://github.com/ironicbadger/nix-config/blob/main/flake.nix
 - good stuff with fish and nix: https://github.com/alexpearce/dotfiles
 - devspaces and lots of other goodies: https://github.com/Veraticus/nix-config/blob/main/home-manager/devspaces-client/default.nix
+- THIS JOKER HAS IT ALL for nix/darwin/home-manager AND snacks picker fancies. MUST SEE: https://github.com/madmaxieee/nix-config/tree/main

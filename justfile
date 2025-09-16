@@ -30,7 +30,7 @@ news:
 # rebuild nix darwin
 [macos]
 build:
-  sudo nix --experimental-features 'nix-command flakes' run nix-darwin -- switch --flake ./#megabookpro
+  sudo nix --experimental-features 'nix-command flakes' run nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake ./#megabookpro
   # eventually: nh darwin switch ./
 
 # rebuild nix darwin

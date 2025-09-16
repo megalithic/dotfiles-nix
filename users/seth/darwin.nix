@@ -1,7 +1,7 @@
 # NOTE: docs for nix-darwin found
 # https://daiderd.com/nix-darwin/manual/index.html
 
-{ inputs, pkgs, currentSystemHostname, currentSystemArch, currentSystemUsername, ... }:
+{ inputs, pkgs, currentSystemName, currentSystem, currentSystemUser, ... }:
 # { pkgs, lib, ... }:
 
 let
@@ -19,6 +19,9 @@ let
   lang = "en_US.UTF-8";
 in
 {
+  modules = [
+    inputs.agenix.packages.${currentSystem}.default
+  ];
   # Enable fish and zsh
   programs.zsh.enable = true;
   programs.fish.enable = true;
@@ -38,6 +41,8 @@ in
     MANPAGER = "${manpager}/bin/manpager";
   };
 
+  environment.shells = [ pkgs.fish ];
+
   environment.systemPackages = [
     pkgs.bat
     pkgs.brave
@@ -54,7 +59,6 @@ in
     pkgs.sd
     pkgs.vim
     pkgs.zoxide
-    inputs.agenix.packages.x86_64-linux.default
   ];
 
   # environment.extraInit = ''
@@ -191,10 +195,13 @@ in
     pkgs.nerd-fonts.jetbrains-mono
     pkgs.nerd-fonts.fira-code
     pkgs.maple-mono.NF
+    pkgs.nerd-fonts.symbols-only
   ];
 
-  networking.hostName = "${currentSystemHostname}";
+  networking.hostName = "${currentSystemName}";
   time.timeZone = "America/New_York";
+
+  ids.gids.nixbld = 350;
 
   system = {
     primaryUser = "seth";
@@ -217,6 +224,7 @@ in
         TrackpadRightClick = true;
       };
       NSGlobalDomain = {
+        AppleICUForce24HourTime = true;
         AppleKeyboardUIMode = 3;
         "com.apple.keyboard.fnState" = true;
         NSAutomaticWindowAnimationsEnabled = false;
