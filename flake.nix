@@ -115,7 +115,7 @@
         })
       ];
 
-      mkSystem = import ./lib/mksystem.nix {
+      mkSystem = import ./lib/mkSystem.nix {
         inherit nixpkgs overlays inputs;
       };
 
