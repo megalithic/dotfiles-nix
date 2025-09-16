@@ -83,8 +83,12 @@ return {
           keymap = {
             preset = "inherit",
             ["<CR>"] = { "fallback" },
-            ["<Tab>"] = { "show", "accept", "fallback" },
-            ["<C-y>"] = { "select_and_accept" },
+            ["<Tab>"] = { "show_and_insert_or_accept_single", "select_next" },
+            ["<S-Tab>"] = { "show_and_insert_or_accept_single", "select_prev" },
+            ["<C-n>"] = { "select_next", "fallback" },
+            ["<C-p>"] = { "select_prev", "fallback" },
+            -- ["<CR>"] = { "select_and_accept", "fallback" },
+            ["<C-y>"] = { "select_and_accept", "fallback" },
           },
           completion = {
             list = {

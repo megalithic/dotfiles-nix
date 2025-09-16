@@ -1,5 +1,345 @@
 if true then
-  return {}
+  if true then
+    return {}
+  end
+
+  return {
+    "folke/snacks.nvim",
+    ---@module 'snacks'
+    ---@type snacks.Config
+    opts = {
+      picker = {
+        enabled = true,
+        ui_select = true,
+        formatters = {
+          file = { filename_first = true },
+        },
+        previewers = {
+          file = {
+            max_size = 10 * 1024 * 1024, -- 10MB
+          },
+        },
+        win = {
+          preview = {
+            wo = {
+              wrap = false,
+            },
+          },
+        },
+      },
+    },
+    -- MonkeyPatch - https://github.com/folke/snacks.nvim/pull/2012alocal
+
+    keys = {
+      {
+        "<leader>ff",
+        "<cmd>FFFSnacks <cr>",
+        desc = "FFF",
+      },
+
+      {
+        "<leader>fw",
+        mode = "n",
+        function()
+          local M = {}
+
+          local shortcuts = {
+            ["c"] = "*.{h,hpp,c,cc,cpp}",
+            ["l"] = "*.lua",
+            ["n"] = "*.nix",
+          }
+
+          local uv = vim.uv or vim.loop
+
+          ---@param opts snacks.picker.grep.Config
+          ---@param filter snacks.picker.Filter
+          local function get_cmd(opts, filter)
+            local cmd = "rg"
+            local args = {
+              "--color=never",
+              "--no-heading",
+              "--with-filename",
+              "--line-number",
+              "--column",
+              "--smart-case",
+              "--max-columns=500",
+              "--max-columns-preview",
+              "-g",
+              "!.git",
+            }
+
+            args = vim.deepcopy(args)
+
+            -- exclude
+            for _, e in ipairs(opts.exclude or {}) do
+              vim.list_extend(args, { "-g", "!" .. e })
+            end
+
+            -- hidden
+            if opts.hidden then
+              table.insert(args, "--hidden")
+            else
+              table.insert(args, "--no-hidden")
+            end
+
+            -- ignored
+            if opts.ignored then
+              args[#args + 1] = "--no-ignore"
+            end
+
+            -- follow
+            if opts.follow then
+              args[#args + 1] = "-L"
+            end
+
+            local types = type(opts.ft) == "table" and opts.ft or { opts.ft }
+            ---@cast types string[]
+            for _, t in ipairs(types) do
+              args[#args + 1] = "-t"
+              args[#args + 1] = t
+            end
+
+            if opts.regex == false then
+              args[#args + 1] = "--fixed-strings"
+            end
+
+            local glob = type(opts.glob) == "table" and opts.glob or { opts.glob }
+            ---@cast glob string[]
+            for _, g in ipairs(glob) do
+              args[#args + 1] = "-g"
+              args[#args + 1] = g
+            end
+
+            -- extra args
+            vim.list_extend(args, opts.args or {})
+
+            -- search pattern
+            -- string after two spaces is treated as file glob
+            local pattern, file_pattern = unpack(vim.split(filter.search, "  "))
+            if file_pattern then
+              if shortcuts[file_pattern] then
+                vim.list_extend(args, { "--glob", shortcuts[file_pattern] })
+              elseif not file_pattern:find("[%*%?%[%{]") then
+                vim.list_extend(args, { "--glob", "*" .. file_pattern .. "*" })
+              else
+                vim.list_extend(args, { "--glob", file_pattern })
+              end
+            end
+
+            args[#args + 1] = "--"
+            table.insert(args, pattern)
+
+            local paths = {} ---@type string[]
+
+            if opts.buffers then
+              for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+                local name = vim.api.nvim_buf_get_name(buf)
+                if name ~= "" and vim.bo[buf].buflisted and uv.fs_stat(name) then
+                  paths[#paths + 1] = name
+                end
+              end
+            end
+            vim.list_extend(paths, opts.dirs or {})
+            if opts.rtp then
+              vim.list_extend(paths, Snacks.picker.util.rtp())
+            end
+
+            -- dirs
+            if #paths > 0 then
+              paths = vim.tbl_map(svim.fs.normalize, paths) ---@type string[]
+              vim.list_extend(args, paths)
+            end
+
+            return cmd, args
+          end
+
+          ---@param opts snacks.picker.grep.Config
+          ---@type snacks.picker.finder
+          local function finder(opts, ctx)
+            if opts.need_search ~= false and ctx.filter.search == "" then
+              return function() end
+            end
+            local absolute = (opts.dirs and #opts.dirs > 0) or opts.buffers or opts.rtp
+            local cwd = not absolute and svim.fs.normalize(opts and opts.cwd or uv.cwd() or ".") or nil
+            local cmd, args = get_cmd(opts, ctx.filter)
+            if opts.debug.grep then
+              Snacks.notify.info("grep: " .. cmd .. " " .. table.concat(args, " "))
+            end
+            return require("snacks.picker.source.proc").proc({
+              opts,
+              {
+                notify = false,
+                cmd = cmd,
+                args = args,
+                ---@param item snacks.picker.finder.Item
+                transform = function(item)
+                  item.cwd = cwd
+                  local file, line, col, text = item.text:match("^(.+):(%d+):(%d+):(.*)$")
+                  if not file then
+                    if not item.text:match("WARNING") then
+                      Snacks.notify.error("invalid grep output:\n" .. item.text)
+                    end
+                    return false
+                  else
+                    item.line = text
+                    item.file = file
+                    item.pos = { tonumber(line), tonumber(col) - 1 }
+                  end
+                end,
+              },
+            }, ctx)
+          end
+
+          function M.multi_grep()
+            local picker = require("snacks.picker")
+            ---@type snacks.picker.Config
+            picker.pick({
+              title = "Multi Grep",
+              source = "grep",
+              finder = finder,
+            })
+          end
+          M.multi_grep()
+          -- require("plugins.snacks.multi-grep").multi_grep()
+        end,
+        desc = "Live grep",
+      },
+
+      {
+        "<leader>fw",
+        mode = "v",
+        function()
+          require("snacks").picker.grep_word()
+        end,
+        desc = "Grep string",
+      },
+
+      {
+        "<leader>fg",
+        function()
+          require("snacks").picker.git_status()
+        end,
+        desc = "Git status",
+      },
+
+      {
+        "<leader>fa",
+        function()
+          require("snacks").picker.files({
+            cmd = "fd",
+            args = {
+              "--color=never",
+              "--hidden",
+              "--type",
+              "f",
+              "--type",
+              "l",
+              "--no-ignore",
+              "--exclude",
+              ".git",
+            },
+          })
+        end,
+        desc = "Find all files",
+      },
+
+      {
+        "<leader>fb",
+        function()
+          require("snacks").picker.buffers()
+        end,
+        desc = "Find buffers",
+      },
+
+      {
+        "<leader>fj",
+        function()
+          require("snacks").picker.jumps()
+        end,
+        desc = "Find jumps",
+      },
+
+      {
+        "<leader>fh",
+        function()
+          require("snacks").picker.help()
+        end,
+        desc = "Find help",
+      },
+
+      {
+        "<leader>fz",
+        function()
+          require("snacks").picker.lines()
+        end,
+        desc = "Find lines",
+      },
+
+      {
+        "<leader>fr",
+        function()
+          require("snacks").picker.resume()
+        end,
+        desc = "Find recent files",
+      },
+
+      {
+        "<leader>cm",
+        function()
+          require("snacks").picker.git_log()
+        end,
+        desc = "Git commits",
+      },
+
+      {
+        "<leader>gg",
+        function()
+          require("snacks").picker.git_files()
+        end,
+        desc = "Find git files",
+      },
+
+      {
+        "<leader>fd",
+        function()
+          require("snacks").picker.diagnostics()
+        end,
+        desc = "Find diagnostics",
+      },
+
+      {
+        "<leader>fs",
+        function()
+          require("snacks").picker.lsp_symbols()
+        end,
+        desc = "Find document symbols",
+      },
+
+      {
+        "<leader>ws",
+        function()
+          require("snacks").picker.lsp_workspace_symbols()
+        end,
+        desc = "Find workspace symbols",
+      },
+
+      {
+        "<leader>fc",
+        function()
+          require("snacks").picker.command_history()
+        end,
+        desc = "Find commands",
+      },
+
+      {
+        "<leader>fu",
+        function()
+          require("snacks").picker.undo()
+        end,
+        desc = "Find undo history",
+      },
+    },
+  }
 end
 
 return {

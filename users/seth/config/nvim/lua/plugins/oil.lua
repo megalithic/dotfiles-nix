@@ -119,41 +119,7 @@ return {
             end
           end,
         },
-        ["gr"] = {
-          callback = function()
-            -- get the current directory
-            local oil = require("oil")
-            local prefills = { paths = oil.get_current_dir() }
-            local grug = require("grug-far")
-            -- instance check
-            if not grug.has_instance("explorer") then
-              grug.open({
-                instanceName = "explorer",
-                prefills = prefills,
-                staticTitle = "Find and Replace from Explorer",
-              })
-            else
-              grug.get_instance("explorer"):open()
-              -- updating the prefills without clearing the search and other fields
-              grug.get_instance("explorer"):update_input_values(prefills, false)
-            end
-          end,
-          desc = "oil: Search in directory",
-        },
         ["<CR>"] = "actions.select",
-        ["gp"] = function()
-          local oil = require("oil")
-          local entry = oil.get_cursor_entry()
-          if entry["type"] == "file" then
-            local dir = oil.get_current_dir()
-            local fileName = entry["name"]
-            local fullName = dir .. fileName
-
-            require("utils").preview_file(fullName)
-          else
-            return ""
-          end
-        end,
       },
     })
   end,

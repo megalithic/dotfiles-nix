@@ -2,160 +2,234 @@
 # https://daiderd.com/nix-darwin/manual/index.html
 
 { inputs, pkgs, currentSystemHostname, currentSystemArch, currentSystemUsername, ... }:
+# { pkgs, lib, ... }:
 
+let
+  inherit (pkgs.stdenv) isDarwin;
+  inherit (pkgs.stdenv) isLinux;
+
+  # For our MANPAGER env var
+  # https://github.com/sharkdp/bat/issues/1145
+  manpager = pkgs.writeShellScriptBin "manpager" (if isDarwin then ''
+    sh -c 'col -bx | bat -l man -p'
+  '' else ''
+    cat "$1" | col -bx | bat --language man --style plain
+  '');
+
+  lang = "en_US.UTF-8";
+in
 {
-  users.users."${currentSystemUsername}" = {
-    home = "/Users/${currentSystemUsername}";
-    shell = pkgs.fish;
-  };
-
-  imports = [
-    ./fonts.nix
-    ./homebrew.nix
-  ];
-
-  environment.systemPackages =
-    [
-      pkgs.just
-      pkgs.bat
-      pkgs.fzf
-      pkgs.git
-      pkgs.ripgrep
-      pkgs.fd
-      pkgs.sd
-      pkgs.zoxide
-      # pkgs.docker
-      # pkgs.docker-compose
-      # pkgs.docker-credential-helpers
-      # pkgs.colima
-      # pkgs.uv
-      pkgs.defaultbrowser
-      pkgs.firefox
-      pkgs.chromium
-      pkgs.brave
-      pkgs.kanata
-      pkgs.karabiner-elements.driver
-      pkgs.keycastr
-      pkgs.obsidian
-
-      inputs.agenix.packages.${currentSystemArch}.default
-    ];
-
   # Enable fish and zsh
   programs.zsh.enable = true;
   programs.fish.enable = true;
   programs._1password.enable = true;
 
-  # services.postgresql = {
-  #   enable = true;
-  #   package = pkgs.postgresql_17;
-  # };
+  users.users.seth = {
+    home = "/Users/seth";
+    shell = pkgs.fish;
+  };
 
-  # extra host specs
-  # https://github.com/nix-darwin/nix-darwin/issues/1035
-  # networking.extraHosts = ''
-  #   127.0.0.1   kubernetes.docker.internal
-  #   127.0.0.1   kubernetes.default.svc.cluster.local
+  environment.variables = {
+    LANG = "${lang}";
+    LC_CTYPE = "${lang}";
+    LC_ALL = "${lang}";
+    EDITOR = "nvim";
+    PAGER = "less -FirSwX";
+    MANPAGER = "${manpager}/bin/manpager";
+  };
+
+  environment.systemPackages = [
+    pkgs.bat
+    pkgs.brave
+    pkgs.defaultbrowser
+    pkgs.fd
+    pkgs.firefox
+    pkgs.fzf
+    pkgs.git
+    pkgs.google-chrome
+    pkgs.just
+    pkgs.kanata
+    pkgs.karabiner-elements.driver
+    pkgs.ripgrep
+    pkgs.sd
+    pkgs.vim
+    pkgs.zoxide
+    inputs.agenix.packages.x86_64-linux.default
+  ];
+
+  # environment.extraInit = ''
+  #   export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
   # '';
+
+  services = {
+    # aerospace = {
+    #   enable = true;
+    #   settings = {
+    #     accordion-padding = 0;
+    #     on-focused-monitor-changed = [ "move-mouse monitor-lazy-center" ];
+    #     on-window-detected = [
+    #       {
+    #         "if" = {
+    #           app-id = "com.flexibits.fantastical2.mac";
+    #         };
+    #         run = "move-node-to-workspace 2";
+    #       }
+    #     ];
+    #     workspace-to-monitor-force-assignment = {
+    #       "1" = [ "main" ];
+    #       "2" = [
+    #         "secondary"
+    #         "main"
+    #       ];
+    #     };
+    #     mode = {
+    #       main = {
+    #         binding = {
+    #           alt-y = "layout tiles horizontal vertical";
+    #           alt-t = "layout accordion horizontal vertical";
+    #           alt-h = "focus left";
+    #           alt-j = "focus down";
+    #           alt-k = "focus up";
+    #           alt-l = "focus right";
+    #           alt-shift-h = "move left";
+    #           alt-shift-j = "move down";
+    #           alt-shift-k = "move up";
+    #           alt-shift-l = "move right";
+    #           alt-ctrl-h = "join-with left";
+    #           alt-ctrl-j = "join-with down";
+    #           alt-ctrl-k = "join-with up";
+    #           alt-ctrl-l = "join-with right";
+    #           alt-minus = "resize smart -100";
+    #           alt-equal = "resize smart +100";
+    #           alt-1 = "workspace 1";
+    #           alt-2 = "workspace 2";
+    #           alt-3 = "workspace 3";
+    #           alt-shift-1 = "move-node-to-workspace 1";
+    #           alt-shift-2 = "move-node-to-workspace 2";
+    #           alt-shift-3 = "move-node-to-workspace 3";
+    #           alt-tab = "workspace-back-and-forth";
+    #           alt-shift-tab = "move-node-to-monitor --wrap-around next";
+    #           alt-shift-semicolon = "mode service";
+    #         };
+    #       };
+    #       service = {
+    #         binding = {
+    #           esc = [
+    #             "reload-config"
+    #             "mode main"
+    #           ];
+    #           r = [
+    #             "flatten-workspace-tree"
+    #             "mode main"
+    #           ];
+    #           f = [
+    #             "layout floating tiling"
+    #             "mode main"
+    #           ];
+    #           backspace = [
+    #             "close-all-windows-but-current"
+    #             "mode main"
+    #           ];
+    #         };
+    #       };
+    #     };
+    #   };
+    # };
+    # jankyborders = {
+    #   enable = true;
+    #   blur_radius = 5.0;
+    #   hidpi = true;
+    #   active_color = "0xAAB279A7";
+    #   inactive_color = "0x33867A74";
+    # };
+  };
+
+  homebrew = {
+    enable = true;
+
+    onActivation.autoUpdate = false;
+    onActivation.upgrade = false;
+
+    casks =
+      [
+        "1password"
+        "calibre"
+        "cardhop"
+        "discord"
+        "docker-desktop"
+        "fantastical"
+        "figma"
+        "ghostty"
+        "hammerspoon"
+        "homerow"
+        "karabiner-elements"
+        "macwhisper"
+        "mouseless"
+        "obs"
+        "ollama"
+        "pop-app"
+        "raycast"
+        "signal"
+        "slack"
+        "steam"
+        "telegram"
+        "vlc"
+        "zoom"
+      ];
+
+    masApps = {
+      "Parcel" = 639968404;
+      "Reeder" = 1529448980;
+      "Timery" = 1425368544;
+      "Toggl" = 1291898086;
+    };
+  };
+
+  fonts.packages = [
+    pkgs.atkinson-hyperlegible
+    pkgs.jetbrains-mono
+    pkgs.nerd-fonts.jetbrains-mono
+    pkgs.nerd-fonts.fira-code
+    pkgs.maple-mono.NF
+  ];
 
   networking.hostName = "${currentSystemHostname}";
   time.timeZone = "America/New_York";
 
-  # REF: https://github.com/appaquet/dotfiles/blob/master/darwin/mbpapp/system.nix
   system = {
-    primaryUser = "${currentSystemUsername}";
+    primaryUser = "seth";
     defaults = {
-      # screencapture.location = "~/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder/screenshots";
       dock = {
         autohide = true;
-        orientation = "bottom";
-        show-process-indicators = true;
+        orientation = "left";
+        show-process-indicators = false;
         show-recents = false;
         static-only = true;
-        mru-spaces = false;
-        tilesize = 30;
-      };
-      spaces = {
-        spans-displays = false; # each screen has their own spaces
       };
       finder = {
         AppleShowAllExtensions = true;
         FXDefaultSearchScope = "SCcf";
         FXEnableExtensionChangeWarning = false;
         ShowPathbar = true;
-        QuitMenuItem = true; # enable quit menu item
-        ShowStatusBar = true; # show status bar
       };
       trackpad = {
-        Clicking = true; # enable tap to click
-        TrackpadRightClick = true; # enable two finger right click
-        TrackpadThreeFingerDrag = true; # enable three finger drag
+        Clicking = true;
+        TrackpadRightClick = true;
       };
       NSGlobalDomain = {
-        "com.apple.swipescrolldirection" = false; # enable natural scrolling(default to true)
-        "com.apple.sound.beep.feedback" = 0; # disable beep sound when pressing volume up/down key
+        AppleKeyboardUIMode = 3;
         "com.apple.keyboard.fnState" = true;
-        AppleKeyboardUIMode = 3; # Mode 3 enables full keyboard control.
-        AppleInterfaceStyle = "Dark";
-        ApplePressAndHoldEnabled = false; # enable press and hold
         NSAutomaticWindowAnimationsEnabled = false;
         NSWindowShouldDragOnGesture = true;
-        _HIHideMenuBar = false; # hide menu bar
-        # sets how long it takes before it starts repeating.
-        InitialKeyRepeat = 15; # normal minimum is 15 (225 ms), maximum is 120 (1800 ms)
-        # sets how fast it repeats once it starts.
-        KeyRepeat = 2; # normal minimum is 2 (30 ms), maximum is 120 (1800 ms)
       };
-      CustomUserPreferences = {
-        NSGlobalDomain = {
-          # Add a context menu item for showing the Web Inspector in web views
-          WebKitDeveloperExtras = true;
-          # automatically switch to a new space when switching to the application
-          AppleSpacesSwitchOnActivate = true;
-        };
-        "com.apple.desktopservices" = {
-          # Avoid creating .DS_Store files on network or USB volumes
-          DSDontWriteNetworkStores = true;
-          DSDontWriteUSBStores = true;
-        };
-        "com.apple.WindowManager" = {
-          EnableStandardClickToShowDesktop = 0; # Click wallpaper to reveal desktop
-          StandardHideDesktopIcons = 0; # Show items on desktop
-          HideDesktop = 0; # Do not hide items on desktop & stage manager
-          StageManagerHideWidgets = 0;
-          StandardHideWidgets = 0;
-        };
-        "com.apple.screensaver" = {
-          # Require password immediately after sleep or screen saver begins
-          askForPassword = 1;
-          askForPasswordDelay = 0;
-        };
-        # "com.apple.screencapture" = {
-        #   location = "~/Desktop";
-        #   type = "png";
-        # };
-        "com.apple.AdLib" = {
-          allowApplePersonalizedAdvertising = false;
-        };
-        # Prevent Photos from opening automatically when devices are plugged in
-        "com.apple.ImageCapture".disableHotPlug = true;
-
-        "org.hammerspoon.Hammerspoon" = {
-          MJConfigFile = "~/.config/hammerspoon/init.lua";
-        };
-      };
-
-      loginwindow = {
-        GuestEnabled = false; # disable guest user
-        SHOWFULLNAME = false; # show full name in login window
-        LoginwindowText = "${currentSystemHostname}";
+      CustomUserPreferences."org.hammerspoon.Hammerspoon" = {
+        MJConfigFile = "~/.config/hammerspoon/init.lua";
       };
     };
-
+    # karabiner-elements.enable = true;
     keyboard = {
       enableKeyMapping = true;
-      # TODO: does kanata handle this now?
-      # remapCapsLockToControl = true;
+      remapCapsLockToControl = true;
     };
   };
 

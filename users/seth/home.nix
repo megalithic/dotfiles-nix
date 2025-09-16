@@ -1,9 +1,15 @@
+# { pkgs
+# , lib
+# , inputs
+# , ...
+# }:
+
 { inputs
-, currentSystemVersion
 , ...
 }:
 
-{ pkgs
+{ config
+, pkgs
 , lib
 , system
 , ...
@@ -23,9 +29,8 @@ let
 
   lang = "en_US.UTF-8";
 in
-{
-  # environment.systemPackages = [ inputs.agenix.packages.${system}.default ];
 
+{
   imports = [
     ./packages.nix
     #   ./git.nix
@@ -37,22 +42,86 @@ in
   ];
 
 
+  home = {
+    stateVersion = "25.05"; # Please read the comment before changing.
+
+    # The home.packages option allows you to install Nix packages into your
+    # environment.
+    packages = with pkgs; [
+      amber
+      unstable.claude-code
+      unstable.devenv
+      gh
+      gum
+      fd
+      harper
+      lua-language-server
+      markdown-oxide
+      nixd
+      nixfmt-rfc-style
+      ai-tools.opencode
+      ripgrep
+      sd
+      sesh
+    ];
+
+
+    file = {
+      # create our `~/code` directory
+      "code/.keep" = { text = ""; };
+      #
+      # ".config/starship.toml" = {
+      #   recursive = true;
+      #   source = ./config/starship.toml;
+      # };
+      #
+      # ".config/surfingkeys/config.js" = {
+      #   recursive = true;
+      #   source = ./config/surfingkeys/config.js;
+      # };
+    };
+
+    sessionVariables = {
+      LANG = "${lang}";
+      LC_CTYPE = "${lang}";
+      LC_ALL = "${lang}";
+      EDITOR = "nvim";
+      PAGER = "less -FirSwX";
+      MANPAGER = "${manpager}/bin/manpager";
+      # ANTHROPIC_API_KEY = "op://Shared/Claude/credential";
+      CLAUDE_CODE_OAUTH_TOKEN = "op://Shared/megaenv/CLAUDE_CODE_OAUTH_TOKEN";
+    };
+  };
 
   xdg.enable = true;
 
   xdg.configFile."hammerspoon" = lib.mkIf pkgs.stdenv.isDarwin {
     source = config/hammerspoon;
+    recursive = true;
   };
 
   xdg.configFile."kanata" = lib.mkIf pkgs.stdenv.isDarwin {
     source = config/kanata;
+    recursive = true;
   };
 
   xdg.configFile."nvim".source = config/nvim;
+  xdg.configFile."nvim".recursive = true;
 
-  xdg.configFile."tmux".source = config/tmux;
+  # xdg.configFile."tmux".source = config/tmux;
+  # xdg.configFile."tmux".recursive = true;
 
   xdg.configFile."ghostty".source = config/ghostty;
+  xdg.configFile."ghostty".recursive = true;
+
+  xdg.configFile."opencode".source = config/opencode;
+  xdg.configFile."opencode".recursive = true;
+
+  xdg.configFile."jj".source = config/jj;
+  xdg.configFile."jj".recursive = true;
+
+  xdg.configFile."zsh".source = config/zsh;
+  xdg.configFile."zsh".recursive = true;
 
   # xdg.configFile."opencode/opencode.json".text = ''
   #   {
@@ -76,42 +145,62 @@ in
   #   }
   # '';
 
-  home = {
-    # create our `code` directory
-    file."code/.keep".text = "";
-    # Necessary for home-manager to work with flakes, otherwise it will
-    # look for a nixpkgs channel.
-    stateVersion =
-      if pkgs.stdenv.isDarwin
-      then currentSystemVersion
-      else system.stateVersion;
-
-
-    sessionVariables = {
-      LANG = "${lang}";
-      LC_CTYPE = "${lang}";
-      LC_ALL = "${lang}";
-      EDITOR = "nvim";
-      PAGER = "less -FirSwX";
-      MANPAGER = "${manpager}/bin/manpager";
-      ANTHROPIC_API_KEY = "op://Shared/Claude/credential";
-    };
-
-    file = {
-      ".config/starship.toml" = {
-        source = ./config/starship.toml;
-      };
-      ".config/surfingkeys/config.js" = {
-        source = ./config/surfingkeys/config.js;
-      };
-    };
+  accounts.email.accounts.gmail = {
+    primary = true;
+    aerc.enable = true;
+    himalaya.enable = true;
+    address = "seth.messer@gmail.com";
+    userName = "seth.messer@gmail.com";
+    realName = "Seth Messer";
+    folders = { inbox = "INBOX"; sent = "\[Gmail\]/Sent\ Mail"; trash = "\[Gmail\]/Trash"; };
+    passwordCommand = "op read op://Shared/aw6tbw4va5bpnippcdqh2mkfq4/password";
+    flavor = "gmail.com";
   };
 
   programs = {
-    # Let Home Manager install and manage itself.
-    home-manager.enable = true;
+    aerc = {
+      enable = true;
+      extraConfig = {
+        general.unsafe-accounts-conf = true;
+        viewer = { pager = "${pkgs.less}/bin/less -R"; };
+        filters = {
+          "text/plain" = "${pkgs.aerc}/libexec/aerc/filters/colorize";
+          "text/calendar" = "${pkgs.aerc}/libexec/aerc/filters/calendar";
+          "text/html" = "${pkgs.aerc}/libexec/aerc/filters/html";
+          "message/delivery-status" = "${pkgs.aerc}/libexec/aerc/filters/colorize";
+          "message/rfc822" = "${pkgs.aerc}/libexec/aerc/filters/colorize";
+        };
+        ui = {
+          threading-enabled = true;
+          show-thread-context = true;
+          styleset-name = "nord";
+          border-char-vertical = "┃";
+          # REF: https://github.com/ash-project/igniter/blob/main/installer/lib/loading.ex#L6
+          spinner = "⠁,⠂,⠄,⡀,⡁,⡂,⡄,⡅,⡇,⡏,⡗,⡧,⣇,⣏,⣗,⣧,⣯,⣷,⣿,⢿,⣻,⢻,⢽,⣹,⢹,⢸,⠸,⢘,⠘,⠨,⢈,⠈,⠐,⠠,⢀";
+          # default:
+          # spinner = "[ ⡿ ],[ ⣟ ],[ ⣯ ],[ ⣷ ],[ ⣾ ],[ ⣽ ],[ ⣻ ],[ ⢿ ]";
+        };
+      };
+    };
+    himalaya.enable = true;
 
-    # get nightly
+    fish = {
+      enable = true;
+      interactiveShellInit = ''
+        set fish_greeting # N/A
+      '';
+      shellAliases = {
+        opencode = "op run --no-masking -- opencode";
+      };
+    };
+
+    direnv = {
+      enable = true;
+      enableFishIntegration = true;
+      enableZshIntegration = true;
+      nix-direnv.enable = true;
+    };
+
     neovim = {
       enable = true;
       package = inputs.neovim-nightly-overlay.packages.${pkgs.system}.default;
@@ -136,90 +225,54 @@ in
       '';
     };
 
-    # xdg.configFile."nvim" = {
-    #   source = ./config/nvim;
-    #   recursive = true;
-    # };
-
-    # REF: https://github.com/gbroques/dotfiles/blob/main/fish/.config/fish/config.fish
-    fish = {
-      enable = true;
-      interactiveShellInit = ''
-        set fish_greeting # N/A
-      '';
-      shellAliases = {
-        opencode = "op run --no-masking -- opencode";
-      };
-    };
-
-
-    # chromium = {
-    #   enable = true;
-    #   package = pkgs.unstable.brave-nightly;
-    #   extensions = [
-    #     { id = "cjpalhdlnbpafiamejdnhcphjbkeiagm"; } # ublock origin
-    #   ];
-    #   commandLineArgs = [
-    #     "--disable-features=WebRtcAllowInputVolumeAdjustment"
-    #   ];
-    # };
-
-    # alts: https://github.com/nmattia/niv?tab=readme-ov-file#getting-started
-    nh = {
-      enable = true;
-      package = pkgs.unstable.nh;
-      clean.enable = true;
-      flake = ../../.;
-    };
-
-    direnv = {
-      enable = true;
-      nix-direnv.enable = true;
-    };
-
-    jujutsu = {
-      enable = true;
-      package = pkgs.unstable.jujutsu;
-      settings = {
-        user = {
-          name = "Seth Messer";
-          email = "seth@megalithic.io";
-        };
-        ui.default-command = "log";
-        fix.tools.nixfmt = {
-          command = [ "${lib.getExe pkgs.nixfmt-rfc-style}" "$path" ];
-          patterns = [ "glob:'**/*.nix'" ];
-        };
-        templates.draft_commit_description = ''
-          concat(
-            coalesce(description, default_commit_description, "\n"),
-            surround(
-              "\nJJ: This commit contains the following changes:\n", "",
-              indent("JJ:     ", diff.stat(72)),
-            ),
-            "\nJJ: ignore-rest\n",
-            diff.git(),
-          )
-        '';
-      };
-    };
 
     tmux = {
       enable = true;
       escapeTime = 10;
       prefix = "C-space";
       sensibleOnTop = false;
-      shell = "${pkgs.fish}/bin/fish";
-      # shell = "${pkgs.zsh}/bin/zsh";
+      # shell = "${pkgs.fish}/bin/fish";
       terminal = "xterm-ghostty";
-
       extraConfig = lib.fileContents config/tmux/tmux.conf;
-
       plugins = with pkgs.tmuxPlugins; [
         pain-control
         sessionist
         yank
       ];
+    };
+
+    jujutsu = {
+      enable = true;
+      package = pkgs.unstable.jujutsu;
+      # settings = {
+      #   user = {
+      #     name = "Seth Messer";
+      #     email = "seth@megalithic.io";
+      #   };
+      #   ui.default-command = "log";
+      #   fix.tools.nixfmt = {
+      #     command = [ "${lib.getExe pkgs.nixfmt-rfc-style}" "$path" ];
+      #     patterns = [ "glob:'**/*.nix'" ];
+      #   };
+      #   templates.draft_commit_description = ''
+      #     concat(
+      #       coalesce(description, default_commit_description, "\n"),
+      #       surround(
+      #         "\nJJ: This commit contains the following changes:\n", "",
+      #         indent("JJ:     ", diff.stat(72)),
+      #       ),
+      #       "\nJJ: ignore-rest\n",
+      #       diff.git(),
+      #     )
+      #   '';
+      # };
+    };
+
+    nh = {
+      enable = true;
+      package = pkgs.unstable.nh;
+      clean.enable = true;
+      flake = ../../.;
     };
 
     yazi = {
@@ -235,6 +288,7 @@ in
     };
 
     ssh = { matchBlocks."* \"test -z $SSH_TTY\"".identityAgent = "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"; };
+
     mise = {
       enable = true;
       enableFishIntegration = true;
@@ -258,9 +312,13 @@ in
         };
       };
     };
+
     bat.enable = true;
+
     ripgrep.enable = true;
+
     jq.enable = true;
   };
 
+  # services.ollama.enable = true;
 }

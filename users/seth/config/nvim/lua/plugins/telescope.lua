@@ -134,77 +134,80 @@ return {
       --   -- },
       -- })
 
-      -- REF: https://github.com/tjdevries/config.nvim/blob/master/lua/custom/telescope/multi-ripgrep.lua
-      -- local function multi_rg(opts)
-      --   local conf = require("telescope.config").values
-      --   local finders = require("telescope.finders")
-      --   local make_entry = require("telescope.make_entry")
-      --   local pickers = require("telescope.pickers")
-      --
-      --   local flatten = vim.tbl_flatten
-      --
-      --   -- i would like to be able to do telescope
-      --   -- and have telescope do some filtering on files and some grepping
-      --
-      --   -- return function(opts)
-      --   opts = opts or {}
-      --   opts.cwd = opts.cwd and vim.fn.expand(opts.cwd) or vim.loop.cwd()
-      --   opts.shortcuts = opts.shortcuts
-      --     or {
-      --       ["l"] = "*.lua",
-      --       ["v"] = "*.vim",
-      --       ["n"] = "*.{vim,lua}",
-      --       ["c"] = "*.c",
-      --       ["r"] = "*.rs",
-      --       ["g"] = "*.go",
-      --     }
-      --   opts.pattern = opts.pattern or "%s"
-      --
-      --   local custom_grep = finders.new_async_job({
-      --     command_generator = function(prompt)
-      --       if not prompt or prompt == "" then return nil end
-      --
-      --       local prompt_split = vim.split(prompt, "  ")
-      --
-      --       local args = { "rg" }
-      --       if prompt_split[1] then
-      --         table.insert(args, "-e")
-      --         table.insert(args, prompt_split[1])
-      --       end
-      --
-      --       if prompt_split[2] then
-      --         table.insert(args, "-g")
-      --
-      --         local pattern
-      --         if opts.shortcuts[prompt_split[2]] then
-      --           pattern = opts.shortcuts[prompt_split[2]]
-      --         else
-      --           pattern = prompt_split[2]
-      --         end
-      --
-      --         table.insert(args, string.format(opts.pattern, pattern))
-      --       end
-      --
-      --       return flatten({
-      --         args,
-      --         { "--color=never", "--no-heading", "--with-filename", "--line-number", "--column", "--smart-case" },
-      --       })
-      --     end,
-      --     entry_maker = make_entry.gen_from_vimgrep(opts),
-      --     cwd = opts.cwd,
-      --   })
-      --
-      --   pickers
-      --     .new(opts, {
-      --       debounce = 100,
-      --       prompt_title = "Live Grep (with shortcuts)",
-      --       finder = custom_grep,
-      --       previewer = conf.grep_previewer(opts),
-      --       sorter = require("telescope.sorters").empty(),
-      --     })
-      --     :find()
-      --   -- end
-      -- end
+      local function multi_grep(opts)
+        opts = opts or {}
+        opts.cwd = opts.cwd and vim.fn.expand(opts.cwd) or vim.uv.cwd()
+        opts.shortcuts = opts.shortcuts
+          or {
+            ["c"] = "*.{h,hpp,c,cc,cpp}",
+            ["l"] = "*.lua",
+            ["n"] = "*.nix",
+            ["e"] = "*.ex",
+            ["h"] = "*.heex",
+          }
+        opts.pattern = opts.pattern or "%s"
+        opts.delimiter = opts.delimiter or "  "
+
+        local conf = require("telescope.config").values
+        local finders = require("telescope.finders")
+        local make_entry = require("telescope.make_entry")
+        local pickers = require("telescope.pickers")
+
+        local custom_grep = finders.new_async_job({
+          command_generator = function(prompt)
+            if not prompt or prompt == "" then
+              return nil
+            end
+
+            local prompt_split = vim.split(prompt, opts.delimiter)
+
+            local args = { "rg" }
+            if prompt_split[1] then
+              table.insert(args, "-e")
+              table.insert(args, prompt_split[1])
+            end
+
+            if prompt_split[2] then
+              table.insert(args, "-g")
+
+              local pattern
+              if opts.shortcuts[prompt_split[2]] then
+                pattern = opts.shortcuts[prompt_split[2]]
+              else
+                pattern = prompt_split[2]
+              end
+
+              table.insert(args, string.format(opts.pattern, pattern))
+            end
+            return vim
+              .iter({
+                args,
+                {
+                  "--color=never",
+                  "--no-heading",
+                  "--with-filename",
+                  "--line-number",
+                  "--column",
+                  "--smart-case",
+                },
+              })
+              :flatten()
+              :totable()
+          end,
+          entry_maker = make_entry.gen_from_vimgrep(opts),
+          cwd = opts.cwd,
+        })
+
+        pickers
+          .new(opts, {
+            debounce = 100,
+            prompt_title = "Live Grep (with shortcuts)",
+            finder = custom_grep,
+            previewer = conf.grep_previewer(opts),
+            sorter = require("telescope.sorters").empty(),
+          })
+          :find()
+      end
 
       -- Set current folder as prompt title
       local function with_title(opts, extra)
@@ -542,6 +545,8 @@ return {
               ["<c-up>"] = function(...)
                 return actions.cycle_history_prev(...)
               end,
+
+              ["<c-f>"] = actions.to_fuzzy_refine,
               ["<c-q>"] = actions.smart_send_to_qflist + actions.open_qflist,
               ["<c-a>"] = { "<Home>", type = "command" },
               ["<c-e>"] = { "<End>", type = "command" },
@@ -562,6 +567,7 @@ return {
               end,
             },
             n = {
+              ["<c-f>"] = actions.to_fuzzy_refine,
               -- ["<cr>"] = function(pb) multi(pb, "vnew") end,
               -- ["<c-v>"] = function(pb) multi(pb, "vnew") end,
               -- ["<c-s>"] = function(pb) multi(pb, "new") end,
@@ -849,10 +855,10 @@ return {
               extensions("smart_open").smart_open(with_title(topts, { title = title }))
             elseif key == "undo" then
               extensions("undo").undo(big_ivy(with_title(topts, { title = "undo" })))
+            elseif key == "multi_grep" then
+              multi_grep(with_title(topts, { title = "multi live grep" }))
             elseif key == "grep" or key == "live_grep" then
               extensions("live_grep_args").live_grep_args(with_title(topts, { title = "live grep args" }))
-            elseif key == "corrode" then
-              extensions("corrode").corrode(with_title(topts, { title = "find files (corrode)" }))
             elseif key == "find_files" or key == "fd" or key == "files" then
               builtin[key](with_title(topts, { title = "find files" }))
             else
@@ -879,15 +885,18 @@ return {
       map("n", "<leader>fh", ts.help_tags, { "[f]ind [h]elp" })
       map("n", "<leader>fa", ts.autocommands, { "[f]ind [a]utocommands" })
       map("n", "<leader>fk", ts.keymaps, { "[f]ind [k]eymaps" })
-
+      -- map("n", "<leader>a", function()
+      --   mega.picker.grep({ theme = "ivy", title = "live grep", picker = "live_grep" })
+      -- end, { "live grep" })
       map("n", "<leader>a", function()
-        mega.picker.grep({ theme = "ivy", title = "live grep", picker = "live_grep" })
-      end, { "live grep" })
+        mega.picker.grep({ theme = "ivy", title = "multi live grep", picker = "multi_grep" })
+      end, { "multi live grep" })
+
       map({ "n" }, "<leader>A", function()
         mega.picker.grep({
           theme = "ivy",
           title = "live grep (cursor)",
-          picker = "live_grep",
+          picker = "multi_grep",
           default_text = vim.fn.expand("<cword>"),
         })
       end, { "live grep (cursor)" })
@@ -898,21 +907,21 @@ return {
         mega.picker.grep({
           theme = "ivy",
           title = "live grep (selection)",
-          picker = "live_grep",
+          picker = "multi_grep",
           default_text = pattern,
         })
       end, { "live grep (selection)" })
 
-      map("n", "<leader>a", function()
-        mega.picker.grep({ theme = "ivy", title = "live grep", picker = "live_grep" })
-      end, { "live grep" })
-      map({ "n" }, "<leader>A", function()
-        require("telescope-live-grep-args.shortcuts").grep_word_under_cursor()
-      end, { "live grep (cursor)" })
-      -- map("n", "<leader>A", function() mega.picker.grep({ theme = "ivy", default_text = vim.fn.expand("<cword>") }) end)
-      map({ "x" }, "<leader>A", function()
-        require("telescope-live-grep-args.shortcuts").grep_visual_selection()
-      end, { "live grep (selection)" })
+      -- map("n", "<leader>a", function()
+      --   mega.picker.grep({ theme = "ivy", title = "live grep", picker = "live_grep" })
+      -- end, { "live grep" })
+      -- map({ "n" }, "<leader>A", function()
+      --   require("telescope-live-grep-args.shortcuts").grep_word_under_cursor()
+      -- end, { "live grep (cursor)" })
+      -- -- map("n", "<leader>A", function() mega.picker.grep({ theme = "ivy", default_text = vim.fn.expand("<cword>") }) end)
+      -- map({ "x" }, "<leader>A", function()
+      --   require("telescope-live-grep-args.shortcuts").grep_visual_selection()
+      -- end, { "live grep (selection)" })
 
       -- {
       --   "<Leader>/",

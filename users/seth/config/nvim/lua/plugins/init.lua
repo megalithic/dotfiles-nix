@@ -6,6 +6,7 @@ return {
   -- { "tpope/vim-apathy", event = { "VeryLazy" } },
   -- { "tpope/vim-scriptease", event = { "VeryLazy" }, cmd = { "Messages", "Mess", "Noti" } },
   -- { "tpope/vim-sleuth" }, -- Detect tabstop and shiftwidth automatically
+  { "tjdevries/lazy-require.nvim" },
   {
     "EinfachToll/DidYouMean",
     event = { "BufNewFile" },

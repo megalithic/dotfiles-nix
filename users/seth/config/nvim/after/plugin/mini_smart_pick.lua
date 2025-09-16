@@ -245,26 +245,8 @@ function H.apply_match_highlights_in_path(buf_id, line_nr, text, query, path_inf
 end
 
 function H.show_items(buf_id, items, query, picker_items)
-      -- Shorten one path
-      -- WARN: This can only be called for MiniPick
-      local make_short_path = function(path)
-        local win_id = MiniPick.get_picker_state().windows.main
-        local buf_width = vim.api.nvim_win_get_width(win_id)
-        local char_count = vim.fn.strchars(path)
-        -- Do not shorten the path if it is not needed
-        if char_count < buf_width then return path end
-
-        local shortened_path = path:gsub(parent_dir_pattern, shorten_dirname)
-        char_count = vim.fn.strchars(shortened_path)
-        -- Return only the filename when the shorten path still overflows
-        if char_count >= buf_width then return shortened_path:match(parent_dir_pattern) end
-
-        return shortened_path
-      end
-
   local MiniPick = require("mini.pick")
 
-        -- local short_items_to_show = vim.tbl_map(make_short_path, items)
   MiniPick.default_show(buf_id, items, query, { show_icons = true })
 
   for i, item in ipairs(items) do

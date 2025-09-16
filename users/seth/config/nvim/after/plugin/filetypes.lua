@@ -555,14 +555,7 @@ require("ftplugin").extend_all({
   },
   markdown = {
     abbr = {
-      cabag = [[Co-authored-by: Aaron Gunderson <aaron@ternit.com>]],
-      cabdt = [[Co-authored-by: Dan Thiffault <dan@ternit.com>]],
-      cabjm = [[Co-authored-by: Jia Mu <jia@ternit.com>]],
-      cabam = [[Co-authored-by: Ali Marsh<ali@ternit.com>]],
-      cbag = [[Co-authored-by: Aaron Gunderson <aaron@ternit.com>]],
-      cbdt = [[Co-authored-by: Dan Thiffault <dan@ternit.com>]],
-      cbjm = [[Co-authored-by: Jia Mu <jia@ternit.com>]],
-      cbam = [[Co-authored-by: Ali Marsh<ali@ternit.com>]],
+      cab = [[Co-authored-by: First Last <email@example.com>]],
       cbt = "- [ ]",
       cb = "[ ]",
     },
