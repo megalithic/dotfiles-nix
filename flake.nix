@@ -29,7 +29,7 @@
       url = "github:zhaofengli-wip/nix-homebrew";
     };
 
-    nix-darwin = {
+    darwin = {
       url = "github:LnL7/nix-darwin/nix-darwin-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
@@ -95,7 +95,7 @@
 
 
   outputs =
-    { self, nixpkgs, home-manager, nix-darwin, nixpkgs-update, ... }@inputs:
+    { self, nixpkgs, home-manager, darwin, nixpkgs-update, ... }@inputs:
     let
       overlays = [
         inputs.jujutsu.overlays.default
