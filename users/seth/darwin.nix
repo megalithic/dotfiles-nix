@@ -183,6 +183,12 @@ in
       enableKeyMapping = true;
       remapCapsLockToControl = true;
     };
-    security.pam.services.sudo_local.touchIdAuth = true;
   };
+  security.pam.services.sudo_local.touchIdAuth = true;
+  # REF: https://github.com/madmaxieee/nix-config/blob/main/flake.nix#L68
+  # environment.etc."pam.d/sudo_local".text = ''
+  #   # Written by nix-darwin
+  #   auth       optional       ${pkgs.pam-reattach}/lib/pam/pam_reattach.so
+  #   auth       sufficient     pam_tid.so
+  # '';
 }

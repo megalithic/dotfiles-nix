@@ -218,6 +218,9 @@
               inherit overlays;
             };
           }
+          {
+            system.configurationRevision = self.rev or self.dirtyRev or null;
+          }
 
 
           machineConfig

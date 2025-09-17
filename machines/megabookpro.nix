@@ -59,8 +59,11 @@
     pkgs.home-manager
   ];
 
+  time.timeZone = "America/New_York";
+
   # Auto upgrade nix package and the daemon service.
   nix.enable = false;
+  nix.settings.experimental-features = "nix-command flakes";
 
   # nix.linux-builder = {
   #   enable = false;
