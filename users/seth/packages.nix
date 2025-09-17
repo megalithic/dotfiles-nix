@@ -66,7 +66,6 @@
       ninja
       nix-direnv
       nixd
-      nixd
       nixfmt-rfc-style
       nodejs_24
       nodePackages_latest.bash-language-server
@@ -77,7 +76,6 @@
       openssl
       pkg-config
       pnpm
-      prettierd
       python313
       python313Packages.ipython
       python313Packages.sqlfmt
