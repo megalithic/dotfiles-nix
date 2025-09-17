@@ -123,10 +123,6 @@
         { system
         , script ? ''
             echo "no default app init script set."
-            # git clone https://github.com/megalithic/dotfiles-nix ~/.dotfiles-nix
-            # bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-            # nix run nix-darwin -- switch --flake ~/.dotfiles-nix
-            # nix run home-manager/master -- switch --flake ~/.dotfiles-nix
           ''
         ,
         }:
@@ -160,7 +156,7 @@
 
           git clone https://github.com/megalithic/dotfiles-nix "$DOTFILES_DIR"
 
-          if ! command -v homebrew >/dev/null; then
+          if ! command -v brew >/dev/null; then
             bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
           fi
 
