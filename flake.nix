@@ -125,8 +125,12 @@
             echo "hi from echo"
             cowsay "hi from cowsay"
             pkgs.cowsay "hi from pkgs.cowsay"
-            bash -c "$(echo "echo from bash -c echo")"
             bash -c "$(cowsay "cowsay from bash -c cowsay")"
+
+            # git clone https://github.com/megalithic/dotfiles-nix ~/.dotfiles-nix
+            # bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+            # nix run nix-darwin -- switch --flake ~/.dotfiles-nix
+            # nix run home-manager/master -- switch --flake ~/.dotfiles-nix
           ''
         ,
         }:
@@ -149,17 +153,17 @@
           echo "hi from echo"
           cowsay "hi from cowsay"
           pkgs.cowsay "hi from pkgs.cowsay"
-          bash -c "$(echo "echo from bash -c echo")"
+          # bash -c "$(echo "echo from bash -c echo")"
           bash -c "$(cowsay "cowsay from bash -c cowsay")"
 
           # xcode-select --install
           # softwareupdate --install-rosetta
           # sudo xcodebuild -license
 
-          # git clone https://github.com/mhanberg/.dotfiles ~/.dotfiles
+          # git clone https://github.com/megalithic/dotfiles-nix ~/.dotfiles-nix
           # bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-          # nix run nix-darwin -- switch --flake ~/.dotfiles
-          # nix run home-manager/master -- switch --flake ~/.dotfiles
+          # nix run nix-darwin -- switch --flake ~/.dotfiles-nix
+          # nix run home-manager/master -- switch --flake ~/.dotfiles-nix
         '';
       };
 
