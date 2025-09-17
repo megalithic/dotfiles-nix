@@ -57,7 +57,7 @@
       luarocks
       markdown-oxide
       marksman
-      mcphub # used in codecompanion
+      # mcphub # used in codecompanion
       minikube
       mise-flake.packages.${system}.mise
       neovim
