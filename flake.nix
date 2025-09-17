@@ -184,7 +184,7 @@
 
       darwinConfigurations.megabookpro = mkSystem "megabookpro" {
         system = "aarch64-darwin";
-        username = "seth";
+        user = "seth";
         darwin = true;
         version = "25.05";
       };
