@@ -1,24 +1,9 @@
 # NOTE: docs for nix-darwin found
 # https://daiderd.com/nix-darwin/manual/index.html
 
-# { inputs, pkgs, arch, hostname, username, ... }:
+{ inputs, pkgs, arch, hostname, username, ... }:
 # { pkgs, lib, ... }:
 
-{ inputs
-, overlays
-, arch
-, hostname
-, username
-, version
-, ...
-}:
-
-{ config
-, inputs
-, lib
-, pkgs
-, ...
-}:
 let
   # For our MANPAGER env var
   # https://github.com/sharkdp/bat/issues/1145

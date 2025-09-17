@@ -207,7 +207,6 @@
           inherit arch;
           inherit hostname;
           inherit version;
-
         };
         modules = [
           {
@@ -221,25 +220,8 @@
           {
             system.configurationRevision = self.rev or self.dirtyRev or null;
           }
-
-
           machineConfig
           userOSConfig
-
-          # home-manager.lib.homeManagerConfiguration
-          # {
-          #   pkgs = nixpkgs.legacyPackages.${arch};
-          #   modules =
-          #     [
-          #       agenix.homeManagerModules.default
-          #       {
-          #         home.packages = [
-          #           agenix.packages.${arch}.default
-          #         ];
-          #       }
-          #     ]
-          # };
-
           inputs.home-manager.darwinModules.home-manager
           {
             home-manager.useGlobalPkgs = true;
@@ -255,21 +237,18 @@
             };
             home-manager.backupFileExtension = "backup";
           }
-
-
-
-          # We expose some extra arguments so that our modules can parameterize
-          # better based on these values.
-          {
-            config._module.args = {
-              inherit inputs;
-              inherit overlays;
-              inherit username;
-              inherit arch;
-              inherit hostname;
-              inherit version;
-            };
-          }
+          # # We expose some extra arguments so that our modules can parameterize
+          # # better based on these values.
+          # {
+          #   config._module.args = {
+          #     inherit inputs;
+          #     inherit overlays;
+          #     inherit username;
+          #     inherit arch;
+          #     inherit hostname;
+          #     inherit version;
+          #   };
+          # }
         ];
       };
     };
