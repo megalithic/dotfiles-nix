@@ -59,7 +59,7 @@
       marksman
       # mcphub # used in codecompanion
       minikube
-      mise-flake.packages.${system}.mise
+      # mise-flake.packages.${system}.mise
       neovim
       neovim-remote
       nil
@@ -67,7 +67,6 @@
       nix-direnv
       nixd
       nixd
-      nixfmt-rfc-style
       nixfmt-rfc-style
       nodejs_24
       nodePackages_latest.bash-language-server
