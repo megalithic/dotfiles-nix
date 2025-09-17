@@ -41,7 +41,7 @@ systemFunc rec {
     # the overlays are available globally.
     { nixpkgs.overlays = overlays; }
 
-    inputs.agenix.packages.${system}.default
+    # inputs.agenix.packages."${system}".default
 
     # Allow unfree packages.
     { nixpkgs.config.allowUnfree = true; }
