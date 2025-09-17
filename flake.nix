@@ -153,7 +153,6 @@
           echo "hi from echo"
           cowsay "hi from cowsay"
           pkgs.cowsay "hi from pkgs.cowsay"
-          # bash -c "$(echo "echo from bash -c echo")"
           bash -c "$(cowsay "cowsay from bash -c cowsay")"
 
           # xcode-select --install
