@@ -78,6 +78,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nix-ai-tools.url = "github:numtide/nix-ai-tools";
+
     # sops-nix = {
     #   url = "github:Mic92/sops-nix";
     #   inputs.nixpkgs.follows = "nixpkgs";
@@ -97,6 +99,7 @@
             inherit (prev) system;
             config.allowUnfree = true;
           };
+          ai-tools = inputs.nix-ai-tools.packages.${prev.system};
 
           # gh CLI on stable has bugs.
           inherit (unstable.legacyPackages.${prev.system}) gh;
