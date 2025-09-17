@@ -77,8 +77,8 @@
       pkg-config
       pnpm
       python313
-      python313Packages.ipython
-      python313Packages.sqlfmt
+      # python313Packages.ipython
+      # python313Packages.sqlfmt
       ripgrep
       ruff
       rust
