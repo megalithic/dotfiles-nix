@@ -94,7 +94,7 @@
       ruff
       # rust
       rust-analyzer
-      sd
+      unstable.sd
       selenium-server-standalone
       sesh
       shellcheck
