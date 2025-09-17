@@ -178,12 +178,11 @@ in
         };
       };
       # karabiner-elements.enable = true;
-      keyboard = {
-        enableKeyMapping = true;
-        remapCapsLockToControl = true;
-      };
     };
-
+    keyboard = {
+      enableKeyMapping = true;
+      remapCapsLockToControl = true;
+    };
     security.pam.services.sudo_local.touchIdAuth = true;
   };
 }
