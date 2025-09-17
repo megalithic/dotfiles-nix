@@ -9,9 +9,9 @@
 hostname:
 { system
 , user
-, version ? "25.05"
 , darwin ? false
 , wsl ? false
+, version ? "25.05"
 ,
 }:
 

@@ -25,11 +25,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    nix-homebrew = {
-      url = "github:zhaofengli-wip/nix-homebrew";
-    };
-
-    darwin = {
+    nix-darwin = {
       url = "github:LnL7/nix-darwin/nix-darwin-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
@@ -51,29 +47,24 @@
     #   flake = false;
     # };
 
-    # yazi = {
-    #   url = "github:sxyazi/yazi";
-    # };
-    #
-    # yazi-plugins = {
-    #   url = "github:yazi-rs/plugins";
-    #   flake = false;
-    # };
-    #
-    # yazi-glow = {
-    #   url = "github:Reledia/glow.yazi";
-    #   flake = false;
-    # };
+    yazi = {
+      url = "github:sxyazi/yazi";
+    };
+
+    yazi-plugins = {
+      url = "github:yazi-rs/plugins";
+      flake = false;
+    };
+
+    yazi-glow = {
+      url = "github:Reledia/glow.yazi";
+      flake = false;
+    };
 
     nur = {
       url = "github:nix-community/nur";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    # gh-gfm-preview = {
-    #   url = "github:thiagokokada/gh-gfm-preview";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
 
     emmylua-analyzer-rust = {
       url = "github:EmmyLuaLs/emmylua-analyzer-rust";
@@ -95,7 +86,7 @@
 
 
   outputs =
-    { self, nixpkgs, home-manager, darwin, nixpkgs-update, ... }@inputs:
+    { self, nixpkgs, home-manager, nix-darwin, nixpkgs-update, agenix, ... } @ inputs:
     let
       overlays = [
         inputs.jujutsu.overlays.default
@@ -112,12 +103,18 @@
 
           # Want the latest version of these
           inherit (unstable.legacyPackages.${prev.system}) claude-code;
+
+          karabiner-driverkit = prev.callPackage ./packages/karabiner-driverkit { };
+
+          notmuch = prev.notmuch.override { withEmacs = false; };
         })
       ];
 
-      mkSystem = import ./lib/mkSystem.nix {
-        inherit nixpkgs overlays inputs;
-      };
+      pkgs = nixpkgs.legacyPackages.${arch};
+
+      # mkSystem = import ./lib/mkSystem.nix {
+      #   inherit overlays nixpkgs inputs;
+      # };
 
       mkInit =
         { system
@@ -137,10 +134,21 @@
           type = "app";
           program = "${init}/bin/init";
         };
+
+      username = "seth";
+      arch = "aarch64-darwin";
+      hostname = "megabookpro";
+      version = "25.05";
+
+      machineConfig = ../machines/${hostname}.nix;
+      userOSConfig = ../users/${username}/darwin.nix;
+      userHMConfig = ../users/${username}/home.nix;
     in
     {
-      apps."aarch64-darwin".default = mkInit {
-        system = "aarch64-darwin";
+      # apps."x86_64-linux".default = mkInit { system = "x86_64-linux"; };
+      # apps."aarch64-linux".default = mkInit { system = "aarch64-linux"; };
+      apps."${arch}".default = mkInit {
+        system = "${arch}";
         script = ''
           set -Eueo pipefail
 
@@ -177,14 +185,90 @@
         '';
       };
 
-      # apps."x86_64-linux".default = mkInit { system = "x86_64-linux"; };
-      # apps."aarch64-linux".default = mkInit { system = "aarch64-linux"; };
+      # darwinConfigurations.megabookpro = mkSystem "megabookpro" {
+      #   system = "aarch64-darwin";
+      #   user = "seth";
+      #   darwin = true;
+      #   version = "25.05";
+      # };
 
-      darwinConfigurations.megabookpro = mkSystem "megabookpro" {
-        system = "aarch64-darwin";
-        user = "seth";
-        version = "25.05";
-        darwin = true;
+      darwinConfigurations.megabookpro = inputs.nix-darwin.lib.darwinSystem {
+        system = "${arch}";
+        specialArgs = {
+          inherit self;
+          inherit inputs;
+          inherit overlays;
+          inherit pkgs;
+          # should only need `pkgs`, though.
+          inherit nixpkgs;
+          inherit username;
+          inherit arch;
+          inherit hostname;
+          inherit version;
+
+        };
+        modules = [
+          {
+            nixpkgs = {
+              # Allow unfree packages.
+              config.allowUnfree = true;
+              hostPlatform = "${arch}";
+              inherit overlays;
+            };
+          }
+
+
+          machineConfig
+          userOSConfig
+
+          # home-manager.lib.homeManagerConfiguration
+          # {
+          #   pkgs = nixpkgs.legacyPackages.${arch};
+          #   modules =
+          #     [
+          #       agenix.homeManagerModules.default
+          #       {
+          #         home.packages = [
+          #           agenix.packages.${arch}.default
+          #         ];
+          #       }
+          #     ]
+          # };
+
+          inputs.home-manager.darwinModules.home-manager
+          {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.users.${username} = import userHMConfig {
+              inherit inputs;
+              inherit overlays;
+              inherit pkgs;
+              # should only need `pkgs`, though.
+              inherit nixpkgs;
+              inherit username;
+              inherit arch;
+              inherit hostname;
+              inherit version;
+
+            };
+            home-manager.backupFileExtension = "backup";
+            #           (import ./modules/window-management { inherit pkgs; })
+          }
+
+
+
+          # We expose some extra arguments so that our modules can parameterize
+          # better based on these values.
+          # {
+          #   config._module.args = {
+          #     currentSystem = arch;
+          #     currentSystemName = hostname;
+          #     currentSystemUser = username;
+          #     currentSystemVersion = version;
+          #     inherit inputs;
+          #   };
+          # }
+        ];
       };
     };
 }

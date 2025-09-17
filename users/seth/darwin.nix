@@ -45,7 +45,7 @@ in
     MANPAGER = "${manpager}/bin/manpager";
   };
 
-  environment.shells = [ pkgs.fish ];
+  environment.shells = [ pkgs.zsh pkgs.fish pkgs.bashInteractive ];
 
   environment.systemPackages = [
     pkgs.bat
@@ -68,8 +68,11 @@ in
   # environment.extraInit = ''
   #   export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
   # '';
-
   services = {
+    kanata = {
+      enable = true;
+      configFile = "./config/kanata/kanata.kbd";
+    };
     # aerospace = {
     #   enable = true;
     #   settings = {
@@ -216,12 +219,20 @@ in
         show-process-indicators = false;
         show-recents = false;
         static-only = true;
+        launchanim = false;
+        expose-animation-duration = 0.0;
+        mineffect = "scale";
+        tilesize = 32;
       };
       finder = {
         AppleShowAllExtensions = true;
+        AppleShowAllFiles = true;
         FXDefaultSearchScope = "SCcf";
+        FXPreferredViewStyle = "Nlsv";
         FXEnableExtensionChangeWarning = false;
         ShowPathbar = true;
+        ShowStatusBar = true;
+        _FXShowPosixPathInTitle = true;
       };
       trackpad = {
         Clicking = true;
@@ -234,16 +245,33 @@ in
         NSAutomaticWindowAnimationsEnabled = false;
         NSWindowShouldDragOnGesture = true;
       };
-      CustomUserPreferences."org.hammerspoon.Hammerspoon" = {
-        MJConfigFile = "~/.config/hammerspoon/init.lua";
+      CustomUserPreferences = {
+        # "com.raycast.macos" = {
+        #   raycastGlobalHotkey = "Command-15";
+        # };
+
+        "org.hammerspoon.Hammerspoon" = {
+          MJConfigFile = "~/.config/hammerspoon/init.lua";
+        };
+
+        "com.apple.symbolichotkeys" = {
+          AppleSymbolicHotKeys = {
+            # # Disable input sources shortcuts
+            # "60".enabled = false;
+            # "61".enabled = false;
+            #
+            # # Disable Spotlight Shortcuts
+            # "64".enabled = false;
+            # "65".enabled = false;
+          };
+        };
+      };
+      # karabiner-elements.enable = true;
+      keyboard = {
+        enableKeyMapping = true;
+        remapCapsLockToControl = true;
       };
     };
-    # karabiner-elements.enable = true;
-    keyboard = {
-      enableKeyMapping = true;
-      remapCapsLockToControl = true;
-    };
-  };
 
-  security.pam.services.sudo_local.touchIdAuth = true;
-}
+    security.pam.services.sudo_local.touchIdAuth = true;
+  }

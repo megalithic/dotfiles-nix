@@ -62,6 +62,21 @@
   # Auto upgrade nix package and the daemon service.
   nix.enable = false;
 
+  # nix.linux-builder = {
+  #   enable = false;
+  #   maxJobs = 4;
+  #   ephemeral = true;
+  #   config = {
+  #     virtualisation = {
+  #       darwin-builder = {
+  #         diskSize = 40 * 1024;
+  #         memorySize = 8 * 1024;
+  #       };
+  #       cores = 6;
+  #     };
+  #   };
+  # };
+
   # Create /etc/zshrc that loads the nix-darwin environment.
   programs = {
     gnupg.agent.enable = true;
