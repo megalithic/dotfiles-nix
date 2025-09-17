@@ -19,9 +19,9 @@ let
   lang = "en_US.UTF-8";
 in
 {
-  modules = [
-    inputs.agenix.packages.${currentSystem}.default
-  ];
+  # modules = [
+  #   inputs.agenix.packages.${currentSystem}.default
+  # ];
   # Enable fish and zsh
   programs.zsh.enable = true;
   programs.fish.enable = true;
