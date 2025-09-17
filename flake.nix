@@ -122,14 +122,11 @@
       mkInit =
         { system
         , script ? ''
-                    echo "hi from echo"
-                    cowsay "hi from cowsay"
-                    pkgs.cowsay "hi from pkgs.cowsay"
-                    bash -c "$(echo "echo from bash -c echo")"
-                    bash -c "$(cowsay "cowsay from bash -c cowsay")"
-
-            # git clone https://github.com/mhanberg/.dotfiles ~/.dotfiles
-            # nix run home-manager/master -- switch --flake ~/.dotfiles
+            echo "hi from echo"
+            cowsay "hi from cowsay"
+            pkgs.cowsay "hi from pkgs.cowsay"
+            bash -c "$(echo "echo from bash -c echo")"
+            bash -c "$(cowsay "cowsay from bash -c cowsay")"
           ''
         ,
         }:
@@ -149,12 +146,15 @@
       apps."aarch64-darwin".default = mkInit {
         system = "aarch64-darwin";
         script = ''
-                    echo "hi from echo"
-                    cowsay "hi from cowsay"
-                    pkgs.cowsay "hi from pkgs.cowsay"
-                    bash -c "$(echo "echo from bash -c echo")"
-                    bash -c "$(cowsay "cowsay from bash -c cowsay")"
+          echo "hi from echo"
+          cowsay "hi from cowsay"
+          pkgs.cowsay "hi from pkgs.cowsay"
+          bash -c "$(echo "echo from bash -c echo")"
+          bash -c "$(cowsay "cowsay from bash -c cowsay")"
 
+          # xcode-select --install
+          # softwareupdate --install-rosetta
+          # sudo xcodebuild -license
 
           # git clone https://github.com/mhanberg/.dotfiles ~/.dotfiles
           # bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -162,6 +162,7 @@
           # nix run home-manager/master -- switch --flake ~/.dotfiles
         '';
       };
+
       # apps."x86_64-linux".default = mkInit { system = "x86_64-linux"; };
       # apps."aarch64-linux".default = mkInit { system = "aarch64-linux"; };
 

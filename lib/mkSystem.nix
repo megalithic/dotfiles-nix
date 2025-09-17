@@ -6,9 +6,10 @@
 ,
 }:
 
-name:
+hostname:
 { system
 , user
+, version ? "25.05"
 , darwin ? false
 , wsl ? false
 ,
@@ -22,7 +23,7 @@ let
   # isLinux = !darwin && !isWSL;
 
   # The config files for this system.
-  machineConfig = ../machines/${name}.nix;
+  machineConfig = ../machines/${hostname}.nix;
   userOSConfig = ../users/${user}/${if darwin then "darwin" else "nixos"}.nix;
   userHMConfig = ../users/${user}/home.nix;
 
@@ -57,7 +58,8 @@ systemFunc rec {
         inherit inputs;
         inherit user;
         inherit system;
-        inherit name;
+        inherit hostname;
+        inherit version;
       };
     }
 
@@ -66,8 +68,9 @@ systemFunc rec {
     {
       config._module.args = {
         currentSystem = system;
-        currentSystemName = name;
+        currentSystemName = hostname;
         currentSystemUser = user;
+        currentSystemVersion = version;
         inherit isWSL;
         inherit inputs;
       };
