@@ -149,18 +149,26 @@
           FLAKE=$(hostname -s)
 
           if ! command -v xcode-select >/dev/null; then
+            echo "installing xcode.."
             xcode-select --install
             sudo -u "$SUDO_USER" softwareupdate --install-rosetta --agree-to-license
             # sudo -u "$SUDO_USER" xcodebuild -license
           fi
 
-          git clone https://github.com/megalithic/dotfiles-nix "$DOTFILES_DIR"
+          if [ -z "$DOTFILES_DIR" ]; then
+            echo "cloning dotfiles to $DOTFILES_DIR.."
+            git clone https://github.com/megalithic/dotfiles-nix "$DOTFILES_DIR"
+          fi
 
           if ! command -v brew >/dev/null; then
+            echo "installing homebrew.."
             bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
           fi
 
+          echo "running nix-darwin for the first time.."
           nix --experimental-features 'nix-command flakes' run nix-darwin -- switch --flake "$DOTFILES_DIR#$FLAKE"
+
+          echo "running home-manager for the first time.."
           nix --experimental-features 'nix-command flakes' run home-manager/master -- switch --flake "$DOTFILES_DIR#$FLAKE"
 
           # nix run nix-darwin -- switch --flake "$DOTFILES_DIR"
