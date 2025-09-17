@@ -40,7 +40,7 @@ in
 
 {
   imports = [
-    ./packages.nix
+    # ./packages.nix
     #   ./git.nix
     #   ./helix.nix
     #   ./himalaya.nix
