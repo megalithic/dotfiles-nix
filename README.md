@@ -22,7 +22,7 @@ curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix 
 Run the installer
 
 ```bash
-nix run github:megalithic/dotfiles-nix
+nix run github:megalithic/dotfiles-nix --refresh
 ```
 
 ## Usage
