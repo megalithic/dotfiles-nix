@@ -110,7 +110,7 @@
         })
       ];
 
-      pkgs = nixpkgs.legacyPackages.${arch};
+      # pkgs = nixpkgs.legacyPackages.${arch};
 
       # mkSystem = import ./lib/mkSystem.nix {
       #   inherit overlays nixpkgs inputs;
@@ -200,9 +200,6 @@
           inherit self;
           inherit inputs;
           inherit overlays;
-          inherit pkgs;
-          # should only need `pkgs`, though.
-          inherit nixpkgs;
           inherit username;
           inherit arch;
           inherit hostname;
@@ -248,9 +245,6 @@
               inherit self;
               inherit inputs;
               inherit overlays;
-              inherit pkgs;
-              # should only need `pkgs`, though.
-              inherit nixpkgs;
               inherit username;
               inherit arch;
               inherit hostname;
@@ -267,7 +261,6 @@
             config._module.args = {
               inherit inputs;
               inherit overlays;
-              inherit pkgs;
               inherit username;
               inherit arch;
               inherit hostname;
