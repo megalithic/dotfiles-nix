@@ -661,8 +661,7 @@ in
 
     jq.enable = true;
     fd.enable = true;
-    sd.enable = true;
-
+    # sd.enable = true;
     # services.ollama.enable = true;
   };
 }
