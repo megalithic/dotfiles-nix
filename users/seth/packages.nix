@@ -71,7 +71,7 @@
       nodePackages_latest.bash-language-server
       nodePackages_latest.typescript-language-server
       nodePackages.prettier
-      nodePackages.prettierd
+      # nodePackages.prettierd
       nodePackages.vscode-json-languageserver
       openssl
       pkg-config
