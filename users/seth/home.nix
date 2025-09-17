@@ -50,28 +50,7 @@ in
   ];
 
   home = {
-    stateVersion = "25.05"; # Please read the comment before changing.
-
-    # The home.packages option allows you to install Nix packages into your
-    # environment.
-    packages = with pkgs; [
-      amber
-      unstable.claude-code
-      unstable.devenv
-      gh
-      gum
-      fd
-      harper
-      lua-language-server
-      markdown-oxide
-      nixd
-      nixfmt-rfc-style
-      ai-tools.opencode
-      ripgrep
-      sd
-      sesh
-    ];
-
+    stateVersion = "${version}"; # Please read the comment before changing.
 
     file = {
       # create our `~/code` directory

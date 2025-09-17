@@ -3,7 +3,9 @@
     [
       _1password-cli
       actionlint
+      ai-tools.opencode
       alejandra
+      amber
       amber
       argc
       autoconf
@@ -38,17 +40,6 @@
       ghc
       git
       git-lfs
-      # remember to disable ipv6, otherwise super slow gcloud
-      # networksetup -setv6off Wi-Fi
-      (google-cloud-sdk.withExtraComponents (
-        with pkgs.google-cloud-sdk.components;
-        [
-          gke-gcloud-auth-plugin
-          package-go-module
-          pubsub-emulator
-        ]
-      ))
-      google-cloud-sql-proxy
       gum
       harper
       hyperfine
@@ -64,9 +55,9 @@
       lua-language-server
       lua5_1
       luarocks
-      mcphub # used in codecompanion
       markdown-oxide
       marksman
+      mcphub # used in codecompanion
       minikube
       mise-flake.packages.${system}.mise
       neovim
@@ -75,28 +66,27 @@
       ninja
       nix-direnv
       nixd
+      nixd
+      nixfmt-rfc-style
       nixfmt-rfc-style
       nodejs_24
+      nodePackages_latest.bash-language-server
+      nodePackages_latest.typescript-language-server
       nodePackages.prettier
       nodePackages.prettierd
       nodePackages.vscode-json-languageserver
-      # nodePackages_latest.bash-language-server
-      nodePackages_latest.typescript-language-server
       openssl
       pkg-config
-      # pnpm
-      # prettierd
+      pnpm
+      prettierd
       python313
       python313Packages.ipython
       python313Packages.sqlfmt
-      # vectorcode # used in codecompanion
       ripgrep
       ruff
-      # rust
+      rust
       rust-analyzer
-      unstable.sd
       selenium-server-standalone
-      sesh
       shellcheck
       shfmt
       silicon
@@ -118,6 +108,8 @@
       unstable.claude-code
       unstable.devenv
       unstable.opencode
+      unstable.sd
+      vectorcode # used in codecompanion
       vim
       vim-language-server
       vscode-langservers-extracted
