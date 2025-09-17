@@ -5,16 +5,16 @@
 # }:
 
 #
-# { inputs
-# , currentSystem
-# , currentSystemName
-# , currentSystemUser
-# , currentSystemVersion
-# , ...
-# }:
-
 { inputs
-, config
+, currentSystem
+, currentSystemName
+, currentSystemUser
+, currentSystemVersion
+, ...
+}:
+
+{ config
+, inputs
 , lib
 , pkgs
 , ...

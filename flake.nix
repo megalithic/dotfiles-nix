@@ -245,6 +245,7 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.${username} = import userHMConfig {
+              inherit self;
               inherit inputs;
               inherit overlays;
               inherit pkgs;
