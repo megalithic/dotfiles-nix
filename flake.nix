@@ -101,11 +101,11 @@
           };
           ai-tools = inputs.nix-ai-tools.packages.${prev.system};
 
-          # gh CLI on stable has bugs.
-          inherit (unstable.legacyPackages.${prev.system}) gh;
-
-          # Want the latest version of these
-          inherit (unstable.legacyPackages.${prev.system}) claude-code;
+          # # gh CLI on stable has bugs.
+          # inherit (unstable.legacyPackages.${prev.system}) gh;
+          #
+          # # Want the latest version of these
+          # inherit (unstable.legacyPackages.${prev.system}) claude-code;
 
           karabiner-driverkit = prev.callPackage ./packages/karabiner-driverkit { };
 
