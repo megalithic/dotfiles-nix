@@ -140,9 +140,9 @@
       hostname = "megabookpro";
       version = "25.05";
 
-      machineConfig = ../machines/${hostname}.nix;
-      userOSConfig = ../users/${username}/darwin.nix;
-      userHMConfig = ../users/${username}/home.nix;
+      machineConfig = ./machines/${hostname}.nix;
+      userOSConfig = ./users/${username}/darwin.nix;
+      userHMConfig = ./users/${username}/home.nix;
     in
     {
       # apps."x86_64-linux".default = mkInit { system = "x86_64-linux"; };
