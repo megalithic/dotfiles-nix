@@ -1,7 +1,7 @@
 # NOTE: docs for nix-darwin found
 # https://daiderd.com/nix-darwin/manual/index.html
 
-{ inputs, pkgs, currentSystemName, currentSystem, currentSystemUser, ... }:
+{ inputs, pkgs, currentSystem, currentSystemName, currentSystemUser, ... }:
 # { pkgs, lib, ... }:
 
 let

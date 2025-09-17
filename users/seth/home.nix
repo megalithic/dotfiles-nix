@@ -4,24 +4,26 @@
 # , ...
 # }:
 
+
 { inputs
+, currentSystem
+, currentSystemName
+, currentSystemUser
+, currentSystemVersion
 , ...
 }:
 
 { config
-, pkgs
 , lib
+, pkgs
 , system
 , ...
 }:
 
 let
-  inherit (pkgs.stdenv) isDarwin;
-  inherit (pkgs.stdenv) isLinux;
-
   # For our MANPAGER env var
   # https://github.com/sharkdp/bat/issues/1145
-  manpager = pkgs.writeShellScriptBin "manpager" (if isDarwin then ''
+  manpager = pkgs.writeShellScriptBin "manpager" (if pkgs.stdenv.isDarwin then ''
     sh -c 'col -bx | bat -l man -p'
   '' else ''
     cat "$1" | col -bx | bat --language man --style plain
