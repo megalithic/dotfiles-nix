@@ -224,7 +224,7 @@ map("n", "<C-k>", "<C-w><C-k>", { desc = "Move focus to the upper window" })
 map("n", "<leader>w", function(_args)
   vim.api.nvim_command("silent! write")
 end, { desc = "write buffer" })
-map("n", "<leader>W", "<cmd>SudaWrite<cr>", { desc = "sudo write buffer" })
+map("n", "<leader>W", "<cmd>w !sudo tee %<cr>", { desc = "sudo write buffer" })
 map("n", "<leader>q", "<cmd>q<cr>", { desc = "quit" })
 map("n", "<leader>Q", "<cmd>q!<cr>", { desc = "really quit" })
 

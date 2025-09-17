@@ -122,11 +122,7 @@
       mkInit =
         { system
         , script ? ''
-            echo "hi from echo"
-            cowsay "hi from cowsay"
-            pkgs.cowsay "hi from pkgs.cowsay"
-            bash -c "$(cowsay "cowsay from bash -c cowsay")"
-
+            echo "no default app init script set."
             # git clone https://github.com/megalithic/dotfiles-nix ~/.dotfiles-nix
             # bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
             # nix run nix-darwin -- switch --flake ~/.dotfiles-nix
@@ -150,19 +146,25 @@
       apps."aarch64-darwin".default = mkInit {
         system = "aarch64-darwin";
         script = ''
-          echo "hi from echo"
-          cowsay "hi from cowsay"
-          pkgs.cowsay "hi from pkgs.cowsay"
-          bash -c "$(cowsay "cowsay from bash -c cowsay")"
+          set -Eueo pipefail
 
-          # xcode-select --install
-          # softwareupdate --install-rosetta
-          # sudo xcodebuild -license
+          DOTFILES_DIR="$HOME/.dotfiles-nix"
+          SUDO_USER=$(whoami)
+          FLAKE=$(hostname -s)
 
-          # git clone https://github.com/megalithic/dotfiles-nix ~/.dotfiles-nix
-          # bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-          # nix run nix-darwin -- switch --flake ~/.dotfiles-nix
-          # nix run home-manager/master -- switch --flake ~/.dotfiles-nix
+          if ! command -v xcode-select >/dev/null; then
+            xcode-select --install
+            sudo -u "$SUDO_USER" softwareupdate --install-rosetta --agree-to-license
+            # sudo -u "$SUDO_USER" xcodebuild -license
+          fi
+
+          git clone https://github.com/megalithic/dotfiles-nix "$DOTFILES_DIR"
+          bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          nix --experimental-features 'nix-command flakes' run nix-darwin -- switch --flake "$DOTFILES_DIR#$FLAKE"
+          nix --experimental-features 'nix-command flakes' run home-manager/master -- switch --flake "$DOTFILES_DIR#$FLAKE"
+
+          # nix run nix-darwin -- switch --flake "$DOTFILES_DIR"
+          # nix run home-manager/master -- switch --flake "$DOTFILES_DIR"
         '';
       };
 
