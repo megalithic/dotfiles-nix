@@ -597,7 +597,7 @@ in
 
     jujutsu = {
       enable = true;
-      package = pkgs.unstable.jujutsu;
+      # package = pkgs.unstable.jujutsu;
       settings = {
         user = {
           name = "Seth Messer";
