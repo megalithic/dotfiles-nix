@@ -60,10 +60,10 @@ in
   # '';
 
   services = {
-    kanata = {
-      enable = true;
-      # configFile = "./config/kanata/kanata.kbd";
-    };
+    # kanata = {
+    #   enable = true;
+    #   configFile = "./config/kanata/kanata.kbd";
+    # };
   };
 
   homebrew = {
