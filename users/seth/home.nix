@@ -6,10 +6,11 @@
 
 #
 { inputs
-, currentSystem
-, currentSystemName
-, currentSystemUser
-, currentSystemVersion
+, overlays
+, arch
+, hostname
+, username
+, version
 , ...
 }:
 
