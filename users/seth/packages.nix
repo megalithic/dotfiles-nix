@@ -72,11 +72,11 @@
       nodePackages_latest.typescript-language-server
       nodePackages.prettier
       # nodePackages.prettierd
-      nodePackages.vscode-json-languageserver
+      nodePackages_latest.vscode-json-languageserver
       openssl
       pkg-config
       pnpm
-      python313
+      # python313
       # python313Packages.ipython
       # python313Packages.sqlfmt
       ripgrep
@@ -120,18 +120,18 @@
       zk
       zls
       zsh
-    ]
-    ++ [
-      atkinson-hyperlegible
-      jetbrains-mono
-      nerd-fonts.jetbrains-mono
-      nerd-fonts.fira-code
-      maple-mono.NF
-      nerd-fonts.symbols-only
-    ]
-    ++ (
-      if pkgs.stdenv.isLinux
-      then [ gcc coreutils xclip unixtools.ifconfig inotify-tools ncurses5 ]
-      else [ ]
-    );
+    ];
+  # ++ [
+  #   atkinson-hyperlegible
+  #   jetbrains-mono
+  #   nerd-fonts.jetbrains-mono
+  #   nerd-fonts.fira-code
+  #   maple-mono.NF
+  #   nerd-fonts.symbols-only
+  # ]
+  # ++ (
+  #   if pkgs.stdenv.isLinux
+  #   then [ gcc coreutils xclip unixtools.ifconfig inotify-tools ncurses5 ]
+  #   else [ ]
+  # );
 }
