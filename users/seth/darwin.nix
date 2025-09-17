@@ -1,7 +1,7 @@
 # NOTE: docs for nix-darwin found
 # https://daiderd.com/nix-darwin/manual/index.html
 
-{ inputs, pkgs, currentSystem, currentSystemName, currentSystemUser, ... }:
+{ inputs, pkgs, arch, hostname, username, ... }:
 # { pkgs, lib, ... }:
 
 let
@@ -19,8 +19,8 @@ in
   programs.fish.enable = true;
   programs._1password.enable = true;
 
-  users.users.${currentSystemUser} = {
-    home = "/Users/${currentSystemUser}";
+  users.users.${username} = {
+    home = "/Users/${username}";
     shell = pkgs.fish;
   };
 
@@ -116,7 +116,7 @@ in
     pkgs.nerd-fonts.symbols-only
   ];
 
-  networking.hostName = "${currentSystemName}";
+  networking.hostName = "${hostname}";
   time.timeZone = "America/New_York";
 
   ids.gids.nixbld = 350;

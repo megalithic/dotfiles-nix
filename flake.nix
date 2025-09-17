@@ -255,25 +255,25 @@
               inherit arch;
               inherit hostname;
               inherit version;
-
             };
             home-manager.backupFileExtension = "backup";
-            #           (import ./modules/window-management { inherit pkgs; })
           }
 
 
 
           # We expose some extra arguments so that our modules can parameterize
           # better based on these values.
-          # {
-          #   config._module.args = {
-          #     currentSystem = arch;
-          #     currentSystemName = hostname;
-          #     currentSystemUser = username;
-          #     currentSystemVersion = version;
-          #     inherit inputs;
-          #   };
-          # }
+          {
+            config._module.args = {
+              inherit inputs;
+              inherit overlays;
+              inherit pkgs;
+              inherit username;
+              inherit arch;
+              inherit hostname;
+              inherit version;
+            };
+          }
         ];
       };
     };
