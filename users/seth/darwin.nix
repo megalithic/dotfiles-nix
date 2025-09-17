@@ -107,15 +107,6 @@ in
     };
   };
 
-  fonts.packages = [
-    pkgs.atkinson-hyperlegible
-    pkgs.jetbrains-mono
-    pkgs.nerd-fonts.jetbrains-mono
-    pkgs.nerd-fonts.fira-code
-    pkgs.maple-mono.NF
-    pkgs.nerd-fonts.symbols-only
-  ];
-
   networking.hostName = "${hostname}";
   time.timeZone = "America/New_York";
 

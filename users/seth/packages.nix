@@ -121,6 +121,14 @@
       zls
       zsh
     ]
+    ++ [
+      atkinson-hyperlegible
+      jetbrains-mono
+      nerd-fonts.jetbrains-mono
+      nerd-fonts.fira-code
+      maple-mono.NF
+      nerd-fonts.symbols-only
+    ]
     ++ (
       if pkgs.stdenv.isLinux
       then [ gcc coreutils xclip unixtools.ifconfig inotify-tools ncurses5 ]
