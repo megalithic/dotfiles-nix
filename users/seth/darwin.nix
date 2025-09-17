@@ -5,17 +5,8 @@
 # { pkgs, lib, ... }:
 
 let
-  # inherit (pkgs.stdenv) isDarwin;
-  # inherit (pkgs.stdenv) isLinux;
-
   # For our MANPAGER env var
   # https://github.com/sharkdp/bat/issues/1145
-  # manpager = pkgs.writeShellScriptBin "manpager" (if pkgs.stdenv.isDarwin then ''
-  #   sh -c 'col -bx | bat -l man -p'
-  # '' else ''
-  #   cat "$1" | col -bx | bat --language man --style plain
-  # '');
-
   manpager = pkgs.writeShellScriptBin "manpager" ''
     sh -c 'col -bx | bat -l man -p'
   '';
@@ -23,9 +14,6 @@ let
   lang = "en_US.UTF-8";
 in
 {
-  # modules = [
-  #   inputs.agenix.packages.${currentSystem}.default
-  # ];
   # Enable fish and zsh
   programs.zsh.enable = true;
   programs.fish.enable = true;
@@ -58,101 +46,24 @@ in
     pkgs.google-chrome
     pkgs.just
     pkgs.kanata
-    pkgs.karabiner-elements.driver
+    # NOTE: see custom kanata driver in packages
+    # pkgs.karabiner-elements.driver
     pkgs.ripgrep
     pkgs.sd
     pkgs.vim
     pkgs.zoxide
   ];
 
+  # FIXME: remove?
   # environment.extraInit = ''
   #   export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
   # '';
+
   services = {
     kanata = {
       enable = true;
       configFile = "./config/kanata/kanata.kbd";
     };
-    # aerospace = {
-    #   enable = true;
-    #   settings = {
-    #     accordion-padding = 0;
-    #     on-focused-monitor-changed = [ "move-mouse monitor-lazy-center" ];
-    #     on-window-detected = [
-    #       {
-    #         "if" = {
-    #           app-id = "com.flexibits.fantastical2.mac";
-    #         };
-    #         run = "move-node-to-workspace 2";
-    #       }
-    #     ];
-    #     workspace-to-monitor-force-assignment = {
-    #       "1" = [ "main" ];
-    #       "2" = [
-    #         "secondary"
-    #         "main"
-    #       ];
-    #     };
-    #     mode = {
-    #       main = {
-    #         binding = {
-    #           alt-y = "layout tiles horizontal vertical";
-    #           alt-t = "layout accordion horizontal vertical";
-    #           alt-h = "focus left";
-    #           alt-j = "focus down";
-    #           alt-k = "focus up";
-    #           alt-l = "focus right";
-    #           alt-shift-h = "move left";
-    #           alt-shift-j = "move down";
-    #           alt-shift-k = "move up";
-    #           alt-shift-l = "move right";
-    #           alt-ctrl-h = "join-with left";
-    #           alt-ctrl-j = "join-with down";
-    #           alt-ctrl-k = "join-with up";
-    #           alt-ctrl-l = "join-with right";
-    #           alt-minus = "resize smart -100";
-    #           alt-equal = "resize smart +100";
-    #           alt-1 = "workspace 1";
-    #           alt-2 = "workspace 2";
-    #           alt-3 = "workspace 3";
-    #           alt-shift-1 = "move-node-to-workspace 1";
-    #           alt-shift-2 = "move-node-to-workspace 2";
-    #           alt-shift-3 = "move-node-to-workspace 3";
-    #           alt-tab = "workspace-back-and-forth";
-    #           alt-shift-tab = "move-node-to-monitor --wrap-around next";
-    #           alt-shift-semicolon = "mode service";
-    #         };
-    #       };
-    #       service = {
-    #         binding = {
-    #           esc = [
-    #             "reload-config"
-    #             "mode main"
-    #           ];
-    #           r = [
-    #             "flatten-workspace-tree"
-    #             "mode main"
-    #           ];
-    #           f = [
-    #             "layout floating tiling"
-    #             "mode main"
-    #           ];
-    #           backspace = [
-    #             "close-all-windows-but-current"
-    #             "mode main"
-    #           ];
-    #         };
-    #       };
-    #     };
-    #   };
-    # };
-    # jankyborders = {
-    #   enable = true;
-    #   blur_radius = 5.0;
-    #   hidpi = true;
-    #   active_color = "0xAAB279A7";
-    #   inactive_color = "0x33867A74";
-    # };
   };
 
   homebrew = {

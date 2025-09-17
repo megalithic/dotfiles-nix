@@ -230,12 +230,30 @@ in
     };
   };
 
-
-  # speed up rebuilds
-  # HT: @tmiller
-  programs.man.generateCaches = false;
+  # Configure Hammerspoon only on Darwin systems
+  # HT: again, @tmiller
+  # REF: https://src.bhamops.com/tom/nix/src/branch/master/modules/homeManager/hammerspoon/default.nix
+  # homeModules.hammerspoon = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
+  #   enable = true;
+  #   enableCli = true;
+  #   enableReload = true;
+  #   packageBinary = "/opt/homebrew/bin/hs";
+  #   initLua = builtins.readFile ./config/hammerspoon/init.lua;
+  #   spoons = [
+  #     {
+  #       owner = "evantravers";
+  #       repo = "MoveWindows.spoon";
+  #       rev = "0.9.2";
+  #       hash = "sha256-Z1lm+2jMh8Ybkgdn3/TLppKtu6/DIcUf1BNShHGnClI=";
+  #     }
+  #   ];
+  # };
 
   programs = {
+    # speed up rebuilds
+    # HT: @tmiller
+    man.generateCaches = false;
+
     home-manager.enable = true;
     mbsync.enable = true;
     notmuch.enable = true;
@@ -666,4 +684,5 @@ in
     sd.enable = true;
 
     # services.ollama.enable = true;
-  }
+  };
+}
