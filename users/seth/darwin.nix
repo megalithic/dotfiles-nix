@@ -130,7 +130,7 @@ in
         AppleShowAllExtensions = true;
         AppleShowAllFiles = true;
         FXDefaultSearchScope = "SCcf";
-        FXPreferredViewStyle = "Nlsv";
+        FXPreferredViewStyle = "Nlsv"; # list yo!
         FXEnableExtensionChangeWarning = false;
         ShowPathbar = true;
         ShowStatusBar = true;

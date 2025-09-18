@@ -9,87 +9,53 @@
 # https://rconybea.github.io/web/nix/nix-for-your-own-project.html
 
 {
-  description = "megadotfiles";
+  description = "🗿megadotfiles";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
-    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    # Master nixpkgs is used for really bleeding edge packages. Warning
-    # that this is extremely unstable and shouldn't be relied on. Its
-    # mostly for testing.
-    nixpkgs-master.url = "github:nixos/nixpkgs";
-    nixpkgs-update.url = "github:ryantm/nixpkgs-update";
-
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.05";
+      url = "github:nix-community/home-manager/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
     nix-darwin = {
-      url = "github:LnL7/nix-darwin/nix-darwin-25.05";
+      url = "github:LnL7/nix-darwin/nix-darwin-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    nix-plist-manager.url = "github:sushydev/nix-plist-manager";
-
-    neovim-nightly-overlay = {
-      url = "github:nix-community/neovim-nightly-overlay";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
-    };
-
-    nil = {
-      url = "github:oxalica/nil";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    # weechat-scripts = {
-    #   url = "github:weechat/scripts";
-    #   flake = false;
-    # };
-
-    yazi = {
-      url = "github:sxyazi/yazi";
-    };
-
-    yazi-plugins = {
-      url = "github:yazi-rs/plugins";
+    nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
+    homebrew-core = {
+      url = "github:homebrew/homebrew-core";
       flake = false;
     };
-
-    yazi-glow = {
-      url = "github:Reledia/glow.yazi";
+    homebrew-cask = {
+      url = "github:homebrew/homebrew-cask";
       flake = false;
     };
-
-    nur = {
-      url = "github:nix-community/nur";
-      inputs.nixpkgs.follows = "nixpkgs";
+    homebrew-bundle = {
+      url = "github:homebrew/homebrew-bundle";
+      flake = false;
     };
-
-    emmylua-analyzer-rust = {
-      url = "github:EmmyLuaLs/emmylua-analyzer-rust";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
+    neovim-nightly-overlay.url = "github:nix-community/neovim-nightly-overlay";
+    mcp-hub.url = "github:ravitemer/mcp-hub";
+    flake-parts.url = "github:hercules-ci/flake-parts";
     jujutsu.url = "github:martinvonz/jj";
-
-    agenix = {
-      url = "github:ryantm/agenix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
+    agenix.url = "github:ryantm/agenix";
     nix-ai-tools.url = "github:numtide/nix-ai-tools";
-
-    # sops-nix = {
-    #   url = "github:Mic92/sops-nix";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
   };
 
-
   outputs =
-    { self, nixpkgs, home-manager, nix-darwin, nixpkgs-update, agenix, ... } @ inputs:
+    { self
+    , nixpkgs
+    , nix-darwin
+    , home-manager
+    , neovim-nightly-overlay
+    , mcp-hub
+    , ...
+    }@inputs:
     let
+      username = "seth";
+      system = "aarch64-darwin";
+      hostname = "megabookpro";
+      version = "25.11";
       overlays = [
         inputs.jujutsu.overlays.default
 
@@ -107,149 +73,61 @@
           # # Want the latest version of these
           # inherit (unstable.legacyPackages.${prev.system}) claude-code;
 
-          karabiner-driverkit = prev.callPackage ./packages/karabiner-driverkit { };
 
+          mcphub = inputs.mcp-hub.packages."${prev.system}".default;
+          nvim-nightly = inputs.neovim-nightly-overlay.packages.${prev.system}.default;
+          karabiner-driverkit = prev.callPackage ./packages/karabiner-driverkit { };
           notmuch = prev.notmuch.override { withEmacs = false; };
         })
       ];
 
-      # pkgs = nixpkgs.legacyPackages.${arch};
-
-      # mkSystem = import ./lib/mkSystem.nix {
-      #   inherit overlays nixpkgs inputs;
-      # };
-
-      mkInit =
-        { system
-        , script ? ''
-            echo "no default app init script set."
-          ''
-        ,
-        }:
-        let
-          pkgs = nixpkgs.legacyPackages.${system};
-          init = pkgs.writeShellApplication {
-            name = "init";
-            text = script;
-          };
-        in
-        {
-          type = "app";
-          program = "${init}/bin/init";
-        };
-
-      username = "seth";
-      arch = "aarch64-darwin";
-      hostname = "megabookpro";
-      version = "25.05";
-
-      machineConfig = ./machines/${hostname}.nix;
-      userOSConfig = ./users/${username}/darwin.nix;
-      userHMConfig = ./users/${username}/home.nix;
+      inherit (self) outputs;
     in
     {
-      # apps."x86_64-linux".default = mkInit { system = "x86_64-linux"; };
-      # apps."aarch64-linux".default = mkInit { system = "aarch64-linux"; };
-      apps."${arch}".default = mkInit {
-        system = "${arch}";
-        script = ''
-          set -Eueo pipefail
+      # Build darwin flake using:
+      # darwin-rebuild switch --flake ~/nix
+      darwinConfigurations."${hostname}" = nix-darwin.lib.darwinSystem
+        {
+          inherit system overlays;
+          specialArgs = { inherit inputs username system hostname version overlays; };
+          modules = [
+            { nixpkgs.overlays = "${overlays}"; }
 
-          DOTFILES_DIR="$HOME/.dotfiles-nix"
-          SUDO_USER=$(whoami)
-          FLAKE=$(hostname -s)
+            ./systems/${hostname}/default.ex
+            ./modules/shared/darwin/system.nix
 
-          if ! command -v xcode-select >/dev/null 2>&1
-          then
-            echo "installing xcode.."
-            xcode-select --install
-            sudo -u "$SUDO_USER" softwareupdate --install-rosetta --agree-to-license
-            # sudo -u "$SUDO_USER" xcodebuild -license
-          fi
+            home-manager.darwinModules.home-manager
+            {
+              networking.hostName = hostname;
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.backupFileExtension = "backup";
+              home-manager.users.${username} = import ./users/${username};
+              home-manager.extraSpecialArgs = { inherit inputs username system hostname version overlays; };
+            }
 
-          if [ ! -d "$DOTFILES_DIR" ]; then
-            echo "cloning dotfiles to $DOTFILES_DIR.."
-            git clone https://github.com/megalithic/dotfiles-nix "$DOTFILES_DIR"
-          fi
-
-          if ! command -v brew >/dev/null 2>&1
-          then
-            echo "installing homebrew.."
-            bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-          fi
-
-          echo "running nix-darwin for the first time.."
-          # sudo nix --experimental-features 'nix-command flakes' run nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake "$DOTFILES_DIR#$FLAKE"
-          sudo nix --experimental-features 'nix-command flakes' run nix-darwin -- switch --flake "$DOTFILES_DIR#$FLAKE"
-
-          echo "running home-manager for the first time.."
-          sudo nix --experimental-features 'nix-command flakes' run home-manager/master -- switch --flake "$DOTFILES_DIR#$FLAKE"
-
-          # nix run nix-darwin -- switch --flake "$DOTFILES_DIR"
-          # nix run home-manager/master -- switch --flake "$DOTFILES_DIR"
-        '';
-      };
-
-      # darwinConfigurations.megabookpro = mkSystem "megabookpro" {
-      #   system = "aarch64-darwin";
-      #   user = "seth";
-      #   darwin = true;
-      #   version = "25.05";
-      # };
-
-      darwinConfigurations.megabookpro = inputs.nix-darwin.lib.darwinSystem {
-        system = "${arch}";
-        specialArgs = {
-          inherit self;
-          inherit inputs;
-          inherit overlays;
-          inherit username;
-          inherit arch;
-          inherit hostname;
-          inherit version;
+            inputs.nix-homebrew.darwinModules.nix-homebrew
+            {
+              nix-homebrew = {
+                # Install Homebrew under the default prefix
+                enable = true;
+                # Apple Silicon Only: Also install Homebrew under the default Intel prefix for Rosetta 2
+                enableRosetta = true;
+                # User owning the Homebrew prefix
+                user = username;
+                autoMigrate = true;
+                # Optional: Declarative tap management
+                taps = {
+                  "homebrew/homebrew-core" = inputs.homebrew-core;
+                  "homebrew/homebrew-cask" = inputs.homebrew-cask;
+                  "homebrew/homebrew-bundle" = inputs.homebrew-bundle;
+                };
+                # Optional: Enable fully-declarative tap management
+                # With mutableTaps disabled, taps can no longer be added imperatively with `brew tap`.
+                mutableTaps = false;
+              };
+            }
+          ];
         };
-        modules = [
-          {
-            nixpkgs = {
-              # Allow unfree packages.
-              config.allowUnfree = true;
-              hostPlatform = "${arch}";
-              inherit overlays;
-            };
-          }
-          {
-            system.configurationRevision = self.rev or self.dirtyRev or null;
-          }
-          machineConfig
-          userOSConfig
-          inputs.home-manager.darwinModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.users.${username} = import userHMConfig {
-              inherit self;
-              inherit inputs;
-              inherit overlays;
-              inherit username;
-              inherit arch;
-              inherit hostname;
-              inherit version;
-            };
-            home-manager.backupFileExtension = "backup";
-          }
-          # # We expose some extra arguments so that our modules can parameterize
-          # # better based on these values.
-          # {
-          #   config._module.args = {
-          #     inherit inputs;
-          #     inherit overlays;
-          #     inherit username;
-          #     inherit arch;
-          #     inherit hostname;
-          #     inherit version;
-          #   };
-          # }
-        ];
-      };
     };
 }

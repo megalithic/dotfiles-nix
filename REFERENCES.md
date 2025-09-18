@@ -3,7 +3,7 @@
 General links and references to things I need to do/remember for my dotfiles/nix/etc.
 
 - huge amount of info on agenix, darwin, docker, devops nix things: https://github.com/carjorvaz/nixos/blob/master/hosts/mac.nix
-- useful hm and darwin config with nvim/mise use/xdgConfig/home.file/more: https://github.com/yoshi12u/dotfile
+- useful hm and darwin config with nvim/mise use/xdgConfig/home.file/more: https://github.com/yoshi12u/dotfiles
 - mise, hm, darwin, jujutsu, and more: https://github.com/schemar/dotfiles
 - again, darwin, hm, mise/mise hooks/moretools, neat packages setup per host: https://github.com/matchai/dotfiles/blob/main/apps/packages.nix
 - neat python packages setup: https://github.com/f4z3r/nix/blob/master/home/home.nix#L189
