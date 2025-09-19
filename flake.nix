@@ -83,7 +83,7 @@
           # NOTE: here's how to do a custom neovim-nightly overlay:
           # REF: https://github.com/fredrikaverpil/dotfiles/blob/main/nix/shared/overlays/neovim.nix
           nvim-nightly = inputs.neovim-nightly-overlay.packages.${prev.system}.default;
-          karabiner-driverkit = prev.callPackage ./packages/karabiner-driverkit { };
+          # karabiner-driverkit = prev.callPackage ./packages/karabiner-driverkit { };
           notmuch = prev.notmuch.override { withEmacs = false; };
         })
       ];
@@ -157,7 +157,7 @@
       # darwin-rebuild switch --flake ~/nix
       darwinConfigurations."${hostname}" = nix-darwin.lib.darwinSystem
         {
-          inherit system overlays;
+          inherit system;
           specialArgs = { inherit inputs username system hostname version overlays; };
           modules = [
             { nixpkgs.overlays = [ overlays ]; }
