@@ -58,10 +58,10 @@
         # 12: Notification Center
         # 13: Lock Screen - immediately locks the screen
         # 14: Quick Note - opens Notes app for quick note-taking
-        "wvous-tl-corner" = 0; # Top-left: Mission Control (overview of all spaces)
-        "wvous-tr-corner" = 0; # Top-right: Desktop (show desktop)
-        "wvous-bl-corner" = 0; # Bottom-left: Lock Screen (security)
-        "wvous-br-corner" = 0; # Bottom-right: Quick Note (productivity)
+        "wvous-tl-corner" = 1; # Top-left: Mission Control (overview of all spaces)
+        "wvous-tr-corner" = 1; # Top-right: Desktop (show desktop)
+        "wvous-bl-corner" = 1; # Bottom-left: Lock Screen (security)
+        "wvous-br-corner" = 1; # Bottom-right: Quick Note (productivity)
         # "wvous-tl-corner" = 2; # Top-left: Mission Control (overview of all spaces)
         # "wvous-tr-corner" = 4; # Top-right: Desktop (show desktop)
         # "wvous-bl-corner" = 13; # Bottom-left: Lock Screen (security)
