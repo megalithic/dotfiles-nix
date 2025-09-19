@@ -84,7 +84,7 @@
         _FXSortFoldersFirst = true;
         QuitMenuItem = true;
         NewWindowTarget = "PfDe";
-        NewWindowTargetPath = "file://${config.home.homeDirectory}/Desktop/";
+        NewWindowTargetPath = "file://Users/${username}/Desktop/";
       };
 
       trackpad = {
