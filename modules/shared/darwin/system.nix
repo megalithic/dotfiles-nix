@@ -38,7 +38,7 @@
         expose-animation-duration = 0.0;
         minimize-to-application = true;
         mineffect = "scale";
-        enable-window-tool = false;
+        # enable-window-tool = false;
         magnification = false;
         persistent-apps = [ ];
         tilesize = 34;
