@@ -83,8 +83,8 @@
         ShowRemovableMediaOnDesktop = true;
         _FXSortFoldersFirst = true;
         QuitMenuItem = true;
-        NewWindowTarget = "PfDe";
-        NewWindowTargetPath = "file://Users/${username}/Desktop/";
+        NewWindowTarget = "Documents";
+        # NewWindowTargetPath = "file://Users/${username}/Desktop/";
       };
 
       trackpad = {
