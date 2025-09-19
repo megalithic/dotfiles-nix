@@ -1,6 +1,6 @@
 _:
 {
-  homebrew.brews = [
+  brews = [
     "vfkit" # fo podman
     # "qmk"
     # # QMK dependencies
@@ -79,7 +79,7 @@ _:
     # "monitorcontrol" # Brightness and volume controls for external monitors.
   ];
 
-  homebrew.masApps = {
+  masApps = {
     "Parcel" = 639968404;
     "Reeder" = 1529448980;
     "Timery" = 1425368544;
@@ -105,7 +105,7 @@ _:
     # # mas "Affinity Designer", id: 824171161
   };
 
-  homebrew.taps = [
+  taps = [
     # "osx-cross/arm"
     # "osx-cross/avr"
     # "qmk/qmk"

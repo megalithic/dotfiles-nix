@@ -107,7 +107,6 @@ in
   xdg.configFile."zsh".recursive = true;
 
 
-  homebrew = import ./homebrew.nix { inherit config pkgs lib; };
   packages = import ./packages.nix { inherit config pkgs lib; };
   accounts = import ./accounts.nix { inherit config pkgs lib; };
 
