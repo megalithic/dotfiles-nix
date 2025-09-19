@@ -1,4 +1,4 @@
-{ username }:
+{ username, ... }:
 {
   enable = true;
   onActivation = {
