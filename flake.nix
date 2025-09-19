@@ -160,7 +160,7 @@
           inherit system;
           specialArgs = { inherit inputs username system hostname version overlays; };
           modules = [
-            { nixpkgs.overlays = [ overlays ]; }
+            { nixpkgs.overlays = overlays; }
 
             ./systems/${hostname}/default.nix
             ./modules/shared/darwin/system.nix
