@@ -72,6 +72,8 @@ in
 
   # We use determinate nix installer; so we don't need this enabled..
   nix.enable = false;
+
+  # NOTE: only suppported on linux platforms
   nix.optimise.automatic = true;
 
   nix.registry = {
@@ -130,6 +132,7 @@ in
   # The platform the configuration will be used on.
   nixpkgs.hostPlatform = "${system}";
 
+  # NOTE: only suppported on linux platforms
   # do garbage collection bi-daily to keep disk usage low
   nix.gc = {
     automatic = lib.mkDefault true;

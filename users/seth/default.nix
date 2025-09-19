@@ -57,21 +57,24 @@ in
 
 
   xdg.enable = true;
-  xdg.mimeApps = {
-    enable = true;
 
-    defaultApplications = lib.mkMerge [
-      # (config.lib.xdg.mimeAssociations [ pkgs.brave ])
-      # (config.lib.xdg.mimeAssociations [ pkgs.gnome-text-editor ])
-      # (config.lib.xdg.mimeAssociations [ pkgs.loupe ])
-      # (config.lib.xdg.mimeAssociations [ pkgs.totem ])
-    ];
-  };
+  # NOTE: only supported on linux platforms:
+  # xdg.mimeApps = {
+  #   enable = true;
+  #
+  #   defaultApplications = lib.mkMerge [
+  #     # (config.lib.xdg.mimeAssociations [ pkgs.brave ])
+  #     # (config.lib.xdg.mimeAssociations [ pkgs.gnome-text-editor ])
+  #     # (config.lib.xdg.mimeAssociations [ pkgs.loupe ])
+  #     # (config.lib.xdg.mimeAssociations [ pkgs.totem ])
+  #   ];
+  # };
 
-  xdg.userDirs = {
-    enable = true;
-    createDirectories = true;
-  };
+  # NOTE: only supported on linux platforms:
+  # xdg.userDirs = {
+  #   enable = true;
+  #   createDirectories = true;
+  # };
 
   # xdg.configFile.ghostty.source = mkOutOfStoreSymlink "/Users/${username}/.dotfiles-nix/users/${username}/config/ghostty";
 
