@@ -35,6 +35,7 @@
       cache-headers = true;
     };
   };
+
   extraConfig = {
     general = {
       default-save-path = "~/Downloads";
@@ -291,6 +292,6 @@
       "<C-PgUp>" = ":prev-tab<Enter>";
       "<C-PgDn>" = ":next-tab<Enter>";
     };
-
   };
-};
+
+}
