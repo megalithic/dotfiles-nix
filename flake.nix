@@ -162,7 +162,7 @@
           modules = [
             { nixpkgs.overlays = [ overlays ]; }
 
-            ./systems/${hostname}/default.ex
+            ./systems/${hostname}/default.nix
             ./modules/shared/darwin/system.nix
 
             home-manager.darwinModules.home-manager
