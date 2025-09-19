@@ -13,7 +13,7 @@
     raycast
 
     # cli/tui -------------------------------------------------------------------------------------
-    _1password-cli
+    # _1password-cli # requires unfree; need to fix?
     argc
     atuin
     autoconf
