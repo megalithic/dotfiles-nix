@@ -134,8 +134,8 @@ in
 
   # NOTE: only suppported on linux platforms
   # do garbage collection bi-daily to keep disk usage low
-  nix.gc = {
-    automatic = lib.mkDefault true;
-    options = lib.mkDefault "--delete-older-than 2d";
-  };
+  # nix.gc = {
+  #   automatic = lib.mkDefault true;
+  #   options = lib.mkDefault "--delete-older-than 2d";
+  # };
 }
