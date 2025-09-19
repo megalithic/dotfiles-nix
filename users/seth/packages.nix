@@ -1,6 +1,6 @@
 { pkgs, config, ... }: {
 
-  home.packages = with pkgs; [
+  packages = with pkgs; [
     # menu ----------------------------------------------------------------------------------------
     ice-bar
     monitorcontrol

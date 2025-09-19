@@ -44,7 +44,7 @@ in
   home.homeDirectory = "/Users/${username}";
   home.stateVersion = version;
   home.sessionPath = "$HOME/.local/bin";
-
+  home.packages = import ./packages.nix { inherit config pkgs lib; };
   home.file = {
     "code/.keep".text = "";
     "src/.keep".text = "";
@@ -107,7 +107,6 @@ in
   xdg.configFile."zsh".recursive = true;
 
 
-  packages = import ./packages.nix { inherit config pkgs lib; };
   accounts = import ./accounts.nix { inherit config pkgs lib; };
 
   # applications/programs
