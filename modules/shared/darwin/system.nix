@@ -38,7 +38,6 @@
         expose-animation-duration = 0.0;
         minimize-to-application = true;
         mineffect = "scale";
-        # enable-window-tool = false;
         magnification = false;
         persistent-apps = [ ];
         tilesize = 34;
@@ -83,7 +82,6 @@
         ShowMountedServersOnDesktop = false;
         ShowRemovableMediaOnDesktop = true;
         _FXSortFoldersFirst = true;
-        DisableAllAnimations = true;
         QuitMenuItem = true;
         NewWindowTarget = "PfDe";
         NewWindowTargetPath = "file://${config.home.homeDirectory}/Desktop/";
