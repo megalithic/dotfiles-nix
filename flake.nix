@@ -41,6 +41,11 @@
     jujutsu.url = "github:martinvonz/jj";
     agenix.url = "github:ryantm/agenix";
     nix-ai-tools.url = "github:numtide/nix-ai-tools";
+    yazi.url = "github:sxyazi/yazi";
+    yazi-plugins = {
+      url = "github:yazi-rs/plugins";
+      flake = false;
+    };
   };
 
   outputs =
@@ -56,6 +61,7 @@
     let
       username = "seth";
       system = "aarch64-darwin";
+      arch = system;
       hostname = "megabookpro";
       version = "25.05";
       overlays = [
@@ -82,9 +88,71 @@
         })
       ];
 
+
+      mkInit =
+        { system
+        , script ? ''
+            echo "no default app init script set."
+          ''
+        ,
+        }:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+          init = pkgs.writeShellApplication {
+            name = "init";
+            text = script;
+          };
+        in
+        {
+          type = "app";
+          program = "${init}/bin/init";
+        };
+
       inherit (self) outputs;
     in
     {
+      # apps."x86_64-linux".default = mkInit { system = "x86_64-linux"; };
+      # apps."aarch64-linux".default = mkInit { system = "aarch64-linux"; };
+      apps."${arch}".default = mkInit {
+        system = "${arch}";
+        script = ''
+          set -Eueo pipefail
+
+          DOTFILES_DIR="$HOME/.dotfiles-nix"
+          SUDO_USER=$(whoami)
+          FLAKE=$(hostname -s)
+
+          if ! command -v xcode-select >/dev/null 2>&1
+          then
+            echo "installing xcode.."
+            xcode-select --install
+            sudo -u "$SUDO_USER" softwareupdate --install-rosetta --agree-to-license
+            # sudo -u "$SUDO_USER" xcodebuild -license
+          fi
+
+          if [ ! -d "$DOTFILES_DIR" ]; then
+            echo "cloning dotfiles to $DOTFILES_DIR.."
+            git clone https://github.com/megalithic/dotfiles-nix "$DOTFILES_DIR"
+          fi
+
+          if ! command -v brew >/dev/null 2>&1
+          then
+            echo "installing homebrew.."
+            bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          fi
+
+          echo "running nix-darwin for the first time.."
+          # sudo nix --experimental-features 'nix-command flakes' run nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake "$DOTFILES_DIR#$FLAKE"
+          sudo nix --experimental-features 'nix-command flakes' run nix-darwin -- switch --flake "$DOTFILES_DIR#$FLAKE"
+
+          echo "running home-manager for the first time.."
+          sudo nix --experimental-features 'nix-command flakes' run home-manager/master -- switch --flake "$DOTFILES_DIR#$FLAKE"
+
+          # nix run nix-darwin -- switch --flake "$DOTFILES_DIR"
+          # nix run home-manager/master -- switch --flake "$DOTFILES_DIR"
+        '';
+      };
+
       # Build darwin flake using:
       # darwin-rebuild switch --flake ~/nix
       darwinConfigurations."${hostname}" = nix-darwin.lib.darwinSystem
