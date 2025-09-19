@@ -1,0 +1,137 @@
+#!/usr/bin/env bash
+# Based on https://github.com/nicknisi/dotfiles/blob/main/bin/nerdwin,
+# which is based on https://github.com/joshmedeski/tmux-nerd-font-window-name
+
+NAME=$1
+CWD=$2
+DEFAULT_SHELL_ICON="" # alts: 󱆃   
+FALLBACK_ICON=""       # alts: ?
+
+function get_shell_icon() {
+  local default_shell_icon="$DEFAULT_SHELL_ICON" # alts: 󱆃  
+  # local shell_icon
+  # # shell_icon="$(tmux show -gqv '@tmux-nerd-font-window-name-shell-icon')"
+  # if [ "$shell_icon" != "" ]; then
+  #   echo "$shell_icon"
+  # else
+  echo "$default_shell_icon $(basename "$CWD")"
+  # fi
+}
+
+SHELL_ICON=$(get_shell_icon)
+
+# apt: ""
+# bash: ""
+# caffeinate: ""
+# beam.smp: ""
+# beam: ""
+# brew: ""
+# cfdisk: ""
+# dnf: ""
+# docker: ""
+# dpkg: ""
+# emacs: ""
+# fdisk: ""
+# fish: ""
+# git: ""
+# gitui: ""
+# go: ""
+# htop: ""
+# java: ""
+# kubectl: "󱃾"
+# lazydocker: ""
+# lazygit: ""
+# lf: ""
+# lfcd: ""
+# lvim: ""
+# nala: ""
+# node: ""
+# nvim: ""
+# pacman: ""
+# parted: ""
+# paru: ""
+# Python: ""
+# ranger: ""
+# ruby: ""
+# rustc: ""
+# rustup: ""
+# tcsh: ""
+# tig: ""
+# tmux: ""
+# top: ""
+# vim: ""
+# yay: ""
+# yum: ""
+# zsh: ""
+
+get_icon() {
+  case $NAME in
+    chats)
+      echo "󱋊"
+      ;;
+    tmux)
+      echo ""
+      ;;
+    htop | top)
+      echo ""
+      ;;
+    zsh | bash | tcsh)
+      echo "$SHELL_ICON"
+      ;;
+    fish)
+      echo "󰈺"
+      ;;
+    vi | vim | nvim | lvim)
+      echo ""
+      ;;
+    lazygit | git | tig | ngit)
+      echo ""
+      ;;
+    node)
+      echo "󰎙"
+      ;;
+    ruby)
+      echo ""
+      ;;
+    go)
+      echo ""
+      ;;
+    lf | lfcd)
+      echo ""
+      ;;
+    beam | beam.smp) # Erlang runtime
+      echo ""
+      ;;
+    elixir)
+      echo ""
+      ;;
+    nix)
+      echo "󱄅"
+      ;;
+    lua)
+      echo ""
+      ;;
+    rustc | rustup)
+      echo ""
+      ;;
+    Python)
+      echo ""
+      ;;
+    *)
+      if [ "$SHOW_NAME" == true ]; then
+        echo "$FALLBACK_ICON"
+      else
+        echo "$(basename "$CWD")"
+      fi
+      ;;
+  esac
+}
+
+ICON=$(get_icon)
+
+# if [ "$SHOW_NAME" == true ]; then
+[[ -z "$ICON" ]] && echo "$NAME" || echo "$ICON ($NAME)"
+
+# else
+#   echo "$ICON"
+# fi

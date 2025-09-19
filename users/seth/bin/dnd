@@ -1,0 +1,99 @@
+#!/usr/bin/env zsh
+
+set -euo pipefail
+
+#
+# What in tarnation?
+#
+# CLI tool to control macOS/notification center do-not-disturb (DND) mode
+# REQUIRES: `brew install "vitorgalvao/tiny-scripts/calm-notifications"`
+# REF: https://github.com/vitorgalvao/tiny-scripts/blob/master/calm-notifications
+# OLD VERSION: https://github.com/megalithic/dotfiles_bak/blob/b1f03a255678d91b39e87419b44ccf28a4ceb17f/bin/dnd
+#
+
+shortcut_cmd="macos-focus-mode"
+dnd_cmd="shortcuts run '$shortcut_cmd'"
+command=""
+subcommand=""
+
+# if ! which dnd.rb &>/dev/null; then
+#   printf "$(tput setaf 1)✖ %s$(tput sgr0)\n" 'unable to run dnd; it requires `brew install "vitorgalvao/tiny-scripts/calm-notifications"`'
+#   return 1
+# fi
+
+command="$(basename "$0")"
+
+help() {
+  printf -- "Usage: "$command" <subcommand> [options]\n"
+  printf -- "Subcommands:\n"
+  printf -- "    on        Turn ON do-not-disturb (DND) mode\n"
+  printf -- "    off       Turn OFF do-not-disturb (DND) mode\n"
+  printf -- "    toggle    Toggle ON/OFF do-not-disturb (DND) mode\n"
+  printf -- "    install   Install macos-focus-mode shortcut\n"
+  printf -- "    status    Get the current status of do-not-disturb (DND) mode\n"
+}
+
+cmd() {
+  local state="$1"
+
+  shortcuts run "$shortcut_cmd" <<<"$state"
+  if [[ -n "$TMUX" ]]; then
+    tmux refresh-client
+  fi
+}
+
+install() {
+  open "$DOTS/bin/macos-focus-mode.shortcut"
+}
+
+on() {
+  cmd "on"
+  tmux refresh-client
+}
+
+off() {
+  cmd "off"
+  tmux refresh-client
+}
+
+toggle() {
+  if [[ "$(defaults read com.apple.controlcenter "NSStatusItem Visible FocusModes")" == 1 ]]; then
+    cmd "off"
+  else
+    cmd "on"
+  fi
+}
+
+status() {
+  if [[ "$(defaults read com.apple.controlcenter "NSStatusItem Visible FocusModes")" == 1 ]]; then
+    echo "on"
+  else
+    echo "off"
+  fi
+}
+
+status_kitty() {
+  if [[ $(status) == "on" ]]; then
+    # echo "\uf59f DND"
+    echo "󰚎 DND"
+  else
+    echo ""
+  fi
+}
+
+subcommand="${1:-}"
+case $subcommand in
+  '')
+    status
+    ;;
+  '-k')
+    status_kitty
+    ;;
+  '-h' | '--help')
+    help
+    ;;
+  *)
+    shift
+    ${subcommand} $@
+    ;;
+esac

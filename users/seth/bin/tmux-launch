@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+function __help() {
+  printf -- "\n"
+  printf -- "  Usage: %s [options] session_name [command]\n" "tmux-launch"
+  printf -- "\n"
+  printf -- "  Example:\n"
+  printf -- "    tmux-launch \"expo cd ~/code/my_app; expo start\"\n"
+  printf -- "\n"
+  printf -- "  Options:\n"
+  printf -- "    -h   This help text you're presently reading. 😄\n"
+  printf -- "\n"
+}
+
+if [[ -z "${1:-}" ]]; then
+  __help
+  exit 1
+fi
+
+while getopts "h" OPTION; do
+  case $OPTION in
+  h)
+    __help
+    exit 0
+    ;;
+  \?)
+    echo "Invalid Option: -$OPTARG" 1>&2
+    exit 1
+    ;;
+
+  esac
+done
+
+shift $((OPTIND - 1))
+SESSION_NAME="${1:-}"
+
+if [[ -z "$SESSION_NAME" ]]; then
+  echo "No session name given."
+  exit 1
+fi
+
+shift
+CMD="${*:-}"
+
+if [[ -z "$CMD" ]]; then
+  echo "No cmd given."
+  exit 1
+fi
+
+if [[ -n "$TMUX" ]]; then
+  if ! tmux has-session -t "$SESSION_NAME" 2>/dev/null; then tmux new-session -d -s "$SESSION_NAME"; fi
+  tmux send-keys -t "$SESSION_NAME" "$CMD" C-m
+else
+  echo "executing outside of tmux.."
+  $CMD
+fi

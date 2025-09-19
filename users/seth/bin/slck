@@ -1,0 +1,575 @@
+#!/usr/bin/env zsh
+# shellcheck shell=bash
+
+set -euo pipefail
+# [[ -v DEBUG ]] && set -x
+
+source "/Users/$(whoami)/.config/zsh/lib/helpers.zsh"
+
+# TODO: figure out how to better use exit trapping
+# REF: https://www.youtube.com/watch?v=hWTOfzv_yFE
+# ----
+# trap 'clean_exit $? $LINENO' EXIT
+# trap ctrl_c INT # trap ctrl-c and call ctrl_c()
+__clean_exit() {
+  set +x
+  if [[ $1 != "0" ]]; then
+    printf -- "FATAL error code %s occurred on line %s" "$1" "$2"
+  fi
+}
+
+# clean_exit defined in helpers.zsh
+trap '__clean_exit $? $LINENO' EXIT
+
+TMUX_LAUNCH_SESSION="slck"
+SLACK_TOKEN="$(op read "op://Shared/megaenv/SLACK_NIBUILD_OAUTH_TOKEN")"
+SLACK_CHAN_ID="D09FLHENBMZ"
+SLACK_USER="Seth"
+
+# -- status list
+possible_statuses="away
+back
+active
+brb
+coffee
+dnd
+dog
+doctor
+run
+walk
+errand
+relocating
+focus
+gone
+here
+lunch
+meeting
+pair
+tea
+tern
+zoom"
+
+# -- commands
+jq_cmd="$(which jq)"
+req_cmd="$(which curlie)" #"/usr/local/opt/curl/bin/curl"
+fzf_cmd="$(which fzf)"
+
+# -- command checks
+(command -v "$req_cmd" &> /dev/null) && CURL_FOUND="${green}installed${reset}" || CURL_FOUND="${red}not installed${reset}"
+(command -v "$fzf_cmd" &> /dev/null) && FZF_FOUND="${green}installed${reset}" || FZF_FOUND="${red}not installed${reset}"
+(command -v "$jq_cmd" &> /dev/null) && JQ_FOUND="${green}installed${reset}" || JQ_FOUND="${red}not installed${reset}"
+
+# -- arrays for request data and channel message randomizer
+declare -a request_data
+declare -a gone_messages
+declare -a here_messages
+declare -a lunch_emojis
+declare -a requests
+
+STATUS="${1:-}"
+FSLCK=
+TMUX_POPUP=${TMUX_POPUP:-}
+RAW_EXECUTION=
+
+__statuses() {
+  # get the list of statuses; quick and dirty santization of function names as list of friendly status strings:
+  grep "^function" $1 | sed -n 's/function //gp' | sed -n 's/() {//gp'
+}
+
+__help() {
+  printf -- "\n"
+  printf -- "${white}${bold}USAGE:${reset} %s [options | status]\n" "slck"
+  printf -- "\n"
+  printf -- "${grey}${bold}OPTIONS:${reset}\n"
+  printf -- "  -h          view this help text\n"
+  printf -- "  -f          execute using fzf\n"
+  printf -- "  -p          execute in tmux popup mode\n"
+  printf -- "  -s          list of statuses\n"
+  printf -- "  -r          raw execution, no fancy output\n"
+  printf -- "\n"
+  printf -- "${grey}${bold}EXAMPLES:${reset}\n"
+  printf -- "  slck errand\n"
+  printf -- "  slck back\n"
+  printf -- "  slck gone\n"
+  printf -- "\n"
+  printf -- "${grey}${bold}DEPENDENCIES:${reset}\n"
+  printf -- "  fzf         (%s)\n" "$FZF_FOUND"
+  printf -- "  jq          (%s)\n" "$JQ_FOUND"
+  printf -- "  curlie      (%s)\n" "$CURL_FOUND"
+  printf -- "\n"
+
+  exit 0
+}
+
+while getopts "fhrps" OPTION; do
+  case $OPTION in
+    f)
+      FSLCK=true
+      ;;
+    h)
+      __help
+      ;;
+    p)
+      TMUX_POPUP=1
+      # TMUX_POPUP=${TMUX_POPUP:1}
+      ;;
+    r)
+      RAW_EXECUTION=1
+      ;;
+    s)
+      __statuses $0
+      exit 0
+      ;;
+
+    \?)
+      # NOTE: this covers the case where an optarg may not be provided
+      # and will exit errored
+      echo "Invalid Option: -$OPTARG" 1>&2
+      __help
+      ;;
+  esac
+done
+shift "$((OPTIND - 1))"
+
+STATUS="${1:-}"
+
+__display_popup() {
+  if [[ -z "$RAW_EXECUTION" ]]; then
+    terminal-notifier -title "slck status" -message "$STATUS @ $(TZ=America/New_York date +'%Y-%m-%d %H:%M')"
+
+    # tmux display-popup -C &&
+    #   tmux display-popup \
+    #     -S "fg=#eba0ac" \
+    #     -w20% \
+    #     -h20% \
+    #     -d '#{pane_current_path}' \
+    #     -T "slck - $STATUS" \
+    #     echo "$(TZ=America/New_York date +'%Y-%m-%d %H:%M')"
+  fi
+}
+
+__close_popup() {
+  echo "$TMUX_POPUP"
+  if [[ -n "$TMUX_POPUP" ]]; then
+    tmux display-popup -C
+  fi
+}
+
+# -- makes individual request to slack api to given endpoint param;
+#     assumes __build_request_data has been called with desired data
+# * $1: request_endpoint
+# * $2: request_type
+#
+# USAGE:
+#   __request "users.setPresence"
+__request() {
+  local request_endpoint="$1"
+  local request_type_id="${2:-json}" # alt: application/x-www-form-urlencoded
+  local request_type
+  local data
+
+  if [[ $request_type_id != "json" ]]; then
+    request_type="application/x-www-form-urlencoded"
+  else
+    request_type="application/json; charset=utf-8"
+  fi
+
+  data=$(printf -- "%s" "${request_data[@]}")
+
+  [[ -v VERBOSE ]] && url="https://slack.com/api/$request_endpoint --verbose" || url="https://slack.com/api/$request_endpoint"
+
+  if [[ -v DRY_RUN ]]; then
+    echo "$req_cmd" -X POST "$url" \
+      -H "Authorization: Bearer $SLACK_TOKEN" \
+      -H "Content-Type: $request_type" \
+      --data "$data"
+  else
+    if [[ "$RAW_EXECUTION" == "false" ]]; then
+      log_ok " storing request:"
+      echo $req_cmd -X POST "$url" -H \"Authorization: Bearer "$SLACK_TOKEN"\" -H \"Content-Type: "$request_type"\" --data \""$data"\"
+      echo ""
+    fi
+
+    "$req_cmd" -X POST "$url" -H "Authorization: Bearer $SLACK_TOKEN" -H "Content-Type: $request_type" --data "$data"
+    # parallel -j 4 "$req_cmd" -X POST "$url" -H "Authorization: Bearer $SLACK_TOKEN" -H "Content-Type: $request_type" --data "$data"
+    # requests+=("$req_cmd -X POST $url -H \"Authorization: Bearer "$SLACK_TOKEN"\" -H \"Content-Type: "$request_type"\" --data \""$data"\"")
+    # requests+=("-X POST $url -H \"Authorization: Bearer "$SLACK_TOKEN"\" -H \"Content-Type: "$request_type"\" --data \""$data"\"")
+    # fi
+  fi
+
+  unset request_data
+  unset request_type
+  unset request_endpoint
+  unset data
+  unset requester
+}
+
+# -- returns encoded "json" string for use with curlie:
+# * $1: val
+#
+# USAGE:
+#   val=$(__encode "{foo: 'bar'}")
+#   echo "$val" -> %7Bfoo%3A%20'foo'%7D
+__encode() {
+  printf %s "${1:-}"
+  # printf %s "${1:-}" | ${jq_cmd} -sRr @uri
+}
+
+# -- builds array of json request data
+# * $1: key
+# * $2: val
+#
+# USAGE:
+#   __build_request_data "my_key" "something other data"
+#   request_data+=("${key}=$(__encode "$val")")
+__build_request_data() {
+  local key="$1"
+  local val="$2"
+  local type="${3:-json}"
+
+  if [[ "$key" == "0" ]]; then
+    request_data+=("$val")
+    # request_data+=($(__encode "$val"))
+  else
+    if [[ "$type" == "json" ]]; then
+      request_data+=("{\"${key}\":${val}}")
+      # request_data+=("{\"${key}\":$(__encode "$val")}")
+    else
+      request_data+=("${key}=${val}")
+      # request_data+=("${key}=$(__encode "$val")")
+    fi
+  fi
+
+  unset key
+  unset val
+}
+
+# -- returns dnd.setSnooze json key/value pair string
+# * $1: mins (0 cancels)
+#
+# USAGE:
+#   __set_dnd 930 | 0
+__set_dnd() {
+  local mins="$1"
+
+  __build_request_data "num_minutes" "$mins" "form"
+
+  if [[ "$mins" == "0" || -z "$mins" ]]; then
+    __request "dnd.endDnd" "form"
+  else
+    __request "dnd.setSnooze" "form"
+  fi
+
+  unset mins
+}
+
+# -- returns users.profile.set json key/value pair string
+# * $1: text
+# * $2: emoji
+#
+# USAGE:
+#   __set_status ":wave:" "by for now!"
+__set_status() {
+  local text="$1"
+  local emoji="$2"
+  local profile
+
+  if [[ "$1" == "0" ]]; then
+    profile=$(__encode '{"status_text":"","status_emoji":""}')
+  else
+    profile=$(__encode "$(printf '{"status_emoji":"%s","status_text":"%s"}' "$emoji" "$text")")
+  fi
+
+  __build_request_data "profile" "$profile"
+  __request "users.profile.set"
+
+  unset emoji
+  unset text
+  unset profile
+}
+
+# -- returns users.setPresence json key/value pair string
+#
+# USAGE:
+#   __set_presence "away" | "auto"
+__set_presence() {
+  local presence="$1"
+
+  __build_request_data "presence" "\"$presence\""
+  __request "users.setPresence"
+
+  unset presence
+}
+
+# -- returns json key/value pair string
+#
+# USAGE:
+#   __set_channel_text "hi there friend" "general"
+__set_channel_text() {
+  local text="$1"
+  local channel_str="$2"
+  local channel="$SLACK_CHAN_ID"
+  # local channel_alt
+  # if [[ "$channel_str" == "away" ]]; then
+  #   channel=""
+  #   # channel_alt=""
+  # elif [[ "$channel_str" == "general" ]]; then
+  #   channel=""
+  # else
+  #   channel=""
+  # fi
+  #
+  # # if we are DEBUG, then always use my scratch channel
+  # if [[ -v DEBUG ]]; then
+  #   channel=""
+  #   channel_alt=""
+  # fi
+
+  __build_request_data 0 "$(printf '{"channel":"%s","as_user":"%s","text":"%s"}' "$channel" "$SLACK_USER" "($(TZ=America/New_York date +'%Y-%m-%d %H:%M')) $text")"
+  __request "chat.postMessage"
+
+  # if [[ -n "$channel_alt" ]]; then
+  #   __build_request_data 0 "$(printf '{"channel":"%s","as_user":"%s","text":"%s"}' "$channel_alt" "$SLACK_USER" "$text")"
+  #   __request "chat.postMessage"
+  # fi
+
+  unset text
+  unset channel_str
+  unset channel
+  # unset channel_alt
+}
+
+# ------------------------------------------------------------------------------
+# -- PUBLIC, pre-defined status configurations (presented via fuzzy_find)
+# ------------------------------------------------------------------------------
+function away() {
+  __set_presence "away"
+  __set_status "afk" ":afk:"
+  __set_channel_text "away" "bbl"
+
+  hs -c "hs.spotify.pause()"
+  __display_popup
+}
+
+function brb() {
+  __set_presence "away"
+  __set_status "be right back" ":bird-flapping-fast:"
+  __set_channel_text "brb" "away"
+
+  hs -c "hs.spotify.pause()"
+  __display_popup
+}
+
+function errand() {
+  __set_presence "away"
+  __set_status "running an errand" ":car:"
+  __set_channel_text "bbiab, running an errand" "away"
+
+  hs -c "hs.spotify.pause()"
+  __display_popup
+}
+
+function doctor() {
+  __set_presence "away"
+  __set_status "at a doctor appointment" ":female-doctor:"
+  __set_channel_text "bbiab, doctor appointment" "away"
+
+  hs -c "hs.spotify.pause()"
+  __display_popup
+}
+
+function tern() {
+  __set_presence "away"
+  __set_status "making a tern pickup" ":tern:"
+  __set_channel_text "bbiab, making a tern pickup" "away"
+
+  hs -c "hs.spotify.pause()"
+  __display_popup
+}
+
+function relocating() {
+  __set_presence "away"
+  __set_status "relocating to a different work spot, bbiab" ":car:"
+  __set_channel_text "bbiab, relocating to a different work spot" "away"
+
+  hs -c "hs.spotify.pause()"
+  __display_popup
+}
+
+function coffee() {
+  __set_presence "away"
+  __set_status "brb, making covfefe" ":coffee:"
+  __set_channel_text "brb, making coffee" "away"
+
+  hs -c "hs.spotify.pause()"
+  __display_popup
+}
+
+function tea() {
+  __set_presence "away"
+  __set_status "tea" ":tea:"
+  __set_channel_text "brb, making tea" "away"
+
+  hs -c "hs.spotify.pause()"
+  __display_popup
+}
+
+function dog() {
+  __set_presence "away"
+  __set_status "bbiab, taking the puppers out" "🦮"
+  __set_channel_text "bbiab, taking the puppers out" "away"
+
+  hs -c "hs.spotify.pause()"
+  __display_popup
+}
+
+function run() {
+  __set_presence "away"
+  __set_status "gone for a run" ":runner:"
+  __set_channel_text "bbiab, gone for a run" "away"
+
+  hs -c "hs.spotify.pause()"
+  __display_popup
+}
+
+function walk() {
+  __set_presence "away"
+  __set_status "gone for a quick walk" "🚶"
+  __set_channel_text "bbiab, gone for a quick walk" "away"
+
+  hs -c "hs.spotify.pause()"
+  __display_popup
+}
+
+function lunch() {
+  # lunch_emojis[0]=":pizza:"
+  # lunch_emojis[1]=":burrito:"
+  # lunch_emojis[2]=":hamburger:"
+  # lunch_emojis[3]=":green_salad:"
+  # lunch_emojis[4]=":curry:"
+  # local rand=$((RANDOM % ${#lunch_emojis[@]}))
+
+  __set_presence "away"
+  __set_status "lunch" ":pizza:"
+  __set_channel_text "bbl, :pizza: lunch" "away"
+  # __set_status "lunch" "${lunch_emojis[$rand]}"
+  # __set_channel_text "bbl, ${lunch_emojis[$rand]} lunch" "away"
+
+  unset lunch_emojis
+
+  hs -c "hs.spotify.pause()"
+  __display_popup
+}
+
+function gone() {
+  # gone_messages[0]=":call_me_hand: catch you all on the flippy flip!"
+  # gone_messages[1]=":wave: adios frens!"
+  # gone_messages[2]=":v: deuces!"
+  # local rand=$((RANDOM % ${#gone_messages[@]}))
+
+  __set_presence "away"
+  __set_status 0
+  __set_dnd 930
+  __set_channel_text ":wave: adios frens!" "away"
+  # __set_channel_text "${gone_messages[$rand]}" "away"
+
+  unset gone_messages
+
+  hs -c "hs.spotify.pause()"
+  __display_popup
+}
+
+function active() {
+  __set_presence "auto"
+  __set_status 0
+  __set_dnd 0
+}
+
+function back() {
+  active
+  __set_channel_text "back" "away"
+  __close_popup
+}
+
+function here() {
+  # here_messages[0]=":coffee:"
+  # here_messages[1]=":wave:"
+  # here_messages[2]=":wave: :sunrise_over_mountains: :coffee: top o the mornin!"
+  # here_messages[3]=":coffee: :croissant: gluten morgen!"
+  # here_messages[4]=":coffee: :tea: good morning!"
+  # local rand=$((RANDOM % ${#here_messages[@]}))
+
+  __set_presence "auto"
+  __set_status 0
+  __set_dnd 0
+  __set_channel_text ":wave:" "general"
+  # __set_channel_text "${here_messages[$rand]}" "general"
+
+  # unset here_messages
+  __close_popup
+}
+
+function pair() {
+  __set_status "pairing" ":pear:"
+  __set_dnd 120
+  __close_popup
+}
+
+function zoom() {
+  __set_status ":movie_camera: on a zoom call" ":calendar:"
+  __set_dnd 120
+  __close_popup
+}
+
+function dnd() {
+  local dnd_time="${2:-120}"
+  active
+  __set_status "DnD" ":octagonal_sign:"
+  __set_dnd 120
+  __set_channel_text "dnd time ${dnd_time}m" "away"
+  __close_popup
+}
+
+function focus() {
+  local dnd_time="${2:-120}"
+  active
+  __set_status "deep-work focus time" ":octagonal_sign:"
+  __set_dnd 120
+  __set_channel_text "deep-work focus time ${dnd_time}m" "away"
+}
+
+# ------------------------------------------------------------------------------
+
+# -- try to change to an existing session; otherwise, create a new one
+__try_slack_status() {
+  local status_arg="$1"
+
+  # no status given (cancelled fuzzy_find selection most likely); bail out!
+  if [[ -z "$status_arg" ]]; then
+    exit 0
+  fi
+
+  "$status_arg" "$@"
+}
+
+if [[ -z "$FSLCK" ]]; then
+  if [[ -z "$STATUS" ]]; then
+    echo "no status given; exiting."
+    exit 1
+  fi
+
+  __try_slack_status "$STATUS"
+else
+  selected_status="$($0 -s | $fzf_cmd --reverse --border="none" --padding="1" --preview-window="hidden" --prompt=" select a status  " --header="supported slack statuses:" --bind="enter:replace-query+print-query")"
+
+  if [[ -n "$selected_status" ]]; then
+    # tmux-launch "$TMUX_LAUNCH_SESSION" "$(__try_slack_status "$selected_status")"
+    if [[ -n $TMUX ]]; then
+      tmux-launch "$TMUX_LAUNCH_SESSION" "$0 -p $selected_status"
+    else
+      cmd $0 -p $selected_status
+    fi
+  else
+    exit 0
+  fi
+fi

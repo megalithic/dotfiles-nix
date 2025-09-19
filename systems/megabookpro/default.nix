@@ -1,4 +1,5 @@
-{ pkgs
+{ inputs
+, pkgs
 , lib
 , username
 , system
@@ -31,17 +32,27 @@ in
   # system wide packages (all users)
   environment.systemPackages = with pkgs; [
     bat
+    curl
+    coreutils
+    eza
     fd
     fzf
     git
     gnumake
+    jujutsu
     just
     kanata
-    neovim
+    karabiner-elements.driver
+    nvim-nightly
     ripgrep
+    starship
     tmux
     vim
+    wget
     zoxide
+    zsh
+    zsh-autosuggestions
+    zsh-syntax-highlighting
   ];
 
   environment.shells = [ pkgs.zsh pkgs.fish pkgs.bashInteractive ];
@@ -62,6 +73,17 @@ in
   # We use determinate nix installer; so we don't need this enabled..
   nix.enable = false;
   nix.optimise.automatic = true;
+
+  nix.registry = {
+    n.to = {
+      type = "path";
+      path = inputs.nixpkgs;
+    };
+    u.to = {
+      type = "path";
+      path = inputs.nixpkgs-unstable;
+    };
+  };
 
   # enable flakes globally
   nix.settings.experimental-features = [
@@ -84,17 +106,26 @@ in
 
   fonts.packages = with pkgs; [
     atkinson-hyperlegible
+    inter
     jetbrains-mono
     maple-mono.NF
+    maple-mono.truetype
+    maple-mono.variable
     nerd-fonts.fira-code
     nerd-fonts.jetbrains-mono
     nerd-fonts.symbols-only
+    noto-fonts-emoji
   ];
 
-  # services.postgresql = {
-  #   enable = true;
-  #   package = pkgs.postgresql_17;
-  # };
+  services = {
+    jankyborders = {
+      enable = true;
+      blur_radius = 5.0;
+      hidpi = true;
+      active_color = "0xAAB279A7";
+      inactive_color = "0x33867A74";
+    };
+  };
 
   # The platform the configuration will be used on.
   nixpkgs.hostPlatform = "${system}";

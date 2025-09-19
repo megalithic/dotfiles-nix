@@ -69,15 +69,6 @@ function M.augroup(name, commands)
   return id
 end
 
-vim.api.nvim_create_autocmd("FileType", {
-  desc = "Enable wrap and spell in these filetypes",
-  pattern = { "gitcommit", "markdown", "text", "log", "typst" },
-  callback = function()
-    vim.opt_local.wrap = true
-    vim.opt_local.spell = true
-  end,
-})
-
 M.augroup("Filetypes", {
   {
     event = { "FileType" },
@@ -212,6 +203,11 @@ M.augroup("Writing", {
         vim.fn.mkdir(dir, "p")
       end
 
+      -- Skip for Oil buffers or unnamed buffers
+      if vim.bo.filetype == "oil" or vim.api.nvim_buf_get_name(0) == "" then
+        return
+      end
+
       auto_mkdir(vim.fn.expand("<afile>:p:h"), vim.v.cmdbang)
     end,
   },
@@ -273,6 +269,7 @@ M.augroup("Editing", {
 
 M.augroup("Entering", {
   {
+    enabled = false,
     event = { "BufWinEnter" },
     desc = "Restore view settings",
     command = "silent! loadview",
@@ -322,6 +319,7 @@ M.augroup("Entering", {
 
 M.augroup("Leaving", {
   {
+    enabled = false,
     event = { "VimResized", "WinResized" },
     desc = "Create view settings",
     command = "silent! mkview",

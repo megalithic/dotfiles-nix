@@ -1,137 +1,168 @@
-{ pkgs, ... }: {
-  home.packages = with pkgs;
-    [
-      _1password-cli
-      actionlint
-      ai-tools.opencode
-      alejandra
-      amber
-      amber
-      argc
-      autoconf
-      autogen
-      automake
-      basedpyright
-      bash-language-server
-      bat
-      beam.packages.erlang_28.elixir_1_18
-      beam.packages.erlang_28.erlang
-      btop
-      cachix
-      charm-freeze
-      chromedriver
-      cmake
-      delta
-      deno
-      direnv
-      docker
-      docker-compose
-      docker-compose-language-service
-      dockerfile-language-server-nodejs
-      eza
-      fastfetch
-      fd
-      figlet
-      fswatch
-      fzf
-      gawk
-      gettext
-      gh
-      ghc
-      git
-      git-lfs
-      gum
-      harper
-      hyperfine
-      jq
-      jujutsu
-      just
-      kubectl
-      kubectx
-      kubernetes-helm
-      lazydocker
-      lazygit
-      lua
-      lua-language-server
-      lua5_1
-      luarocks
-      markdown-oxide
-      marksman
-      # mcphub # used in codecompanion
-      minikube
-      # mise-flake.packages.${system}.mise
-      neovim
-      neovim-remote
-      nil
-      ninja
-      nix-direnv
-      nixd
-      nixfmt-rfc-style
-      nodejs_24
-      nodePackages_latest.bash-language-server
-      nodePackages_latest.typescript-language-server
-      nodePackages.prettier
-      # nodePackages.prettierd
-      nodePackages_latest.vscode-json-languageserver
-      openssl
-      pkg-config
-      pnpm
-      # python313
-      # python313Packages.ipython
-      # python313Packages.sqlfmt
-      ripgrep
-      ruff
-      rust
-      rust-analyzer
-      selenium-server-standalone
-      shellcheck
-      shfmt
-      silicon
-      smartcat
-      sqlite-interactive
-      stylua
-      tailscale
-      tailwindcss-language-server
-      taplo
-      terraform
-      terraform-ls
-      tflint
-      tmux
-      tokei
-      tree
-      tree-sitter
-      twm
-      typescript
-      unstable.claude-code
-      unstable.devenv
-      unstable.opencode
-      unstable.sd
-      vectorcode # used in codecompanion
-      vim
-      vim-language-server
-      vscode-langservers-extracted
-      vtsls
-      weechat
-      wget
-      yaml-language-server
-      yamllint
-      yarn
-      zig
-      zk
-      zls
-      zsh
-    ];
-  # ++ [
-  #   atkinson-hyperlegible
-  #   jetbrains-mono
-  #   nerd-fonts.jetbrains-mono
-  #   nerd-fonts.fira-code
-  #   maple-mono.NF
-  #   nerd-fonts.symbols-only
-  # ]
-  # ++ (
-  #   if pkgs.stdenv.isLinux
-  #   then [ gcc coreutils xclip unixtools.ifconfig inotify-tools ncurses5 ]
-  #   else [ ]
-  # );
+{ pkgs, config, ... }: {
+
+  home.packages = with pkgs; [
+    # menu ----------------------------------------------------------------------------------------
+    ice-bar
+    monitorcontrol
+    stats
+
+    # gui -----------------------------------------------------------------------------------------
+    obsidian
+    obs-studio
+    obs-studio-plugins
+    raycast
+
+    # cli/tui -------------------------------------------------------------------------------------
+    _1password-cli
+    argc
+    atuin
+    autoconf
+    autogen
+    automake
+    bandwhich
+    btop
+    cachix
+    charm-freeze
+    chromedriver
+    curlie
+    delta
+    direnv
+    du-dust # du + rust = dust. Like du but more intuitive.
+    gettext
+    gh
+    ghc
+    ghostty.terminfo
+    git-lfs
+    gnused # GNU tools (for macOS compatibility)
+    gum
+    htop
+    imagemagick
+    jq
+    lazygit
+    lazydocker
+    ncurses
+    # mise-flake.packages.${system}.mise
+    pngpaste
+    pkg-config
+    unstable.podman
+    unstable.podman-compose
+    pre-commit
+    sqlite-interactive
+    tailscale
+    television
+    tree
+    tree-sitter
+    yq
+
+
+    # ai ------------------------------------------------------------------------------------------
+    ai-tools.opencode
+    ollama
+    # vectorcode # used in codecompanion
+    # mcphub # used in codecompanion
+
+    # k8s -----------------------------------------------------------------------------------------
+    kubectl
+    kubectx
+    kubernetes-helm
+    minikube
+    opentofu
+
+
+    # lua -----------------------------------------------------------------------------------------
+    lua
+    lua-language-server
+    lua5_1
+    luarocks
+
+    # lsp --------------------------------------------------------------------------------------------
+    bash-language-server
+    gofumpt
+    golines
+    gopls
+    harper
+    helm-ls
+    markdown-oxide
+    marksman
+    stylua
+    superhtml
+    templ
+    vim-language-server
+    yaml-language-server
+    yamllint
+    tailwindcss-language-server
+    taplo
+
+    # kotlin --------------------------------------------------------------------------------------
+    kotlin
+    kotlin-language-server # TODO: migrate to kotlinLspWrapper
+    jdk21
+    gradle
+    ktlint
+    ktfmt
+
+    # docker --------------------------------------------------------------------------------------
+    colima
+    docker
+    docker-compose
+    docker-compose-language-service
+    dockerfile-language-server-nodejs
+
+    # node/js/ts ----------------------------------------------------------------------------------
+    nodejs_22
+    nodePackages_latest.nodejs
+    nodePackages_latest.prettier
+    nodePackages_latest.vscode-json-languageserver
+    pnpm
+    vtsls
+    vue-language-server
+
+    # python --------------------------------------------------------------------------------------
+    python3
+    python313
+    python313Packages.pip
+    python313Packages.websockets
+    python313Packages.websocket-client
+    python313Packages.ipython
+    python313Packages.sqlfmt
+    uv
+    basedpyright
+
+    # rust --------------------------------------------------------------------------------------
+    rustup
+    ruff
+    rust
+    rust-analyzer
+
+    # elixir --------------------------------------------------------------------------------------
+    beam.packages.erlang_28.elixir_1_18
+    beam.packages.erlang_28.erlang
+
+    # nix -----------------------------------------------------------------------------------------
+    nixfmt-rfc-style
+    alejandra
+    nix-direnv
+    nil
+    nixd
+
+    # terraform -----------------------------------------------------------------------------------
+    terraform
+    terraform-ls
+    tflint
+    trivy
+    atlas
+
+    # google-cloud --------------------------------------------------------------------------------
+    # - remember to disable ipv6, otherwise super slow gcloud
+    # - networksetup -setv6off Wi-Fi
+    (google-cloud-sdk.withExtraComponents (
+      with pkgs.google-cloud-sdk.components;
+      [
+        gke-gcloud-auth-plugin
+        package-go-module
+        pubsub-emulator
+      ]
+    ))
+    google-cloud-sql-proxy
+  ];
 }

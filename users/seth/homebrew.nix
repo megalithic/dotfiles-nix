@@ -1,90 +1,82 @@
 _:
 {
   homebrew.brews = [
-    "qmk"
-    # QMK dependencies
-    "avr-binutils"
-    "avr-gcc@8"
-    "boost"
-    "confuse"
-    "hidapi"
-    "libftdi"
-    "libusb-compat"
-    "avrdude"
-    "bootloadhid"
-    "clang-format"
-    "dfu-programmer"
-    "dfu-util"
-    "libimagequant"
-    "libraqm"
-    "pillow"
-    "teensy_loader_cli"
-    "osx-cross/arm/arm-none-eabi-binutils"
-    "osx-cross/arm/arm-none-eabi-gcc@8"
-    "osx-cross/avr/avr-gcc@9"
-    "qmk/qmk/hid_bootloader_cli"
-    "qmk/qmk/mdloader"
+    "vfkit" # fo podman
+    # "qmk"
+    # # QMK dependencies
+    # "avr-binutils"
+    # "avr-gcc@8"
+    # "boost"
+    # "confuse"
+    # "hidapi"
+    # "libftdi"
+    # "libusb-compat"
+    # "avrdude"
+    # "bootloadhid"
+    # "clang-format"
+    # "dfu-programmer"
+    # "dfu-util"
+    # "libimagequant"
+    # "libraqm"
+    # "pillow"
+    # "teensy_loader_cli"
+    # "osx-cross/arm/arm-none-eabi-binutils"
+    # "osx-cross/arm/arm-none-eabi-gcc@8"
+    # "osx-cross/avr/avr-gcc@9"
+    # "qmk/qmk/hid_bootloader_cli"
+    # "qmk/qmk/mdloader"
   ];
+
   homebrew.casks = [
     "1password"
+    "1password-cli"
+    "alfred"
+    "balenaetcher"
+    "betterdisplay" # Custom fractional scaling resolutions, brightness and volume control for non-Apple external displays.
+    "brave-browser-nightly"
     "calibre"
     "cardhop"
     "discord"
     "docker-desktop"
     "fantastical"
     "figma"
+    "firefox"
+    "flux"
     "ghostty"
     "hammerspoon"
     "homerow"
+    "inkscape"
     "karabiner-elements"
     "macwhisper"
     "mouseless"
-    "obs"
-    "ollama"
+    "mullvad-browser"
+    "orcaslicer"
+    "orion"
+    "podman-desktop"
     "pop-app"
+    "qmk-toolbox"
+    "qutebrowser"
     "raycast"
     "signal"
     "slack"
+    "spotify"
     "steam"
     "telegram"
+    "tunnelblick"
     "vlc"
     "zoom"
-
-    "balenaetcher"
-    "betterdisplay" # Custom fractional scaling resolutions, brightness and volume control for non-Apple external displays.
-    "brave-browser"
-    "citrix-workspace"
-    "discord"
-    "firefox"
-    "flux"
-    "font-jetbrains-mono-nerd-font"
-    "ghostty"
-    "inkscape"
-    "karabiner-elements" # STATE: Rebind right-command to right-option
-    "mattermost"
-    # "microsoft-office" # Only have installed when needed (has some sinister telemetry).
-    "microsoft-teams" # Only have installed when needed (has some sinister telemetry).
-    # "monitorcontrol" # Brightness and volume controls for external monitors.
-    "mullvad-browser"
-    "nextcloud"
-    "orcaslicer"
-    "orion"
-    "qmk-toolbox"
-    "qutebrowser"
-    "racket"
-    "signal"
-    "stremio"
-    "telegram"
-    "transmission"
-    "tunnelblick"
-    "ukelele"
     "unnaturalscrollwheels"
     "utm"
     "vial"
     "visual-studio-code"
     "whatsapp"
+    "yubico-yubikey-manager"
     "zed"
+    "zen"
     "zoom"
+    # "microsoft-office" # Only have installed when needed (has some sinister telemetry).
+    # "microsoft-teams" # Only have installed when needed (has some sinister telemetry).
+    # "monitorcontrol" # Brightness and volume controls for external monitors.
   ];
 
   homebrew.masApps = {
@@ -114,9 +106,9 @@ _:
   };
 
   homebrew.taps = [
-    "osx-cross/arm"
-    "osx-cross/avr"
-    "qmk/qmk"
+    # "osx-cross/arm"
+    # "osx-cross/avr"
+    # "qmk/qmk"
   ];
 
   # homebrew = {

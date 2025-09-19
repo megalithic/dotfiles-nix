@@ -12,13 +12,14 @@
   description = "🗿megadotfiles";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.11";
+      url = "github:nix-community/home-manager/release-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-darwin = {
-      url = "github:LnL7/nix-darwin/nix-darwin-25.11";
+      url = "github:LnL7/nix-darwin/nix-darwin-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
@@ -45,6 +46,7 @@
   outputs =
     { self
     , nixpkgs
+    , nixpkgs-unstable
     , nix-darwin
     , home-manager
     , neovim-nightly-overlay
@@ -55,26 +57,25 @@
       username = "seth";
       system = "aarch64-darwin";
       hostname = "megabookpro";
-      version = "25.11";
+      version = "25.05";
       overlays = [
         inputs.jujutsu.overlays.default
 
         # This overlay makes unstable packages available through pkgs.unstable
         (final: prev: rec {
-          unstable = import inputs.nixpkgs-unstable {
+          unstable = import nixpkgs-unstable {
             inherit (prev) system;
             config.allowUnfree = true;
+            config.allowUnfreePredicate = _: true;
           };
           ai-tools = inputs.nix-ai-tools.packages.${prev.system};
 
           # # gh CLI on stable has bugs.
-          # inherit (unstable.legacyPackages.${prev.system}) gh;
-          #
-          # # Want the latest version of these
-          # inherit (unstable.legacyPackages.${prev.system}) claude-code;
-
+          # inherit (nixpkgs-unstable.legacyPackages.${prev.system}) gh;
 
           mcphub = inputs.mcp-hub.packages."${prev.system}".default;
+          # NOTE: here's how to do a custom neovim-nightly overlay:
+          # REF: https://github.com/fredrikaverpil/dotfiles/blob/main/nix/shared/overlays/neovim.nix
           nvim-nightly = inputs.neovim-nightly-overlay.packages.${prev.system}.default;
           karabiner-driverkit = prev.callPackage ./packages/karabiner-driverkit { };
           notmuch = prev.notmuch.override { withEmacs = false; };
@@ -91,7 +92,7 @@
           inherit system overlays;
           specialArgs = { inherit inputs username system hostname version overlays; };
           modules = [
-            { nixpkgs.overlays = "${overlays}"; }
+            { nixpkgs.overlays = [ overlays ]; }
 
             ./systems/${hostname}/default.ex
             ./modules/shared/darwin/system.nix
