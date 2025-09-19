@@ -101,7 +101,7 @@ in
   programs.zsh.enable = true;
   programs.fish.enable = true;
   programs.gnupg.agent.enable = true;
-  programs._1password.enable = true;
+  # programs._1password.enable = true;
 
   fonts.packages = with pkgs; [
     atkinson-hyperlegible
