@@ -117,9 +117,29 @@ in
   xdg.configFile."ghostty".source = ./config/ghostty;
   xdg.configFile."ghostty".recursive = true;
 
-  xdg.configFile."opencode".source = ./config/opencode;
-  xdg.configFile."opencode".recursive = true;
-
+  # xdg.configFile."opencode".source = ./config/opencode;
+  # xdg.configFile."opencode".recursive = true;
+  xdg.configFile."opencode/opencode.json".text = ''
+    {
+      "$schema": "https://opencode.ai/config.json",
+      "provider": {
+        "ollama": {
+          "npm": "@ai-sdk/openai-compatible",
+          "name": "Ollama (local)",
+          "options": {
+            "baseURL": "http://localhost:11434/v1"
+          },
+          "models": {
+            "gpt-oss:20b": {
+              "name": "GPT OSS:20b"
+            }
+          }
+        }
+      },
+      "model": "anthropic/claude-sonnet-4-20250514",
+      "small_model": "anthropic/claude-3-5-haiku-20241022"
+    }
+  '';
   xdg.configFile."jj".source = ./config/jj;
   xdg.configFile."jj".recursive = true;
 
