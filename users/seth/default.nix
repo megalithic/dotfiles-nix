@@ -153,7 +153,6 @@ in
         gcc # For treesitter compilation
         git
         gnumake # For various build processes
-        go_1_25
         golangci-lint
         gopls
         gotools
