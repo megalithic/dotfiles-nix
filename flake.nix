@@ -158,9 +158,11 @@
       darwinConfigurations."${hostname}" = nix-darwin.lib.darwinSystem
         {
           inherit system;
+
           specialArgs = { inherit inputs username system hostname version overlays; };
           modules = [
             { nixpkgs.overlays = overlays; }
+            { nixpkgs.config.allowUnfree = true; }
 
             ./systems/${hostname}/default.nix
             ./modules/shared/darwin/system.nix
