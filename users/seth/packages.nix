@@ -7,10 +7,10 @@
     stats
 
     # gui -----------------------------------------------------------------------------------------
-    unstable.obsidian
-    obs-studio
-    obs-studio-plugins
-    raycast
+    # unstable.obsidian
+    # obs-studio
+    # obs-studio-plugins
+    # raycast
 
     # cli/tui -------------------------------------------------------------------------------------
     # _1password-cli # requires unfree; need to fix?
