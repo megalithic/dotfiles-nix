@@ -31,7 +31,6 @@
     gettext
     gh
     ghc
-    ghostty.terminfo
     git-lfs
     gnused # GNU tools (for macOS compatibility)
     gum
