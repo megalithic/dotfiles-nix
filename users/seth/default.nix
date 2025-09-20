@@ -206,12 +206,12 @@ in
       enable = true;
       interactiveShellInit = ''
         set fish_greeting # N/A
-        # direnv hook fish | source
-        # tv init fish | source
-        # ${pkgs.trashy}/bin/trashy completions fish | source
-        # ${pkgs.rqbit}/bin/rqbit -v error completions fish | source
-        # ${inputs.rimi.packages.${system}.rimi}/bin/rimi completions fish | source
       '';
+      # direnv hook fish | source
+      # tv init fish | source
+      # ${pkgs.trashy}/bin/trashy completions fish | source
+      # ${pkgs.rqbit}/bin/rqbit -v error completions fish | source
+      # ${inputs.rimi.packages.${system}.rimi}/bin/rimi completions fish | source
       shellAliases = {
         opencode = "
       op
@@ -222,7 +222,7 @@ in
     direnv = {
       enable = true;
       enableZshIntegration = true;
-      # enableFishIntegration = true;
+      enableFishIntegration = true;
       nix-direnv.enable = true;
       config = {
         global.warn_timeout = " 0 ";
