@@ -7,7 +7,7 @@
     stats
 
     # gui -----------------------------------------------------------------------------------------
-    obsidian
+    unstable.obsidian
     obs-studio
     obs-studio-plugins
     raycast
