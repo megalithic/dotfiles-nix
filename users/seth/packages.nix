@@ -154,14 +154,14 @@
     # google-cloud --------------------------------------------------------------------------------
     # - remember to disable ipv6, otherwise super slow gcloud
     # - networksetup -setv6off Wi-Fi
-    (google-cloud-sdk.withExtraComponents (
-      with pkgs.google-cloud-sdk.components;
-      [
-        gke-gcloud-auth-plugin
-        package-go-module
-        pubsub-emulator
-      ]
-    ))
-    google-cloud-sql-proxy
+    # (google-cloud-sdk.withExtraComponents (
+    #   with pkgs.google-cloud-sdk.components;
+    #   [
+    #     gke-gcloud-auth-plugin
+    #     package-go-module
+    #     pubsub-emulator
+    #   ]
+    # ))
+    # google-cloud-sql-proxy
   ];
 }

@@ -40,14 +40,28 @@ let
 in
 {
 
-  imports = [ ./packages.nix ];
+  # imports = [ ./packages.nix ];
 
   programs.home-manager.enable = true;
   home.username = username;
   home.homeDirectory = "/Users/${username}";
   home.stateVersion = version;
   home.sessionPath = "$HOME/.local/bin";
-  # home.packages = import ./packages.nix { inherit config pkgs lib; };
+  home.packages = with pkgs; [
+    amber
+    unstable.claude-code
+    unstable.devenv
+    gh
+    gum
+    harper
+    lua-language-server
+    markdown-oxide
+    nixd
+    nixfmt-rfc-style
+    ai-tools.opencode
+    ripgrep
+    sesh
+  ];
   home.file = {
     "code/.keep".text = "";
     "src/.keep".text = "";
