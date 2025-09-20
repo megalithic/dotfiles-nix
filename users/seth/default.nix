@@ -319,16 +319,16 @@ in
     himalaya.enable = true;
     k9s.enable = true;
     jq.enable = true;
-    obs-studio = {
-      enable = true;
-      plugins = with pkgs.obs-studio-plugins; [
-        obs-vaapi
-        obs-pipewire-audio-capture
-        input-overlay
-        droidcam-obs
-        obs-websocket
-      ];
-    };
+    # obs-studio = {
+    #   enable = true;
+    #   plugins = with pkgs.obs-studio-plugins; [
+    #     obs-vaapi
+    #     obs-pipewire-audio-capture
+    #     input-overlay
+    #     droidcam-obs
+    #     obs-websocket
+    #   ];
+    # };
   };
 
   # Disable Spotlight keyboard shortcut (Cmd+Space) to allow Raycast/Alfred usage
