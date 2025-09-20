@@ -39,12 +39,15 @@ let
   # nvim-nightly = inputs.neovim-nightly-overlay.packages.${pkgs.system}.default;
 in
 {
+
+  imports = [ ./packages.nix ];
+
   programs.home-manager.enable = true;
   home.username = username;
   home.homeDirectory = "/Users/${username}";
   home.stateVersion = version;
   home.sessionPath = "$HOME/.local/bin";
-  home.packages = import ./packages.nix { inherit config pkgs lib; };
+  # home.packages = import ./packages.nix { inherit config pkgs lib; };
   home.file = {
     "code/.keep".text = "";
     "src/.keep".text = "";
