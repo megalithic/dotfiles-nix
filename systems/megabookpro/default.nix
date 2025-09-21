@@ -67,7 +67,7 @@ in
     HOMEBREW_PREFIX = "/opt/homebrew";
   };
 
-  # default homebrew stuff for all users
+  # homebrew stuff for all users
   homebrew = import ../../modules/shared/darwin/homebrew.nix { inherit pkgs lib username; };
 
   # We use determinate nix installer; so we don't need this enabled..

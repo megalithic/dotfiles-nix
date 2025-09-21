@@ -57,6 +57,7 @@ in
     lua-language-server
     markdown-oxide
     nixd
+    unstable.espanso
     nixfmt-rfc-style
     ai-tools.opencode
     ripgrep
