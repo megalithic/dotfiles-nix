@@ -181,20 +181,6 @@
               home-manager.extraSpecialArgs = { inherit inputs username system hostname version overlays; };
             }
 
-{
-homebrew = {
-    enable = true;
-    global = {
-      brewfile = true;
-    };
-    onActivation = {
-      autoUpdate = true;
-      upgrade = true;
-      cleanup = "zap";
-    };
-  };
-},
-
             inputs.nix-homebrew.darwinModules.nix-homebrew
             {
               nix-homebrew = {
