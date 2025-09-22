@@ -246,10 +246,10 @@ in
       enableZshIntegration = true;
       # enableFishIntegration = true;
       nix-direnv.enable = true;
-      config = {
-        global.warn_timeout = " 0 ";
-        global.hide_env_diff = true;
-      };
+      #config = {
+        #global.warn_timeout = "0";
+        #global.hide_env_diff = true;
+      #};
     };
 
 
