@@ -64,6 +64,8 @@
       arch = system;
       hostname = "megabookpro";
       version = "25.05";
+
+      pkgs = nixpkgs.legacyPackages.${system};
       overlays = [
         inputs.jujutsu.overlays.default
 
