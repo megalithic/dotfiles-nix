@@ -152,7 +152,7 @@
 
       # Build darwin flake using:
       # darwin-rebuild switch --flake ~/nix
-      darwinConfigurations."${hostname}" = nix-darwin.lib.darwinSystem
+      darwinConfigurations.${hostname} = nix-darwin.lib.darwinSystem
         {
           inherit system;
 
@@ -173,7 +173,6 @@
 
             home-manager.darwinModules.home-manager
             {
-              networking.hostName = hostname;
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
               home-manager.backupFileExtension = "backup";
@@ -202,6 +201,9 @@
                 mutableTaps = false;
               };
             }
+{
+      config._module.args.pkgs = inputs.nixpkgs.legacyPackages.${system};
+      }
           ];
         };
     };
