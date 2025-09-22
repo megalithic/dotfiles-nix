@@ -1,6 +1,5 @@
 { 
 username
-, config
 , ... }:
 {
   enable = true;
@@ -118,7 +117,7 @@ username
     # # mas "Affinity Designer", id: 824171161
   };
 
-  homebrew.taps = builtins.attrNames config.nix-homebrew.taps;
+  # homebrew.taps = builtins.attrNames config.nix-homebrew.taps;
   # taps = [
   #   # "osx-cross/arm"
   #   # "osx-cross/avr"
