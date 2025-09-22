@@ -135,21 +135,18 @@
             git clone https://github.com/megalithic/dotfiles-nix "$DOTFILES_DIR"
           fi
 
-          if ! command -v brew >/dev/null 2>&1
-          then
-            echo "installing homebrew.."
-            bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-          fi
-
+          # if ! command -v brew >/dev/null 2>&1
+          # then
+          #   echo "installing homebrew.."
+          #   bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          # fi
+          #
           echo "running nix-darwin for the first time.."
+          sudo nix --experimental-features 'nix-command flakes' run nix-darwin -- switch --option eval-cache false --flake "$DOTFILES_DIR#$FLAKE"
           # sudo nix --experimental-features 'nix-command flakes' run nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake "$DOTFILES_DIR#$FLAKE"
-          sudo nix --experimental-features 'nix-command flakes' run nix-darwin -- switch --flake "$DOTFILES_DIR#$FLAKE"
 
           echo "running home-manager for the first time.."
           sudo nix --experimental-features 'nix-command flakes' run home-manager/master -- switch --flake "$DOTFILES_DIR#$FLAKE"
-
-          # nix run nix-darwin -- switch --flake "$DOTFILES_DIR"
-          # nix run home-manager/master -- switch --flake "$DOTFILES_DIR"
         '';
       };
 
@@ -161,6 +158,13 @@
 
           specialArgs = { inherit inputs username system hostname version overlays; };
           modules = [
+            { system.configurationRevision = self.rev or self.dirtyRev or null; }
+            # {
+            #   nix.optimise = {
+            #     # Enable store optimization because we can't set `auto-optimise-store` to true on macOS.
+            #     automatic = pkgs.stdenv.isDarwin;
+            #   };
+            # }
             { nixpkgs.overlays = overlays; }
             { nixpkgs.config.allowUnfree = true; }
 

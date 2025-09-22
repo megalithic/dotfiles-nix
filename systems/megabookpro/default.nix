@@ -64,7 +64,7 @@ in
     EDITOR = "nvim";
     PAGER = "less -FirSwX";
     MANPAGER = "${manpager}/bin/manpager";
-    HOMEBREW_PREFIX = "/opt/homebrew";
+    # HOMEBREW_PREFIX = "/opt/homebrew";
   };
 
   # homebrew stuff for all users
@@ -101,6 +101,7 @@ in
   programs.zsh.enable = true;
   programs.fish.enable = true;
   programs.gnupg.agent.enable = true;
+  # programs.gnupg.agent.enableSSHSupport = true;
   # programs._1password.enable = true;
 
   fonts.packages = with pkgs; [
