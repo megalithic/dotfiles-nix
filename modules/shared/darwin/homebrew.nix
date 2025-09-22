@@ -2,15 +2,17 @@
 username
 , ... }:
 {
-  enable = true;
-  onActivation = {
-    cleanup = "zap";
-    autoUpdate = true;
-    upgrade = false;
+  homebrew = {
+    enable = true;
+    onActivation = {
+      cleanup = "zap";
+      autoUpdate = true;
+      upgrade = false;
+    };
+    global.autoUpdate = true;
   };
-  global.autoUpdate = true;
 
-  brews = [
+  homebrew.brews = [
     "vfkit" # fo podman
     # "qmk"
     # # QMK dependencies
@@ -91,7 +93,7 @@ username
     # "monitorcontrol" # Brightness and volume controls for external monitors.
   ];
 
-  masApps = {
+  homebrew.masApps = {
     #"Parcel" = 639968404;
     #"Reeder" = 1529448980;
     #"Timery" = 1425368544;
