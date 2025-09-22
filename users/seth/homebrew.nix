@@ -30,10 +30,10 @@ _:
   homebrew.casks = [
     "1password"
     "1password-cli"
-    "alfred"
-    "balenaetcher"
+    #"alfred"
+    #"balenaetcher"
     "betterdisplay" # Custom fractional scaling resolutions, brightness and volume control for non-Apple external displays.
-    "brave-browser-nightly"
+    "brave-browser@nightly"
     "calibre"
     "cardhop"
     "discord"
@@ -42,7 +42,7 @@ _:
     "figma"
     "firefox"
     "flux"
-    "ghostty"
+    # "ghostty"
     "hammerspoon"
     "homerow"
     "inkscape"
@@ -50,7 +50,7 @@ _:
     "macwhisper"
     "mouseless"
     "obs-beta"
-    "orcaslicer"
+    "orcaslicer-beta"
     "orion"
     "podman-desktop"
     "pop-app"
@@ -68,11 +68,11 @@ _:
     "vlc"
     "zoom"
     "unnaturalscrollwheels"
-    "utm"
+    #"utm"
     "vial"
     "visual-studio-code"
     "whatsapp"
-    "yubico-yubikey-manager"
+    #"yubico-yubikey-manager"
     "zed"
     "zen"
     "zoom"
@@ -82,11 +82,11 @@ _:
   ];
 
   masApps = {
-    "Parcel" = 639968404;
-    "Reeder" = 1529448980;
-    "Timery" = 1425368544;
-    "Toggl" = 1291898086;
-    "Tailscale" = 1475387142;
+    #"Parcel" = 639968404;
+    #"Reeder" = 1529448980;
+    #"Timery" = 1425368544;
+    #"Toggl" = 1291898086;
+    #"Tailscale" = 1475387142;
     "Fantastical" = 975937182;
     # mas "Signal Shifter", id: 6446061552
     # mas "Fantastical", id: 975937182

@@ -1,6 +1,9 @@
 { pkgs, config, ... }: {
 
   home.packages = with pkgs; [
+    #raycast
+    ghostty
+
     # menu ----------------------------------------------------------------------------------------
     ice-bar
     monitorcontrol
