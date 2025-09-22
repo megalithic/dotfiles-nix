@@ -141,11 +141,11 @@
           #   bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
           # fi
           #
-          echo "running nix-darwin for the first time for ${FLAKE}.."
+          echo "running nix-darwin for the first time for $FLAKE.."
           sudo nix --experimental-features 'nix-command flakes' run nix-darwin -- switch --option eval-cache false --flake "$DOTFILES_DIR#$FLAKE"
           # sudo nix --experimental-features 'nix-command flakes' run nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake "$DOTFILES_DIR#$FLAKE"
 
-          echo "running home-manager for the first time for ${FLAKE}.."
+          echo "running home-manager for the first time for $FLAKE.."
           sudo nix --experimental-features 'nix-command flakes' run home-manager/master -- switch --flake "$DOTFILES_DIR#$FLAKE"
         '';
       };
