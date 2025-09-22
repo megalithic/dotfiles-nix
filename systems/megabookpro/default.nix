@@ -19,7 +19,7 @@ let
 in
 {
 imports = [
-(../../modules/shared/darwin/homebrew.nix { inherit pkgs lib username; })
+../../modules/shared/darwin/homebrew.nix
 ];
 
 
