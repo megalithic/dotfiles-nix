@@ -34,6 +34,7 @@ in
     bat
     curl
     coreutils
+    darwin.trash
     eza
     fd
     fzf
@@ -50,7 +51,6 @@ in
     vim
     wget
     zoxide
-    zsh
     zsh-autosuggestions
     zsh-syntax-highlighting
   ];
