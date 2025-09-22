@@ -1,171 +1,245 @@
-{ pkgs, config, ... }: {
+{ 
+username
+, ... }:
+{
+  homebrew = {
+    enable = true;
+    onActivation = {
+      cleanup = "zap";
+      autoUpdate = true;
+      upgrade = false;
+    };
+    global.autoUpdate = true;
+    global.brewfile = true;
+  };
 
-  home.packages = with pkgs; [
-    #raycast
-    ghostty
-
-    # menu ----------------------------------------------------------------------------------------
-    ice-bar
-    monitorcontrol
-    stats
-
-    # gui -----------------------------------------------------------------------------------------
-    # unstable.obsidian
-    # obs-studio
-    # obs-studio-plugins
-    # raycast
-
-    # cli/tui -------------------------------------------------------------------------------------
-    # _1password-cli # requires unfree; need to fix?
-    argc
-    atuin
-    autoconf
-    autogen
-    automake
-    bandwhich
-    btop
-    cachix
-    charm-freeze
-    chromedriver
-    curlie
-    delta
-    direnv
-    du-dust # du + rust = dust. Like du but more intuitive.
-    gettext
-    gh
-    ghc
-    git-lfs
-    gnused # GNU tools (for macOS compatibility)
-    gum
-    htop
-    imagemagick
-    jq
-    lazygit
-    lazydocker
-    mise
-    ncurses
-    # mise-flake.packages.${system}.mise
-    pngpaste
-    pkg-config
-    unstable.podman
-    unstable.podman-compose
-    pre-commit
-    sqlite-interactive
-    tailscale
-    television
-    tree
-    tree-sitter
-    yq
-
-
-    # ai ------------------------------------------------------------------------------------------
-    ai-tools.opencode
-    ollama
-    # vectorcode # used in codecompanion
-    # mcphub # used in codecompanion
-
-    # k8s -----------------------------------------------------------------------------------------
-    kubectl
-    kubectx
-    kubernetes-helm
-    minikube
-    opentofu
-
-
-    # lua -----------------------------------------------------------------------------------------
-    lua
-    lua-language-server
-    lua5_1
-    luarocks
-
-    # lsp --------------------------------------------------------------------------------------------
-    bash-language-server
-    gofumpt
-    golines
-    gopls
-    harper
-    helm-ls
-    markdown-oxide
-    marksman
-    stylua
-    superhtml
-    templ
-    vim-language-server
-    yaml-language-server
-    yamllint
-    tailwindcss-language-server
-    taplo
-
-    # kotlin --------------------------------------------------------------------------------------
-    kotlin
-    kotlin-language-server # TODO: migrate to kotlinLspWrapper
-    jdk21
-    gradle
-    ktlint
-    ktfmt
-
-    # docker --------------------------------------------------------------------------------------
-    colima
-    docker
-    docker-compose
-    docker-compose-language-service
-    dockerfile-language-server-nodejs
-
-    # node/js/ts ----------------------------------------------------------------------------------
-    nodejs_22
-    nodePackages_latest.nodejs
-    nodePackages_latest.prettier
-    nodePackages_latest.vscode-json-languageserver
-    pnpm
-    vtsls
-    vue-language-server
-
-    # python --------------------------------------------------------------------------------------
-    python3
-    python313
-    python313Packages.pip
-    python313Packages.websockets
-    python313Packages.websocket-client
-    python313Packages.ipython
-    python313Packages.sqlfmt
-    uv
-    basedpyright
-
-    # rust --------------------------------------------------------------------------------------
-    rustup
-    ruff
-    rust
-    rust-analyzer
-
-    # elixir --------------------------------------------------------------------------------------
-    beam.packages.erlang_28.elixir_1_18
-    beam.packages.erlang_28.erlang
-
-    # nix -----------------------------------------------------------------------------------------
-    nixfmt-rfc-style
-    alejandra
-    nix-direnv
-    nil
-    nixd
-
-    # terraform -----------------------------------------------------------------------------------
-    terraform
-    terraform-ls
-    tflint
-    trivy
-    atlas
-
-    # google-cloud --------------------------------------------------------------------------------
-    # - remember to disable ipv6, otherwise super slow gcloud
-    # - networksetup -setv6off Wi-Fi
-    # (google-cloud-sdk.withExtraComponents (
-    #   with pkgs.google-cloud-sdk.components;
-    #   [
-    #     gke-gcloud-auth-plugin
-    #     package-go-module
-    #     pubsub-emulator
-    #   ]
-    # ))
-    # google-cloud-sql-proxy
+  homebrew.brews = [
+    "vfkit" # fo podman
+    # "qmk"
+    # # QMK dependencies
+    # "avr-binutils"
+    # "avr-gcc@8"
+    # "boost"
+    # "confuse"
+    # "hidapi"
+    # "libftdi"
+    # "libusb-compat"
+    # "avrdude"
+    # "bootloadhid"
+    # "clang-format"
+    # "dfu-programmer"
+    # "dfu-util"
+    # "libimagequant"
+    # "libraqm"
+    # "pillow"
+    # "teensy_loader_cli"
+    # "osx-cross/arm/arm-none-eabi-binutils"
+    # "osx-cross/arm/arm-none-eabi-gcc@8"
+    # "osx-cross/avr/avr-gcc@9"
+    # "qmk/qmk/hid_bootloader_cli"
+    # "qmk/qmk/mdloader"
   ];
+
+  homebrew.casks = [
+    "1password"
+    "1password-cli"
+    #"alfred"
+    #"balenaetcher"
+    "betterdisplay" # Custom fractional scaling resolutions, brightness and volume control for non-Apple external displays.
+    "brave-browser@nightly"
+    "calibre"
+    "cardhop"
+    "discord"
+    "docker-desktop"
+    "fantastical"
+    "figma"
+    "firefox"
+    "flux"
+    "ghostty"
+    # "ghostty@tip"
+    "hammerspoon"
+    "homerow"
+    "inkscape"
+    "karabiner-elements"
+    "macwhisper"
+    "mouseless"
+    "obs@beta"
+    # "orcaslicer-beta"
+    "orion"
+    "podman-desktop"
+    "pop-app"
+    "proton-drive"
+    "qmk-toolbox"
+    "qutebrowser"
+    "raycast"
+    "signal"
+    "slack"
+    "soundsource"
+    "spotify"
+    "steam"
+    "telegram"
+    "tunnelblick"
+    "vlc"
+    "zoom"
+    "unnaturalscrollwheels"
+    #"utm"
+    "vial"
+    "visual-studio-code"
+    "whatsapp"
+    #"yubico-yubikey-manager"
+    "zed"
+    "zen"
+    "zoom"
+    # "microsoft-office" # Only have installed when needed (has some sinister telemetry).
+    # "microsoft-teams" # Only have installed when needed (has some sinister telemetry).
+    # "monitorcontrol" # Brightness and volume controls for external monitors.
+  ];
+
+  homebrew.masApps = {
+    #"Parcel" = 639968404;
+    #"Reeder" = 1529448980;
+    #"Timery" = 1425368544;
+    #"Toggl" = 1291898086;
+    #"Tailscale" = 1475387142;
+    "Fantastical" = 975937182;
+    # mas "Signal Shifter", id: 6446061552
+    # mas "Fantastical", id: 975937182
+    # # mas "Mayday", id: 1473168024
+    # # mas "Spark", id: 1176895641
+    # # mas "Canary Mail", id: 1236045954
+    # # mas "Tweetbot", id: 557168941
+    # # mas "Drafts", id: 1435957248
+    # mas "Battery Indicator", id: 1206020918
+    # mas "Brother iPrint&Scan", id: 1193539993
+    # # mas "RocketSim", id: 1504940162
+    # # mas "Vimari", id: 1480933944
+    #
+    # # mas "Things", id: 904280696 # might be bailing from this
+    # # mas "Xcode", id: 497799835
+    # # NOTE: turns out, i _HATE_ these applications. burn them to the ground.
+    # # mas "Affinity Photo", id: 824183456
+    # # mas "Affinity Designer", id: 824171161
+  };
+
+  # homebrew.taps = builtins.attrNames config.nix-homebrew.taps;
+  # taps = [
+  #   # "osx-cross/arm"
+  #   # "osx-cross/avr"
+  #   # "qmk/qmk"
+  # ];
+
+  # homebrew = {
+  #   enable = true;
+  #
+  #   onActivation = {
+  #     autoUpdate = true;
+  #     cleanup = "zap";
+  #     upgrade = true;
+  #   };
+  #
+  #   brews = [
+  #     "qmk"
+  #     # QMK dependencies
+  #     "avr-binutils"
+  #     "avr-gcc@8"
+  #     "boost"
+  #     "confuse"
+  #     "hidapi"
+  #     "libftdi"
+  #     "libusb-compat"
+  #     "avrdude"
+  #     "bootloadhid"
+  #     "clang-format"
+  #     "dfu-programmer"
+  #     "dfu-util"
+  #     "libimagequant"
+  #     "libraqm"
+  #     "pillow"
+  #     "teensy_loader_cli"
+  #     "osx-cross/arm/arm-none-eabi-binutils"
+  #     "osx-cross/arm/arm-none-eabi-gcc@8"
+  #     "osx-cross/avr/avr-gcc@9"
+  #     "qmk/qmk/hid_bootloader_cli"
+  #     "qmk/qmk/mdloader"
+  #   ];
+  #
+  #   casks =
+  #     [
+  #       "1password"
+  #       "calibre"
+  #       "cardhop"
+  #       "discord"
+  #       "docker-desktop"
+  #       "fantastical"
+  #       "figma"
+  #       "ghostty"
+  #       "hammerspoon"
+  #       "homerow"
+  #       "karabiner-elements"
+  #       "macwhisper"
+  #       "mouseless"
+  #       "obs"
+  #       "ollama"
+  #       "pop-app"
+  #       "raycast"
+  #       "signal"
+  #       "slack"
+  #       "steam"
+  #       "telegram"
+  #       "vlc"
+  #       "zoom"
+  #
+  #       "balenaetcher"
+  #       "betterdisplay" # Custom fractional scaling resolutions, brightness and volume control for non-Apple external displays.
+  #       "brave-browser"
+  #       "citrix-workspace"
+  #       "discord"
+  #       "firefox"
+  #       "flux"
+  #       "font-jetbrains-mono-nerd-font"
+  #       "ghostty"
+  #       "inkscape"
+  #       "karabiner-elements" # STATE: Rebind right-command to right-option
+  #       "mattermost"
+  #       # "microsoft-office" # Only have installed when needed (has some sinister telemetry).
+  #       "microsoft-teams" # Only have installed when needed (has some sinister telemetry).
+  #       # "monitorcontrol" # Brightness and volume controls for external monitors.
+  #       "mullvad-browser"
+  #       "nextcloud"
+  #       "orcaslicer"
+  #       "orion"
+  #       "qmk-toolbox"
+  #       "qutebrowser"
+  #       "racket"
+  #       "signal"
+  #       "stremio"
+  #       "telegram"
+  #       "transmission"
+  #       "tunnelblick"
+  #       "ukelele"
+  #       "unnaturalscrollwheels"
+  #       "utm"
+  #       "vial"
+  #       "visual-studio-code"
+  #       "whatsapp"
+  #       "zed"
+  #       "zoom"
+  #
+  #     ];
+  #
+  #   masApps = {
+  #     "Parcel" = 639968404;
+  #     "Reeder" = 1529448980;
+  #     "Timery" = 1425368544;
+  #     "Toggl" = 1291898086;
+  #     "Tailscale" = 1475387142;
+  #   };
+  #
+  #   taps = [
+  #     "d12frosted/emacs-plus"
+  #     "osx-cross/arm"
+  #     "osx-cross/avr"
+  #     "qmk/qmk"
+  #   ];
+  # };
 }
