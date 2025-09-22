@@ -201,9 +201,6 @@
                 mutableTaps = false;
               };
             }
-{
-      config._module.args.pkgs = inputs.nixpkgs.legacyPackages.${system};
-      }
           ];
         };
     };
