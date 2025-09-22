@@ -55,7 +55,7 @@ username
     "figma"
     "firefox"
     "flux"
-    "ghostty@tip"
+    "ghostty"
     "hammerspoon"
     "homerow"
     "inkscape"
