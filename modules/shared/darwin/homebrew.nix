@@ -10,6 +10,7 @@ username
       upgrade = false;
     };
     global.autoUpdate = true;
+    global.brewfile = true;
   };
 
   homebrew.brews = [
@@ -61,8 +62,8 @@ username
     "karabiner-elements"
     "macwhisper"
     "mouseless"
-    "obs-beta"
-    "orcaslicer-beta"
+    "obs@beta"
+    # "orcaslicer-beta"
     "orion"
     "podman-desktop"
     "pop-app"
