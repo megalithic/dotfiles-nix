@@ -1,4 +1,7 @@
-{ username, ... }:
+{ 
+username
+, config
+, ... }:
 {
   enable = true;
   onActivation = {
@@ -115,11 +118,12 @@
     # # mas "Affinity Designer", id: 824171161
   };
 
-  taps = [
-    # "osx-cross/arm"
-    # "osx-cross/avr"
-    # "qmk/qmk"
-  ];
+  homebrew.taps = builtins.attrNames config.nix-homebrew.taps;
+  # taps = [
+  #   # "osx-cross/arm"
+  #   # "osx-cross/avr"
+  #   # "qmk/qmk"
+  # ];
 
   # homebrew = {
   #   enable = true;

@@ -18,6 +18,11 @@ let
   lang = "en_US.UTF-8";
 in
 {
+imports = [
+(../../modules/shared/darwin/homebrew.nix { inherit pkgs lib username; })
+];
+
+
   users.users.${username} = {
     name = username;
     home = "/Users/${username}";
