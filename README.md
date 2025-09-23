@@ -22,7 +22,7 @@ curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix 
 Run the installer
 
 ```bash
-nix run github:megalithic/dotfiles-nix --refresh
+nix run --option eval-cache false github:megalithic/dotfiles-nix --refresh
 ```
 
 ## Usage
@@ -37,6 +37,7 @@ Available recipes:
     hm              # run home-manager switch
     news
     rebuild         # rebuild nix darwin
+    uninstall       # uninstalls the nix determinate installer
     update          # updates brew, flake, and runs home-manager
     update-brew     # update and upgrade homebrew packages
     update-flake    # update your flake.lock

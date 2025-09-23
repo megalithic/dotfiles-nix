@@ -89,3 +89,7 @@ fix-shell-files:
 # updates brew, flake, and runs home-manager
 [macos]
 update: update-brew update-flake hm
+
+# REF: https://docs.determinate.systems/troubleshooting/installation-failed-macos#run-the-uninstaller
+[macos]
+uninstall: sudo /nix/nix-installer uninstall
