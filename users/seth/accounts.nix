@@ -1,9 +1,10 @@
 { pkgs, config, ... }: {
-  vcs = {
-    username = "megalithic";
-    name = "Seth Messer";
-    email = "seth@megalithic.io";
-  };
+  # TODO: lookup attrsets for git/jj/etc account info to share
+  # vcs = {
+  #   username = "megalithic";
+  #   name = "Seth Messer";
+  #   email = "seth@megalithic.io";
+  # };
   email = {
     maildirBasePath = "${config.home.homeDirectory}/.mail";
     accounts = {
