@@ -85,7 +85,8 @@ in
 
   # We use determinate nix installer; so we don't need this enabled..
   nix = {
-    enable = true;
+    # determinate nix installer handles this
+    enable = false;
     package = pkgs.nixVersions.latest;
     linux-builder = {
       enable = false;
