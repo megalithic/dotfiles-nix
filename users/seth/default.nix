@@ -46,6 +46,7 @@ in
   home.username = username;
   home.homeDirectory = "/Users/${username}";
   home.stateVersion = version;
+home.backupFileExtension
   home.sessionPath = [ "$HOME/.local/bin" ];
   home.packages = with pkgs; [
     amber
