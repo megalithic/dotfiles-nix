@@ -67,7 +67,9 @@ init:
 # rebuild nix darwin
 [macos]
 rebuild:
-  sudo darwin-rebuild switch --flake ./
+  darwin-rebuild switch --flake ./
+  # nh darwin switch ./
+
 
 # update and upgrade homebrew packages
 [macos]

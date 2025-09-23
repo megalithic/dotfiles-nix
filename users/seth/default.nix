@@ -52,7 +52,7 @@ in
     unstable.claude-code
     unstable.devenv
     gh
-    #ghostty
+    ghostty
     gum
     harper
     lua-language-server
@@ -235,9 +235,7 @@ in
       # ${pkgs.rqbit}/bin/rqbit -v error completions fish | source
       # ${inputs.rimi.packages.${system}.rimi}/bin/rimi completions fish | source
       shellAliases = {
-        opencode = "
-      op
-      run - -no-masking - - opencode ";
+        opencode = "op run --no-masking -- opencode";
       };
     };
 
@@ -247,8 +245,8 @@ in
       # enableFishIntegration = true;
       nix-direnv.enable = true;
       #config = {
-        #global.warn_timeout = "0";
-        #global.hide_env_diff = true;
+      #global.warn_timeout = "0";
+      #global.hide_env_diff = true;
       #};
     };
 
