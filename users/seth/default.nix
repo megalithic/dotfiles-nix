@@ -52,7 +52,7 @@ in
     unstable.claude-code
     unstable.devenv
     gh
-    ghostty
+    # ghostty
     gum
     harper
     lua-language-server

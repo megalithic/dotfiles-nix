@@ -1,6 +1,6 @@
-{ 
-username
-, ... }:
+{ username
+, ...
+}:
 {
   homebrew = {
     enable = true;
@@ -55,7 +55,7 @@ username
     "figma"
     "firefox"
     "flux"
-    "ghostty"
+    "ghostty@tip"
     "hammerspoon"
     "homerow"
     "inkscape"
