@@ -228,13 +228,13 @@
       echo ":: -> Running post activationScripts..."
 
       echo "# Linking nvim folders..."
-      ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/nvim /Users/${username}/.config/nvim
+      ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/nvim /Users/${username}/.config/
 
       echo "# Creating vim swap/backup/undo/view folders inside /Users/${username}/.local/state/nvim ..."
       mkdir -p /Users/${username}/.local/state/nvim/{backup,swap,undo,view}
 
       echo "# Linking hammerspoon folders..."
-      ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/.config/hammerspoon
+      ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/.config/
     '';
 
   # Settings that require manual defaults commands (not supported by home-manager's targets.darwin.defaults)
