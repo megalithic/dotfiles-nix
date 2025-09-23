@@ -55,7 +55,7 @@
     "figma"
     "firefox"
     "flux"
-    "ghostty@tip"
+    # "ghostty@tip"
     "hammerspoon"
     "homerow"
     "inkscape"

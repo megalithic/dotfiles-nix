@@ -40,7 +40,7 @@
         mineffect = "scale";
         magnification = false;
         persistent-apps = [ ];
-        tilesize = 40;
+        tilesize = 60;
         # Mission Control and Spaces behavior
         # Disable automatic rearrangement of spaces based on most recent use
         "mru-spaces" = false;
