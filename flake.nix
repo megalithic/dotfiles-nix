@@ -133,7 +133,7 @@
           fi
 
           if [ -d "$DOTFILES_DIR" ]; then
-            BACKUP_DIR="$DOTFILES_DIR_$(date +%s)-backup"
+            BACKUP_DIR="$DOTFILES_DIR$(date +%s)"
             echo ":: Backing up existing dotfiles-nix to $BACKUP_DIR.."
             mv "$DOTFILES_DIR" "$BACKUP_DIR"
           fi
