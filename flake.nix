@@ -169,18 +169,19 @@
             # }
             { nixpkgs.overlays = overlays; }
             { nixpkgs.config.allowUnfree = true; }
+            { home-manager.backupFileExtension = "backup"; }
 
             ./systems/${hostname}/default.nix
             ./modules/shared/darwin/system.nix
 
-            home-manager.darwinModules.home-manager {
+            home-manager.darwinModules.home-manager
+            {
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
               home-manager.backupFileExtension = "backup";
               home-manager.users.${username} = import ./users/${username};
               home-manager.extraSpecialArgs = { inherit inputs username system hostname version overlays; };
             }
-            { home-manager.backupFileExtension = "backup"; }
             # inputs.nix-homebrew.darwinModules.nix-homebrew {
             #   nix-homebrew = {
             #     # Install Homebrew under the default prefix

@@ -14,7 +14,8 @@
   };
 
   homebrew.brews = [
-    "vfkit" # fo podman
+    "vfkit" # for podman
+    "openconnect"
     # "qmk"
     # # QMK dependencies
     # "avr-binutils"
@@ -46,12 +47,13 @@
     #"alfred"
     #"balenaetcher"
     "betterdisplay" # Custom fractional scaling resolutions, brightness and volume control for non-Apple external displays.
-"bettertouchtool"
+    "bettertouchtool"
     "brave-browser@nightly"
     "calibre"
     "cardhop"
+    "clickup"
     "cloudflare-warp"
-"colorsnapper"
+    "colorsnapper"
     "contexts"
     "discord"
     "docker-desktop"
@@ -92,6 +94,7 @@
     "vial"
     "visual-studio-code"
     "whatsapp"
+    "yubico-authenticator"
     "yubico-yubikey-piv-manager"
     "zed"
     "zen"

@@ -18,10 +18,16 @@ let
   lang = "en_US.UTF-8";
 in
 {
-imports = [
-../../modules/shared/darwin/homebrew.nix
-];
+  imports = [
+    ../../modules/shared/darwin/homebrew.nix
+  ];
 
+  home-manager = {
+    extraSpecialArgs = {
+      inherit inputs;
+    };
+    backupFileExtension = "hm-backup";
+  };
 
   users.users.${username} = {
     name = username;
@@ -60,7 +66,8 @@ imports = [
     zsh-syntax-highlighting
   ];
 
-  environment.shells = [ pkgs.zsh pkgs.fish pkgs.bashInteractive ];
+  environment.shells = [ pkgs.fish ];
+  # environment.shells = [ pkgs.zsh pkgs.fish pkgs.bashInteractive ];
 
   environment.variables = {
     LANG = "${lang}";
@@ -76,7 +83,35 @@ imports = [
   # homebrew = import ../../modules/shared/darwin/homebrew.nix { inherit pkgs lib username; };
 
   # We use determinate nix installer; so we don't need this enabled..
-  nix.enable = false;
+  nix = {
+    enable = true;
+    package = pkgs.nixVersions.latest;
+    linux-builder = {
+      enable = false;
+      maxJobs = 4;
+      ephemeral = true;
+      config = {
+        virtualisation = {
+          darwin-builder = {
+            diskSize = 40 * 1024;
+            memorySize = 8 * 1024;
+          };
+          cores = 6;
+        };
+      };
+    };
+    settings = {
+      trusted-users = [
+        "@admin"
+      ];
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
+      warn-dirty = false;
+    };
+    nixPath = [ "nixpkgs=flake:nixpkgs" ]; # We only use flakes
+  };
 
   nix.registry = {
     n.to = {
@@ -89,11 +124,6 @@ imports = [
     };
   };
 
-  # enable flakes globally
-  nix.settings.experimental-features = [
-    "nix-command"
-    "flakes"
-  ];
 
   # extra host specs
   # https://github.com/nix-darwin/nix-darwin/issues/1035
@@ -103,9 +133,18 @@ imports = [
   # '';
 
   # Create /etc/zshrc that loads the nix-darwin environment.
-  programs.zsh.enable = true;
-  programs.fish.enable = true;
-  programs.gnupg.agent.enable = true;
+  programs = {
+    zsh.enable = true;
+    bash.enable = true;
+    fish = {
+      enable = true;
+      useBabelfish = true;
+    };
+    gnupg.agent = {
+      enable = true;
+      enableSSHSupport = true;
+    };
+  };
   # programs.gnupg.agent.enableSSHSupport = true;
   # programs._1password.enable = true;
 
@@ -130,6 +169,7 @@ imports = [
       active_color = "0xAAB279A7";
       inactive_color = "0x33867A74";
     };
+    # usbmuxd = { enable = true; };
   };
 
   # The platform the configuration will be used on.

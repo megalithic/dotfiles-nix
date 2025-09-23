@@ -27,6 +27,7 @@
     # Reference: https://github.com/LnL7/nix-darwin/blob/master/modules/system/default.nix
     # $ darwin-rebuild changelog
     stateVersion = 6;
+    startup.chime = false;
     defaults = {
       dock = {
         autohide = true;
