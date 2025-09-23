@@ -198,7 +198,8 @@
         "com.brave.Browser.nightly" = {
           NSUserKeyEquivalents = {
             "Close Tab" = "^w";
-            "Find..." = "^f";
+            # collides with surfingkeys
+            # "Find..." = "^f";
             "New Private Window" = "^$n";
             "New Tab" = "^t";
             "Reload This Page" = "^r";
@@ -227,13 +228,12 @@
       # Handle mutable configs
       echo ":: -> Running post activationScripts..."
 
-      echo "# Linking nvim folders..."
-      ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/nvim /Users/${username}/.config
+      echo "# Linking nvim folders..." &&
+        ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/nvim /Users/${username}/.config/ &&
+        echo "# Creating vim swap/backup/undo/view folders inside /Users/${username}/.local/state/nvim ..." &&
+        mkdir -p /Users/${username}/.local/state/nvim/{backup,swap,undo,view}
 
-      echo "# Creating vim swap/backup/undo/view folders inside /Users/${username}/.local/state/nvim ..."
-      mkdir -p /Users/${username}/.local/state/nvim/{backup,swap,undo,view}
-
-      echo "# Linking hammerspoon folders..."
-      ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/.config
+      echo "# Linking hammerspoon folders..." &&
+        ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/.config/
     '';
 }

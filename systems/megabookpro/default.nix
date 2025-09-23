@@ -32,7 +32,7 @@ in
 
   networking.hostName = "${hostname}";
   time.timeZone = "America/New_York";
-  ids.gids.nixbld = 350;
+  ids.gids.nixbld = 30000;
 
   # system wide packages (all users)
   environment.systemPackages = with pkgs; [
@@ -63,6 +63,11 @@ in
 
   environment.shells = [ pkgs.fish ];
   # environment.shells = [ pkgs.zsh pkgs.fish pkgs.bashInteractive ];
+
+  environment.shellAliases = {
+    e = "$EDITOR";
+    vim = "$EDITOR";
+  };
 
   environment.variables = {
     LANG = "${lang}";

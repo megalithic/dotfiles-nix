@@ -21,6 +21,10 @@ fullscreen = true
 
 # visible-menu
 macos-non-native-fullscreen = visible-menu
+# macos-non-native-fullscreen = padded-notch
+macos-non-native-fullscreen = true
+macos-window-shadow = false
+
 # macos-titlebar-tabs=false # FIXME: deprecated?
 macos-titlebar-style = hidden
 

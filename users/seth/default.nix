@@ -77,6 +77,10 @@
     };
     ".gitignore".source = config/git/gitignore_global;
     ".gitconfig".source = config/git/gitconfig;
+    ".config/surfingkeys/config.js" = {
+      recursive = true;
+      text = builtins.readFile config/surfingkeys/config.js;
+    };
   };
 
   xdg.enable = true;
@@ -137,9 +141,9 @@
   # xdg.configFile."tmux".source = config/tmux;
   # xdg.configFile."tmux".recursive = true;
 
-  xdg.configFile."ghostty".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/ghostty";
-  # xdg.configFile."ghostty".source = config/ghostty;
-  # xdg.configFile."ghostty".recursive = true;
+  # xdg.configFile."ghostty".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/ghostty";
+  xdg.configFile."ghostty".source = config/ghostty;
+  xdg.configFile."ghostty".recursive = true;
 
   # xdg.configFile."opencode".source = config/opencode;
   # xdg.configFile."opencode".recursive = true;
