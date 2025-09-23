@@ -46,6 +46,7 @@ in
     curl
     coreutils
     darwin.trash
+    delta
     eza
     fd
     fzf
