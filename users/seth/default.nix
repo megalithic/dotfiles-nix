@@ -9,8 +9,9 @@
 , overlays
 , ...
 }:
-let
-  inherit (config.lib.file) mkOutOfStoreSymlink;
+# let
+  # inherit (config.lib.file) mkOutOfStoreSymlink;
+  # nvimPath = "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/nvim";
   #
   # # Fetch and extract the Kotlin LSP zip file
   # kotlinLsp =
@@ -37,7 +38,7 @@ let
   # '';
   # mcphub = inputs.mcp-hub.packages."${pkgs.system}".default;
   # nvim-nightly = inputs.neovim-nightly-overlay.packages.${pkgs.system}.default;
-in
+# in
 {
 
   # imports = [ ./packages.nix ];
@@ -65,7 +66,6 @@ in
     nixfmt-rfc-style
     ai-tools.opencode
     ripgrep
-    sesh
   ];
   home.file = {
     "code/.keep".text = "";
@@ -100,9 +100,10 @@ in
   #   createDirectories = true;
   # };
 
-  xdg.configFile.ghostty.source = mkOutOfStoreSymlink "/Users/${username}/code/dotfiles-nix/users/${username}/config/ghostty";
-  xdg.configFile.hammerspoon.source = mkOutOfStoreSymlink "/Users/${username}/code/dotfiles-nix/users/${username}/config/hammerspoon";
-  xdg.configFile.nvim.source = mkOutOfStoreSymlink "/Users/${username}/code/dotfiles-nix/users/${username}/config/nvim";
+  xdg.configFile."ghostty".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/ghostty";
+  xdg.configFile."hammerspoon".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/hammerspoon";
+  # xdg.configFile.nvim.source = config.lib.file.mkOutOfStoreSymlink "/Users/${username}/.dotfiles-nix/users/${username}/config/nvim";
+  xdg.configFile."nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/nvim";
 
   # xdg.configFile."hammerspoon".source = ./config/hammerspoon;
   # xdg.configFile."hammerspoon".recursive = true;
