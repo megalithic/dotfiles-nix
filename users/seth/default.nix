@@ -42,7 +42,7 @@ in
 
   # imports = [ ./packages.nix ];
   imports = [
-          ./config/jujutsu
+    ./config/jujutsu
   ];
 
   programs.home-manager.enable = true;
@@ -106,18 +106,18 @@ in
 
   # xdg.configFile."hammerspoon".source = ./config/hammerspoon;
   # xdg.configFile."hammerspoon".recursive = true;
-# system.activationScripts.postActivation.text =
-#         /*
-#         bash
-#         */
-#         ''
-#           echo ":: -> Running hammerspoon activationScript..."
-#
-#           # Handle mutable configs
-#           echo "Linking hammerspoon folders..."
-#           ln -sf /Users/${username}/code/dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/config/hammerspoon
-#         '';
-#     };
+  # system.activationScripts.postActivation.text =
+  #         /*
+  #         bash
+  #         */
+  #         ''
+  #           echo ":: -> Running hammerspoon activationScript..."
+  #
+  #           # Handle mutable configs
+  #           echo "Linking hammerspoon folders..."
+  #           ln -sf /Users/${username}/code/dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/config/hammerspoon
+  #         '';
+  #     };
 
   xdg.configFile."kanata".source = ./config/kanata;
   xdg.configFile."kanata".recursive = true;
@@ -256,7 +256,8 @@ in
         opencode = "op run --no-masking -- opencode";
       };
     };
-    git = {enable = true};
+
+    git = { enable = true; };
 
     direnv = {
       enable = true;
