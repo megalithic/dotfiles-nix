@@ -22,19 +22,19 @@
       url = "github:LnL7/nix-darwin/nix-darwin-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
-    homebrew-core = {
-      url = "github:homebrew/homebrew-core";
-      flake = false;
-    };
-    homebrew-cask = {
-      url = "github:homebrew/homebrew-cask";
-      flake = false;
-    };
-    homebrew-bundle = {
-      url = "github:homebrew/homebrew-bundle";
-      flake = false;
-    };
+    # nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
+    # homebrew-core = {
+    #   url = "github:homebrew/homebrew-core";
+    #   flake = false;
+    # };
+    # homebrew-cask = {
+    #   url = "github:homebrew/homebrew-cask";
+    #   flake = false;
+    # };
+    # homebrew-bundle = {
+    #   url = "github:homebrew/homebrew-bundle";
+    #   flake = false;
+    # };
     neovim-nightly-overlay.url = "github:nix-community/neovim-nightly-overlay";
     mcp-hub.url = "github:ravitemer/mcp-hub";
     flake-parts.url = "github:hercules-ci/flake-parts";
@@ -173,25 +173,32 @@
           specialArgs = { inherit inputs username system hostname version overlays; };
           modules = [
             { system.configurationRevision = self.rev or self.dirtyRev or null; }
-            # {
-            #   nix.optimise = {
-            #     # Enable store optimization because we can't set `auto-optimise-store` to true on macOS.
-            #     automatic = pkgs.stdenv.isDarwin;
-            #   };
-            # }
+
             { nixpkgs.overlays = overlays; }
             { nixpkgs.config.allowUnfree = true; }
 
             ./systems/${hostname}/default.nix
             ./modules/shared/darwin/system.nix
 
-            home-manager.darwinModules.home-manager
+
+            home-manager.darwinModules.default
             {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.users.${username} = import ./users/${username};
-              home-manager.extraSpecialArgs = { inherit inputs username system hostname version overlays; };
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                users.${username} = import ./users/${username};
+                extraSpecialArgs = { inherit inputs username system hostname version overlays; };
+              };
             }
+
+            # home-manager.darwinModules.home-manager
+            # {
+            #   home-manager.useGlobalPkgs = true;
+            #   home-manager.useUserPackages = true;
+            #   home-manager.users.${username} = import ./users/${username};
+            #   home-manager.extraSpecialArgs = { inherit inputs username system hostname version overlays; };
+            # }
+
             # inputs.nix-homebrew.darwinModules.nix-homebrew {
             #   nix-homebrew = {
             #     # Install Homebrew under the default prefix

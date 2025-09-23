@@ -48,11 +48,13 @@
 
   programs.home-manager.enable = true;
   home.username = username;
+
   home.homeDirectory = "/Users/${username}";
   home.stateVersion = version;
   home.sessionPath = [ "$HOME/.local/bin" ];
   home.packages = with pkgs; [
     amber
+    curlie
     unstable.claude-code
     unstable.devenv
     gh
@@ -66,7 +68,20 @@
     nixfmt-rfc-style
     ai-tools.opencode
     ripgrep
+    sqlite
+
+    # languages
+    uv
+    quarto
+    typst
+    # LSP
+    alejandra
+    nil
+    shfmt
+    argc
+    codex
   ];
+
   home.file = {
     "code/.keep".text = "";
     "src/.keep".text = "";
@@ -81,9 +96,14 @@
       recursive = true;
       text = builtins.readFile config/surfingkeys/config.js;
     };
+    ".config/starship/starship.toml" = {
+      recursive = true;
+      text = builtins.readFile config/starship/starship.toml;
+    };
   };
 
   xdg.enable = true;
+  home.preferXdgDirectories = true;
 
   # NOTE: only supported on linux platforms:
   # xdg.mimeApps = {
@@ -182,10 +202,18 @@
     # speed up rebuilds
     # HT: @tmiller
     man.generateCaches = false;
-    # neovim = {
-    #   enable = true;
-    #   package = pkgs.nvim-nightly;
-    #   defaultEditor = true;
+    neovim = {
+      enable = true;
+      package = pkgs.nvim-nightly;
+      defaultEditor = true;
+      extraLuaConfig = lib.fileContents config/nvim/init.lua;
+      plugins = [
+        {
+          plugin = pkgs.vimPlugins.sqlite-lua;
+          config = "let g:sqlite_clib_path = '${pkgs.sqlite.out}/lib/libsqlite3${pkgs.stdenv.hostPlatform.extensions.sharedLibrary}'";
+        }
+      ];
+    };
     #
     #   withPython3 = true;
     #   withNodeJs = true;
@@ -248,12 +276,32 @@
     # lazydocker = import ./programs/lazydocker.nix { inherit pkgs; };
     # gh = import ./programs/gh.nix { inherit pkgs; };
     # ssh = import ./programs/ssh.nix { inherit pkgs; };
+    starship = { enable = true; };
+
     aerc = import ./config/aerc/default.nix { inherit config pkgs lib; };
+
     fish = {
       # REF: https://github.com/agdral/home-default/blob/main/shell/fish/functions/develop.nix
       enable = true;
       interactiveShellInit = ''
         set fish_greeting # N/A
+        set fish_cursor_default     block      blink
+        set fish_cursor_insert      line       blink
+        set fish_cursor_replace_one underscore
+        set fish_cursor_visual      underscore blink
+
+        # fish_vi_key_bindings
+        fish_vi_key_bindings insert
+        # quickly open text file
+        bind -M insert \co 'fzf | xargs -r $EDITOR'
+
+        bind -M insert ctrl-y accept-autosuggestion
+
+        # Old Ctrl+C behavior, before 4.0
+        bind -M insert ctrl-c cancel-commandline
+
+        # Rerun previous command
+        bind -M insert ctrl-s 'commandline $history[1]' 'commandline -f execute'
       '';
       # direnv hook fish | source
       # tv init fish | source
@@ -263,19 +311,77 @@
       shellAliases = {
         opencode = "op run --no-masking -- opencode";
       };
+      shellAbbrs = {
+        vim = "nvim";
+      };
+      plugins = [
+        {
+          name = "autopair";
+          inherit (pkgs.fishPlugins.autopair) src;
+        }
+        {
+          name = "nix-env";
+          src = pkgs.fetchFromGitHub {
+            owner = "lilyball";
+            repo = "nix-env.fish";
+            rev = "7b65bd228429e852c8fdfa07601159130a818cfa";
+            hash = "sha256-RG/0rfhgq6aEKNZ0XwIqOaZ6K5S4+/Y5EEMnIdtfPhk";
+          };
+        }
+      ];
     };
 
-    git = { enable = true; };
+    # ghostty = {
+    #   enable = true;
+    #   enableBashIntegration = false;
+    #   enableFishIntegration = true;
+    #   enableZshIntegration = false;
+    #   installBatSyntax = !pkgs.stdenv.hostPlatform.isDarwin;
+    #   # FIXME: Remove this hack when the nixpkgs pkg works again
+    #   package = if pkgs.stdenv.hostPlatform.isDarwin then null else pkgs.ghostty;
+    #   settings = {
+    #     quit-after-last-window-closed = true;
+    #   };
+    # };
+
+    git = {
+      enable = true;
+      package = pkgs.gitAndTools.gitFull;
+      userName = "Seth Messer";
+      userEmail = "seth@megalithic.io";
+      includes = [
+        { path = "~/.gitconfig"; }
+      ];
+      # extraConfig = {
+      #   gpg.format = "ssh";
+      #   "gpg \"ssh\"".program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+      #   commit.gpgSign = true;
+      #   # user.signingKey = builtins.readFile /Users/${username}/.ssh/${username}-${hostname}.pub;
+      #   # user.signingKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPqAEvgo0iyCrzXC2i03sTHQIAgSbzwPp9U44fIOGXMu";
+      # };
+    };
+    #   // lib.optionalAttrs pkgs.stdenv.isDarwin {
+    #   extraConfig = {
+    #     gpg.format = "ssh";
+    #     "gpg \"ssh\"".program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+    #     commit.gpgSign = true;
+    #     # user.signingKey = builtins.readFile /Users/${username}/.ssh/${username}-${hostname}.pub;
+    #     # user.signingKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPqAEvgo0iyCrzXC2i03sTHQIAgSbzwPp9U44fIOGXMu";
+    #   };
+    # };
 
     direnv = {
       enable = true;
       enableZshIntegration = true;
+      # NOTE: can't set this on my setup; it's readonly?
       # enableFishIntegration = true;
       nix-direnv.enable = true;
-      #config = {
-      #global.warn_timeout = "0";
-      #global.hide_env_diff = true;
-      #};
+      config = {
+        global.load_dotenv = true;
+        global.warn_timeout = 0;
+        global.hide_env_diff = true;
+        whitelist.prefix = [ config.home.homeDirectory ];
+      };
     };
 
 

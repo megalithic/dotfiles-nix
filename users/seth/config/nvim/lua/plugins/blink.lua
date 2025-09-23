@@ -84,7 +84,7 @@ return {
             preset = "inherit",
             ["<CR>"] = { "fallback" },
             ["<Tab>"] = { "show_and_insert_or_accept_single", "select_next" },
-            ["<S-Tab>"] = { "show_and_insert_or_accept_single", "select_prev" },
+            -- ["<S-Tab>"] = { "show_and_insert_or_accept_single", "select_prev" },
             ["<C-n>"] = { "select_next", "fallback" },
             ["<C-p>"] = { "select_prev", "fallback" },
             -- ["<CR>"] = { "select_and_accept", "fallback" },
