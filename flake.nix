@@ -128,29 +128,33 @@
 
           if ! command -v xcode-select >/dev/null 2>&1
           then
-            echo ":: Installing Xcode for $SUDO_USER.."
-            xcode-select --install
-            sudo -u "$SUDO_USER" softwareupdate --install-rosetta --agree-to-license
-            # sudo -u "$SUDO_USER" xcodebuild -license
+            echo ":: Installing Xcode for $SUDO_USER.." &&
+              xcode-select --install &&
+              sudo -u "$SUDO_USER" softwareupdate --install-rosetta --agree-to-license
+              # sudo -u "$SUDO_USER" xcodebuild -license
           fi
 
           if [ -d "$DOTFILES_DIR" ]; then
             BACKUP_DIR="$DOTFILES_DIR$(date +%s)"
-            echo ":: Backing up existing $DOTFILES_NAME to $BACKUP_DIR.."
-            mv "$DOTFILES_DIR" "$BACKUP_DIR"
+            echo ":: Backing up existing $DOTFILES_NAME to $BACKUP_DIR.." &&
+              mv "$DOTFILES_DIR" "$BACKUP_DIR"
           fi
 
-          echo ":: Cloning bare $DOTFILES_NAME repo to $DOTFILES_DIR.."
-          git clone --bare $DOTFILES_REPO "$DOTFILES_DIR"
-          git init --bare "$DOTFILES_DIR"
+          echo ":: Cloning bare $DOTFILES_NAME repo to $DOTFILES_DIR.." &&
+          # git clone --bare $DOTFILES_REPO "$DOTFILES_DIR"
+          # git init --bare "$DOTFILES_DIR"
+            git clone $DOTFILES_REPO "$DOTFILES_DIR" &&
+              pushd "$DOTFILES_DIR" > /dev/null &&
+              git config --bool core.bare true &&
+              popd > /dev/null
 
           if ! command -v brew >/dev/null 2>&1; then
-            echo ":: Installing homebrew.."
-            bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+            echo ":: Installing homebrew.." &&
+              bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
           fi
 
-          echo ":: Running nix-darwin for the first time for $FLAKE.."
-          sudo nix --experimental-features 'nix-command flakes' run nix-darwin -- switch --option eval-cache false --flake "$DOTFILES_DIR#$FLAKE"
+          echo ":: Running nix-darwin for the first time for $FLAKE.." &&
+            sudo nix --experimental-features 'nix-command flakes' run nix-darwin -- switch --option eval-cache false --flake "$DOTFILES_DIR#$FLAKE"
           # sudo nix --experimental-features 'nix-command flakes' run nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake "$DOTFILES_DIR#$FLAKE"
 
           # echo "Running home-manager for the first time for $FLAKE.."
