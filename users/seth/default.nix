@@ -120,11 +120,11 @@
   xdg.configFile."kanata".source = config/kanata;
   xdg.configFile."kanata".recursive = true;
 
-  xdg.configFile."nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/nvim";
+  # xdg.configFile."nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/nvim";
 
   # xdg.configFile."nvim/.vimrc".source = config/nvim/.vimrc;
-  # xdg.configFile."nvim".source = config/nvim;
-  # xdg.configFile."nvim".recursive = true;
+  xdg.configFile."nvim".source = config/nvim;
+  xdg.configFile."nvim".recursive = true;
 
   # packages managed outside of home-manager
   # xdg.configFile.nvim = {
