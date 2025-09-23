@@ -95,11 +95,12 @@ in
   #   createDirectories = true;
   # };
 
-  # xdg.configFile.ghostty.source = mkOutOfStoreSymlink "/Users/${username}/.dotfiles-nix/users/${username}/config/ghostty";
+  xdg.configFile.ghostty.source = mkOutOfStoreSymlink "/Users/${username}/code/dotfiles-nix/users/${username}/config/ghostty";
+  xdg.configFile.hammerspoon.source = mkOutOfStoreSymlink "/Users/${username}/code/dotfiles-nix/users/${username}/config/hammerspoon";
+  xdg.configFile.nvim.source = mkOutOfStoreSymlink "/Users/${username}/code/dotfiles-nix/users/${username}/config/nvim";
 
-
-  xdg.configFile."hammerspoon".source = ./config/hammerspoon;
-  xdg.configFile."hammerspoon".recursive = true;
+  # xdg.configFile."hammerspoon".source = ./config/hammerspoon;
+  # xdg.configFile."hammerspoon".recursive = true;
 # system.activationScripts.postActivation.text =
 #         /*
 #         bash
@@ -116,8 +117,8 @@ in
   xdg.configFile."kanata".source = ./config/kanata;
   xdg.configFile."kanata".recursive = true;
 
-  xdg.configFile."nvim".source = ./config/nvim;
-  xdg.configFile."nvim".recursive = true;
+  # xdg.configFile."nvim".source = ./config/nvim;
+  # xdg.configFile."nvim".recursive = true;
 
   # packages managed outside of home-manager
   # xdg.configFile.nvim = {
@@ -128,8 +129,8 @@ in
   # xdg.configFile."tmux".source = config/tmux;
   # xdg.configFile."tmux".recursive = true;
 
-  xdg.configFile."ghostty".source = ./config/ghostty;
-  xdg.configFile."ghostty".recursive = true;
+  # xdg.configFile."ghostty".source = ./config/ghostty;
+  # xdg.configFile."ghostty".recursive = true;
 
   # xdg.configFile."opencode".source = ./config/opencode;
   # xdg.configFile."opencode".recursive = true;
