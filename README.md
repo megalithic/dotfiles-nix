@@ -19,7 +19,7 @@ Install [Determinate `nix`](https://github.com/DeterminateSystems/nix-installer)
 curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
 ```
 
-Run the installer
+Run the installer (_NOTE:_ this clones a bare repo to ~/.dotfiles-nix)
 
 ```bash
 nix run github:megalithic/dotfiles-nix
@@ -67,18 +67,20 @@ with my config!
 
 A few of the _must-have_ tools I roll with:
 
-- nix (home-manager/nix-darwin)
+- [nix](https://search.nixos.org/packages) ([home-manager](https://home-manager-options.extranix.com/)/[nix-darwin](https://nix-darwin.github.io/nix-darwin/manual/index.html))
 - [ghostty](https://github.com/ghostty-org/ghostty)
 - [homebrew](https://brew.sh/)
 - [mise](https://github.com/jdx/mise)
 - [tmux](https://github.com/tmux/tmux/wiki)
-- [zsh](https://www.zsh.org/)
+- [fish](https://fishshell.com/)
+- ~~[zsh](https://www.zsh.org/)~~
 - [neovim](https://github.com/neovim/neovim)
 - [weechat](https://www.weechat.org/)
 - `megaforest` for all the colours/themes
 - [jetbrains mono](https://www.jetbrains.com/lp/mono/) font
   ([nerd-fonts](https://github.com/ryanoasis/nerd-fonts#font-patcher) patched)
 - [hammerspoon](https://github.com/megalithic/dotfiles/tree/main/config/hs)
+- [kanata](https://github.com/jtroo/kanata)
 - [karabiner-elements](https://github.com/tekezo/Karabiner-Elements)
   ([leeloo ZMK](https://github.com/megalithic/zmk-config))
 - [gpg/yubikey/encryption](https://github.com/drduh/YubiKey-Guide)
