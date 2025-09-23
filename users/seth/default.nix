@@ -112,21 +112,21 @@
   # xdg.configFile."nvim/.vimrc".source = config/nvim/.vimrc;
   # xdg.configFile."nvim".source = config/nvim;
   # xdg.configFile."nvim".recursive = true;
-  system.activationScripts.postActivation.text =
-    /* bash */
-    ''
-      # Handle mutable configs
-      echo ":: -> Running post activationScripts..."
-
-      echo "# Linking nvim folders..."
-      ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/nvim /Users/${username}/.config/nvim
-
-      echo "# Creating vim swap/backup/undo/view folders inside /Users/${username}/.local/state/nvim ..."
-      mkdir -p /Users/${username}/.local/state/nvim/{backup,swap,undo,view}
-
-      echo "# Linking hammerspoon folders..."
-      ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/.config/hammerspoon
-    '';
+  # system.activationScripts.postActivation.text =
+  #   /* bash */
+  #   ''
+  #     # Handle mutable configs
+  #     echo ":: -> Running post activationScripts..."
+  #
+  #     echo "# Linking nvim folders..."
+  #     ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/nvim /Users/${username}/.config/nvim
+  #
+  #     echo "# Creating vim swap/backup/undo/view folders inside /Users/${username}/.local/state/nvim ..."
+  #     mkdir -p /Users/${username}/.local/state/nvim/{backup,swap,undo,view}
+  #
+  #     echo "# Linking hammerspoon folders..."
+  #     ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/.config/hammerspoon
+  #   '';
 
   # packages managed outside of home-manager
   # xdg.configFile.nvim = {
