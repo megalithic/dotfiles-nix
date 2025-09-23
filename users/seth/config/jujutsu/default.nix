@@ -24,7 +24,7 @@
       signing = {
         behavior = "own";
         backend = "ssh";
-        key = "~/.ssh/${username}_${hostname}.pub";
+        key = "~/.ssh/${username}-${hostname}.pub";
       };
 
       # REF: https://github.com/Misterio77/nix-config/blob/main/home/gabriel/features/cli/jujutsu.nix#L13-L19
