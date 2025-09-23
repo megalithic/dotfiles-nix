@@ -41,6 +41,9 @@ in
 {
 
   # imports = [ ./packages.nix ];
+  imports = [
+          ./config/jujutsu
+  ];
 
   programs.home-manager.enable = true;
   home.username = username;
@@ -72,6 +75,8 @@ in
       recursive = true;
       source = ./bin;
     };
+    ".gitignore".source = config/git/gitignore_global;
+    ".gitconfig".source = config/git/gitconfig;
   };
 
 
@@ -155,8 +160,8 @@ in
       "small_model": "anthropic/claude-3-5-haiku-20241022"
     }
   '';
-  xdg.configFile."jj".source = ./config/jj;
-  xdg.configFile."jj".recursive = true;
+  # xdg.configFile."jj".source = ./config/jj;
+  # xdg.configFile."jj".recursive = true;
 
   xdg.configFile."zsh".source = ./config/zsh;
   xdg.configFile."zsh".recursive = true;
@@ -251,6 +256,7 @@ in
         opencode = "op run --no-masking -- opencode";
       };
     };
+    git = {enable = true};
 
     direnv = {
       enable = true;
@@ -280,21 +286,21 @@ in
       ];
     };
 
-    jujutsu = {
-      enable = true;
-      # package = pkgs.unstable.jujutsu;
-      settings = {
-        user = {
-          name = "Seth Messer";
-          email = "seth@megalithic.io";
-        };
-        signing = {
-          behavior = "own";
-          backend = "gpg";
-        };
-      };
-    };
-
+    # jujutsu = {
+    #   enable = true;
+    #   # package = pkgs.unstable.jujutsu;
+    #   settings = {
+    #     user = {
+    #       name = "Seth Messer";
+    #       email = "seth@megalithic.io";
+    #     };
+    #     signing = {
+    #       behavior = "own";
+    #       backend = "gpg";
+    #     };
+    #   };
+    # };
+    #
     nh = {
       enable = true;
       package = pkgs.unstable.nh;
