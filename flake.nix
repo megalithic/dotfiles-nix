@@ -133,11 +133,13 @@
           fi
 
           if [ -d "$DOTFILES_DIR" ]; then
-            mv "$DOTFILES_DIR" "$DOTFILES_DIR-backup$(date +%s)"
+            BACKUP_DIR="$DOTFILES_DIR_$(date +%s)-backup"
+            echo ":: Backing up existing dotfiles-nix to $BACKUP_DIR.."
+            mv "$DOTFILES_DIR" "$BACKUP_DIR"
           fi
 
-          echo ":: Cloning dotfiles to $DOTFILES_DIR.."
-          git clone -bare https://github.com/megalithic/dotfiles-nix "$DOTFILES_DIR"
+          echo ":: Cloning bare dotfiles-nix repo to $DOTFILES_DIR.."
+          git clone --bare https://github.com/megalithic/dotfiles-nix "$DOTFILES_DIR"
 
           if ! command -v brew >/dev/null 2>&1; then
             echo ":: Installing homebrew.."
