@@ -127,14 +127,6 @@ in
       keep-derivations = true;
       keep-outputs = true;
     };
-    gc = {
-      automatic = true;
-      options = "--delete-older-than 3d";
-    };
-    optimise = {
-      # Enable store optimization because we can't set `auto-optimise-store` to true on macOS.
-      automatic = pkgs.stdenv.isDarwin;
-    };
     # nixPath = [ "nixpkgs=flake:nixpkgs" ]; # We only use flakes
     nixPath = {
       inherit (inputs) nixpkgs;
