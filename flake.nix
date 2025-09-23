@@ -120,7 +120,9 @@
         script = ''
           set -Eueo pipefail
 
-          DOTFILES_DIR="$HOME/.dotfiles-nix"
+          DOTFILES_NAME="dotfiles-nix"
+          DOTFILES_REPO="https://github.com/megalithic/$DOTFILES_NAME"
+          DOTFILES_DIR="$HOME/.$DOTFILES_NAME"
           SUDO_USER=$(whoami)
           FLAKE=$(hostname -s)
 
@@ -134,12 +136,13 @@
 
           if [ -d "$DOTFILES_DIR" ]; then
             BACKUP_DIR="$DOTFILES_DIR$(date +%s)"
-            echo ":: Backing up existing dotfiles-nix to $BACKUP_DIR.."
+            echo ":: Backing up existing $DOTFILES_NAME to $BACKUP_DIR.."
             mv "$DOTFILES_DIR" "$BACKUP_DIR"
           fi
 
-          echo ":: Cloning bare dotfiles-nix repo to $DOTFILES_DIR.."
-          git clone --bare https://github.com/megalithic/dotfiles-nix "$DOTFILES_DIR"
+          echo ":: Cloning bare $DOTFILES_NAME repo to $DOTFILES_DIR.."
+          git clone --bare $DOTFILES_REPO "$DOTFILES_DIR"
+          git init --bare "$DOTFILES_DIR"
 
           if ! command -v brew >/dev/null 2>&1; then
             echo ":: Installing homebrew.."
