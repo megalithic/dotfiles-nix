@@ -140,13 +140,10 @@
               mv "$DOTFILES_DIR" "$BACKUP_DIR"
           fi
 
-          echo ":: Cloning bare $DOTFILES_NAME repo to $DOTFILES_DIR.." &&
+          echo ":: Cloning $DOTFILES_NAME repo to $DOTFILES_DIR.." &&
           # git clone --bare $DOTFILES_REPO "$DOTFILES_DIR"
           # git init --bare "$DOTFILES_DIR"
-            git clone $DOTFILES_REPO "$DOTFILES_DIR" &&
-              pushd "$DOTFILES_DIR" > /dev/null &&
-              git config --bool core.bare true &&
-              popd > /dev/null
+            git clone $DOTFILES_REPO "$DOTFILES_DIR"
 
           if ! command -v brew >/dev/null 2>&1; then
             echo ":: Installing homebrew.." &&
@@ -159,6 +156,11 @@
 
           # echo "Running home-manager for the first time for $FLAKE.."
           # sudo nix --experimental-features 'nix-command flakes' run home-manager/master -- switch --flake "$DOTFILES_DIR#$FLAKE"
+
+          echo ":: Setting $DOTFILES_DIR to bare repo.." &&
+            pushd "$DOTFILES_DIR" > /dev/null &&
+            git config --bool core.bare true &&
+            popd > /dev/null
         '';
       };
 
