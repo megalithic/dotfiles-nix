@@ -9,12 +9,6 @@
 }:
 
 let
-  # For our MANPAGER env var
-  # https://github.com/sharkdp/bat/issues/1145
-  manpager = pkgs.writeShellScriptBin "manpager" ''
-    sh -c 'col -bx | bat -l man -p'
-  '';
-
   lang = "en_US.UTF-8";
 in
 {
@@ -74,14 +68,18 @@ in
     LANG = "${lang}";
     LC_CTYPE = "${lang}";
     LC_ALL = "${lang}";
-    EDITOR = "nvim";
     PAGER = "less -FirSwX";
-    MANPAGER = "${manpager}/bin/manpager";
+    EDITOR = "${pkgs.nvim-nightly}/bin/nvim";
+    VISUAL = "$EDITOR";
+    GIT_EDITOR = "$EDITOR";
+    MANPAGER = "$EDITOR +Man!";
     # HOMEBREW_PREFIX = "/opt/homebrew";
+    XDG_CACHE_HOME = "/Users/${username}/.local/cache";
+    XDG_CONFIG_HOME = "/Users/${username}/.config";
+    XDG_DATA_HOME = "/Users/${username}/.local/share";
+    XDG_STATE_HOME = "/Users/${username}/.local/state";
   };
 
-  # homebrew stuff for all users
-  # homebrew = import ../../modules/shared/darwin/homebrew.nix { inherit pkgs lib username; };
 
   # We use determinate nix installer; so we don't need this enabled..
   nix = {

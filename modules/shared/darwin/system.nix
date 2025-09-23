@@ -228,34 +228,12 @@
       echo ":: -> Running post activationScripts..."
 
       echo "# Linking nvim folders..."
-      ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/nvim /Users/${username}/.config/
+      ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/nvim /Users/${username}/.config
 
       echo "# Creating vim swap/backup/undo/view folders inside /Users/${username}/.local/state/nvim ..."
       mkdir -p /Users/${username}/.local/state/nvim/{backup,swap,undo,view}
 
       echo "# Linking hammerspoon folders..."
-      ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/.config/
+      ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/.config
     '';
-
-  # Settings that require manual defaults commands (not supported by home-manager's targets.darwin.defaults)
-  # REF: https://github.com/fredrikaverpil/dotfiles/blob/main/nix/shared/home/darwin.nix
-  # home.activation.macosUserDefaults = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-  #   echo "Applying additional MacOS user settings..."
-  #
-  #   # Disable input source switching (Ctrl+Space) to prevent conflicts with development tools
-  #   $DRY_RUN_CMD /usr/bin/defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 60 "
-  #     <dict>
-  #       <key>enabled</key><false/>
-  #       <key>value</key><dict>
-  #         <key>type</key><string>standard</string>
-  #         <key>parameters</key>
-  #         <array>
-  #           <integer>32</integer>
-  #           <integer>49</integer>
-  #           <integer>262144</integer>
-  #         </array>
-  #       </dict>
-  #     </dict>
-  #   "
-  # '';
 }
