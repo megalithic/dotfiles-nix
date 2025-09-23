@@ -36,14 +36,14 @@
       #   key = gitCfg.user.signing.key;
       # };
 
-      fix.tools.nixfmt = {
-        command = [
-          "${lib.getExe pkgs.nixfmt-rfc-style}"
-          "--strict"
-          "--filename=$path"
-        ];
-        patterns = ["glob:'**/*.nix'"];
-      };
+      # fix.tools.nixfmt = {
+      #   command = [
+      #     "${lib.getExe pkgs.nixfmt-rfc-style}"
+      #     "--strict"
+      #     "--filename=$path"
+      #   ];
+      #   patterns = [ "glob:'**/*.nix'" ];
+      # };
 
       colors = {
         commit_id = "magenta";
@@ -72,21 +72,21 @@
         write-change-id-header = true;
       };
       aliases = {
-        s = ["status"];
-        l = ["log"];
-        ll = ["log", "-T", "builtin_log_compact_full_description"];
+        s = [ "status" ];
+        l = [ "log" ];
+        ll = [ "log" "-T" "builtin_log_compact_full_description" ];
         # ll = [ "log" "-r" ".." ];
-        d = ["diff"];
-        rb = ["rebase"];
-        b = ["bookmark"];
-        g = ["git"];
-        push = ["git", "push"];
-        dv = ["desc"];
-        dm = ["desc", "-m"];
-        main = ["bookmark", "move", "main", "--to", "@"];
+        d = [ "diff" ];
+        rb = [ "rebase" ];
+        b = [ "bookmark" ];
+        g = [ "git" ];
+        push = [ "git" "push" ];
+        dv = [ "desc" ];
+        dm = [ "desc" "-m" ];
+        main = [ "bookmark" "move" "main" "--to" "@" ];
         # tug = [ "bookmark" "move" "--from" "heads(::@- & bookmarks())" "--to" "@-" ];
         # Advances closest bookmark to parent commit
-        tug = ["bookmark" "move" "--from" "closest_bookmark(@-)" "--to" "@-"];
+        tug = [ "bookmark" "move" "--from" "closest_bookmark(@-)" "--to" "@-" ];
       };
       revsets = {
         log = "current_work";
