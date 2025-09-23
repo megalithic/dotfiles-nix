@@ -1,9 +1,9 @@
 { pkgs, config, ... }: {
   vcs = {
-        username = "megalithic";
-        name="Seth Messer";
-        email="seth@megalithic.io"
-};
+    username = "megalithic";
+    name = "Seth Messer";
+    email = "seth@megalithic.io";
+  };
   email = {
     maildirBasePath = "${config.home.homeDirectory}/.mail";
     accounts = {
