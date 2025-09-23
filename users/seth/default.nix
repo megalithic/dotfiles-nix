@@ -100,12 +100,9 @@
   #   createDirectories = true;
   # };
 
-  xdg.configFile."ghostty".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/ghostty";
-  xdg.configFile."hammerspoon".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/hammerspoon";
-  # xdg.configFile.nvim.source = config.lib.file.mkOutOfStoreSymlink "/Users/${username}/.dotfiles-nix/users/${username}/config/nvim";
-  xdg.configFile."nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/nvim";
 
-  # xdg.configFile."hammerspoon".source = ./config/hammerspoon;
+  xdg.configFile."hammerspoon".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/hammerspoon";
+  # xdg.configFile."hammerspoon".source = config/hammerspoon;
   # xdg.configFile."hammerspoon".recursive = true;
   # system.activationScripts.postActivation.text =
   #         /*
@@ -120,10 +117,12 @@
   #         '';
   #     };
 
-  xdg.configFile."kanata".source = ./config/kanata;
+  xdg.configFile."kanata".source = config/kanata;
   xdg.configFile."kanata".recursive = true;
 
-  # xdg.configFile."nvim".source = ./config/nvim;
+  # xdg.configFile."nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/nvim";
+  xdg.configFile."nvim/.vimrc".source = config/nvim/.vimrc;
+  # xdg.configFile."nvim".source = config/nvim;
   # xdg.configFile."nvim".recursive = true;
 
   # packages managed outside of home-manager
@@ -135,10 +134,11 @@
   # xdg.configFile."tmux".source = config/tmux;
   # xdg.configFile."tmux".recursive = true;
 
-  # xdg.configFile."ghostty".source = ./config/ghostty;
+  xdg.configFile."ghostty".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/ghostty";
+  # xdg.configFile."ghostty".source = config/ghostty;
   # xdg.configFile."ghostty".recursive = true;
 
-  # xdg.configFile."opencode".source = ./config/opencode;
+  # xdg.configFile."opencode".source = config/opencode;
   # xdg.configFile."opencode".recursive = true;
   xdg.configFile."opencode/opencode.json".text = ''
     {
@@ -186,7 +186,7 @@
 
       vimdiffAlias = true;
       vimAlias = true;
-
+      extraLuaConfig = lib.fileContents config/nvim/init.lua;
       extraPackages = with pkgs; [
         black
         bun
