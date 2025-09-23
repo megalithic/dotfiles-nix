@@ -22,7 +22,8 @@ upgrade-nix:
 
 # run home-manager switch
 hm:
-  home-manager switch --flake . -b backup
+  # home-manager switch --flake . -b backup
+  nh darwin switch ./ -b backup
 
 news:
   home-manager news --flake .
@@ -30,7 +31,7 @@ news:
 # rebuild nix darwin
 [macos]
 build:
-  sudo nix --experimental-features 'nix-command flakes' run nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake ./#megabookpro
+  sudo nix --experimental-features 'nix-command flakes' run nix-darwin/nix-darwin-25.05 -- switch --option eval-cache false --flake ./#megabookpro --refresh
   # eventually: nh darwin switch ./
 
 init:
@@ -42,33 +43,34 @@ init:
   FLAKE=$(hostname -s)
 
   if ! command -v xcode-select >/dev/null; then
-    echo "installing xcode.."
+    echo ":: Installing xcode.."
     xcode-select --install
     sudo -u "$SUDO_USER" softwareupdate --install-rosetta --agree-to-license
     # sudo -u "$SUDO_USER" xcodebuild -license
   fi
 
   if [ -z "$DOTFILES_DIR" ]; then
-    echo "cloning dotfiles to $DOTFILES_DIR.." && \
-      git clone https://github.com/megalithic/dotfiles-nix "$DOTFILES_DIR"
+    echo ":: Cloning bare dotfiles-nix repo to $DOTFILES_DIR.." && \
+    echo "NOTE: we maintain our repo in $HOME/code/dotfiles-nix.." && \
+      git clone --bare https://github.com/megalithic/dotfiles-nix "$DOTFILES_DIR"
   fi
 
   if ! command -v brew >/dev/null; then
-    echo "installing homebrew.." && \
+    echo ":: Installing homebrew.." && \
       bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
   fi
 
-  echo "running nix-darwin for the first time.." && \
-    sudo nix --experimental-features 'nix-command flakes' run nix-darwin -- switch --flake "$DOTFILES_DIR#$FLAKE"
+  echo ":: Running nix-darwin for the first time.." && \
+    sudo nix --experimental-features 'nix-command flakes' run nix-darwin/nix-darwin-25.05 -- switch --option eval-cache false --flake "$DOTFILES_DIR#$FLAKE" --refresh
 
-  echo "running home-manager for the first time.." && \
-    sudo nix --experimental-features 'nix-command flakes' run home-manager/master -- switch --flake "$DOTFILES_DIR#$FLAKE"
+  # echo ":: Running home-manager for the first time.." && \
+  #   sudo nix --experimental-features 'nix-command flakes' run home-manager/master -- switch --option eval-cache false --flake "$DOTFILES_DIR#$FLAKE" --refresh
 
 # rebuild nix darwin
 [macos]
 rebuild:
-  darwin-rebuild switch --flake ./
-  # nh darwin switch ./
+  # darwin-rebuild switch --flake ./
+  nh darwin switch ./
 
 
 # update and upgrade homebrew packages
@@ -88,8 +90,10 @@ fix-shell-files:
 
 # updates brew, flake, and runs home-manager
 [macos]
-update: update-brew update-flake hm
+update:
+  update-brew update-flake hm
 
 # REF: https://docs.determinate.systems/troubleshooting/installation-failed-macos#run-the-uninstaller
 [macos]
-uninstall: sudo /nix/nix-installer uninstall
+uninstall:
+  sudo /nix/nix-installer uninstall
