@@ -103,15 +103,6 @@
   # xdg.configFile."hammerspoon".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/hammerspoon";
   # xdg.configFile."hammerspoon".source = config/hammerspoon;
   # xdg.configFile."hammerspoon".recursive = true;
-  # system.activationScripts.postActivation.text =
-  #   /* bash */
-  #   ''
-  #     echo ":: -> Running hammerspoon activationScript..."
-  #
-  #     # Handle mutable configs
-  #     echo "Linking hammerspoon folders..."
-  #     ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/.config/hammerspoon
-  #   '';
 
   xdg.configFile."kanata".source = config/kanata;
   xdg.configFile."kanata".recursive = true;

@@ -220,6 +220,23 @@
   security.pam.services.sudo_local.touchIdAuth = true;
   security.sudo.extraConfig = "${username}    ALL = (ALL) NOPASSWD: ALL";
 
+
+  system.activationScripts.postActivation.text =
+    /* bash */
+    ''
+      # Handle mutable configs
+      echo ":: -> Running post activationScripts..."
+
+      echo "# Linking nvim folders..."
+      ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/nvim /Users/${username}/.config/nvim
+
+      echo "# Creating vim swap/backup/undo/view folders inside /Users/${username}/.local/state/nvim ..."
+      mkdir -p /Users/${username}/.local/state/nvim/{backup,swap,undo,view}
+
+      echo "# Linking hammerspoon folders..."
+      ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/.config/hammerspoon
+    '';
+
   # Settings that require manual defaults commands (not supported by home-manager's targets.darwin.defaults)
   # REF: https://github.com/fredrikaverpil/dotfiles/blob/main/nix/shared/home/darwin.nix
   # home.activation.macosUserDefaults = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
