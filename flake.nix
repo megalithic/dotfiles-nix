@@ -126,28 +126,29 @@
 
           if ! command -v xcode-select >/dev/null 2>&1
           then
-            echo "installing xcode.."
+            echo ":: Installing Xcode for $SUDO_USER.."
             xcode-select --install
             sudo -u "$SUDO_USER" softwareupdate --install-rosetta --agree-to-license
             # sudo -u "$SUDO_USER" xcodebuild -license
           fi
 
-          if [ ! -d "$DOTFILES_DIR" ]; then
-            echo "cloning dotfiles to $DOTFILES_DIR.."
-            git clone https://github.com/megalithic/dotfiles-nix "$DOTFILES_DIR"
+          if [ -d "$DOTFILES_DIR" ]; then
+            mv "$DOTFILES_DIR" "$DOTFILES_DIR-backup$(date +%s)"
           fi
 
-          # if ! command -v brew >/dev/null 2>&1
-          # then
-          #   echo "installing homebrew.."
-          #   bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-          # fi
-          #
-          echo "running nix-darwin for the first time for $FLAKE.."
+          echo ":: Cloning dotfiles to $DOTFILES_DIR.."
+          git clone -bare https://github.com/megalithic/dotfiles-nix "$DOTFILES_DIR"
+
+          if ! command -v brew >/dev/null 2>&1; then
+            echo ":: Installing homebrew.."
+            bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          fi
+
+          echo ":: Running nix-darwin for the first time for $FLAKE.."
           sudo nix --experimental-features 'nix-command flakes' run nix-darwin -- switch --option eval-cache false --flake "$DOTFILES_DIR#$FLAKE"
           # sudo nix --experimental-features 'nix-command flakes' run nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake "$DOTFILES_DIR#$FLAKE"
 
-          # echo "running home-manager for the first time for $FLAKE.."
+          # echo "Running home-manager for the first time for $FLAKE.."
           # sudo nix --experimental-features 'nix-command flakes' run home-manager/master -- switch --flake "$DOTFILES_DIR#$FLAKE"
         '';
       };
