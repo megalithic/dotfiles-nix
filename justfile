@@ -1,3 +1,5 @@
+flake := env('FLAKE', justfile_directory())
+
 default:
   @just --list
 
@@ -30,17 +32,16 @@ news:
 
 # rebuild nix darwin
 [macos]
-build:
-  sudo nix --experimental-features 'nix-command flakes' run nix-darwin/nix-darwin-25.05 -- switch --option eval-cache false --flake ./#megabookpro --refresh
+build host=`hostname`:
+  sudo nix --experimental-features 'nix-command flakes' run nix-darwin/nix-darwin-25.05 -- switch --option eval-cache false --flake {{flake}}#{{host}} --refresh
   # eventually: nh darwin switch ./
 
-init:
+init host=`hostname`:
   #!/usr/bin/env bash
   set -Eueo pipefail
 
   DOTFILES_DIR="$HOME/.dotfiles-nix"
   SUDO_USER=$(whoami)
-  FLAKE=$(hostname -s)
 
   if ! command -v xcode-select >/dev/null; then
     echo ":: Installing xcode.."
@@ -61,7 +62,7 @@ init:
   fi
 
   echo ":: Running nix-darwin for the first time.." && \
-    sudo nix --experimental-features 'nix-command flakes' run nix-darwin/nix-darwin-25.05 -- switch --option eval-cache false --flake "$DOTFILES_DIR#$FLAKE" --refresh
+    sudo nix --experimental-features 'nix-command flakes' run nix-darwin/nix-darwin-25.05 -- switch --option eval-cache false --flake $DOTFILES_DIR#{{host}} --refresh
 
   # echo ":: Running home-manager for the first time.." && \
   #   sudo nix --experimental-features 'nix-command flakes' run home-manager/master -- switch --option eval-cache false --flake "$DOTFILES_DIR#$FLAKE" --refresh
@@ -97,3 +98,6 @@ update:
 [macos]
 uninstall:
   sudo /nix/nix-installer uninstall
+
+check:
+  nix flake check --no-allow-import-from-derivation

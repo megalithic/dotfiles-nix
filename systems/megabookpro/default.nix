@@ -111,8 +111,36 @@ in
         "flakes"
       ];
       warn-dirty = false;
+      substituters = [
+        "https://cache.nixos.org"
+        "https://nix-community.cachix.org"
+        "https://nixpkgs.cachix.org"
+        "https://yazi.cachix.org"
+      ];
+      trusted-public-keys = [
+        "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+        "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+        "nixpkgs.cachix.org-1:q91R6hxbwFvDqTSDKwDAV4T5PxqXGxswD8vhONFMeOE="
+        "yazi.cachix.org-1:Dcdz63NZKfvUCbDGngQDAZq6kOroIrFoyO064uvLh8k="
+      ];
+      # Recommended when using `direnv` etc.
+      keep-derivations = true;
+      keep-outputs = true;
     };
-    nixPath = [ "nixpkgs=flake:nixpkgs" ]; # We only use flakes
+    gc = {
+      automatic = true;
+      options = "--delete-older-than 3d";
+    };
+    optimise = {
+      # Enable store optimization because we can't set `auto-optimise-store` to true on macOS.
+      automatic = pkgs.stdenv.isDarwin;
+    };
+    # nixPath = [ "nixpkgs=flake:nixpkgs" ]; # We only use flakes
+    nixPath = {
+      inherit (inputs) nixpkgs;
+      inherit (inputs) darwin;
+      inherit (inputs) home-manager;
+    };
   };
 
   nix.registry = {

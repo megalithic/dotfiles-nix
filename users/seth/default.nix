@@ -10,34 +10,34 @@
 , ...
 }:
 # let
-  # inherit (config.lib.file) mkOutOfStoreSymlink;
-  # nvimPath = "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/nvim";
-  #
-  # # Fetch and extract the Kotlin LSP zip file
-  # kotlinLsp =
-  #   pkgs.runCommand "kotlin-lsp"
-  #     {
-  #       buildInputs = [ pkgs.unzip ];
-  #     }
-  #     ''
-  #       mkdir -p $out/lib
-  #       unzip ${
-  #         pkgs.fetchurl {
-  #           url = "https://download-cdn.jetbrains.com/kotlin-lsp/0.252.16998/kotlin-0.252.16998.zip";
-  #           sha256 = "bWXvrTm0weirPqdmP/WSLySdsOWU0uBubx87MVvKoDc=";
-  #         }
-  #       } -d $out/lib
-  #     '';
-  #
-  # # Create a wrapper script to run the Kotlin LSP
-  # kotlinLspWrapper = pkgs.writeShellScriptBin "kotlin-lsp" ''
-  #   #!/usr/bin/env bash
-  #   # Build the classpath with all .jar files in the lib directory
-  #   CLASSPATH=$(find ${kotlinLsp}/lib -name "*.jar" | tr '\n' ':')
-  #   exec java -cp "$CLASSPATH" com.intellij.internal.statistic.uploader.EventLogUploader "$@"
-  # '';
-  # mcphub = inputs.mcp-hub.packages."${pkgs.system}".default;
-  # nvim-nightly = inputs.neovim-nightly-overlay.packages.${pkgs.system}.default;
+# inherit (config.lib.file) mkOutOfStoreSymlink;
+# nvimPath = "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/nvim";
+#
+# # Fetch and extract the Kotlin LSP zip file
+# kotlinLsp =
+#   pkgs.runCommand "kotlin-lsp"
+#     {
+#       buildInputs = [ pkgs.unzip ];
+#     }
+#     ''
+#       mkdir -p $out/lib
+#       unzip ${
+#         pkgs.fetchurl {
+#           url = "https://download-cdn.jetbrains.com/kotlin-lsp/0.252.16998/kotlin-0.252.16998.zip";
+#           sha256 = "bWXvrTm0weirPqdmP/WSLySdsOWU0uBubx87MVvKoDc=";
+#         }
+#       } -d $out/lib
+#     '';
+#
+# # Create a wrapper script to run the Kotlin LSP
+# kotlinLspWrapper = pkgs.writeShellScriptBin "kotlin-lsp" ''
+#   #!/usr/bin/env bash
+#   # Build the classpath with all .jar files in the lib directory
+#   CLASSPATH=$(find ${kotlinLsp}/lib -name "*.jar" | tr '\n' ':')
+#   exec java -cp "$CLASSPATH" com.intellij.internal.statistic.uploader.EventLogUploader "$@"
+# '';
+# mcphub = inputs.mcp-hub.packages."${pkgs.system}".default;
+# nvim-nightly = inputs.neovim-nightly-overlay.packages.${pkgs.system}.default;
 # in
 {
 
@@ -79,7 +79,6 @@
     ".gitconfig".source = config/git/gitconfig;
   };
 
-
   xdg.enable = true;
 
   # NOTE: only supported on linux platforms:
@@ -101,21 +100,18 @@
   # };
 
 
-  xdg.configFile."hammerspoon".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/hammerspoon";
+  # xdg.configFile."hammerspoon".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/hammerspoon";
   # xdg.configFile."hammerspoon".source = config/hammerspoon;
   # xdg.configFile."hammerspoon".recursive = true;
   # system.activationScripts.postActivation.text =
-  #         /*
-  #         bash
-  #         */
-  #         ''
-  #           echo ":: -> Running hammerspoon activationScript..."
+  #   /* bash */
+  #   ''
+  #     echo ":: -> Running hammerspoon activationScript..."
   #
-  #           # Handle mutable configs
-  #           echo "Linking hammerspoon folders..."
-  #           ln -sf /Users/${username}/code/dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/config/hammerspoon
-  #         '';
-  #     };
+  #     # Handle mutable configs
+  #     echo "Linking hammerspoon folders..."
+  #     ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/.config/hammerspoon
+  #   '';
 
   xdg.configFile."kanata".source = config/kanata;
   xdg.configFile."kanata".recursive = true;
@@ -123,8 +119,23 @@
   # xdg.configFile."nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/nvim";
 
   # xdg.configFile."nvim/.vimrc".source = config/nvim/.vimrc;
-  xdg.configFile."nvim".source = config/nvim;
-  xdg.configFile."nvim".recursive = true;
+  # xdg.configFile."nvim".source = config/nvim;
+  # xdg.configFile."nvim".recursive = true;
+  system.activationScripts.postActivation.text =
+    /* bash */
+    ''
+      # Handle mutable configs
+      echo ":: -> Running post activationScripts..."
+
+      echo "# Linking nvim folders..."
+      ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/nvim /Users/${username}/.config/nvim
+
+      echo "# Creating vim swap/backup/undo/view folders inside /Users/${username}/.local/state/nvim ..."
+      mkdir -p /Users/${username}/.local/state/nvim/{backup,swap,undo,view}
+
+      echo "# Linking hammerspoon folders..."
+      ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/.config/hammerspoon
+    '';
 
   # packages managed outside of home-manager
   # xdg.configFile.nvim = {
@@ -176,59 +187,59 @@
     # speed up rebuilds
     # HT: @tmiller
     man.generateCaches = false;
-    neovim = {
-      enable = true;
-      package = pkgs.nvim-nightly;
-      defaultEditor = true;
-
-      withPython3 = true;
-      withNodeJs = true;
-      withRuby = true;
-
-      vimdiffAlias = true;
-      vimAlias = true;
-      # extraLuaConfig = lib.fileContents config/nvim/init.lua;
-      extraPackages = with pkgs; [
-        black
-        bun
-        cmake
-        gcc # For treesitter compilation
-        git
-        gnumake # For various build processes
-        golangci-lint
-        gopls
-        gotools
-        hadolint
-        isort
-        lua-language-server
-        markdownlint-cli
-        nixd
-        nixfmt-rfc-style # cannot be installed via Mason on macOS, so installed here instead
-        nodejs # required by github copilot
-        nodePackages.bash-language-server
-        nodePackages.prettier
-        npm-check-updates
-        pyright
-        python3
-        ruby
-        ruff
-        rustup # run `rustup update stable` to get latest rustc, cargo, rust-analyzer etc.
-        shellcheck
-        shfmt
-        stylua
-        terraform-ls
-        tflint
-        tree-sitter
-        uv
-        vscode-langservers-extracted
-        yaml-language-server
-        yarn
-      ];
-
-      extraConfig = ''
-        let $PATH = $PATH . ':${pkgs.git}/bin'
-      '';
-    };
+    # neovim = {
+    #   enable = true;
+    #   package = pkgs.nvim-nightly;
+    #   defaultEditor = true;
+    #
+    #   withPython3 = true;
+    #   withNodeJs = true;
+    #   withRuby = true;
+    #
+    #   vimdiffAlias = true;
+    #   vimAlias = true;
+    #   # extraLuaConfig = lib.fileContents config/nvim/init.lua;
+    #   extraPackages = with pkgs; [
+    #     black
+    #     bun
+    #     cmake
+    #     gcc # For treesitter compilation
+    #     git
+    #     gnumake # For various build processes
+    #     golangci-lint
+    #     gopls
+    #     gotools
+    #     hadolint
+    #     isort
+    #     lua-language-server
+    #     markdownlint-cli
+    #     nixd
+    #     nixfmt-rfc-style # cannot be installed via Mason on macOS, so installed here instead
+    #     nodejs # required by github copilot
+    #     nodePackages.bash-language-server
+    #     nodePackages.prettier
+    #     npm-check-updates
+    #     pyright
+    #     python3
+    #     ruby
+    #     ruff
+    #     rustup # run `rustup update stable` to get latest rustc, cargo, rust-analyzer etc.
+    #     shellcheck
+    #     shfmt
+    #     stylua
+    #     terraform-ls
+    #     tflint
+    #     tree-sitter
+    #     uv
+    #     vscode-langservers-extracted
+    #     yaml-language-server
+    #     yarn
+    #   ];
+    #
+    #   extraConfig = ''
+    #     let $PATH = $PATH . ':${pkgs.git}/bin'
+    #   '';
+    # };
 
     # zsh = import ./programs/zsh.nix { inherit config pkgs lib; };
     # starship = import ./programs/starship.nix { inherit pkgs; };
