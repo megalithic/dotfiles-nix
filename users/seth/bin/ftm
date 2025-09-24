@@ -35,10 +35,12 @@ TMUX="${TMUX:-}"
 POPUP="false"
 SAVED_SESSION_NAME="${SAVED_SESSION_NAME:-}"
 
+SESSION_ICON="${SESSION_ICON:-󰢩}"
+
 # -- check for our dependencies..
 [[ -n $TMUX ]] && TMUX_RUNNING="running" || TMUX_RUNNING="not running"
-(command -v fzf &>/dev/null) && FZF_FOUND="installed" || FZF_FOUND="not installed"
-(command -v sk &>/dev/null) && SKIM_FOUND="installed" || SKIM_FOUND="not installed"
+(command -v fzf &> /dev/null) && FZF_FOUND="installed" || FZF_FOUND="not installed"
+(command -v sk &> /dev/null) && SKIM_FOUND="installed" || SKIM_FOUND="not installed"
 [[ -d "$HOME/.config/tmux/scripts/layouts" ]] && layouts_dir="$HOME/.config/tmux/scripts/layouts" || layouts_dir=""
 
 # -- friendly help if -h option given
@@ -68,30 +70,30 @@ fi
 while getopts "phs:" OPTION; do
   case $OPTION in
 
-  p)
-    export TMUX_POPUP=1
-    POPUP="true"
-    ;;
+    p)
+      export TMUX_POPUP=1
+      POPUP="true"
+      ;;
 
-  h)
-    __help
-    ;;
-  s)
-    SAVED_SESSION_NAME="$OPTARG"
-    echo "Saving session with session name: $OPTARG"
-    exit 0
-    ;;
+    h)
+      __help
+      ;;
+    s)
+      SAVED_SESSION_NAME="$OPTARG"
+      echo "Saving session with session name: $OPTARG"
+      exit 0
+      ;;
 
-  \?)
-    # NOTE: this covers the case where an optarg may not be provided
-    # and will exit errored
-    echo "Invalid Option: -$OPTARG" 1>&2
-    exit 1
-    ;;
-  :)
-    echo "Invalid Option: -$OPTARG requires an argument" 1>&2
-    exit 1
-    ;;
+    \?)
+      # NOTE: this covers the case where an optarg may not be provided
+      # and will exit errored
+      echo "Invalid Option: -$OPTARG" 1>&2
+      exit 1
+      ;;
+    :)
+      echo "Invalid Option: -$OPTARG requires an argument" 1>&2
+      exit 1
+      ;;
   esac
 done
 # shift $((OPTIND - 1))
@@ -152,14 +154,14 @@ function try_session() {
   session="$(echo "$1" | sed '/^$/d')"
 
   # FIXME: zoxide doesn't cut it completely; need to fuzzy find all folders in `$CODE`
-  cwd=$(zoxide query "$session" 2>/dev/null || fd -1 "$session" "$CODE")
+  cwd=$(zoxide query "$session" 2> /dev/null || fd -1 "$session" "$CODE")
 
   # backup plan: use dotfiles dir if nothing found
   if [[ -z "$cwd" ]]; then
     cwd="$DOTS"
   fi
 
-  to_session "$session" 2>/dev/null || new_session "$session" "${cwd}"
+  to_session "$session" 2> /dev/null || new_session "$session" "${cwd}"
 }
 
 function fuzzy_find() {
@@ -188,7 +190,7 @@ function fuzzy_find() {
   # preview_cmd="${preview_cmd_preview}"
   preview_cmd="${preview_cmd_layout_info} && echo "" && ${preview_cmd_preview}"
 
-  header_icon="$SESSION_ICON" || "󰢩"
+  header_icon="󰢩"
 
   # -- do certain things based upon only one active session
   if [[ $sessions_count == 1 ]]; then

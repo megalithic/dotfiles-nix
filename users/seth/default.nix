@@ -84,16 +84,19 @@
     shfmt
     argc
     codex
+    cargo
+    rustup
   ];
 
   home.file = {
     "code/.keep".text = "";
     "src/.keep".text = "";
     "tmp/.keep".text = "";
-    "bin" = {
-      recursive = true;
-      source = ./bin;
-    };
+    # "bin" = {
+    #   recursive = true;
+    #   source = ./bin;
+    # };
+    "bin".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/code/dotfiles-nix/bin";
     ".gitignore".source = config/git/gitignore_global;
     ".gitconfig".source = config/git/gitconfig;
     ".config/surfingkeys/config.js" = {
