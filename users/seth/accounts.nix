@@ -21,7 +21,25 @@
         flavor = "gmail.com";
 
         aerc.enable = true;
-        himalaya.enable = true;
+        himalaya = {
+          enable = true;
+          # Don't forget to run `himalaya account sync` first!
+          settings.sync = {
+            enable = true;
+          };
+        };
+        notmuch.enable = true;
+        mbsync = {
+          extraConfig.channel = {
+            CopyArrivalDate = "yes";
+          };
+          enable = true;
+          create = "both";
+          expunge = "both";
+          remove = "both";
+          # expunge = "none";
+          # remove = "none";
+        };
         # search = {
         #   maildir.path = "search";
         #   realName = "Search Index";
@@ -53,7 +71,13 @@
         };
 
         aerc.enable = true;
-        himalaya.enable = true;
+        himalaya = {
+          enable = true;
+          # Don't forget to run `himalaya account sync` first!
+          settings.sync = {
+            enable = true;
+          };
+        };
         notmuch.enable = true;
         mbsync = {
           extraConfig.channel = {

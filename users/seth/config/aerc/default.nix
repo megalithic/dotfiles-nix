@@ -7,6 +7,23 @@ in
 {
   enable = true;
   extraAccounts = {
+    gmail = {
+      from = "<noreply@gmail.com>";
+
+      source = "notmuch://${config.accounts.email.maildirBasePath}";
+
+      maildir-store = config.accounts.email.maildirBasePath;
+      maildir-account-path = "gmail";
+      multi-file-strategy = "act-dir";
+      default = "Inbox";
+
+      check-mail-cmd = "mbsync gmail && notmuch new";
+      check-mail = "2m";
+      check-mail-timout = "30s";
+      postpone = "[Gmail]/Drafts";
+      cache-headers = true;
+    };
+
     fastmail = {
       from = "<noreply@megalithic.io>";
 
@@ -24,7 +41,7 @@ in
     };
 
     nibuild = {
-      from = "<noreply@megalithic.io>";
+      from = "<noreply@nibuild.com>";
 
       source = "notmuch://${config.accounts.email.maildirBasePath}";
 
@@ -121,7 +138,7 @@ in
       D = ":unmark -a<enter>:mark -T<enter>:move Trash<enter>";
     };
 
-    "messages:folder=Trash" = {
+    "messages:older=Trash" = {
       d = ":choose -o y 'Really delete this message' delete-message<enter>";
       D = ":delete<enter>";
     };
@@ -191,7 +208,8 @@ in
       "a" = ":archive flat<Enter>";
       "A" = ":unmark -a<Enter>:mark -T<Enter>:archive flat<Enter>";
 
-      "C" = ":compose<Enter>";
+      "c" = ":compose<Enter>";
+      # "C" = ":compose<Enter>";
       "m" = ":compose<Enter>";
 
       "b" = ":bounce<space>";
@@ -201,7 +219,7 @@ in
       "Rr" = ":reply<Enter>";
       "Rq" = ":reply -q<Enter>";
 
-      "c" = ":cf<space>";
+      # "c" = ":cf<space>";
       "$" = ":term<space>";
       "!" = ":term<space>";
       "|" = ":pipe<space>";
@@ -212,8 +230,8 @@ in
       "N" = ":prev-result<Enter>";
       "<Esc>" = ":clear<Enter>";
 
-      "s" = ":split<Enter>";
-      "S" = ":vsplit<Enter>";
+      # "s" = ":split<Enter>";
+      # "S" = ":vsplit<Enter>";
 
       "pl" = ":patch list<Enter>";
       "pa" = ":patch apply <Tab>";
