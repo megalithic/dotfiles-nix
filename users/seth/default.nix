@@ -323,6 +323,7 @@
 
       shellAbbrs = {
         vim = "nvim";
+        j = "just";
       };
       plugins = [
         {
