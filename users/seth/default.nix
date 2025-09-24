@@ -456,12 +456,7 @@
     bat.enable = true;
     ripgrep.enable = true;
     fd.enable = true;
-    mbsync = {
-      enable = true;
-      create = "both";
-      expunge = "both";
-      remove = "both";
-    };
+    mbsync.enable = true;
     notmuch.enable = true;
     himalaya.enable = true;
     k9s.enable = true;
