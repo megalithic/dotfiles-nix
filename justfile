@@ -30,7 +30,7 @@ hm:
 news:
   home-manager news --flake .
 
-# rebuild nix darwin
+# initial nix-darwin build
 [macos]
 build host=`hostname`:
   sudo nix --experimental-features 'nix-command flakes' run nix-darwin/nix-darwin-25.05 -- switch --option eval-cache false --flake {{flake}}#{{host}} --refresh
@@ -70,6 +70,7 @@ init host=`hostname`:
 # rebuild nix darwin
 [macos]
 rebuild:
+  # rebuild host=`hostname`:
   # darwin-rebuild switch --flake ./
   nh darwin switch ./
 
