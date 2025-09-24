@@ -95,7 +95,7 @@
     #   recursive = true;
     #   source = ./bin;
     # };
-    "bin".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/code/dotfiles-nix/bin";
+    "bin".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/code/dotfiles-nix/users/${username}/bin";
     ".gitignore".source = config/git/gitignore_global;
     ".gitconfig".source = config/git/gitconfig;
     ".config/surfingkeys/config.js" = {
