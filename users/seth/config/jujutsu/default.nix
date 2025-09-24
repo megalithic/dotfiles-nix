@@ -180,6 +180,13 @@
           )
         '';
       };
+      fix.tools.nix-fmt = {
+        command = [
+          "nix"
+          "fmt"
+        ];
+        patterns = [ "glob:'**/*.nix'" ];
+      };
     };
   };
 }

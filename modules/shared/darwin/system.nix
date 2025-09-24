@@ -100,6 +100,9 @@
         "com.apple.keyboard.fnState" = true;
         NSAutomaticWindowAnimationsEnabled = false;
         NSWindowShouldDragOnGesture = true;
+        NSDocumentSaveNewDocumentsToCloud = false;
+        PMPrintingExpandedStateForPrint = true;
+        PMPrintingExpandedStateForPrint2 = true;
       };
 
       screencapture = {
@@ -142,7 +145,7 @@
         };
         "com.apple.screensaver" = {
           # Require password immediately after sleep or screen saver begins
-          askForPassword = 1;
+          askForPassword = true;
           askForPasswordDelay = 0;
         };
         "com.apple.AdLib".allowApplePersonalizedAdvertising = false;
@@ -220,19 +223,4 @@
   security.pam.services.sudo_local.touchIdAuth = true;
   security.sudo.extraConfig = "${username}    ALL = (ALL) NOPASSWD: ALL";
 
-
-  system.activationScripts.postActivation.text =
-    /* bash */
-    ''
-      # Handle mutable configs
-      echo ":: -> Running post activationScripts..."
-
-      echo "# Linking nvim folders..." &&
-        ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/nvim /Users/${username}/.config/ &&
-        echo "# Creating vim swap/backup/undo/view folders inside /Users/${username}/.local/state/nvim ..." &&
-        mkdir -p /Users/${username}/.local/state/nvim/{backup,swap,undo,view}
-
-      echo "# Linking hammerspoon folders..." &&
-        ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/.config/
-    '';
 }

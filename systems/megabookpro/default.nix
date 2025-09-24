@@ -50,6 +50,7 @@ in
     just
     kanata
     karabiner-elements.driver
+    mise
     nvim-nightly
     ripgrep
     starship
@@ -61,7 +62,7 @@ in
     zsh-syntax-highlighting
   ];
 
-  environment.shells = [ pkgs.fish ];
+  environment.shells = [ pkgs.fish pkgs.zsh ];
   # environment.shells = [ pkgs.zsh pkgs.fish pkgs.bashInteractive ];
 
   environment.shellAliases = {
@@ -108,11 +109,13 @@ in
     settings = {
       trusted-users = [
         "@admin"
+        "${username}"
       ];
       experimental-features = [
         "nix-command"
         "flakes"
       ];
+      download-buffer-size = 5368709120;
       warn-dirty = false;
       substituters = [
         "https://cache.nixos.org"

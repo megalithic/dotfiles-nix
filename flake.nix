@@ -9,7 +9,7 @@
 # https://rconybea.github.io/web/nix/nix-for-your-own-project.html
 
 {
-  description = "🗿megadotfiles";
+  description = "🗿 megadotfiles (nix'd)";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
@@ -64,6 +64,9 @@
       arch = system;
       hostname = "megabookpro";
       version = "25.05";
+
+      lib = nixpkgs.lib.extend (import ./lib/default.nix inputs);
+      # inherit (lib) foldl recursiveUpdate mapAttrsToList;
 
       # pkgs = nixpkgs.legacyPackages.${system};
       overlays = [
@@ -178,7 +181,7 @@
       # darwin-rebuild switch --flake ~/nix
       darwinConfigurations.${hostname} = nix-darwin.lib.darwinSystem
         {
-          inherit system;
+          inherit system lib;
 
           specialArgs = { inherit inputs username system hostname version overlays; };
           modules = [

@@ -44,6 +44,7 @@
   # imports = [ ./packages.nix ];
   imports = [
     ./config/jujutsu
+    # ./config/nvim
   ];
 
   programs.home-manager.enable = true;
@@ -55,6 +56,7 @@
   home.packages = with pkgs; [
     amber
     curlie
+    cachix
     unstable.claude-code
     unstable.devenv
     gh
@@ -86,7 +88,7 @@
     "code/.keep".text = "";
     "src/.keep".text = "";
     "tmp/.keep".text = "";
-    ".local/bin" = {
+    "bin" = {
       recursive = true;
       source = ./bin;
     };
@@ -105,24 +107,20 @@
   xdg.enable = true;
   home.preferXdgDirectories = true;
 
-  # NOTE: only supported on linux platforms:
-  # xdg.mimeApps = {
-  #   enable = true;
-  #
-  #   defaultApplications = lib.mkMerge [
-  #     # (config.lib.xdg.mimeAssociations [ pkgs.brave ])
-  #     # (config.lib.xdg.mimeAssociations [ pkgs.gnome-text-editor ])
-  #     # (config.lib.xdg.mimeAssociations [ pkgs.loupe ])
-  #     # (config.lib.xdg.mimeAssociations [ pkgs.totem ])
-  #   ];
-  # };
+  home.activation.symlinkActivationScripts = lib.hm.dag.entryAfter [ "writeBoundary" ]
+    /* bash */
+    ''
+      # Handle mutable configs
+      echo ":: -> Running post activationScripts..."
 
-  # NOTE: only supported on linux platforms:
-  # xdg.userDirs = {
-  #   enable = true;
-  #   createDirectories = true;
-  # };
+      echo "# Linking nvim folders..." &&
+        ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/nvim /Users/${username}/.config/ &&
+        echo "# Creating vim swap/backup/undo/view folders inside /Users/${username}/.local/state/nvim ..." &&
+        mkdir -p /Users/${username}/.local/state/nvim/{backup,swap,undo,view}
 
+      echo "# Linking hammerspoon folders..." &&
+        ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/.config/
+    '';
 
   # xdg.configFile."hammerspoon".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/hammerspoon";
   # xdg.configFile."hammerspoon".source = config/hammerspoon;
@@ -158,8 +156,8 @@
   #   force = true;
   # };
 
-  # xdg.configFile."tmux".source = config/tmux;
-  # xdg.configFile."tmux".recursive = true;
+  xdg.configFile."tmux".source = config/tmux;
+  xdg.configFile."tmux".recursive = true;
 
   # xdg.configFile."ghostty".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/ghostty";
   xdg.configFile."ghostty".source = config/ghostty;
@@ -207,7 +205,7 @@
       enable = true;
       package = pkgs.nvim-nightly;
       defaultEditor = true;
-      # extraLuaConfig = lib.fileContents config/nvim/init.lua;
+      extraLuaConfig = lib.fileContents config/nvim/init.lua;
       plugins = [
         {
           plugin = pkgs.vimPlugins.sqlite-lua;
@@ -299,6 +297,8 @@
         # quickly open text file
         bind -M insert \co 'fzf | xargs -r $EDITOR'
 
+        bind -M insert ctrl-a beginning-of-line
+        bind -M insert ctrl-e end-of-line
         bind -M insert ctrl-y accept-autosuggestion
 
         # Old Ctrl+C behavior, before 4.0
@@ -313,8 +313,12 @@
       # ${pkgs.rqbit}/bin/rqbit -v error completions fish | source
       # ${inputs.rimi.packages.${system}.rimi}/bin/rimi completions fish | source
       shellAliases = {
+        ls = "${pkgs.eza}/bin/eza -a --group-directories-first";
+        l = "${pkgs.eza}/bin/eza -lahF";
+        tree = "${pkgs.eza}/bin/eza --tree";
         opencode = "op run --no-masking -- opencode";
       };
+
       shellAbbrs = {
         vim = "nvim";
       };
@@ -342,7 +346,8 @@
       enableZshIntegration = false;
       installBatSyntax = !pkgs.stdenv.hostPlatform.isDarwin;
       # FIXME: Remove this hack when the nixpkgs pkg works again
-      package = if pkgs.stdenv.hostPlatform.isDarwin then null else pkgs.ghostty;
+      package =
+        if pkgs.stdenv.hostPlatform.isDarwin then lib.brew-alias pkgs "ghostty" else pkgs.ghostty;
       settings = {
         quit-after-last-window-closed = true;
       };
@@ -392,12 +397,11 @@
     tmux = {
       enable = true;
       escapeTime = 10;
-      prefix = "
-      C-space ";
+      prefix = "C-space";
       sensibleOnTop = false;
       # shell = "${pkgs.fish}/bin/fish";
       terminal = "xterm-ghostty";
-      extraConfig = lib.fileContents config/tmux/tmux.conf;
+      # extraConfig = lib.fileContents config/tmux/tmux.conf;
       plugins = with pkgs.tmuxPlugins; [
         pain-control
         sessionist
@@ -405,21 +409,6 @@
       ];
     };
 
-    # jujutsu = {
-    #   enable = true;
-    #   # package = pkgs.unstable.jujutsu;
-    #   settings = {
-    #     user = {
-    #       name = "Seth Messer";
-    #       email = "seth@megalithic.io";
-    #     };
-    #     signing = {
-    #       behavior = "own";
-    #       backend = "gpg";
-    #     };
-    #   };
-    # };
-    #
     nh = {
       enable = true;
       package = pkgs.unstable.nh;
@@ -443,11 +432,9 @@
       enable = true;
       enableFishIntegration = true;
       enableZshIntegration = true;
-
       settings = {
         auto_install = true;
       };
-
       globalConfig = {
         tools = {
           elixir = "1.18.4-otp-27"; # alts: 1.18.4-otp-28
@@ -458,7 +445,6 @@
           pnpm = "latest";
           aws-cli = "2";
           claude = "latest";
-          gemini-cli = "latest";
         };
       };
     };
