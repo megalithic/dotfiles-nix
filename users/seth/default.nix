@@ -52,7 +52,7 @@
 
   home.homeDirectory = "/Users/${username}";
   home.stateVersion = version;
-  home.sessionPath = [ "$HOME/.local/bin" ];
+  home.sessionPath = [ "$HOME/.local/bin" "$HOME/bin" ];
   home.packages = with pkgs; [
     amber
     curlie
@@ -66,7 +66,9 @@
     lua-language-server
     markdown-oxide
     nixd
-    unstable.espanso
+    # use homebrew instead
+    # unstable.espanso
+    # (lib.brew-alias pkgs "espanso")
     nixfmt-rfc-style
     ai-tools.opencode
     ripgrep
@@ -98,7 +100,7 @@
       recursive = true;
       text = builtins.readFile config/surfingkeys/config.js;
     };
-    ".config/starship/starship.toml" = {
+    ".config/starship.toml" = {
       recursive = true;
       text = builtins.readFile config/starship/starship.toml;
     };
@@ -158,11 +160,8 @@
 
   xdg.configFile."tmux".source = config/tmux;
   xdg.configFile."tmux".recursive = true;
-
-  # xdg.configFile."ghostty".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/ghostty";
   xdg.configFile."ghostty".source = config/ghostty;
   xdg.configFile."ghostty".recursive = true;
-
   # xdg.configFile."opencode".source = config/opencode;
   # xdg.configFile."opencode".recursive = true;
   xdg.configFile."opencode/opencode.json".text = ''
@@ -399,8 +398,9 @@
       escapeTime = 10;
       prefix = "C-space";
       sensibleOnTop = false;
-      # shell = "${pkgs.fish}/bin/fish";
+      shell = "${pkgs.fish}/bin/fish";
       terminal = "xterm-ghostty";
+      # NOTE: doing an xdgConfig.source instead..
       # extraConfig = lib.fileContents config/tmux/tmux.conf;
       plugins = with pkgs.tmuxPlugins; [
         pain-control
@@ -456,7 +456,12 @@
     bat.enable = true;
     ripgrep.enable = true;
     fd.enable = true;
-    mbsync.enable = true;
+    mbsync = {
+      enable = true;
+      create = "both";
+      expunge = "both";
+      remove = "both";
+    };
     notmuch.enable = true;
     himalaya.enable = true;
     k9s.enable = true;

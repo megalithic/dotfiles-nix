@@ -1,5 +1,9 @@
+# REF: https://github.com/jeffa5/nix-home/blob/main/home/modules/aerc.nix
 { pkgs, config, ... }:
 
+let
+  aerc-filters = "${pkgs.aerc}/libexec/aerc/filters";
+in
 {
   enable = true;
   extraAccounts = {
@@ -41,8 +45,13 @@
       default-save-path = "~/Downloads";
       unsafe-accounts-conf = true;
     };
-    viewer = { pager = "${pkgs.less}/bin/less -R"; };
+    viewer = {
+      pager = "${pkgs.less}/bin/less -R";
+      header-layout = "From,To,Cc,Bc,Date,Subject";
+      always-show-mime = true;
+    };
     filters = {
+      "subject,~^\\[PATCH" = "${aerc-filters}/hldiff";
       "text/plain" = "${pkgs.aerc}/libexec/aerc/filters/colorize";
       "text/calendar" = "${pkgs.aerc}/libexec/aerc/filters/calendar";
       "text/html" = "! ${pkgs.aerc}/libexec/aerc/filters/html";
@@ -50,13 +59,26 @@
       "message/rfc822" = "${pkgs.aerc}/libexec/aerc/filters/colorize";
       ".headers" = "${pkgs.aerc}/libexec/aerc/filters/colorize";
     };
+    compose = {
+      # address-book-cmd = "khard email --remove-first-line --parsable '%s'";
+      edit-headers = true;
+      empty-subject-warning = true;
+      no-attachment-warning = "^[^>]*attach(ed|ment)";
+    };
     ui = {
       threading-enabled = true;
       show-thread-context = true;
       styleset-name = "nord";
       border-char-vertical = "┃";
+      dirlist-tree = true;
+      auto-mark-read = false;
       fuzzy-complete = true;
       sidebar-width = 30;
+      mouse-enabled = true;
+      sort = "-r date";
+      timestamp-format = "Jan 02, 2006";
+      this-day-time-format = "15:04";
+      tab-title-account = "{{.Account}} {{if .Unread \"Inbox\"}}({{.Unread \"Inbox\"}}){{end}}";
       dirlist-left = "{{compactDir .Folder}}";
       # REF: https://github.com/ash-project/igniter/blob/main/installer/lib/loading.ex#L6
       spinner = "⠁,⠂,⠄,⡀,⡁,⡂,⡄,⡅,⡇,⡏,⡗,⡧,⣇,⣏,⣗,⣧,⣯,⣷,⣿,⢿,⣻,⢻,⢽,⣹,⢹,⢸,⠸,⢘,⠘,⠨,⢈,⠈,⠐,⠠,⢀";
@@ -115,13 +137,14 @@
       "\\]t" = ":next-tab<Enter>";
       "<C-t>" = ":term<Enter>";
       "?" = ":help keys<Enter>";
-      "<C-c>" = ":prompt 'Quit?' quit<Enter>";
-      "<C-q>" = ":prompt 'Quit?' quit<Enter>";
+      "<C-c>" = ":prompt 'Quit? ' quit<Enter>";
+      "<C-q>" = ":prompt 'Quit? ' quit<Enter>";
       "<C-z>" = ":suspend<Enter>";
+      "<C-r>" = ":check-mail<Enter>";
     };
 
     "messages" = {
-      "q" = ":prompt 'Quit?' quit<Enter>";
+      "q" = ":prompt 'Quit? ' quit<Enter>";
 
       "j" = ":next<Enter>";
       "<Down>" = ":next<Enter>";

@@ -15,13 +15,28 @@
         address = "seth.messer@gmail.com";
 
         userName = "seth.messer@gmail.com";
-        passwordCommand = "op read op://Shared/aw6tbw4va5bpnippcdqh2mkfq4/Passwd";
+        passwordCommand = "op read op://Shared/aw6tbw4va5bpnippcdqh2mkfq4/tui";
 
         folders = { inbox = "INBOX"; sent = "\[Gmail\]/Sent\ Mail"; trash = "\[Gmail\]/Trash"; };
         flavor = "gmail.com";
 
         aerc.enable = true;
         himalaya.enable = true;
+        search = {
+          maildir.path = "search";
+          realName = "Search Index";
+          address = "search@local";
+          aerc.enable = true;
+          aerc.extraAccounts = {
+            source = "maildir://~/mail/search";
+          };
+          aerc.extraConfig = {
+            ui = {
+              index-columns = "flags>4,date<*,to<30,name<30,subject<*";
+              column-to = "{{(index .To 0).Address}}";
+            };
+          };
+        };
       };
 
       fastmail = {
@@ -50,6 +65,21 @@
           remove = "both";
           # expunge = "none";
           # remove = "none";
+        };
+        search = {
+          maildir.path = "search";
+          realName = "Search Index";
+          address = "search@local";
+          aerc.enable = true;
+          aerc.extraAccounts = {
+            source = "maildir://~/mail/search";
+          };
+          aerc.extraConfig = {
+            ui = {
+              index-columns = "flags>4,date<*,to<30,name<30,subject<*";
+              column-to = "{{(index .To 0).Address}}";
+            };
+          };
         };
       };
 
