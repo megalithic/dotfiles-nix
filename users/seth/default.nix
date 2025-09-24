@@ -202,11 +202,12 @@
     # speed up rebuilds
     # HT: @tmiller
     man.generateCaches = false;
+
     neovim = {
       enable = true;
       package = pkgs.nvim-nightly;
       defaultEditor = true;
-      extraLuaConfig = lib.fileContents config/nvim/init.lua;
+      # extraLuaConfig = lib.fileContents config/nvim/init.lua;
       plugins = [
         {
           plugin = pkgs.vimPlugins.sqlite-lua;
