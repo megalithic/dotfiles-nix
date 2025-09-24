@@ -61,6 +61,7 @@
     unstable.devenv
     gh
     # ghostty
+    git-lfs
     gum
     harper
     lua-language-server
