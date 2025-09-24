@@ -84,7 +84,6 @@
     shfmt
     argc
     codex
-    cargo
     rustup
   ];
 
