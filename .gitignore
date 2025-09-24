@@ -35,6 +35,7 @@ todo.txt
 .claude
 !.ignore
 .jj/
+./.jj
 
 weechat
 users/seth/config/weechat

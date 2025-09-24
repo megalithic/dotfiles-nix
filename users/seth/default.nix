@@ -332,18 +332,18 @@
       ];
     };
 
-    # ghostty = {
-    #   enable = true;
-    #   enableBashIntegration = false;
-    #   enableFishIntegration = true;
-    #   enableZshIntegration = false;
-    #   installBatSyntax = !pkgs.stdenv.hostPlatform.isDarwin;
-    #   # FIXME: Remove this hack when the nixpkgs pkg works again
-    #   package = if pkgs.stdenv.hostPlatform.isDarwin then null else pkgs.ghostty;
-    #   settings = {
-    #     quit-after-last-window-closed = true;
-    #   };
-    # };
+    ghostty = {
+      enable = true;
+      enableBashIntegration = false;
+      enableFishIntegration = true;
+      enableZshIntegration = false;
+      installBatSyntax = !pkgs.stdenv.hostPlatform.isDarwin;
+      # FIXME: Remove this hack when the nixpkgs pkg works again
+      package = if pkgs.stdenv.hostPlatform.isDarwin then null else pkgs.ghostty;
+      settings = {
+        quit-after-last-window-closed = true;
+      };
+    };
 
     git = {
       enable = true;
