@@ -464,6 +464,10 @@
     himalaya.enable = true;
     k9s.enable = true;
     jq.enable = true;
+    espanso.enable = {
+      enable = true;
+      package = lib.brew-alias pkgs "espanso";
+    };
     # obs-studio = {
     #   enable = true;
     #   plugins = with pkgs.obs-studio-plugins; [
