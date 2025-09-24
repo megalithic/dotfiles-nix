@@ -286,6 +286,9 @@
       enable = true;
       interactiveShellInit = ''
         set fish_greeting # N/A
+
+        fish_add_path /opt/homebrew/bin
+
         set fish_cursor_default     block      blink
         set fish_cursor_insert      line       blink
         set fish_cursor_replace_one underscore
