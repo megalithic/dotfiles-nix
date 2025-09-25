@@ -36,6 +36,20 @@
       flake = false;
     };
     neovim-nightly-overlay.url = "github:nix-community/neovim-nightly-overlay";
+    # gift-wrap = {
+    #   url = "github:tgirlcloud/gift-wrap";
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    # };
+    # neovim-nightly-overlay = {
+    #   url = "github:nix-community/neovim-nightly-overlay";
+    #   inputs = {
+    #     nixpkgs.follows = "nixpkgs";
+    #     hercules-ci-effects.follows = "";
+    #     flake-compat.follows = "";
+    #     git-hooks.follows = "";
+    #     treefmt-nix.follows = "";
+    #   };
+    # };
     mcp-hub.url = "github:ravitemer/mcp-hub";
     flake-parts.url = "github:hercules-ci/flake-parts";
     jujutsu.url = "github:martinvonz/jj";
@@ -46,6 +60,11 @@
       url = "github:yazi-rs/plugins";
       flake = false;
     };
+    # mac-app-util = {
+    #   url = "github:hraban/mac-app-util";
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    # };
+
   };
 
   outputs =
@@ -54,11 +73,13 @@
     , nixpkgs-unstable
     , nix-darwin
     , home-manager
+    , gift-wrap
     , neovim-nightly-overlay
     , mcp-hub
     , ...
     }@inputs:
     let
+      # NOTE: currently just supports one host/user
       username = "seth";
       system = "aarch64-darwin";
       arch = system;
@@ -67,6 +88,19 @@
 
       lib = nixpkgs.lib.extend (import ./lib/default.nix inputs);
       # inherit (lib) foldl recursiveUpdate mapAttrsToList;
+
+      # forAllSystems =
+      #   f:
+      #   lib.genAttrs lib.systems.flakeExposed (
+      #     system:
+      #     f (
+      #       import nixpkgs {
+      #         inherit system;
+      #         config.allowUnfree = true;
+      #         overlays = [ neovim-nightly-overlay.overlays.default ];
+      #       }
+      #     )
+      #   );
 
       # pkgs = nixpkgs.legacyPackages.${system};
       overlays = [
@@ -92,7 +126,6 @@
           notmuch = prev.notmuch.override { withEmacs = false; };
         })
       ];
-
 
       mkInit =
         { system
@@ -128,52 +161,127 @@
 
       # Build darwin flake using:
       # darwin-rebuild switch --flake ~/nix
-      darwinConfigurations.${hostname} = nix-darwin.lib.darwinSystem
-        {
-          inherit system lib;
+      darwinConfigurations.${hostname} = nix-darwin.lib.darwinSystem {
+        inherit system lib;
 
-          specialArgs = { inherit self inputs username system hostname version overlays; };
-          modules = [
-            { system.configurationRevision = self.rev or self.dirtyRev or null; }
+        specialArgs = { inherit self inputs username system hostname version overlays; };
+        modules = [
+          { system.configurationRevision = self.rev or self.dirtyRev or null; }
 
-            { nixpkgs.overlays = overlays; }
-            { nixpkgs.config.allowUnfree = true; }
+          { nixpkgs.overlays = overlays; }
+          { nixpkgs.config.allowUnfree = true; }
 
-            ./hosts/${hostname}.nix
-            ./modules/shared/darwin/system.nix
+          ./hosts/${hostname}.nix
+          ./modules/shared/darwin/system.nix
 
-            home-manager.darwinModules.home-manager
-            {
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                users.${username} = import ./users/${username}/home.nix;
-                extraSpecialArgs = { inherit inputs username system hostname version overlays; };
+          home-manager.darwinModules.home-manager
+          {
+            home-manager = {
+              useGlobalPkgs = true;
+              useUserPackages = true;
+              users.${username} = import ./users/${username}/home.nix;
+              #   imports = [
+              #     ./users/${username}/home.nix
+              #     # inputs.mac-app-util.homeManagerModules.default
+              #   ];
+              # };
+              extraSpecialArgs = { inherit inputs username system hostname version overlays; };
+            };
+          }
+
+          inputs.nix-homebrew.darwinModules.nix-homebrew
+          {
+            nix-homebrew = {
+              # Install Homebrew under the default prefix
+              enable = true;
+              # Apple Silicon Only: Also install Homebrew under the default Intel prefix for Rosetta 2
+              enableRosetta = true;
+              # User owning the Homebrew prefix
+              user = username;
+              autoMigrate = true;
+              # Optional: Declarative tap management
+              taps = {
+                "homebrew/homebrew-core" = inputs.homebrew-core;
+                "homebrew/homebrew-cask" = inputs.homebrew-cask;
+                "homebrew/homebrew-bundle" = inputs.homebrew-bundle;
               };
-            }
+              # Optional: Enable fully-declarative tap management
+              # With mutableTaps disabled, taps can no longer be added imperatively with `brew tap`.
+              mutableTaps = false;
+            };
+          }
+        ];
+      };
 
-            inputs.nix-homebrew.darwinModules.nix-homebrew
-            {
-              nix-homebrew = {
-                # Install Homebrew under the default prefix
-                enable = true;
-                # Apple Silicon Only: Also install Homebrew under the default Intel prefix for Rosetta 2
-                enableRosetta = true;
-                # User owning the Homebrew prefix
-                user = username;
-                autoMigrate = true;
-                # Optional: Declarative tap management
-                taps = {
-                  "homebrew/homebrew-core" = inputs.homebrew-core;
-                  "homebrew/homebrew-cask" = inputs.homebrew-cask;
-                  "homebrew/homebrew-bundle" = inputs.homebrew-bundle;
-                };
-                # Optional: Enable fully-declarative tap management
-                # With mutableTaps disabled, taps can no longer be added imperatively with `brew tap`.
-                mutableTaps = false;
-              };
-            }
-          ];
-        };
+      # formatter = forAllSystems (pkgs: pkgs.treefmt.withConfig (import ./format.nix { inherit pkgs; }));
+      #
+      # devShells = forAllSystems (pkgs: {
+      #   default = pkgs.mkShellNoCC {
+      #     packages = [
+      #       self.formatter.${pkgs.stdenv.hostPlatform.system}
+      #       pkgs.selene
+      #       pkgs.stylua
+      #       pkgs.lua-language-server
+      #       pkgs.taplo
+      #       pkgs.nvfetcher
+      #     ];
+      #   };
+      # });
+      #
+      # packages = forAllSystems (pkgs: {
+      #   nvim = gift-wrap.legacyPackages.${pkgs.system}.wrapNeovim {
+      #     pname = "mega";
+      #
+      #     basePackage = pkgs.neovim-unwrapped;
+      #
+      #     aliases = [
+      #       "vi"
+      #       "vim"
+      #       "nv"
+      #     ];
+      #
+      #     keepDesktopFiles = true;
+      #
+      #     # your user conifguration, this should be a path your nvim config in lua
+      #     userConfig = ./users/${username}/config/nvim;
+      #
+      #     # all the plugins that should be stored in the neovim start directory
+      #     # these are the plugins that are loaded when neovim starts
+      #     startPlugins = with pkgs.vimPlugins; [
+      #       sqlite-lua
+      #       nvim-treesitter.withAllGrammars
+      #       nvim-lspconfig
+      #       mini-nvim
+      #       nvim-colorizer-lua
+      #       mini-icons
+      #       todo-comments-nvim
+      #       indent-blankline-nvim
+      #       neo-tree-nvim
+      #       mini-surround
+      #       undotree
+      #       direnv-vim
+      #       gitsigns-nvim
+      #       nui-nvim
+      #       lz-n
+      #       lazy.nvim
+      #     ];
+      #
+      #     # these are plugins that are loaded on demand by your configuration
+      #     optPlugins = with pkgs.vimPlugins; [
+      #       blink-cmp
+      #       telescope-nvim
+      #       lazygit-nvim
+      #     ];
+      #
+      #     # these are any extra packages that should be available in your neovim environment
+      #     extraPackages = with pkgs; [
+      #       ripgrep
+      #       fd
+      #       inotify-tools
+      #       lazygit
+      #     ];
+      #   };
+      # });
+      # defaultPackage = forAllSystems (pkgs: self.packages.${pkgs.system}.nvim);
     };
 }

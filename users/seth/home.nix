@@ -16,7 +16,6 @@
     # ./config/nvim
   ];
 
-
   home.username = username;
   home.homeDirectory = "/Users/${username}";
   home.stateVersion = version;
@@ -102,13 +101,15 @@
     # Handle mutable configs
     echo ":: -> Running symlinkers..."
 
-    echo " # Linking nvim folders..." &&
-    ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/nvim /Users/${username}/.config/ &&
-    echo "# Creating vim swap/backup/undo/view folders inside /Users/${username}/.local/state/nvim ..." &&
-    mkdir -p /Users/${username}/.local/state/nvim/{ backup, swap, undo, view }
+    echo "# Linking nvim config dir..." &&
+    rm -rf /Users/${username}/.config/nvim &&
+    ln -sfv /Users/${username}/code/dotfiles-nix/users/${username}/config/nvim /Users/${username}/.config &&
+
+    # echo "# Creating vim swap/backup/undo/view folders inside /Users/${username}/.local/state/nvim ..." &&
+    # mkdir -p /Users/${username}/.local/state/nvim/{backup,swap,undo,view}
 
     echo "# Linking hammerspoon folders..." &&
-    ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/.config/
+    ln -sfv /Users/${username}/code/dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/.config/
   '';
 
   # activation script to set up mise configuration
@@ -277,16 +278,14 @@
     # gh = import ./programs/gh.nix { inherit pkgs; };
     # ssh = import ./programs/ssh.nix { inherit pkgs; };
     starship = { enable = true; };
-
     aerc = import ./config/aerc/default.nix { inherit config pkgs lib; };
-
     fish = {
       # REF: https://github.com/agdral/home-default/blob/main/shell/fish/functions/develop.nix
       enable = true;
       interactiveShellInit = ''
         set fish_greeting # N/A
 
-        fish_add_path /opt/homebrew/bin
+        # fish_add_path /opt/homebrew/bin
 
         set fish_cursor_default     block      blink
         set fish_cursor_insert      line       blink
@@ -294,7 +293,7 @@
         set fish_cursor_visual      underscore blink
 
         # fish_vi_key_bindings
-        fish_vi_key_bindings insert
+        # fish_vi_key_bindings insert
         # quickly open text file
         bind -M insert \co 'fzf | xargs -r $EDITOR'
 
@@ -308,11 +307,13 @@
         # Rerun previous command
         bind -M insert ctrl-s 'commandline $history[1]' 'commandline -f execute'
       '';
+
       # direnv hook fish | source
       # tv init fish | source
       # ${pkgs.trashy}/bin/trashy completions fish | source
       # ${pkgs.rqbit}/bin/rqbit -v error completions fish | source
       # ${inputs.rimi.packages.${system}.rimi}/bin/rimi completions fish | source
+
       shellAliases = {
         ls = "${pkgs.eza}/bin/eza -a --group-directories-first";
         l = "${pkgs.eza}/bin/eza -lahF";
@@ -327,6 +328,7 @@
         vim = "nvim";
         j = "just";
       };
+
       plugins = [
         {
           name = "autopair";
@@ -351,8 +353,7 @@
       enableZshIntegration = false;
       installBatSyntax = !pkgs.stdenv.hostPlatform.isDarwin;
       # FIXME: Remove this hack when the nixpkgs pkg works again
-      package =
-        if pkgs.stdenv.hostPlatform.isDarwin then lib.brew-alias pkgs "ghostty" else pkgs.ghostty;
+      package = if pkgs.stdenv.hostPlatform.isDarwin then lib.brew-alias pkgs "ghostty" else pkgs.ghostty;
       settings = {
         quit-after-last-window-closed = true;
       };

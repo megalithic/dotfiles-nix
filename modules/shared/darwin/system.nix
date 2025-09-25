@@ -31,7 +31,7 @@
     defaults = {
       dock = {
         autohide = true;
-        orientation = "bottom";
+        orientation = "left";
         show-process-indicators = true;
         show-recents = false;
         static-only = true;
