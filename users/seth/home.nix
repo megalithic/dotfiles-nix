@@ -9,47 +9,15 @@
 , overlays
 , ...
 }:
-# let
-# inherit (config.lib.file) mkOutOfStoreSymlink;
-# nvimPath = "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/nvim";
-#
-# # Fetch and extract the Kotlin LSP zip file
-# kotlinLsp =
-#   pkgs.runCommand "kotlin-lsp"
-#     {
-#       buildInputs = [ pkgs.unzip ];
-#     }
-#     ''
-#       mkdir -p $out/lib
-#       unzip ${
-#         pkgs.fetchurl {
-#           url = "https://download-cdn.jetbrains.com/kotlin-lsp/0.252.16998/kotlin-0.252.16998.zip";
-#           sha256 = "bWXvrTm0weirPqdmP/WSLySdsOWU0uBubx87MVvKoDc=";
-#         }
-#       } -d $out/lib
-#     '';
-#
-# # Create a wrapper script to run the Kotlin LSP
-# kotlinLspWrapper = pkgs.writeShellScriptBin "kotlin-lsp" ''
-#   #!/usr/bin/env bash
-#   # Build the classpath with all .jar files in the lib directory
-#   CLASSPATH=$(find ${kotlinLsp}/lib -name "*.jar" | tr '\n' ':')
-#   exec java -cp "$CLASSPATH" com.intellij.internal.statistic.uploader.EventLogUploader "$@"
-# '';
-# mcphub = inputs.mcp-hub.packages."${pkgs.system}".default;
-# nvim-nightly = inputs.neovim-nightly-overlay.packages.${pkgs.system}.default;
-# in
 {
-
-  # imports = [ ./packages.nix ];
   imports = [
+    # ./packages.nix
     ./config/jujutsu
     # ./config/nvim
   ];
 
-  programs.home-manager.enable = true;
-  home.username = username;
 
+  home.username = username;
   home.homeDirectory = "/Users/${username}";
   home.stateVersion = version;
   home.sessionPath = [
@@ -115,48 +83,33 @@
     #   source = ./bin;
     # };
     "bin".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/code/dotfiles-nix/users/${username}/bin";
-    ".gitignore
-    ".source = config/git/gitignore_global;
-    ".gitconfig
-    ".source = config/git/gitconfig;
-    "
-    .config/surfingkeys/config.js
-    " = {
+    ".gitignore".source = config/git/gitignore_global;
+    ".gitconfig".source = config/git/gitconfig;
+    ".config/surfingkeys/config.js" = {
       recursive = true;
       text = builtins.readFile config/surfingkeys/config.js;
     };
-    "
-    .config/starship.toml
-    " = {
+    ".config/starship.toml" = {
       recursive = true;
       text = builtins.readFile config/starship/starship.toml;
     };
-    ".hushlogin
-    ".text = "
-    ";
+    ".hushlogin".text = "";
   };
 
   xdg.enable = true;
   home.preferXdgDirectories = true;
-  home.activation.symlinkAdditionalConfig = lib.hm.dag.entryAfter [
-    "
-    writeBoundary
-    "
-  ]
-    ''
-        # Handle mutable configs
-        echo ":: -> Running
-      symlinkers..."
+  home.activation.symlinkAdditionalConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    # Handle mutable configs
+    echo ":: -> Running symlinkers..."
 
-      echo " # Linking nvim folders..." &&
-      ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/nvim /Users/${username}/.config/ &&
-      echo
-      "# Creating vim swap/backup/undo/view folders inside /Users/${username}/.local/state/nvim ..." &&
-      mkdir -p /Users/${username}/.local/state/nvim/{ backup, swap, undo, view }
+    echo " # Linking nvim folders..." &&
+    ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/nvim /Users/${username}/.config/ &&
+    echo "# Creating vim swap/backup/undo/view folders inside /Users/${username}/.local/state/nvim ..." &&
+    mkdir -p /Users/${username}/.local/state/nvim/{ backup, swap, undo, view }
 
-      echo "# Linking hammerspoon folders..." &&
-      ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/.config/
-    '';
+    echo "# Linking hammerspoon folders..." &&
+    ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/.config/
+  '';
 
   # activation script to set up mise configuration
   # home.activation.setupMise = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
@@ -215,8 +168,6 @@
   xdg.configFile."tmux".recursive = true;
   xdg.configFile."ghostty".source = config/ghostty;
   xdg.configFile."ghostty".recursive = true;
-  # xdg.configFile."opencode".source = config/opencode;
-  # xdg.configFile."opencode".recursive = true;
   xdg.configFile."opencode/opencode.json".text = ''
     {
       "$schema": "https://opencode.ai/config.json",
@@ -238,16 +189,14 @@
       "small_model": "anthropic/claude-3-5-haiku-20241022"
     }
   '';
-  # xdg.configFile."jj".source = ./config/jj;
-  # xdg.configFile."jj".recursive = true;
 
   xdg.configFile."zsh".source = ./config/zsh;
   xdg.configFile."zsh".recursive = true;
 
-
   accounts = import ./accounts.nix { inherit config pkgs lib; };
 
   # applications/programs
+  programs.home-manager.enable = true;
   programs = {
     # speed up rebuilds
     # HT: @tmiller
@@ -370,6 +319,8 @@
         tree = "${pkgs.eza}/bin/eza --tree";
         opencode = "op run --no-masking -- opencode";
         rm = "${pkgs.darwin.trash}/bin/trash -v";
+        q = "exit";
+        ",q" = "exit";
       };
 
       shellAbbrs = {
@@ -545,26 +496,5 @@
     #   ];
     # };
   };
-
-  # Disable Spotlight keyboard shortcut (Cmd+Space) to allow Raycast/Alfred usage
-  # home.activation.disableSpotlightShortcut = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-  #   echo "Disabling Spotlight shortcut (Cmd+Space)..."
-  #
-  #   # Disable Spotlight keyboard shortcut (Cmd+Space) to allow Raycast usage
-  #   $DRY_RUN_CMD /usr/bin/defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 64 "
-  #     <dict>
-  #       <key>enabled</key><false/>
-  #       <key>value</key><dict>
-  #         <key>type</key><string>standard</string>
-  #         <key>parameters</key>
-  #         <array>
-  #           <integer>32</integer>
-  #           <integer>49</integer>
-  #           <integer>1048576</integer>
-  #         </array>
-  #       </dict>
-  #     </dict>
-  #   "
-  # '';
 }
 
