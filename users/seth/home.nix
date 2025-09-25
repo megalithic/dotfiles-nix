@@ -57,6 +57,7 @@
     amber
     curlie
     cachix
+    du-dust # du + rust = dust. Like du but more intuitive.
     flyctl
     unstable.claude-code
     unstable.devenv
@@ -342,6 +343,7 @@
         l = "${pkgs.eza}/bin/eza -lahF";
         tree = "${pkgs.eza}/bin/eza --tree";
         opencode = "op run --no-masking -- opencode";
+        rm = "${pkgs.trash}/bin/trash -v";
       };
 
       shellAbbrs = {
@@ -472,7 +474,6 @@
           node = "lts";
           pnpm = "latest";
           aws-cli = "2";
-          claude = "latest";
         };
       };
     };
