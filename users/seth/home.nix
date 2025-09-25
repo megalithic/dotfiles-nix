@@ -343,7 +343,7 @@
         l = "${pkgs.eza}/bin/eza -lahF";
         tree = "${pkgs.eza}/bin/eza --tree";
         opencode = "op run --no-masking -- opencode";
-        rm = "${pkgs.trash}/bin/trash -v";
+        rm = "${pkgs.darwin.trash}/bin/trash -v";
       };
 
       shellAbbrs = {
