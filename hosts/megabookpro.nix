@@ -13,7 +13,7 @@ let
 in
 {
   imports = [
-    ../../modules/shared/darwin/homebrew.nix
+    ../modules/shared/darwin/homebrew.nix
   ];
 
   home-manager = {
@@ -35,6 +35,8 @@ in
   ids.gids.nixbld = 30000;
 
   # system wide packages (all users)
+  environment.systemPath = [ "/opt/homebrew/bin" ];
+  environment.pathsToLink = [ "/Applications" ];
   environment.systemPackages = with pkgs; [
     bat
     curl
@@ -43,8 +45,10 @@ in
     delta
     eza
     fd
+    fish
     fzf
     git
+    git-lfs
     gnumake
     jujutsu
     just
@@ -58,6 +62,7 @@ in
     vim
     wget
     zoxide
+    zsh
     zsh-autosuggestions
     zsh-syntax-highlighting
   ];
@@ -84,6 +89,9 @@ in
     XDG_CONFIG_HOME = "/Users/${username}/.config";
     XDG_DATA_HOME = "/Users/${username}/.local/share";
     XDG_STATE_HOME = "/Users/${username}/.local/state";
+
+    CODE = "/Users/${username}/code";
+    DOTS = "/Users/${username}/code/dotfiles-nix";
   };
 
 

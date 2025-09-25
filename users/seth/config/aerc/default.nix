@@ -138,7 +138,7 @@ in
       D = ":unmark -a<enter>:mark -T<enter>:move Trash<enter>";
     };
 
-    "messages:older=Trash" = {
+    "messages:folder=Trash" = {
       d = ":choose -o y 'Really delete this message' delete-message<enter>";
       D = ":delete<enter>";
     };

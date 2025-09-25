@@ -171,7 +171,7 @@ M.augroup("Writing", {
       local has_bin = string.match(vim.fn.getline(1), "/bin/")
       -- TODO: check certain filetypes, { "*.sh", "*.bash", "*.zsh" }
       if not_executable and has_shebang and has_bin then
-        vim.notify(fmt("made %s executable", args.file), L.INFO)
+        vim.notify(string.format("made %s executable", args.file), L.INFO)
         vim.fn.system("chmod a+x " .. vim.fn.expand("%"))
         -- vim.defer_fn(vim.cmd.edit, 100)
       end
@@ -416,7 +416,7 @@ M.augroup("Utilities", {
         -- FIXME: get working with ghostty
         -- if U.is_image(target) then
         --   local root_dir = require("config.utils.lsp").root_dir({ ".git" })
-        --   target = target:gsub("./samples", fmt("%s/samples", root_dir))
+        --   target = target:gsub("./samples", string.format("%s/samples", root_dir))
         --   return require("config.utils").preview_file(target)
         -- end
 
@@ -424,9 +424,9 @@ M.augroup("Utilities", {
 
         -- go to linear ticket
         if target:match("TRN-") then
-          local url = fmt("https://linear.app/ternit/issue/%s", target)
-          vim.notify(fmt("Opening linear ticket %s at %s", target, url))
-          vim.fn.jobstart(fmt("%s %s", vim.g.open_command, url))
+          local url = string.format("https://linear.app/ternit/issue/%s", target)
+          vim.notify(string.format("Opening linear ticket %s at %s", target, url))
+          vim.fn.jobstart(string.format("%s %s", vim.g.open_command, url))
 
           return false
         end
@@ -441,9 +441,9 @@ M.augroup("Utilities", {
             MOB = "ternreturns",
           }
 
-          local url = fmt("https://github.com/TernSystems/%s/pull/%s", repos[repo_abbr], pr_num)
-          vim.notify(fmt("Opening PR %d on %s", pr_num, repos[repo_abbr]))
-          vim.fn.jobstart(fmt("%s %s", vim.g.open_command, url))
+          local url = string.format("https://github.com/TernSystems/%s/pull/%s", repos[repo_abbr], pr_num)
+          vim.notify(string.format("Opening PR %d on %s", pr_num, repos[repo_abbr]))
+          vim.fn.jobstart(string.format("%s %s", vim.g.open_command, url))
 
           return false
         end
@@ -453,9 +453,9 @@ M.augroup("Utilities", {
           local line = vim.fn.getline(".")
           local _, _, pkg, _ = string.find(line, [[^%s*{:(.*), %s*"(.*)"}]])
 
-          local url = fmt("https://hexdocs.pm/%s/", pkg)
-          vim.notify(fmt("Opening %s at %s", pkg, url))
-          vim.fn.jobstart(fmt("%s %s", vim.g.open_command, url))
+          local url = string.format("https://hexdocs.pm/%s/", pkg)
+          vim.notify(string.format("Opening %s at %s", pkg, url))
+          vim.fn.jobstart(string.format("%s %s", vim.g.open_command, url))
 
           return false
         end
@@ -465,9 +465,9 @@ M.augroup("Utilities", {
           local line = vim.fn.getline(".")
           local _, _, pkg, _ = string.find(line, [[^%s*"(.*)":%s*"(.*)"]])
 
-          local url = fmt("https://www.npmjs.com/package/%s", pkg)
-          vim.notify(fmt("Opening %s at %s", pkg, url))
-          vim.fn.jobstart(fmt("%s %s", vim.g.open_command, url))
+          local url = string.format("https://www.npmjs.com/package/%s", pkg)
+          vim.notify(string.format("Opening %s at %s", pkg, url))
+          vim.fn.jobstart(string.format("%s %s", vim.g.open_command, url))
 
           return false
         end
@@ -483,9 +483,9 @@ M.augroup("Utilities", {
         end
 
         -- maybe it's a github repo? try it and see..
-        local url = fmt("https://github.com/%s", target)
-        vim.fn.jobstart(fmt("%s %s", vim.g.open_command, url))
-        vim.notify(fmt("Opening %s at %s", target, url))
+        local url = string.format("https://github.com/%s", target)
+        vim.fn.jobstart(string.format("%s %s", vim.g.open_command, url))
+        vim.notify(string.format("Opening %s at %s", target, url))
       end, { desc = "[g]oto [f]ile (on steroids)" })
     end,
   },
@@ -520,7 +520,7 @@ M.augroup("Utilities", {
         local _, _, pkg, _ = string.find(line, [[^%s*{:(.*), %s*"(.*)"}]])
 
         if pkg then
-          local url = fmt("https://hexdocs.pm/%s/", pkg)
+          local url = string.format("https://hexdocs.pm/%s/", pkg)
           vim.ui.open(url)
         end
       end, { buffer = true, silent = true, desc = "[g]o to hex [p]ackage" })

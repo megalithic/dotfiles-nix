@@ -57,16 +57,21 @@
     amber
     curlie
     cachix
+    flyctl
     unstable.claude-code
     unstable.devenv
+    ffmpeg
+    nixfmt-rfc-style
     gh
     # ghostty
     git-lfs
     gum
     harper
     lua-language-server
+    mise
     markdown-oxide
     nixd
+    nil
     # use homebrew instead
     # unstable.espanso
     # (lib.brew-alias pkgs "espanso")
@@ -107,16 +112,15 @@
       recursive = true;
       text = builtins.readFile config/starship/starship.toml;
     };
+    ".hushlogin".text = "";
   };
 
   xdg.enable = true;
   home.preferXdgDirectories = true;
-
-  home.activation.symlinkActivationScripts = lib.hm.dag.entryAfter [ "writeBoundary" ]
-    /* bash */
+  home.activation.symlinkAdditionalConfig = lib.hm.dag.entryAfter [ "writeBoundary" ]
     ''
       # Handle mutable configs
-      echo ":: -> Running post activationScripts..."
+      echo ":: -> Running symlinkers..."
 
       echo "# Linking nvim folders..." &&
         ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/nvim /Users/${username}/.config/ &&
@@ -126,6 +130,25 @@
       echo "# Linking hammerspoon folders..." &&
         ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/.config/
     '';
+
+  # activation script to set up mise configuration
+  home.activation.setupMise = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    # use the virtual environment created by uv
+    # ${pkgs.mise}/bin/mise settings set python.uv_venv_auto true
+
+    # enable corepack (pnpm, yarn, etc.)
+    ${pkgs.mise}/bin/mise set MISE_NODE_COREPACK=true
+
+    # disable warning about */.node-version files
+    ${pkgs.mise}/bin/mise settings add idiomatic_version_file_enable_tools "[]"
+
+    # set global tool versions (auto_install will handle installation)
+    ${pkgs.mise}/bin/mise use --global node@lts
+    ${pkgs.mise}/bin/mise use --global bun@latest
+    ${pkgs.mise}/bin/mise use --global deno@latest
+    ${pkgs.mise}/bin/mise use --global uv@latest
+    ${pkgs.mise}/bin/mise use --global rust@stable
+  '';
 
   # xdg.configFile."hammerspoon".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/hammerspoon";
   # xdg.configFile."hammerspoon".source = config/hammerspoon;
@@ -396,7 +419,6 @@
       };
     };
 
-
     tmux = {
       enable = true;
       escapeTime = 10;
@@ -438,6 +460,8 @@
       enableZshIntegration = true;
       settings = {
         auto_install = true;
+        experimental = true;
+        verbose = false;
       };
       globalConfig = {
         tools = {
@@ -452,11 +476,13 @@
         };
       };
     };
+
     eza = {
       enable = true;
       enableZshIntegration = true;
       enableFishIntegration = true;
     };
+
     bat.enable = true;
     ripgrep.enable = true;
     fd.enable = true;
