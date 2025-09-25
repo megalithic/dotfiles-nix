@@ -73,8 +73,6 @@
     flyctl
     gh
     git-lfs
-    google-cloud-sdk-extra
-    google-cloud-sql-proxy
     gum
     harper
     jwt-cli
