@@ -516,13 +516,6 @@
     bat.enable = true;
     ripgrep = {
       enable = true;
-      ignores = [
-        ".git"
-        ".jj"
-        "pkg"
-        "Library"
-        ".Trash"
-      ];
     };
     fd = {
       enable = true;
