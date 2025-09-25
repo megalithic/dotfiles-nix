@@ -43,6 +43,8 @@ in
     coreutils
     darwin.trash
     delta
+    devenv
+    du-dust # du + rust = dust. Like du but more intuitive.
     eza
     fd
     fish
@@ -50,17 +52,30 @@ in
     git
     git-lfs
     gnumake
+    inetutils
+    jq
     jujutsu
     just
     kanata
     karabiner-elements.driver
+    ldns # supplies drill replacement for dig
     mise
+    netcat
+    nix-index
+    nmap
+    nurl
     nvim-nightly
+    openssl
+    unzip
+    p7zip
     ripgrep
     starship
     tmux
     vim
     wget
+    yazi
+    yq
+    zip
     zoxide
     zsh
     zsh-autosuggestions
@@ -210,15 +225,4 @@ in
 
   # The platform the configuration will be used on.
   nixpkgs.hostPlatform = "${system}";
-
-
-  # NOTE: only suppported on linux platforms
-  # nix.optimise.automatic = true;
-
-  # NOTE: only suppported on linux platforms
-  # do garbage collection bi-daily to keep disk usage low
-  # nix.gc = {
-  #   automatic = lib.mkDefault true;
-  #   options = lib.mkDefault "--delete-older-than 2d";
-  # };
 }

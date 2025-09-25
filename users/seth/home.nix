@@ -52,46 +52,60 @@
 
   home.homeDirectory = "/Users/${username}";
   home.stateVersion = version;
-  home.sessionPath = [ "$HOME/.local/bin" "$HOME/bin" ];
+  home.sessionPath = [
+    "${config.home.homeDirectory}/.local/bin"
+    "${config.home.homeDirectory}/bin"
+    "${config.home.homeDirectory}/.cargo/bin"
+  ];
   home.packages = with pkgs; [
+    _1password-cli
+    ai-tools.opencode
+    alejandra
     amber
-    curlie
+    argc
+    aws-sam-cli
+    awscli2
     cachix
-    du-dust # du + rust = dust. Like du but more intuitive.
-    flyctl
-    unstable.claude-code
-    unstable.devenv
+    codex
+    curlie
+    devbox
     ffmpeg
-    nixfmt-rfc-style
+    flyctl
     gh
-    # ghostty
     git-lfs
+    google-cloud-sdk-extra
+    google-cloud-sql-proxy
     gum
     harper
+    jwt-cli
     lua-language-server
-    mise
+    k9s
+    kubectl
+    kubernetes-helm
+    kubie
     markdown-oxide
+    nil
     nixd
-    nil
-    # use homebrew instead
-    # unstable.espanso
-    # (lib.brew-alias pkgs "espanso")
     nixfmt-rfc-style
-    ai-tools.opencode
-    ripgrep
-    sqlite
-
-    # languages
-    uv
+    nixfmt-rfc-style
+    podman
+    poppler
+    procs
     quarto
-    typst
-    # LSP
-    alejandra
-    nil
-    shfmt
-    argc
-    codex
+    ripgrep
     rustup
+    shellcheck
+    shfmt
+    sqlite
+    terraform-docs
+    tflint
+    tfsec
+    typst
+    unstable.claude-code
+    unstable.devenv
+    uv
+    yubikey-manager
+    yubikey-personalization
   ];
 
   home.file = {
@@ -103,53 +117,67 @@
     #   source = ./bin;
     # };
     "bin".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/code/dotfiles-nix/users/${username}/bin";
-    ".gitignore".source = config/git/gitignore_global;
-    ".gitconfig".source = config/git/gitconfig;
-    ".config/surfingkeys/config.js" = {
+    ".gitignore
+    ".source = config/git/gitignore_global;
+    ".gitconfig
+    ".source = config/git/gitconfig;
+    "
+    .config/surfingkeys/config.js
+    " = {
       recursive = true;
       text = builtins.readFile config/surfingkeys/config.js;
     };
-    ".config/starship.toml" = {
+    "
+    .config/starship.toml
+    " = {
       recursive = true;
       text = builtins.readFile config/starship/starship.toml;
     };
-    ".hushlogin".text = "";
+    ".hushlogin
+    ".text = "
+    ";
   };
 
   xdg.enable = true;
   home.preferXdgDirectories = true;
-  home.activation.symlinkAdditionalConfig = lib.hm.dag.entryAfter [ "writeBoundary" ]
+  home.activation.symlinkAdditionalConfig = lib.hm.dag.entryAfter [
+    "
+    writeBoundary
+    "
+  ]
     ''
-      # Handle mutable configs
-      echo ":: -> Running symlinkers..."
+        # Handle mutable configs
+        echo ":: -> Running
+      symlinkers..."
 
-      echo "# Linking nvim folders..." &&
-        ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/nvim /Users/${username}/.config/ &&
-        echo "# Creating vim swap/backup/undo/view folders inside /Users/${username}/.local/state/nvim ..." &&
-        mkdir -p /Users/${username}/.local/state/nvim/{backup,swap,undo,view}
+      echo " # Linking nvim folders..." &&
+      ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/nvim /Users/${username}/.config/ &&
+      echo
+      "# Creating vim swap/backup/undo/view folders inside /Users/${username}/.local/state/nvim ..." &&
+      mkdir -p /Users/${username}/.local/state/nvim/{ backup, swap, undo, view }
 
       echo "# Linking hammerspoon folders..." &&
-        ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/.config/
+      ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/.config/
     '';
 
   # activation script to set up mise configuration
-  home.activation.setupMise = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    # use the virtual environment created by uv
-    # ${pkgs.mise}/bin/mise settings set python.uv_venv_auto true
-
-    # enable corepack (pnpm, yarn, etc.)
-    ${pkgs.mise}/bin/mise set MISE_NODE_COREPACK=true
-
-    # disable warning about */.node-version files
-    ${pkgs.mise}/bin/mise settings add idiomatic_version_file_enable_tools "[]"
-
-    # set global tool versions (auto_install will handle installation)
-    ${pkgs.mise}/bin/mise use --global node@lts
-    ${pkgs.mise}/bin/mise use --global bun@latest
-    ${pkgs.mise}/bin/mise use --global deno@latest
-    ${pkgs.mise}/bin/mise use --global uv@latest
-    ${pkgs.mise}/bin/mise use --global rust@stable
-  '';
+  # home.activation.setupMise = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+  #   # use the virtual environment created by uv
+  #   # ${pkgs.mise}/bin/mise settings set python.uv_venv_auto true
+  #
+  #   # enable corepack (pnpm, yarn, etc.)
+  #   ${pkgs.mise}/bin/mise set MISE_NODE_COREPACK=true
+  #
+  #   # disable warning about */.node-version files
+  #   ${pkgs.mise}/bin/mise settings add idiomatic_version_file_enable_tools "[]"
+  #
+  #   # set global tool versions (auto_install will handle installation)
+  #   ${pkgs.mise}/bin/mise use --global node@lts
+  #   ${pkgs.mise}/bin/mise use --global bun@latest
+  #   ${pkgs.mise}/bin/mise use --global deno@latest
+  #   ${pkgs.mise}/bin/mise use --global uv@latest
+  #   ${pkgs.mise}/bin/mise use --global rust@stable
+  # '';
 
   # xdg.configFile."hammerspoon".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/hammerspoon";
   # xdg.configFile."hammerspoon".source = config/hammerspoon;
@@ -413,6 +441,7 @@
       # NOTE: can't set this on my setup; it's readonly?
       # enableFishIntegration = true;
       nix-direnv.enable = true;
+      mise.enable = true;
       config = {
         global.load_dotenv = true;
         global.warn_timeout = 0;
@@ -485,8 +514,26 @@
     };
 
     bat.enable = true;
-    ripgrep.enable = true;
-    fd.enable = true;
+    ripgrep = {
+      enable = true;
+      ignores = [
+        ".git"
+        ".jj"
+        "pkg"
+        "Library"
+        ".Trash"
+      ];
+    };
+    fd = {
+      enable = true;
+      ignores = [
+        ".git"
+        ".jj"
+        "pkg"
+        "Library"
+        ".Trash"
+      ];
+    };
     mbsync.enable = true;
     notmuch.enable = true;
     himalaya.enable = true;
@@ -529,3 +576,4 @@
   #   "
   # '';
 }
+
