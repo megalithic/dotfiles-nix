@@ -89,6 +89,11 @@
     ".ignore".source = config/git/tool_ignore;
     ".gitignore".source = config/git/gitignore;
     ".gitconfig".source = config/git/gitconfig;
+    ".config/1Password/ssh/agent.toml".text = ''
+      [[ssh-keys]]
+      vault = "Shared"
+      item = "megaenv"
+    '';
     ".config/surfingkeys/config.js" = {
       recursive = true;
       text = builtins.readFile config/surfingkeys/config.js;
@@ -98,11 +103,6 @@
       text = builtins.readFile config/starship/starship.toml;
     };
     ".hushlogin".text = "";
-    "..config/1Password/ssh/agent.toml".text = ''
-      [[ssh-keys]]
-      vault = "Shared"
-      item = "megaenv"
-    '';
   };
 
   xdg.enable = true;

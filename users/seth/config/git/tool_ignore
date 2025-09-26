@@ -65,5 +65,6 @@ erl_crash.dump
 **/*.bak
 **/.obsidian
 .obsidian
+.jj
 
 # vim:ft=gitignore:tw=0

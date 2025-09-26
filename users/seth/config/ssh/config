@@ -8,13 +8,14 @@ Host *
   IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
 
 # i shoudl not need this!
-Host github.com gh
-  ControlMaster auto
-  ControlPersist 120
-  Hostname github.com
-  User git
-  IdentityFile ~/.ssh/seth-megabookpro
-  ForwardAgent yes
+# Host github.com gh
+#   ControlMaster auto
+#   ControlPersist 120
+#   Hostname github.com
+#   User git
+#   # IdentityFile ~/.ssh/seth-megabookpro
+#   IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+#   ForwardAgent yes
 #
 # Host megalithic.dev ocean
 #   HostName megalithic.dev
