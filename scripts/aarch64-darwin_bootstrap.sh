@@ -37,11 +37,10 @@ echo "░ :: -> Cloning $DOTFILES_NAME repo to $DOTFILES_DIR.." &&
   # git init --bare "$DOTFILES_DIR"
   git clone $DOTFILES_REPO "$DOTFILES_DIR"
 
-# NOTE: homebrew install handled by nix-homebrew
-# if ! command -v brew > /dev/null 2>&1 && [ ! -f "/opt/homebrew/bin/brew" ]; then
-#   echo "░ :: -> Installing homebrew.." &&
-#     bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-# fi
+if ! command -v brew > /dev/null 2>&1 && [ ! -f "/opt/homebrew/bin/brew" ]; then
+  echo "░ :: -> Installing homebrew.." &&
+    bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
 
 echo "░ :: -> Running nix-darwin for the first time for $FLAKE.." &&
   (sudo nix --experimental-features 'nix-command flakes' run nix-darwin -- switch --option eval-cache false --flake "$DOTFILES_DIR#$FLAKE" &&

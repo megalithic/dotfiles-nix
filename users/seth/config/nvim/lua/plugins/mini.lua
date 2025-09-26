@@ -63,517 +63,1152 @@ return {
   { "nvim-mini/mini.extra", version = false, opts = {} },
   {
     "nvim-mini/mini.pick",
-    enabled = false,
     main = "mini.pick",
     version = false,
-    cmd = "Pick",
+    cmd = { "Pick", "MiniPick" },
     lazy = true,
     dependencies = {
       { "echasnovski/mini.extra", config = true },
       { "echasnovski/mini.fuzzy", config = true },
       { "echasnovski/mini.visits", config = true, event = "LazyFile" },
       { "echasnovski/mini.align" },
-      -- { "echasnovski/mini.fuzzy",  config = true },
-    },
-    init = function(plugin)
-      -- Use mini pick instead of builtin select
-      vim.ui.select = require("lazy-require").require_on_exported_call(plugin.main).ui_select
+      {
+        "diego-velez/fff.nvim",
+        build = {
+          function(args)
+            local cmd = { "rustup", "run", "nightly", "cargo", "build", "--release" }
+            ---@type vim.SystemOpts
+            local opts = { cwd = args.dir, text = true }
 
-      vim.keymap.set("n", "<leader>ff", "<cmd>Pick frecency tool='fd'<cr>", { desc = "find files (frecency)" })
-      vim.keymap.set("n", "<leader>a", "<cmd>Pick grep_live_align<cr>", { desc = "live grep" })
-      -- vim.keymap.set("n", "<leader>a", "<cmd>Pick grep<cr>", { desc = "find with grep" })
-      -- vim.keymap.set("x", "<leader>A", 'y<cmd>Pick grep<cr><c-r>"<cr>', { desc = "find current selection" })
-      vim.keymap.set(
-        { "n", "x" },
-        "<leader>A",
-        "<cmd>Pick grep pattern='<cword>'<cr>",
-        { desc = "grep cursorword/selection" }
-      )
-      -- vim.keymap.set("n", "<leader>A", "<cmd>Pick grep pattern='<cword>'<cr>", { desc = "grep cursor word" })
-    end,
-    opts = {
-      -- delay = {
-      --   busy = 1,
-      -- },
-
-      mappings = {
-        caret_left = "<Left>",
-        caret_right = "<Right>",
-
-        choose = "<C-o>",
-        choose_alt = {
-          char = "<nl>",
-          func = function()
-            vim.api.nvim_input("<cr>")
+            vim.notify("Building " .. args.name, vim.log.levels.INFO)
+            local output = vim.system(cmd, opts):wait()
+            if output.code ~= 0 then
+              vim.notify("Failed to build " .. args.name .. "\n" .. output.stderr, vim.log.levels.ERROR)
+            else
+              vim.notify("Built " .. args.name, vim.log.levels.INFO)
+            end
           end,
         },
-        choose_in_split = "<C-h>",
-        choose_in_vsplit = "<CR>",
-        choose_in_tabpage = "<C-t>",
-        choose_marked = "<C-q>",
-
-        delete_char = "<BS>",
-        delete_char_right = "<Del>",
-        delete_left = "<C-u>",
-        delete_word = "<C-w>",
-
-        mark = "<C-x>",
-        mark_all = "<C-a>",
-
-        move_down = "<C-n>",
-        move_start = "<C-g>",
-        move_up = "<C-p>",
-
-        paste = "",
-
-        refine = "<C-r>",
-        refine_marked = "",
-
-        scroll_down = "<C-f>",
-        scroll_left = "<C-Left>",
-        scroll_right = "<C-Right>",
-        scroll_up = "<C-b>",
-
-        stop = "<Esc>",
-
-        toggle_info = "<S-Tab>",
-        toggle_preview = "<Tab>",
-        --
-        -- another_choose = {
-        --   char = "<C-CR>",
-        --   func = function()
-        --     local choose_mapping = MiniPick.get_picker_opts().mappings.choose
-        --     vim.api.nvim_input(choose_mapping)
-        --   end,
-        -- },
-        --   mark = "<c-space>",
-
-        --   mark_and_move_down = {
-        --     char = "<tab>",
-        --     func = function()
-        --       local mappings = MiniPick.get_picker_opts().mappings
-        --       vim.api.nvim_input(mappings.mark .. mappings.move_down)
-        --     end,
-        --   },
-
-        --   mark_and_move_up = {
-        --     char = "<s-tab>",
-        --     func = function()
-        --       local mappings = MiniPick.get_picker_opts().mappings
-        --       vim.api.nvim_input(mappings.mark .. mappings.move_up)
-        --     end,
-        --   },
-
-        -- actual_paste = {
-        --   char = "<C-y>",
-        --   func = function()
-        --     local content = vim.fn.getreg("+")
-        --     if content ~= "" then
-        --       local current_query = MiniPick.get_picker_query() or {}
-        --       table.insert(current_query, content)
-        --       MiniPick.set_picker_query(current_query)
-        --     end
-        --   end,
-        -- },
-      },
-
-      options = {
-        use_cache = true,
-      },
-
-      window = {
-        config = function()
-          local height = math.floor(0.25 * vim.o.lines)
-          local width = math.floor(0.25 * vim.o.columns)
-          return {
-            relative = "laststatus",
-            anchor = "NW",
-            height = height,
-            width = width,
-            row = 0,
-            col = 0,
-          }
-        end,
-        prompt_prefix = "󰁔 ",
-        prompt_caret = " ",
       },
     },
-    config = function(_, opts)
-      require("mini.pick").setup(opts)
+    config = function()
+      -- require("plugins.mini_pick")
 
-      local setup_target_win_preview = function()
-        local opts = MiniPick.get_picker_opts()
-        local show, preview, choose = opts.source.show, opts.source.preview, opts.source.choose
+      -- Use proper slash depending on OS
+      local parent_dir_pattern = vim.fn.has("win32") == 1 and "([^\\/]+)([\\/])" or "([^/]+)(/)"
 
-        -- Prepare preview and initial buffers
-        local preview_buf_id = vim.api.nvim_create_buf(false, true)
-        local win_target = MiniPick.get_picker_state().windows.target
-        local init_target_buf = vim.api.nvim_win_get_buf(win_target)
-        vim.api.nvim_win_set_buf(win_target, preview_buf_id)
-
-        -- Hook into source's methods
-        opts.source.show = function(...)
-          show(...)
-          local cur_item = MiniPick.get_picker_matches().current
-          if cur_item == nil then
-            return
-          end
-          preview(preview_buf_id, cur_item)
-        end
-
-        local needs_init_buf_restore = true
-        opts.source.choose = function(...)
-          needs_init_buf_restore = false
-          choose(...)
-        end
-
-        MiniPick.set_picker_opts(opts)
-
-        -- Set up buffer cleanup
-        local cleanup = function()
-          if needs_init_buf_restore then
-            vim.api.nvim_win_set_buf(win_target, init_target_buf)
-          end
-          vim.api.nvim_buf_delete(preview_buf_id, { force = true })
-        end
-        vim.api.nvim_create_autocmd("User", { pattern = "MiniPickStop", once = true, callback = cleanup })
+      -- Shorten a folder's name
+      local shorten_dirname = function(name, path_sep)
+        local first = vim.fn.strcharpart(name, 0, 1)
+        first = first == "." and vim.fn.strcharpart(name, 0, 2) or first
+        return first .. path_sep
       end
-      vim.api.nvim_create_autocmd("User", { pattern = "MiniPickStart", callback = setup_target_win_preview })
 
-      -- local MiniFuzzy = require("mini.fuzzy")
-      -- local MiniVisits = require("mini.visits")
-      -- MiniPick.registry.frecency = function()
-      --   local visit_paths = MiniVisits.list_paths()
-      --   local current_file = vim.fn.expand("%")
-      --   MiniPick.builtin.files(nil, {
-      --     source = {
-      --       match = function(stritems, indices, query)
-      --         -- Concatenate prompt to a single string
-      --         local prompt = vim.pesc(table.concat(query))
-      --
-      --         -- If ignorecase is on and there are no uppercase letters in prompt,
-      --         -- convert paths to lowercase for matching purposes
-      --         local convert_path = function(str)
-      --           return str
-      --         end
-      --         if vim.o.ignorecase and string.find(prompt, "%u") == nil then
-      --           convert_path = function(str)
-      --             return string.lower(str)
-      --           end
-      --         end
-      --
-      --         local current_file_cased = convert_path(current_file)
-      --         local paths_length = #visit_paths
-      --
-      --         -- Flip visit_paths so that paths are lookup keys for the index values
-      --         local flipped_visits = {}
-      --         for index, path in ipairs(visit_paths) do
-      --           local key = vim.fn.fnamemodify(path, ":.")
-      --           flipped_visits[convert_path(key)] = index - 1
-      --         end
-      --
-      --         local result = {}
-      --         for _, index in ipairs(indices) do
-      --           local path = stritems[index]
-      --           local match_score = prompt == "" and 0 or MiniFuzzy.match(prompt, path).score
-      --           if match_score >= 0 then
-      --             local visit_score = flipped_visits[path] or paths_length
-      --             table.insert(result, {
-      --               index = index,
-      --               -- Give current file high value so it's ranked last
-      --               score = path == current_file_cased and 999999 or match_score + visit_score * 10,
-      --             })
-      --           end
-      --         end
-      --
-      --         table.sort(result, function(a, b)
-      --           return a.score < b.score
-      --         end)
-      --
-      --         return vim.tbl_map(function(val)
-      --           return val.index
-      --         end, result)
-      --       end,
-      --     },
-      --   })
-      -- end
-
-      -- local ok_mini_smart_pick, mini_smart_pick =
-      --   pcall(dofile, vim.fn.stdpath("config") .. "/after/plugin/mini_smart_pick.lua")
-      --
-      -- if ok_mini_smart_pick and MiniPick ~= nil then
-      --   -- vim.keymap.set("n", "<leader>ff", mini_smart_pick.picker)
-      --   vim.keymap.set("n", "<leader>ff", "<cmd>Pick files<cr>", { desc = "find files" })
-      -- end
-
-      MiniPick.registry.frecency = function()
-        local function sort(stritems, indices)
-          local inf = math.huge
-
-          local minivisits = require("mini.visits")
-          local visit_paths = minivisits.list_paths(nil, { sort = minivisits.gen_sort.z() })
-
-          -- relative paths to cwd
-          visit_paths = vim.tbl_map(function(path)
-            return vim.fn.fnamemodify(path, ":.")
-          end, visit_paths)
-          local scores = {}
-          for i, path in ipairs(visit_paths) do
-            scores[path] = i
-          end
-
-          -- current file last
-          local current_file = vim.fn.expand("%:.")
-          if scores[current_file] then
-            scores[current_file] = inf
-          end
-
-          indices = vim.deepcopy(indices)
-          table.sort(indices, function(item1, item2)
-            local path1 = stritems[item1]
-            local path2 = stritems[item2]
-
-            local score1 = scores[path1] or inf -- inf for paths not visited
-            local score2 = scores[path2] or inf -- inf for paths not visited
-
-            return score1 < score2
-          end)
-          return indices
+      -- Shorten one path
+      -- WARN: This can only be called for MiniPick
+      local make_short_path = function(path)
+        local win_id = MiniPick.get_picker_state().windows.main
+        local buf_width = vim.api.nvim_win_get_width(win_id)
+        local char_count = vim.fn.strchars(path)
+        -- Do not shorten the path if it is not needed
+        if char_count < buf_width then
+          return path
         end
 
-        local function get_keyword_matches(path, keywords, local_opts)
-          local_opts = vim.tbl_extend("force", { force_last = true }, local_opts or {})
-
-          local matches = {}
-
-          if #keywords == 0 then
-            return nil -- No keywords, return empty list
-          end
-
-          path = path:lower() -- Convert to lowercase for case-insensitive matching
-
-          -- Get the last keyword and remaining ones
-          local keywords_last = keywords[#keywords]
-
-          local last_path_separator = path:match("^.*()" .. "/") or 0
-          local last_start, last_end = path:find(keywords_last, last_path_separator + 1, true)
-
-          if last_start == nil then
-            if local_opts.force_last then
-              return nil -- Last keyword not found
-            end
-          else
-            -- Store last keyword match and remove it from the list
-            keywords = vim.list_slice(keywords, 1, #keywords - 1)
-            table.insert(matches, { last_start, last_end })
-            path = path:sub(1, last_start - 1) -- Truncate before last keyword
-          end
-
-          -- Find remaining keywords in reverse order
-          for i = #keywords, 1, -1 do
-            local keyword = keywords[i]
-            local start_idx, end_idx = path:find(keyword, 1, true)
-            if not start_idx then
-              return nil -- Missing keyword
-            end
-
-            -- Store match
-            table.insert(matches, { start_idx, end_idx })
-
-            -- Truncate path before this keyword
-            path = path:sub(1, start_idx - 1)
-          end
-
-          -- Reverse order of matches (since we inserted in reverse)
-          return matches
+        local shortened_path = path:gsub(parent_dir_pattern, shorten_dirname)
+        char_count = vim.fn.strchars(shortened_path)
+        -- Return only the filename when the shorten path still overflows
+        if char_count >= buf_width then
+          return shortened_path:match(parent_dir_pattern)
         end
 
-        local function match_filter(stritems, indices, query)
-          if #stritems == 0 or #indices == 0 then
-            return indices
-          end
+        return shortened_path
+      end
 
-          if #query == 0 or query == nil then
-            return indices
-          end
+      require("mini.pick").setup({
+        delay = {
+          busy = 1,
+        },
 
-          local keywords = vim.split(query, " ")
-          -- if #keywords == 0 or keywords == nil then
-          --    return indices
-          -- end
-          local should_reset_indices = keywords[#keywords] == ""
-          if should_reset_indices then
-            for i = 1, #stritems do
-              indices[i] = i
-            end
-          end
-          local filtered = {}
-          for _, index in ipairs(indices) do
-            local item = stritems[index]
-            if item ~= nil then
-              local match = get_keyword_matches(item, keywords)
-              if match ~= nil then
-                table.insert(filtered, index)
+        mappings = {
+          caret_left = "<Left>",
+          caret_right = "<Right>",
+
+          choose = "<C-y>",
+          choose_in_split = "<C-h>",
+          choose_in_vsplit = "<C-v>",
+          choose_in_tabpage = "<C-t>",
+          choose_marked = "<C-q>",
+
+          delete_char = "<BS>",
+          delete_char_right = "<Del>",
+          delete_left = "<C-u>",
+          delete_word = "<C-w>",
+
+          mark = "<C-x>",
+          mark_all = "<C-a>",
+
+          move_down = "<C-n>",
+          move_start = "<C-g>",
+          move_up = "<C-p>",
+
+          paste = "",
+
+          refine = "<C-CR>",
+          refine_marked = "",
+
+          scroll_down = "<C-f>",
+          scroll_left = "<C-Left>",
+          scroll_right = "<C-Right>",
+          scroll_up = "<C-b>",
+
+          stop = "<Esc>",
+
+          toggle_info = "<S-Tab>",
+          toggle_preview = "<Tab>",
+
+          another_choose = {
+            char = "<CR>",
+            func = function()
+              local choose_mapping = MiniPick.get_picker_opts().mappings.choose
+              vim.api.nvim_input(choose_mapping)
+            end,
+          },
+          actual_paste = {
+            char = "<C-r>",
+            func = function()
+              local content = vim.fn.getreg("+")
+              if content ~= "" then
+                local current_query = MiniPick.get_picker_query() or {}
+                table.insert(current_query, content)
+                MiniPick.set_picker_query(current_query)
               end
-            end
-          end
-          return filtered
+            end,
+          },
+        },
+
+        options = {
+          use_cache = false,
+        },
+
+        window = {
+          config = function()
+            local height = math.floor(0.5 * vim.o.lines)
+            local width = vim.o.columns
+            return {
+              relative = "laststatus",
+              anchor = "NW",
+              height = height,
+              width = width,
+              row = 0,
+              col = 0,
+            }
+          end,
+          prompt_prefix = "󰁔 ",
+          prompt_caret = " ",
+        },
+      })
+
+      -- Using primarily for code action
+      -- See https://github.com/echasnovski/mini.nvim/discussions/1437
+      vim.ui.select = MiniPick.ui_select
+
+      -- Shorten file paths by default
+      local show_short_files = function(buf_id, items_to_show, query)
+        local short_items_to_show = vim.tbl_map(make_short_path, items_to_show)
+        -- TODO: Instead of using default show, replace in order to highlight proper folder and add icons back
+        MiniPick.default_show(buf_id, short_items_to_show, query)
+      end
+
+      ---@class DVTMiniFiles
+      ---@field shorten_dirname boolean
+      ---@param local_opts DVTMiniFiles | nil
+      ---@param opts table | nil
+      MiniPick.registry.files = function(local_opts, opts)
+        local_opts = local_opts or {}
+        local_opts = vim.tbl_extend("force", local_opts, { shorten_dirname = false })
+        if local_opts.shorten_dirname then
+          opts = opts or {
+            source = { show = show_short_files },
+          }
+        else
+          opts = opts or {}
         end
 
-        local function show(buf_id, items, query, local_opts)
-          local ns = vim.api.nvim_get_namespaces()["MiniPickRanges"]
+        MiniPick.builtin.files(local_opts, opts)
+      end
 
-          local icons = {}
-          local lines = {}
-          for i, item in ipairs(items) do
-            local icon_text, icon_hl_group = require("mini.icons").get("file", item)
-            icons[i] = { text = icon_text, hl_group = icon_hl_group }
-            lines[i] = icons[i].text .. " " .. item
+      -- Show highlight in buf_lines picker
+      -- See https://github.com/echasnovski/mini.nvim/discussions/988#discussioncomment-10398788
+      local ns_digit_prefix = vim.api.nvim_create_namespace("cur-buf-pick-show")
+      local show_cur_buf_lines = function(buf_id, items, query, opts)
+        if items == nil or #items == 0 then
+          return
+        end
+
+        -- Show as usual
+        MiniPick.default_show(buf_id, items, query, opts)
+
+        -- Move prefix line numbers into inline extmarks
+        local lines = vim.api.nvim_buf_get_lines(buf_id, 0, -1, false)
+        local digit_prefixes = {}
+        for i, l in ipairs(lines) do
+          local _, prefix_end, prefix = l:find("^(%s*%d+│)")
+          if prefix_end ~= nil then
+            digit_prefixes[i], lines[i] = prefix, l:sub(prefix_end + 1)
+          end
+        end
+
+        vim.api.nvim_buf_set_lines(buf_id, 0, -1, false, lines)
+        for i, pref in pairs(digit_prefixes) do
+          local opts = { virt_text = { { pref, "MiniPickNormal" } }, virt_text_pos = "inline" }
+          vim.api.nvim_buf_set_extmark(buf_id, ns_digit_prefix, i - 1, 0, opts)
+        end
+
+        -- Set highlighting based on the curent filetype
+        local ft = vim.bo[items[1].bufnr].filetype
+        local has_lang, lang = pcall(vim.treesitter.language.get_lang, ft)
+        local has_ts, _ = pcall(vim.treesitter.start, buf_id, has_lang and lang or ft)
+        if not has_ts and ft then
+          vim.bo[buf_id].syntax = ft
+        end
+      end
+
+      MiniPick.registry.buf_lines = function()
+        -- local local_opts = { scope = 'current', preserve_order = true } -- use preserve_order
+        local local_opts = { scope = "current" }
+        MiniExtra.pickers.buf_lines(local_opts, { source = { show = show_cur_buf_lines } })
+      end
+
+      -- todo-comments picker section
+      local show_todo = function(buf_id, entries, query, opts)
+        MiniPick.default_show(buf_id, entries, query, opts)
+
+        -- Add highlighting to every line in the buffer
+        for line, entry in ipairs(entries) do
+          for _, hl in ipairs(entry.hl) do
+            local start = { line - 1, hl[1][1] }
+            local finish = { line - 1, hl[1][2] }
+            vim.hl.range(buf_id, ns_digit_prefix, hl[2], start, finish, { priority = vim.hl.priorities.user + 1 })
+          end
+        end
+      end
+      -- Open LSP picker for the given scope
+      ---@param scope "declaration" | "definition" | "document_symbol" | "implementation" | "references" | "type_definition" | "workspace_symbol"
+      ---@param autojump boolean? If there is only one result it will jump to it.
+      MiniPick.registry.LspPicker = function(scope, autojump)
+        ---@return string
+        local function get_symbol_query()
+          return vim.fn.input("Symbol: ")
+        end
+
+        if not autojump then
+          local opts = { scope = scope }
+
+          if scope == "workspace_symbol" then
+            opts.symbol_query = get_symbol_query()
           end
 
-          vim.api.nvim_buf_set_lines(buf_id, 0, -1, false, lines)
+          MiniExtra.pickers.lsp(opts)
+          return
+        end
 
-          -- vim.api.nvim_buf_clear_namespace(buf_id, ns, 0, -1)
+        ---@param opts vim.lsp.LocationOpts.OnList
+        local function on_list(opts)
+          vim.fn.setqflist({}, " ", opts)
 
-          -- Highlight icons
-          for i, icon in ipairs(icons) do
-            local row = i - 1
-            vim.api.nvim_buf_set_extmark(buf_id, ns, row, 0, {
-              end_col = 1,
-              end_row = row,
-              hl_group = icon.hl_group,
-              hl_mode = "combine",
-              priority = 200,
+          if #opts.items == 1 then
+            vim.cmd.cfirst()
+          else
+            MiniExtra.pickers.list({ scope = "quickfix" }, {
+              source = { name = opts.title },
+              window = {
+                config = function()
+                  local height = math.floor(0.618 * vim.o.lines)
+                  local width = math.floor(0.618 * vim.o.columns)
+                  return {
+                    relative = "cursor",
+                    anchor = "NW",
+                    height = height,
+                    width = width,
+                    row = 0,
+                    col = 0,
+                  }
+                end,
+              },
             })
           end
+        end
 
-          query = table.concat(query)
-          -- Highlight matched ranges
-          for i, item in ipairs(items) do
-            local keywords = vim.split(query, " ")
-            local ranges = get_keyword_matches(item, keywords, { force_last = false })
-            if ranges == nil then
-              return
-            end
-            for _, range in ipairs(ranges) do
-              local row = i - 1
-              local start_col = range[1] - 1 + icons[i].text:len() + 1
-              local end_col = range[2] + icons[i].text:len() + 1
-              vim.api.nvim_buf_set_extmark(buf_id, ns, row, start_col, {
-                end_col = end_col,
-                end_row = row,
-                hl_group = "MiniPickMatchRanges",
-                hl_mode = "combine",
-                priority = 200,
-              })
+        if scope == "references" then
+          vim.lsp.buf.references(nil, { on_list = on_list })
+          return
+        end
+
+        if scope == "workspace_symbol" then
+          vim.lsp.buf.workspace_symbol(get_symbol_query(), { on_list = on_list })
+          return
+        end
+
+        vim.lsp.buf[scope]({ on_list = on_list })
+      end
+
+      ---@class FFFItem
+      ---@field name string
+      ---@field path string
+      ---@field relative_path string
+      ---@field size number
+      ---@field modified number
+      ---@field total_frecency_score number
+      ---@field modification_frecency_score number
+      ---@field access_frecency_score number
+      ---@field git_status string
+
+      ---@class PickerItem
+      ---@field text string
+      ---@field path string
+      ---@field score number
+
+      ---@class FFFPickerState
+      ---@field current_file_cache string
+      local state = {}
+
+      local ns_id = vim.api.nvim_create_namespace("MiniPick FFFiles Picker")
+
+      vim.schedule(function()
+        vim.api.nvim_set_hl(0, "FFFileScore", { fg = mega.ui.colors.yellow.hex })
+      end)
+
+      ---@param query string|nil
+      ---@return PickerItem[]
+      local function find(query)
+        local file_picker = require("fff.file_picker")
+
+        query = query or ""
+        ---@type FFFItem[]
+        local fff_result = file_picker.search_files(query, 100, 4, state.current_file_cache, false)
+
+        local items = {}
+        for _, fff_item in ipairs(fff_result) do
+          local item = {
+            text = fff_item.relative_path,
+            path = fff_item.path,
+            score = fff_item.total_frecency_score,
+          }
+          table.insert(items, item)
+        end
+
+        return items
+      end
+
+      ---@param items PickerItem[]
+      local function show(buf_id, items)
+        local icon_data = {}
+
+        -- Show items
+        local items_to_show = {}
+        for i, item in ipairs(items) do
+          local icon, hl, _ = MiniIcons.get("file", item.text)
+          icon_data[i] = { icon = icon, hl = hl }
+
+          items_to_show[i] = string.format("%s %s %d", icon, item.text, item.score)
+        end
+        vim.api.nvim_buf_set_lines(buf_id, 0, -1, false, items_to_show)
+
+        vim.api.nvim_buf_clear_namespace(buf_id, ns_id, 0, -1)
+
+        local icon_extmark_opts = { hl_mode = "combine", priority = 200 }
+        for i, item in ipairs(items) do
+          -- Highlight Icons
+          icon_extmark_opts.hl_group = icon_data[i].hl
+          icon_extmark_opts.end_row, icon_extmark_opts.end_col = i - 1, 1
+          vim.api.nvim_buf_set_extmark(buf_id, ns_id, i - 1, 0, icon_extmark_opts)
+
+          -- Highlight score
+          local col = #items_to_show[i] - #tostring(item.score) - 3
+          icon_extmark_opts.hl_group = "FFFileScore"
+          icon_extmark_opts.end_row, icon_extmark_opts.end_col = i - 1, #items_to_show[i]
+          vim.api.nvim_buf_set_extmark(buf_id, ns_id, i - 1, col, icon_extmark_opts)
+        end
+      end
+
+      local function run(local_opts)
+        local_opts = local_opts or {}
+        local default_opts = { cwd = vim.uv.cwd() }
+        local_opts = vim.tbl_extend("force", default_opts, local_opts)
+
+        -- Setup fff.nvim
+        local file_picker = require("fff.file_picker")
+        if not file_picker.is_initialized() then
+          local setup_success = file_picker.setup()
+          if not setup_success then
+            vim.notify("Could not setup fff.nvim", vim.log.levels.ERROR)
+            return
+          end
+        end
+
+        -- Cache current file to deprioritize in fff.nvim
+        if not state.current_file_cache then
+          local current_buf = vim.api.nvim_get_current_buf()
+          if current_buf and vim.api.nvim_buf_is_valid(current_buf) then
+            local current_file = vim.api.nvim_buf_get_name(current_buf)
+            if current_file ~= "" and vim.fn.filereadable(current_file) == 1 then
+              local relative_path = vim.fs.relpath(local_opts.cwd, current_file)
+              state.current_file_cache = relative_path
+            else
+              state.current_file_cache = nil
             end
           end
         end
 
-        MiniPick.builtin.files(nil, {
+        -- Start picker
+        local name = "FFFiles"
+        local using_different_cwd = local_opts.cwd ~= default_opts.cwd
+        if using_different_cwd then
+          name = name .. string.format(" (%s)", local_opts.cwd)
+        end
+        MiniPick.start({
           source = {
-            name = "Files (MRU)",
-            match = function(stritems, indices, query)
-              query = table.concat(query)
-              indices = match_filter(stritems, indices, query)
-              if #indices == 0 then
-                -- If no matches, try again without forcing the last keyword
-                indices = match_filter(stritems, indices, query .. " ")
-              end
-              indices = sort(stritems, indices)
-              return indices
+            name = name,
+            cwd = local_opts.cwd,
+            items = find,
+            match = function(_, _, query)
+              local items = find(table.concat(query))
+              MiniPick.set_picker_items(items, { do_match = false })
             end,
             show = show,
           },
-          options = {
-            use_cache = false,
-          },
         })
+
+        state.current_file_cache = nil -- Reset cache
       end
 
-      MiniPick.registry.buf_lines_colored = function()
-        local ns_digit_prefix = vim.api.nvim_create_namespace("cur-buf-pick-show")
-        local show_cur_buf_lines = function(buf_id, items, query, opts)
-          if items == nil or #items == 0 then
+      local ns = vim.api.nvim_create_namespace("DVT MiniPickRanges")
+      vim.keymap.set("n", "<leader>sg", function()
+        local show = function(buf_id, items, query)
+          local hl_groups = {}
+          items = vim.tbl_map(function(item)
+            -- Get all items as returned by ripgrep
+            local path, row, column, str = string.match(item, "^([^|]*)|([^|]*)|([^|]*)|(.*)$")
+
+            path = vim.fs.basename(path)
+
+            -- Trim text found
+            str = string.gsub(str, "^%s*(.-)%s*$", "%1")
+
+            local icon, hl = MiniIcons.get("file", path)
+            table.insert(hl_groups, hl)
+
+            return string.format("%s %s|%s|%s| %s", icon, path, row, column, str)
+          end, items)
+
+          MiniPick.default_show(buf_id, items, query, { show_icons = false })
+
+          -- Add color to icons
+          local icon_extmark_opts = { hl_mode = "combine", priority = 210 }
+          for i = 1, #hl_groups do
+            icon_extmark_opts.hl_group = hl_groups[i]
+            icon_extmark_opts.end_row, icon_extmark_opts.end_col = i - 1, 1
+            vim.api.nvim_buf_set_extmark(buf_id, ns, i - 1, 0, icon_extmark_opts)
+          end
+        end
+
+        local set_items_opts = { do_match = false, querytick = 0 }
+        local process
+        local match = function(_, _, query)
+          pcall(vim.loop.process_kill, process)
+          if #query == 0 then
+            return MiniPick.set_picker_items({}, set_items_opts)
+          end
+
+          local command = {
+            "rg",
+            "--column",
+            "--line-number",
+            "--no-heading",
+            "--field-match-separator",
+            "|",
+            "--no-follow",
+            "--color=never",
+            "--",
+            table.concat(query),
+          }
+          process = MiniPick.set_picker_items_from_cli(
+            command,
+            { set_items_opts = set_items_opts, spawn_opts = { cwd = vim.uv.cwd() } }
+          )
+        end
+
+        local choose = function(item)
+          local path, row, column = string.match(item, "^([^|]*)|([^|]*)|([^|]*)|.*$")
+          local chosen = {
+            path = path,
+            lnum = tonumber(row),
+            col = tonumber(column),
+          }
+          MiniPick.default_choose(chosen)
+        end
+
+        MiniPick.start({
+          source = {
+            name = "Live Grep",
+            items = {},
+            match = match,
+            show = show,
+            choose = choose,
+          },
+        })
+      end, { desc = "[S]earch [G]rep" })
+      vim.keymap.set("n", "<leader>sG", function()
+        vim.ui.input({
+          prompt = "What directory do you want to search in? ",
+          default = vim.uv.cwd(),
+          completion = "dir",
+        }, function(input)
+          if not input or input == "" then
             return
           end
 
-          -- Show as usual
-          MiniPick.default_show(buf_id, items, query, opts)
+          MiniPick.builtin.grep_live({}, { source = { cwd = input } })
+        end)
+      end, { desc = "[S]earch [G]rep in specific directory" })
+      vim.keymap.set("n", "<leader>sw", function()
+        local cword = vim.fn.expand("<cword>")
+        vim.defer_fn(function()
+          MiniPick.set_picker_query({ cword })
+        end, 25)
+        MiniPick.builtin.grep_live()
+      end, { desc = "[S]earch [W]ord" })
 
-          -- Move prefix line numbers into inline extmarks
-          local lines = vim.api.nvim_buf_get_lines(buf_id, 0, -1, false)
-          local digit_prefixes = {}
-          for i, l in ipairs(lines) do
-            local _, prefix_end, prefix = l:find("^(%s*%d+│)")
-            if prefix_end ~= nil then
-              digit_prefixes[i], lines[i] = prefix, l:sub(prefix_end + 1)
-            end
-          end
-
-          vim.api.nvim_buf_set_lines(buf_id, 0, -1, false, lines)
-          for i, pref in pairs(digit_prefixes) do
-            local opts = { virt_text = { { pref, "MiniPickNormal" } }, virt_text_pos = "inline" }
-            vim.api.nvim_buf_set_extmark(buf_id, ns_digit_prefix, i - 1, 0, opts)
-          end
-
-          -- Set highlighting based on the curent filetype
-          local ft = vim.bo[items[1].bufnr].filetype
-          local has_lang, lang = pcall(vim.treesitter.language.get_lang, ft)
-          local has_ts, _ = pcall(vim.treesitter.start, buf_id, has_lang and lang or ft)
-          if not has_ts and ft then
-            vim.bo[buf_id].syntax = ft
-          end
-        end
-
-        local local_opts = { scope = "current", preserve_order = true }
-        require("mini.extra").pickers.buf_lines(local_opts, { source = { show = show_cur_buf_lines } })
+      -- Use fff.nvim if it is available
+      -- Fallback to MiniPick.builtin.files
+      local fff_is_available, fff = pcall(require, "fff")
+      if fff_is_available then
+        fff.setup({ ui = { picker = "mini" } })
       end
-
-      MiniPick.registry.grep_live_align = function()
-        local sep = package.config:sub(1, 1)
-        local function truncate_path(path)
-          local parts = vim.split(path, sep)
-          if #parts > 2 then
-            parts = { parts[1], "…", parts[#parts] }
+      vim.keymap.set("n", "<leader>sf", function()
+        if fff_is_available then
+          fff.find_files()
+        else
+          MiniPick.registry.files()
+        end
+      end, { desc = "[S]earch [F]iles" }) -- See https://github.com/echasnovski/mini.nvim/discussions/1873
+      vim.keymap.set("n", "<leader><space>", function()
+        if fff_is_available then
+          fff.find_files()
+        else
+          MiniPick.registry.files()
+        end
+      end, { desc = "Search Files" })
+      vim.keymap.set("n", "<leader>sF", function()
+        vim.ui.input({
+          prompt = "What directory do you want to search in? ",
+          default = vim.uv.cwd(),
+          completion = "dir",
+        }, function(input)
+          if not input or input == "" then
+            return
           end
-          return table.concat(parts, sep)
-        end
 
-        local function map_gsub(items, pattern, replacement)
-          return vim.tbl_map(function(item)
-            item, _ = string.gsub(item, pattern, replacement)
-            return item
-          end, items)
-        end
-
-        local show_align_on_nul = function(buf_id, items, query, opts)
-          -- Shorten the pathname to keep the width of the picker window to something
-          -- a bit more reasonable for longer pathnames.
-          items = map_gsub(items, "^%Z+", truncate_path)
-
-          -- Because items is an array of blobs (contains a NUL byte), align_strings
-          -- will not work because it expects strings. So, convert the NUL bytes to a
-          -- unique (hopefully) separator, then align, and revert back.
-          items = map_gsub(items, "%z", "#|#")
-          items = require("mini.align").align_strings(items, {
-            justify_side = { "left", "right", "right" },
-            merge_delimiter = { "", " ", "", " ", "" },
-            split_pattern = "#|#",
+          if fff_is_available then
+            fff.find_files_in_dir(input)
+            fff.change_indexing_directory(vim.uv.cwd())
+          else
+            MiniPick.registry.files()
+          end
+        end)
+      end, { desc = "[S]earch [F]iles in specific directory" })
+      vim.keymap.set("n", "<leader>sc", function()
+        local config_path = vim.fn.stdpath("config")
+        if fff_is_available then
+          fff.find_files_in_dir(config_path)
+          fff.change_indexing_directory(vim.uv.cwd())
+        else
+          MiniPick.registry.files(nil, {
+            source = {
+              cwd = config_path,
+            },
           })
-          items = map_gsub(items, "#|#", "\0")
-
-          -- Back to the regularly scheduled program :-)
-          MiniPick.default_show(buf_id, items, query, opts)
         end
+      end, { desc = "[S]earch [C]onfig" })
 
-        MiniPick.builtin.grep_live({}, {
-          source = { show = show_align_on_nul },
-          window = { config = { width = math.floor(0.816 * vim.o.columns) } },
+      vim.keymap.set("n", "<leader>sh", function()
+        MiniPick.builtin.help({ default_split = "vertical" })
+      end, { desc = "[S]earch [H]elp" })
+      vim.keymap.set("n", "<leader>st", function()
+        MiniPick.registry.todo()
+      end, { desc = "[S]earch [T]odo" })
+      vim.keymap.set("n", "<leader>ss", function()
+        MiniExtra.pickers.lsp({ scope = "document_symbol" })
+      end, { desc = "[S]earch [S]ymbols" })
+      vim.keymap.set("n", "<leader>sH", function()
+        MiniExtra.pickers.history()
+      end, { desc = "[S]earch [H]istory" })
+      vim.keymap.set("n", "<leader>sd", function()
+        MiniExtra.pickers.diagnostic()
+      end, { desc = "[S]earch [D]iagnostic" })
+      vim.keymap.set("n", "<leader>sb", function()
+        MiniPick.builtin.buffers()
+      end, { desc = "[S]earch [B]uffers" })
+      vim.keymap.set("n", "<leader>n", function()
+        vim.cmd.tabnew()
+        MiniNotify.show_history()
+      end, { desc = "[N]otification History" })
+      vim.keymap.set("n", "<leader>sC", function()
+        MiniExtra.pickers.colorschemes(nil, nil)
+      end, { desc = "[S]earch [C]olorscheme" })
+      vim.keymap.set("n", "z=", function()
+        local word = vim.fn.expand("<cword>")
+        MiniExtra.pickers.spellsuggest(nil, {
+          window = {
+            config = function()
+              local height = math.floor(0.2 * vim.o.lines)
+              local width = math.floor(math.max(vim.fn.strdisplaywidth(word) + 2, 20))
+              return {
+                relative = "cursor",
+                anchor = "NW",
+                height = height,
+                width = width,
+                row = 1, -- I want to see <cword>
+                col = -1, -- Aligned nicely with <cword>
+              }
+            end,
+          },
         })
-      end
+      end, { desc = "Show spellings suggestions" })
     end,
   },
+  -- {
+  --   "nvim-mini/mini.pick",
+  --   enabled = false,
+  --   main = "mini.pick",
+  --   version = false,
+  --   cmd = { "Pick", "MiniPick" },
+  --   lazy = true,
+  --   dependencies = {
+  --     { "echasnovski/mini.extra", config = true },
+  --     { "echasnovski/mini.fuzzy", config = true },
+  --     { "echasnovski/mini.visits", config = true, event = "LazyFile" },
+  --     { "echasnovski/mini.align" },
+  --     {
+  --       "diego-velez/fff.nvim",
+  --       build = {
+  --         function()
+  --           local cmd = { "rustup", "run", "nightly", "cargo", "build", "--release" }
+  --           ---@type vim.SystemOpts
+  --           local opts = { cwd = args.path, text = true }
+  --
+  --           vim.notify("Building " .. args.name, vim.log.levels.INFO)
+  --           local output = vim.system(cmd, opts):wait()
+  --           if output.code ~= 0 then
+  --             vim.notify("Failed to build " .. args.name .. "\n" .. output.stderr, vim.log.levels.ERROR)
+  --           else
+  --             vim.notify("Built " .. args.name, vim.log.levels.INFO)
+  --           end
+  --         end,
+  --       },
+  --     },
+  --     -- { "echasnovski/mini.fuzzy",  config = true },
+  --   },
+  --   init = function(plugin)
+  --     -- Use mini pick instead of builtin select
+  --     vim.ui.select = require("lazy-require").require_on_exported_call(plugin.main).ui_select
+  --
+  --     vim.keymap.set("n", "<leader>ff", "<cmd>Pick frecency tool='fd'<cr>", { desc = "find files (frecency)" })
+  --     vim.keymap.set("n", "<leader>a", "<cmd>Pick grep_live_align<cr>", { desc = "live grep" })
+  --     -- vim.keymap.set("n", "<leader>a", "<cmd>Pick grep<cr>", { desc = "find with grep" })
+  --     -- vim.keymap.set("x", "<leader>A", 'y<cmd>Pick grep<cr><c-r>"<cr>', { desc = "find current selection" })
+  --     vim.keymap.set(
+  --       { "n", "x" },
+  --       "<leader>A",
+  --       "<cmd>Pick grep pattern='<cword>'<cr>",
+  --       { desc = "grep cursorword/selection" }
+  --     )
+  --     -- vim.keymap.set("n", "<leader>A", "<cmd>Pick grep pattern='<cword>'<cr>", { desc = "grep cursor word" })
+  --   end,
+  --   opts = {
+  --     -- delay = {
+  --     --   busy = 1,
+  --     -- },
+  --
+  --     mappings = {
+  --       caret_left = "<Left>",
+  --       caret_right = "<Right>",
+  --
+  --       choose = "<C-o>",
+  --       choose_alt = {
+  --         char = "<nl>",
+  --         func = function()
+  --           vim.api.nvim_input("<cr>")
+  --         end,
+  --       },
+  --       choose_in_split = "<C-h>",
+  --       choose_in_vsplit = "<CR>",
+  --       choose_in_tabpage = "<C-t>",
+  --       choose_marked = "<C-q>",
+  --
+  --       delete_char = "<BS>",
+  --       delete_char_right = "<Del>",
+  --       delete_left = "<C-u>",
+  --       delete_word = "<C-w>",
+  --
+  --       mark = "<C-x>",
+  --       mark_all = "<C-a>",
+  --
+  --       move_down = "<C-n>",
+  --       move_start = "<C-g>",
+  --       move_up = "<C-p>",
+  --
+  --       paste = "",
+  --
+  --       refine = "<C-r>",
+  --       refine_marked = "",
+  --
+  --       scroll_down = "<C-f>",
+  --       scroll_left = "<C-Left>",
+  --       scroll_right = "<C-Right>",
+  --       scroll_up = "<C-b>",
+  --
+  --       stop = "<Esc>",
+  --
+  --       toggle_info = "<S-Tab>",
+  --       toggle_preview = "<Tab>",
+  --       --
+  --       -- another_choose = {
+  --       --   char = "<C-CR>",
+  --       --   func = function()
+  --       --     local choose_mapping = MiniPick.get_picker_opts().mappings.choose
+  --       --     vim.api.nvim_input(choose_mapping)
+  --       --   end,
+  --       -- },
+  --       --   mark = "<c-space>",
+  --
+  --       --   mark_and_move_down = {
+  --       --     char = "<tab>",
+  --       --     func = function()
+  --       --       local mappings = MiniPick.get_picker_opts().mappings
+  --       --       vim.api.nvim_input(mappings.mark .. mappings.move_down)
+  --       --     end,
+  --       --   },
+  --
+  --       --   mark_and_move_up = {
+  --       --     char = "<s-tab>",
+  --       --     func = function()
+  --       --       local mappings = MiniPick.get_picker_opts().mappings
+  --       --       vim.api.nvim_input(mappings.mark .. mappings.move_up)
+  --       --     end,
+  --       --   },
+  --
+  --       -- actual_paste = {
+  --       --   char = "<C-y>",
+  --       --   func = function()
+  --       --     local content = vim.fn.getreg("+")
+  --       --     if content ~= "" then
+  --       --       local current_query = MiniPick.get_picker_query() or {}
+  --       --       table.insert(current_query, content)
+  --       --       MiniPick.set_picker_query(current_query)
+  --       --     end
+  --       --   end,
+  --       -- },
+  --     },
+  --
+  --     options = {
+  --       use_cache = true,
+  --     },
+  --
+  --     window = {
+  --       config = function()
+  --         local height = math.floor(0.25 * vim.o.lines)
+  --         local width = math.floor(0.25 * vim.o.columns)
+  --         return {
+  --           relative = "laststatus",
+  --           anchor = "NW",
+  --           height = height,
+  --           width = width,
+  --           row = 0,
+  --           col = 0,
+  --         }
+  --       end,
+  --       prompt_prefix = "󰁔 ",
+  --       prompt_caret = " ",
+  --     },
+  --   },
+  --   config = function(_, opts)
+  --     require("mini.pick").setup(opts)
+  --
+  --     local setup_target_win_preview = function()
+  --       local opts = MiniPick.get_picker_opts()
+  --       local show, preview, choose = opts.source.show, opts.source.preview, opts.source.choose
+  --
+  --       -- Prepare preview and initial buffers
+  --       local preview_buf_id = vim.api.nvim_create_buf(false, true)
+  --       local win_target = MiniPick.get_picker_state().windows.target
+  --       local init_target_buf = vim.api.nvim_win_get_buf(win_target)
+  --       vim.api.nvim_win_set_buf(win_target, preview_buf_id)
+  --
+  --       -- Hook into source's methods
+  --       opts.source.show = function(...)
+  --         show(...)
+  --         local cur_item = MiniPick.get_picker_matches().current
+  --         if cur_item == nil then
+  --           return
+  --         end
+  --         preview(preview_buf_id, cur_item)
+  --       end
+  --
+  --       local needs_init_buf_restore = true
+  --       opts.source.choose = function(...)
+  --         needs_init_buf_restore = false
+  --         choose(...)
+  --       end
+  --
+  --       MiniPick.set_picker_opts(opts)
+  --
+  --       -- Set up buffer cleanup
+  --       local cleanup = function()
+  --         if needs_init_buf_restore then
+  --           vim.api.nvim_win_set_buf(win_target, init_target_buf)
+  --         end
+  --         vim.api.nvim_buf_delete(preview_buf_id, { force = true })
+  --       end
+  --       vim.api.nvim_create_autocmd("User", { pattern = "MiniPickStop", once = true, callback = cleanup })
+  --     end
+  --     vim.api.nvim_create_autocmd("User", { pattern = "MiniPickStart", callback = setup_target_win_preview })
+  --
+  --     -- local MiniFuzzy = require("mini.fuzzy")
+  --     -- local MiniVisits = require("mini.visits")
+  --     -- MiniPick.registry.frecency = function()
+  --     --   local visit_paths = MiniVisits.list_paths()
+  --     --   local current_file = vim.fn.expand("%")
+  --     --   MiniPick.builtin.files(nil, {
+  --     --     source = {
+  --     --       match = function(stritems, indices, query)
+  --     --         -- Concatenate prompt to a single string
+  --     --         local prompt = vim.pesc(table.concat(query))
+  --     --
+  --     --         -- If ignorecase is on and there are no uppercase letters in prompt,
+  --     --         -- convert paths to lowercase for matching purposes
+  --     --         local convert_path = function(str)
+  --     --           return str
+  --     --         end
+  --     --         if vim.o.ignorecase and string.find(prompt, "%u") == nil then
+  --     --           convert_path = function(str)
+  --     --             return string.lower(str)
+  --     --           end
+  --     --         end
+  --     --
+  --     --         local current_file_cased = convert_path(current_file)
+  --     --         local paths_length = #visit_paths
+  --     --
+  --     --         -- Flip visit_paths so that paths are lookup keys for the index values
+  --     --         local flipped_visits = {}
+  --     --         for index, path in ipairs(visit_paths) do
+  --     --           local key = vim.fn.fnamemodify(path, ":.")
+  --     --           flipped_visits[convert_path(key)] = index - 1
+  --     --         end
+  --     --
+  --     --         local result = {}
+  --     --         for _, index in ipairs(indices) do
+  --     --           local path = stritems[index]
+  --     --           local match_score = prompt == "" and 0 or MiniFuzzy.match(prompt, path).score
+  --     --           if match_score >= 0 then
+  --     --             local visit_score = flipped_visits[path] or paths_length
+  --     --             table.insert(result, {
+  --     --               index = index,
+  --     --               -- Give current file high value so it's ranked last
+  --     --               score = path == current_file_cased and 999999 or match_score + visit_score * 10,
+  --     --             })
+  --     --           end
+  --     --         end
+  --     --
+  --     --         table.sort(result, function(a, b)
+  --     --           return a.score < b.score
+  --     --         end)
+  --     --
+  --     --         return vim.tbl_map(function(val)
+  --     --           return val.index
+  --     --         end, result)
+  --     --       end,
+  --     --     },
+  --     --   })
+  --     -- end
+  --
+  --     -- local ok_mini_smart_pick, mini_smart_pick =
+  --     --   pcall(dofile, vim.fn.stdpath("config") .. "/after/plugin/mini_smart_pick.lua")
+  --     --
+  --     -- if ok_mini_smart_pick and MiniPick ~= nil then
+  --     --   -- vim.keymap.set("n", "<leader>ff", mini_smart_pick.picker)
+  --     --   vim.keymap.set("n", "<leader>ff", "<cmd>Pick files<cr>", { desc = "find files" })
+  --     -- end
+  --
+  --     MiniPick.registry.frecency = function()
+  --       local function sort(stritems, indices)
+  --         local inf = math.huge
+  --
+  --         local minivisits = require("mini.visits")
+  --         local visit_paths = minivisits.list_paths(nil, { sort = minivisits.gen_sort.z() })
+  --
+  --         -- relative paths to cwd
+  --         visit_paths = vim.tbl_map(function(path)
+  --           return vim.fn.fnamemodify(path, ":.")
+  --         end, visit_paths)
+  --         local scores = {}
+  --         for i, path in ipairs(visit_paths) do
+  --           scores[path] = i
+  --         end
+  --
+  --         -- current file last
+  --         local current_file = vim.fn.expand("%:.")
+  --         if scores[current_file] then
+  --           scores[current_file] = inf
+  --         end
+  --
+  --         indices = vim.deepcopy(indices)
+  --         table.sort(indices, function(item1, item2)
+  --           local path1 = stritems[item1]
+  --           local path2 = stritems[item2]
+  --
+  --           local score1 = scores[path1] or inf -- inf for paths not visited
+  --           local score2 = scores[path2] or inf -- inf for paths not visited
+  --
+  --           return score1 < score2
+  --         end)
+  --         return indices
+  --       end
+  --
+  --       local function get_keyword_matches(path, keywords, local_opts)
+  --         local_opts = vim.tbl_extend("force", { force_last = true }, local_opts or {})
+  --
+  --         local matches = {}
+  --
+  --         if #keywords == 0 then
+  --           return nil -- No keywords, return empty list
+  --         end
+  --
+  --         path = path:lower() -- Convert to lowercase for case-insensitive matching
+  --
+  --         -- Get the last keyword and remaining ones
+  --         local keywords_last = keywords[#keywords]
+  --
+  --         local last_path_separator = path:match("^.*()" .. "/") or 0
+  --         local last_start, last_end = path:find(keywords_last, last_path_separator + 1, true)
+  --
+  --         if last_start == nil then
+  --           if local_opts.force_last then
+  --             return nil -- Last keyword not found
+  --           end
+  --         else
+  --           -- Store last keyword match and remove it from the list
+  --           keywords = vim.list_slice(keywords, 1, #keywords - 1)
+  --           table.insert(matches, { last_start, last_end })
+  --           path = path:sub(1, last_start - 1) -- Truncate before last keyword
+  --         end
+  --
+  --         -- Find remaining keywords in reverse order
+  --         for i = #keywords, 1, -1 do
+  --           local keyword = keywords[i]
+  --           local start_idx, end_idx = path:find(keyword, 1, true)
+  --           if not start_idx then
+  --             return nil -- Missing keyword
+  --           end
+  --
+  --           -- Store match
+  --           table.insert(matches, { start_idx, end_idx })
+  --
+  --           -- Truncate path before this keyword
+  --           path = path:sub(1, start_idx - 1)
+  --         end
+  --
+  --         -- Reverse order of matches (since we inserted in reverse)
+  --         return matches
+  --       end
+  --
+  --       local function match_filter(stritems, indices, query)
+  --         if #stritems == 0 or #indices == 0 then
+  --           return indices
+  --         end
+  --
+  --         if #query == 0 or query == nil then
+  --           return indices
+  --         end
+  --
+  --         local keywords = vim.split(query, " ")
+  --         -- if #keywords == 0 or keywords == nil then
+  --         --    return indices
+  --         -- end
+  --         local should_reset_indices = keywords[#keywords] == ""
+  --         if should_reset_indices then
+  --           for i = 1, #stritems do
+  --             indices[i] = i
+  --           end
+  --         end
+  --         local filtered = {}
+  --         for _, index in ipairs(indices) do
+  --           local item = stritems[index]
+  --           if item ~= nil then
+  --             local match = get_keyword_matches(item, keywords)
+  --             if match ~= nil then
+  --               table.insert(filtered, index)
+  --             end
+  --           end
+  --         end
+  --         return filtered
+  --       end
+  --
+  --       local function show(buf_id, items, query, local_opts)
+  --         local ns = vim.api.nvim_get_namespaces()["MiniPickRanges"]
+  --
+  --         local icons = {}
+  --         local lines = {}
+  --         for i, item in ipairs(items) do
+  --           local icon_text, icon_hl_group = require("mini.icons").get("file", item)
+  --           icons[i] = { text = icon_text, hl_group = icon_hl_group }
+  --           lines[i] = icons[i].text .. " " .. item
+  --         end
+  --
+  --         vim.api.nvim_buf_set_lines(buf_id, 0, -1, false, lines)
+  --
+  --         -- vim.api.nvim_buf_clear_namespace(buf_id, ns, 0, -1)
+  --
+  --         -- Highlight icons
+  --         for i, icon in ipairs(icons) do
+  --           local row = i - 1
+  --           vim.api.nvim_buf_set_extmark(buf_id, ns, row, 0, {
+  --             end_col = 1,
+  --             end_row = row,
+  --             hl_group = icon.hl_group,
+  --             hl_mode = "combine",
+  --             priority = 200,
+  --           })
+  --         end
+  --
+  --         query = table.concat(query)
+  --         -- Highlight matched ranges
+  --         for i, item in ipairs(items) do
+  --           local keywords = vim.split(query, " ")
+  --           local ranges = get_keyword_matches(item, keywords, { force_last = false })
+  --           if ranges == nil then
+  --             return
+  --           end
+  --           for _, range in ipairs(ranges) do
+  --             local row = i - 1
+  --             local start_col = range[1] - 1 + icons[i].text:len() + 1
+  --             local end_col = range[2] + icons[i].text:len() + 1
+  --             vim.api.nvim_buf_set_extmark(buf_id, ns, row, start_col, {
+  --               end_col = end_col,
+  --               end_row = row,
+  --               hl_group = "MiniPickMatchRanges",
+  --               hl_mode = "combine",
+  --               priority = 200,
+  --             })
+  --           end
+  --         end
+  --       end
+  --
+  --       MiniPick.builtin.files(nil, {
+  --         source = {
+  --           name = "Files (MRU)",
+  --           match = function(stritems, indices, query)
+  --             query = table.concat(query)
+  --             indices = match_filter(stritems, indices, query)
+  --             if #indices == 0 then
+  --               -- If no matches, try again without forcing the last keyword
+  --               indices = match_filter(stritems, indices, query .. " ")
+  --             end
+  --             indices = sort(stritems, indices)
+  --             return indices
+  --           end,
+  --           show = show,
+  --         },
+  --         options = {
+  --           use_cache = false,
+  --         },
+  --       })
+  --     end
+  --
+  --     MiniPick.registry.buf_lines_colored = function()
+  --       local ns_digit_prefix = vim.api.nvim_create_namespace("cur-buf-pick-show")
+  --       local show_cur_buf_lines = function(buf_id, items, query, opts)
+  --         if items == nil or #items == 0 then
+  --           return
+  --         end
+  --
+  --         -- Show as usual
+  --         MiniPick.default_show(buf_id, items, query, opts)
+  --
+  --         -- Move prefix line numbers into inline extmarks
+  --         local lines = vim.api.nvim_buf_get_lines(buf_id, 0, -1, false)
+  --         local digit_prefixes = {}
+  --         for i, l in ipairs(lines) do
+  --           local _, prefix_end, prefix = l:find("^(%s*%d+│)")
+  --           if prefix_end ~= nil then
+  --             digit_prefixes[i], lines[i] = prefix, l:sub(prefix_end + 1)
+  --           end
+  --         end
+  --
+  --         vim.api.nvim_buf_set_lines(buf_id, 0, -1, false, lines)
+  --         for i, pref in pairs(digit_prefixes) do
+  --           local opts = { virt_text = { { pref, "MiniPickNormal" } }, virt_text_pos = "inline" }
+  --           vim.api.nvim_buf_set_extmark(buf_id, ns_digit_prefix, i - 1, 0, opts)
+  --         end
+  --
+  --         -- Set highlighting based on the curent filetype
+  --         local ft = vim.bo[items[1].bufnr].filetype
+  --         local has_lang, lang = pcall(vim.treesitter.language.get_lang, ft)
+  --         local has_ts, _ = pcall(vim.treesitter.start, buf_id, has_lang and lang or ft)
+  --         if not has_ts and ft then
+  --           vim.bo[buf_id].syntax = ft
+  --         end
+  --       end
+  --
+  --       local local_opts = { scope = "current", preserve_order = true }
+  --       require("mini.extra").pickers.buf_lines(local_opts, { source = { show = show_cur_buf_lines } })
+  --     end
+  --
+  --     MiniPick.registry.grep_live_align = function()
+  --       local sep = package.config:sub(1, 1)
+  --       local function truncate_path(path)
+  --         local parts = vim.split(path, sep)
+  --         if #parts > 2 then
+  --           parts = { parts[1], "…", parts[#parts] }
+  --         end
+  --         return table.concat(parts, sep)
+  --       end
+  --
+  --       local function map_gsub(items, pattern, replacement)
+  --         return vim.tbl_map(function(item)
+  --           item, _ = string.gsub(item, pattern, replacement)
+  --           return item
+  --         end, items)
+  --       end
+  --
+  --       local show_align_on_nul = function(buf_id, items, query, opts)
+  --         -- Shorten the pathname to keep the width of the picker window to something
+  --         -- a bit more reasonable for longer pathnames.
+  --         items = map_gsub(items, "^%Z+", truncate_path)
+  --
+  --         -- Because items is an array of blobs (contains a NUL byte), align_strings
+  --         -- will not work because it expects strings. So, convert the NUL bytes to a
+  --         -- unique (hopefully) separator, then align, and revert back.
+  --         items = map_gsub(items, "%z", "#|#")
+  --         items = require("mini.align").align_strings(items, {
+  --           justify_side = { "left", "right", "right" },
+  --           merge_delimiter = { "", " ", "", " ", "" },
+  --           split_pattern = "#|#",
+  --         })
+  --         items = map_gsub(items, "#|#", "\0")
+  --
+  --         -- Back to the regularly scheduled program :-)
+  --         MiniPick.default_show(buf_id, items, query, opts)
+  --       end
+  --
+  --       MiniPick.builtin.grep_live({}, {
+  --         source = { show = show_align_on_nul },
+  --         window = { config = { width = math.floor(0.816 * vim.o.columns) } },
+  --       })
+  --     end
+  --   end,
+  -- },
   {
     "nvim-mini/mini.surround",
     keys = {

@@ -24,7 +24,23 @@ return {
     },
     -- version = "1.*",
     event = { "InsertEnter", "CmdlineEnter" },
-    build = "rustup run nightly cargo build --release",
+    -- build = "rustup run nightly cargo build --release",
+
+    build = {
+      function(args)
+        local cmd = { "rustup", "run", "nightly", "cargo", "build", "--release" }
+        ---@type vim.SystemOpts
+        local opts = { cwd = args.dir, text = true }
+
+        vim.notify("Building " .. args.name, vim.log.levels.INFO)
+        local output = vim.system(cmd, opts):wait()
+        if output.code ~= 0 then
+          vim.notify("Failed to build " .. args.name .. "\n" .. output.stderr, vim.log.levels.ERROR)
+        else
+          vim.notify("Built " .. args.name, vim.log.levels.INFO)
+        end
+      end,
+    },
     config = function()
       local blink = require("blink.cmp")
       blink.setup({

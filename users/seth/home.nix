@@ -102,6 +102,7 @@
 
   xdg.enable = true;
   home.preferXdgDirectories = true;
+
   # home.activation.symlinkAdditionalConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
   #   # Handle mutable configs
   #   echo ":: -> Running symlinkers..."
@@ -117,62 +118,23 @@
   #   ln -sfv /Users/${username}/code/dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/.config/
   # '';
 
-  # activation script to set up mise configuration
-  # home.activation.setupMise = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-  #   # use the virtual environment created by uv
-  #   # ${pkgs.mise}/bin/mise settings set python.uv_venv_auto true
-  #
-  #   # enable corepack (pnpm, yarn, etc.)
-  #   ${pkgs.mise}/bin/mise set MISE_NODE_COREPACK=true
-  #
-  #   # disable warning about */.node-version files
-  #   ${pkgs.mise}/bin/mise settings add idiomatic_version_file_enable_tools "[]"
-  #
-  #   # set global tool versions (auto_install will handle installation)
-  #   ${pkgs.mise}/bin/mise use --global node@lts
-  #   ${pkgs.mise}/bin/mise use --global bun@latest
-  #   ${pkgs.mise}/bin/mise use --global deno@latest
-  #   ${pkgs.mise}/bin/mise use --global uv@latest
-  #   ${pkgs.mise}/bin/mise use --global rust@stable
-  # '';
-
-  xdg.configFile."kanata".source = config/kanata;
-  xdg.configFile."kanata".recursive = true;
-
-  xdg.configFile."hammerspoon".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/code/dotfiles-nix/users/${username}/config/hammerspoon";
-  # xdg.configFile."hammerspoon".source = config/hammerspoon;
-  # xdg.configFile."hammerspoon".recursive = true;
-
-  xdg.configFile."nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/code/dotfiles-nix/users/${username}/config/nvim";
-  # xdg.configFile."nvim".source = config/nvim;
-  # xdg.configFile."nvim".recursive = true;
-
-  # system.activationScripts.postActivation.text =
-  #   /* bash */
-  #   ''
-  #     # Handle mutable configs
-  #     echo ":: -> Running post activationScripts..."
-  #
-  #     echo "# Linking nvim folders..."
-  #     ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/nvim /Users/${username}/.config/nvim
-  #
-  #     echo "# Creating vim swap/backup/undo/view folders inside /Users/${username}/.local/state/nvim ..."
-  #     mkdir -p /Users/${username}/.local/state/nvim/{backup,swap,undo,view}
-  #
-  #     echo "# Linking hammerspoon folders..."
-  #     ln -sfv /Users/${username}/.dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/.config/hammerspoon
-  #   '';
 
   # packages managed outside of home-manager
-  # xdg.configFile.nvim = {
-  #   source = mkOutOfStoreSymlink "/Users/${username}/.dotfiles-nix/users/${username}/config/nvim";
-  #   force = true;
-  # };
+  xdg.configFile."hammerspoon".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/code/dotfiles-nix/users/${username}/config/hammerspoon";
+  xdg.configFile."nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/code/dotfiles-nix/users/${username}/config/nvim";
 
+  # xdg.configFile."hammerspoon".source = config/hammerspoon;
+  # xdg.configFile."hammerspoon".recursive = true;
+  # xdg.configFile."nvim".source = config/nvim;
+  # xdg.configFile."nvim".recursive = true;
+  xdg.configFile."kanata".source = config/kanata;
+  xdg.configFile."kanata".recursive = true;
   xdg.configFile."tmux".source = config/tmux;
   xdg.configFile."tmux".recursive = true;
   xdg.configFile."ghostty".source = config/ghostty;
   xdg.configFile."ghostty".recursive = true;
+  xdg.configFile."zsh".source = config/zsh;
+  xdg.configFile."zsh".recursive = true;
   xdg.configFile."opencode/opencode.json".text = ''
     {
       "$schema": "https://opencode.ai/config.json",
@@ -195,9 +157,6 @@
     }
   '';
 
-  xdg.configFile."zsh".source = ./config/zsh;
-  xdg.configFile."zsh".recursive = true;
-
   accounts = import ./accounts.nix { inherit config pkgs lib; };
 
   # applications/programs
@@ -207,18 +166,18 @@
     # HT: @tmiller
     man.generateCaches = false;
 
-    # neovim = {
-    #   enable = true;
-    #   package = pkgs.nvim-nightly;
-    #   defaultEditor = true;
-    #   # extraLuaConfig = lib.fileContents config/nvim/init.lua;
-    #   plugins = [
-    #     {
-    #       plugin = pkgs.vimPlugins.sqlite-lua;
-    #       config = "let g:sqlite_clib_path = '${pkgs.sqlite.out}/lib/libsqlite3${pkgs.stdenv.hostPlatform.extensions.sharedLibrary}'";
-    #     }
-    #   ];
-    # };
+    neovim = {
+      enable = true;
+      package = pkgs.nvim-nightly;
+      # defaultEditor = true;
+      # # extraLuaConfig = lib.fileContents config/nvim/init.lua;
+      # plugins = [
+      #   {
+      #     plugin = pkgs.vimPlugins.sqlite-lua;
+      #     config = "let g:sqlite_clib_path = '${pkgs.sqlite.out}/lib/libsqlite3${pkgs.stdenv.hostPlatform.extensions.sharedLibrary}'";
+      #   }
+      # ];
+    };
     #
     #   withPython3 = true;
     #   withNodeJs = true;
@@ -269,18 +228,6 @@
     #   '';
     # };
 
-    # zsh = import ./programs/zsh.nix { inherit config pkgs lib; };
-    # starship = import ./programs/starship.nix { inherit pkgs; };
-    # git = import ./programs/git.nix { inherit username lib; };
-    # tmux = import ./programs/tmux.nix { inherit pkgs; };
-    # fzf = import ./programs/fzf.nix { inherit pkgs lib; };
-    # zoxide = import ./programs/zoxide.nix { inherit pkgs; };
-    # go = import ./programs/go.nix { inherit pkgs; };
-    # java = import ./programs/java.nix { inherit pkgs; };
-    # lazygit = import ./programs/lazygit.nix { inherit pkgs; };
-    # lazydocker = import ./programs/lazydocker.nix { inherit pkgs; };
-    # gh = import ./programs/gh.nix { inherit pkgs; };
-    # ssh = import ./programs/ssh.nix { inherit pkgs; };
     starship = { enable = true; };
     aerc = import ./config/aerc/default.nix { inherit config pkgs lib; };
     fish = {
@@ -290,6 +237,7 @@
         set fish_greeting # N/A
 
         # fish_add_path /opt/homebrew/bin
+        fish_default_key_bindings
 
         set fish_cursor_default     block      blink
         set fish_cursor_insert      line       blink
@@ -301,9 +249,9 @@
         # quickly open text file
         # bind -M insert \co 'fzf | xargs -r $EDITOR'
 
-        bind -M insert ctrl-a beginning-of-line
-        bind -M insert ctrl-e end-of-line
-        bind -M insert ctrl-y accept-autosuggestion
+        bind -M ctrl-a beginning-of-line
+        bind -M ctrl-e end-of-line
+        bind -M ctrl-y accept-autosuggestion
 
         # Old Ctrl+C behavior, before 4.0
         # bind -M insert ctrl-c cancel-commandline
@@ -329,6 +277,7 @@
       };
 
       shellAbbrs = {
+        nvim = "nvim -O";
         vim = "nvim";
         j = "just";
       };
@@ -421,11 +370,22 @@
       shell = "${pkgs.fish}/bin/fish";
       terminal = "xterm-ghostty";
       # NOTE: doing an xdgConfig.source instead..
-      # extraConfig = lib.fileContents config/tmux/tmux.conf;
+      extraConfig = lib.fileContents config/tmux/tmux.conf;
       plugins = with pkgs.tmuxPlugins; [
         pain-control
         sessionist
         yank
+        battery
+        cpu
+        copycat
+        open
+        better-mouse-mode
+        pop
+        fuzzback
+        jump
+        thumbs
+        cowboy
+        suspend
       ];
     };
 
