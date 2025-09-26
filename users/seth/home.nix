@@ -85,7 +85,7 @@
     # };
     "bin".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/code/dotfiles-nix/users/${username}/bin";
     ".vimrc".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/code/dotfiles-nix/users/${username}/config/nvim/.vimrc";
-    ".ssh/config".source = config/ssh/config;
+    # ".ssh/config".source = config/ssh/config;
     ".ignore".source = config/git/tool_ignore;
     ".gitignore".source = config/git/gitignore;
     ".gitconfig".source = config/git/gitconfig;
@@ -98,25 +98,27 @@
       text = builtins.readFile config/starship/starship.toml;
     };
     ".hushlogin".text = "";
+    "..config/1Password/ssh/agent.toml".text = ''
+      [[ssh-keys]]
+      vault = "Shared"
+      item = "megaenv"
+    '';
   };
 
   xdg.enable = true;
   home.preferXdgDirectories = true;
 
-  # home.activation.symlinkAdditionalConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-  #   # Handle mutable configs
-  #   echo ":: -> Running symlinkers..."
-  #
-  #   echo "# Linking nvim config dir..." &&
-  #   rm -rf /Users/${username}/.config/nvim &&
-  #   ln -sfv /Users/${username}/code/dotfiles-nix/users/${username}/config/nvim /Users/${username}/.config &&
-  #
-  #   # echo "# Creating vim swap/backup/undo/view folders inside /Users/${username}/.local/state/nvim ..." &&
-  #   # mkdir -p /Users/${username}/.local/state/nvim/{backup,swap,undo,view}
-  #
-  #   echo "# Linking hammerspoon folders..." &&
-  #   ln -sfv /Users/${username}/code/dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/.config/
-  # '';
+  home.activation.symlinkAdditionalConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    # Handle mutable configs
+    echo ":: -> Running symlinkers..."
+    echo "# symlink proton drive to /Users/${username}/protondrive..." &&
+      rm /Users/${username}/protondrive > /dev/null 2>&1;
+      ln -sfv /Users/seth/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder /Users/${username}/protondrive
+
+    echo "# symlink iCloud to /Users/${username}/iclouddrive..." &&
+      rm /Users/${username}/iclouddrive > /dev/null 2>&1;
+      ln -sfv /Users/seth/Library/Mobile\ Documents/com~apple~CloudDocs /Users/${username}/iclouddrive
+  '';
 
 
   # packages managed outside of home-manager
@@ -235,28 +237,33 @@
       enable = true;
       interactiveShellInit = ''
         set fish_greeting # N/A
-
+        
         # fish_add_path /opt/homebrew/bin
-        fish_default_key_bindings
-
+        # fish_default_key_bindings
+       
         set fish_cursor_default     block      blink
         set fish_cursor_insert      line       blink
         set fish_cursor_replace_one underscore
         set fish_cursor_visual      underscore blink
-
+       
         # fish_vi_key_bindings
         # fish_vi_key_bindings insert
         # quickly open text file
-        # bind -M insert \co 'fzf | xargs -r $EDITOR'
+        bind -M insert \co 'fzf | xargs -r $EDITOR'
+        bind -M insert \cd 'fd -d | fzf | xargs -r cd'
 
-        bind -M ctrl-a beginning-of-line
-        bind -M ctrl-e end-of-line
-        bind -M ctrl-y accept-autosuggestion
+        bind -M insert ctrl-a beginning-of-line
+        bind -M insert ctrl-e end-of-line
+        bind -M insert ctrl-y accept-autosuggestion
+        bind ctrl-y accept-autosuggestion
 
+        bind -M insert ctrl-r history-pager
+        bind ctrl-r history-pager
+       
         # Old Ctrl+C behavior, before 4.0
         # bind -M insert ctrl-c cancel-commandline
-
-        # Rerun previous command
+       
+        # Rerun previous command
         bind -M insert ctrl-s 'commandline $history[1]' 'commandline -f execute'
       '';
 
@@ -307,7 +314,10 @@
         }
       ];
     };
-
+    fzf = {
+      enable = true;
+      enableFishIntegration = false;
+    };
     ghostty = {
       enable = true;
       enableBashIntegration = false;
@@ -370,7 +380,7 @@
       shell = "${pkgs.fish}/bin/fish";
       terminal = "xterm-ghostty";
       # NOTE: doing an xdgConfig.source instead..
-      extraConfig = lib.fileContents config/tmux/tmux.conf;
+      # extraConfig = lib.fileContents config/tmux/tmux.conf;
       plugins = with pkgs.tmuxPlugins; [
         pain-control
         sessionist
@@ -380,12 +390,13 @@
         copycat
         open
         better-mouse-mode
-        pop
+        # pop
         fuzzback
         jump
-        thumbs
-        cowboy
-        suspend
+        tmux-thumbs
+        mode-indicator
+        # cowboy
+        # suspend
       ];
     };
 
@@ -404,9 +415,9 @@
       enableZshIntegration = true;
     };
 
-    # ssh = {
-    #   matchBlocks."* \"test -z $SSH_TTY\"".identityAgent = "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
-    # };
+    ssh = {
+      matchBlocks."* \"test -z $SSH_TTY\"".identityAgent = "~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock";
+    };
 
     mise = {
       enable = true;

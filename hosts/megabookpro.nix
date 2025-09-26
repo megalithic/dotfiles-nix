@@ -48,7 +48,6 @@ in
     eza
     fd
     fish
-    fzf
     git
     git-lfs
     gnumake

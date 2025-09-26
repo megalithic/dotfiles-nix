@@ -6,7 +6,7 @@
 # then, likely:
 # chmod 0700 ~/.ssh/config
 
-AddKeysToAgent yes
+# AddKeysToAgent yes
 # UseKeychain yes
 
 Host *
@@ -26,7 +26,7 @@ Host *
   #   TCPKeepAlive yes
   #   ServerAliveInterval 20
   #   ServerAliveCountMax 10
-  IdentityFile ~/.ssh/seth-megabookpro
+  # IdentityFile ~/.ssh/seth-megabookpro
   IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
   #   PubkeyAcceptedKeyTypes=+ssh-dss
   #   # UseKeychain yes #-> not supported in homebrew openssh (https://superuser.com/a/1172536)
@@ -36,19 +36,19 @@ Host *
   #   # PubkeyAcceptedKeyTypes=+ssh-dss
   #   SendEnv TZ
 
-Host github.com gh
-  ControlMaster auto
-  ControlPersist 120
-  Hostname github.com
-  User git
-  IdentityFile ~/.ssh/seth-megabookpro
-  ForwardAgent yes
-
-Host megalithic.dev ocean
-  HostName megalithic.dev
-  User replicant
-  ControlPath /tmp/ssh_mux_%r@%h:%p
-  IdentityFile ~/.ssh/seth-megabookpro
+# Host github.com gh
+#   ControlMaster auto
+#   ControlPersist 120
+#   Hostname github.com
+#   User git
+#   IdentityFile ~/.ssh/seth-megabookpro
+#   ForwardAgent yes
+#
+# Host megalithic.dev ocean
+#   HostName megalithic.dev
+#   User replicant
+#   ControlPath /tmp/ssh_mux_%r@%h:%p
+#   IdentityFile ~/.ssh/seth-megabookpro
 
 
 # DevSpace Start launchdeck-portal-api.devspace

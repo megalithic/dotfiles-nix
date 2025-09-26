@@ -4,7 +4,7 @@
   enableFishIntegration = true;
   enableZshIntegration = true;
   settings = {
-    manager = {
+    mgr = {
       ratio = [
         1
         3
@@ -58,7 +58,7 @@
         }
       ];
     };
-    manager = {
+    mgr = {
       prepend_keymap = [
         # https://yazi-rs.github.io/docs/tips#dropping-to-shell
         {
