@@ -11,7 +11,7 @@
 	; editor = nvim
 	; autocrlf = input
   editor = "nvim" # "nvr --remote-wait-silent" # or nvim
-  excludesfile ="~/.dotfiles/git/gitignore_global"
+  excludesfile ="~/.gitignore"
 [interactive]
 	diffFilter = delta --color-only
 # [pager]
@@ -336,15 +336,15 @@
 #   insteadOf = "ssh://git@github.com/"
 #   insteadOf = "http://github.com/"
 
-[url "ssh://git@github.com/"]
-  insteadOf = https://github.com/
-
-[browse-remote "github.com"]
-  top  = https://{host}/{path}
-  ref  = https://{host}/{path}/tree/{short_ref}
-  rev  = https://{host}/{path}/commit/{commit}
-  pr   = https://{host}/{path}/pull/{short_ref}
-  file = "https://{host}/{path}/{file.directory? and :tree or :blob}/{short_rev}/{file}{lines && \"#L%s\" % lines.join(\"-\")}"
+# [url "ssh://git@github.com/"]
+#   insteadOf = https://github.com/
+#
+# [browse-remote "github.com"]
+#   top  = https://{host}/{path}
+#   ref  = https://{host}/{path}/tree/{short_ref}
+#   rev  = https://{host}/{path}/commit/{commit}
+#   pr   = https://{host}/{path}/pull/{short_ref}
+#   file = "https://{host}/{path}/{file.directory? and :tree or :blob}/{short_rev}/{file}{lines && \"#L%s\" % lines.join(\"-\")}"
 
 ; [pager]
 ;   #diff = diff-so-fancy | less --tabs=4 -RFX
@@ -431,17 +431,17 @@
 [include]
   # A local gitconfig, outside of version control.
   # If the file doesn't exist it is silently ignored
-  path = ~/.gitconfig_macos
+  # path = ~/.gitconfig_macos
 
 [include]
   # A local gitconfig, outside of version control.
   # If the file doesn't exist it is silently ignored
-  path = ~/.gitconfig_linux
+  # path = ~/.gitconfig_linux
 
 [include]
   # A local gitconfig, outside of version control.
   # If the file doesn't exist it is silently ignored
-  path = ~/.gitconfig_local
+  # path = ~/.gitconfig_local
 
 [init]
 	defaultBranch = main

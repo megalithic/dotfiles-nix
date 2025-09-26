@@ -21,11 +21,11 @@
         should-sign-off = true;
         show-cryptographic-signatures = true;
       };
-      signing = {
-        behavior = "own";
-        backend = "ssh";
-        key = "~/.ssh/${username}-${hostname}.pub";
-      };
+      # signing = {
+      #   behavior = "own";
+      #   backend = "ssh";
+      #   key = "~/.ssh/${username}-${hostname}.pub";
+      # };
 
       # REF: https://github.com/Misterio77/nix-config/blob/main/home/gabriel/features/cli/jujutsu.nix#L13-L19
       # signing = let
@@ -67,10 +67,10 @@
         "node normal" = { bold = false; };
         "node" = { bold = false; };
       };
-      git = {
-        sign-on-push = true;
-        write-change-id-header = true;
-      };
+      # git = {
+      #   sign-on-push = true;
+      #   write-change-id-header = true;
+      # };
       aliases = {
         s = [ "status" ];
         l = [ "log" ];
