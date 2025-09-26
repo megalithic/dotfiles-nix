@@ -36,6 +36,7 @@
     codex
     curlie
     devbox
+    difftastic
     ffmpeg
     flyctl
     gh
@@ -52,9 +53,9 @@
     nil
     nixd
     nixfmt-rfc-style
-    nixfmt-rfc-style
     podman
     poppler
+    pre-commit
     procs
     quarto
     ripgrep
@@ -63,6 +64,7 @@
     shfmt
     sqlite
     terraform-docs
+    terminal-notifier
     tflint
     tfsec
     typst
@@ -82,7 +84,10 @@
     #   source = ./bin;
     # };
     "bin".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/code/dotfiles-nix/users/${username}/bin";
-    ".gitignore".source = config/git/gitignore_global;
+    ".vimrc".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/code/dotfiles-nix/users/${username}/config/nvim/.vimrc";
+    ".ssh/config".source = config/ssh/config;
+    ".ignore".source = config/git/tool_ignore;
+    ".gitignore".source = config/git/gitignore;
     ".gitconfig".source = config/git/gitconfig;
     ".config/surfingkeys/config.js" = {
       recursive = true;
@@ -97,20 +102,20 @@
 
   xdg.enable = true;
   home.preferXdgDirectories = true;
-  home.activation.symlinkAdditionalConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    # Handle mutable configs
-    echo ":: -> Running symlinkers..."
-
-    echo "# Linking nvim config dir..." &&
-    rm -rf /Users/${username}/.config/nvim &&
-    ln -sfv /Users/${username}/code/dotfiles-nix/users/${username}/config/nvim /Users/${username}/.config &&
-
-    # echo "# Creating vim swap/backup/undo/view folders inside /Users/${username}/.local/state/nvim ..." &&
-    # mkdir -p /Users/${username}/.local/state/nvim/{backup,swap,undo,view}
-
-    echo "# Linking hammerspoon folders..." &&
-    ln -sfv /Users/${username}/code/dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/.config/
-  '';
+  # home.activation.symlinkAdditionalConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+  #   # Handle mutable configs
+  #   echo ":: -> Running symlinkers..."
+  #
+  #   echo "# Linking nvim config dir..." &&
+  #   rm -rf /Users/${username}/.config/nvim &&
+  #   ln -sfv /Users/${username}/code/dotfiles-nix/users/${username}/config/nvim /Users/${username}/.config &&
+  #
+  #   # echo "# Creating vim swap/backup/undo/view folders inside /Users/${username}/.local/state/nvim ..." &&
+  #   # mkdir -p /Users/${username}/.local/state/nvim/{backup,swap,undo,view}
+  #
+  #   echo "# Linking hammerspoon folders..." &&
+  #   ln -sfv /Users/${username}/code/dotfiles-nix/users/${username}/config/hammerspoon /Users/${username}/.config/
+  # '';
 
   # activation script to set up mise configuration
   # home.activation.setupMise = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
@@ -131,18 +136,17 @@
   #   ${pkgs.mise}/bin/mise use --global rust@stable
   # '';
 
-  # xdg.configFile."hammerspoon".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/hammerspoon";
-  # xdg.configFile."hammerspoon".source = config/hammerspoon;
-  # xdg.configFile."hammerspoon".recursive = true;
-
   xdg.configFile."kanata".source = config/kanata;
   xdg.configFile."kanata".recursive = true;
 
-  # xdg.configFile."nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/nvim";
+  xdg.configFile."hammerspoon".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/code/dotfiles-nix/users/${username}/config/hammerspoon";
+  # xdg.configFile."hammerspoon".source = config/hammerspoon;
+  # xdg.configFile."hammerspoon".recursive = true;
 
-  # xdg.configFile."nvim/.vimrc".source = config/nvim/.vimrc;
+  xdg.configFile."nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/code/dotfiles-nix/users/${username}/config/nvim";
   # xdg.configFile."nvim".source = config/nvim;
   # xdg.configFile."nvim".recursive = true;
+
   # system.activationScripts.postActivation.text =
   #   /* bash */
   #   ''
@@ -203,18 +207,18 @@
     # HT: @tmiller
     man.generateCaches = false;
 
-    neovim = {
-      enable = true;
-      package = pkgs.nvim-nightly;
-      defaultEditor = true;
-      extraLuaConfig = lib.fileContents config/nvim/init.lua;
-      plugins = [
-        {
-          plugin = pkgs.vimPlugins.sqlite-lua;
-          config = "let g:sqlite_clib_path = '${pkgs.sqlite.out}/lib/libsqlite3${pkgs.stdenv.hostPlatform.extensions.sharedLibrary}'";
-        }
-      ];
-    };
+    # neovim = {
+    #   enable = true;
+    #   package = pkgs.nvim-nightly;
+    #   defaultEditor = true;
+    #   # extraLuaConfig = lib.fileContents config/nvim/init.lua;
+    #   plugins = [
+    #     {
+    #       plugin = pkgs.vimPlugins.sqlite-lua;
+    #       config = "let g:sqlite_clib_path = '${pkgs.sqlite.out}/lib/libsqlite3${pkgs.stdenv.hostPlatform.extensions.sharedLibrary}'";
+    #     }
+    #   ];
+    # };
     #
     #   withPython3 = true;
     #   withNodeJs = true;
@@ -295,14 +299,14 @@
         # fish_vi_key_bindings
         # fish_vi_key_bindings insert
         # quickly open text file
-        bind -M insert \co 'fzf | xargs -r $EDITOR'
+        # bind -M insert \co 'fzf | xargs -r $EDITOR'
 
         bind -M insert ctrl-a beginning-of-line
         bind -M insert ctrl-e end-of-line
         bind -M insert ctrl-y accept-autosuggestion
 
         # Old Ctrl+C behavior, before 4.0
-        bind -M insert ctrl-c cancel-commandline
+        # bind -M insert ctrl-c cancel-commandline
 
         # Rerun previous command
         bind -M insert ctrl-s 'commandline $history[1]' 'commandline -f execute'
@@ -341,6 +345,15 @@
             repo = "nix-env.fish";
             rev = "7b65bd228429e852c8fdfa07601159130a818cfa";
             hash = "sha256-RG/0rfhgq6aEKNZ0XwIqOaZ6K5S4+/Y5EEMnIdtfPhk";
+          };
+        }
+        {
+          name = "done";
+          src = pkgs.fetchFromGitHub {
+            owner = "franciscolourenco";
+            repo = "done";
+            rev = "d6abb267bb3fb7e987a9352bc43dcdb67bac9f06";
+            sha256 = "6oeyN9ngXWvps1c5QAUjlyPDQwRWAoxBiVTNmZ4sG8E=";
           };
         }
       ];
@@ -431,9 +444,9 @@
       enableZshIntegration = true;
     };
 
-    ssh = {
-      matchBlocks."* \"test -z $SSH_TTY\"".identityAgent = "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
-    };
+    # ssh = {
+    #   matchBlocks."* \"test -z $SSH_TTY\"".identityAgent = "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
+    # };
 
     mise = {
       enable = true;

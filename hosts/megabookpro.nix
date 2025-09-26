@@ -109,6 +109,10 @@ in
     DOTS = "/Users/${username}/code/dotfiles-nix";
   };
 
+  environment.extraInit = ''
+    export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
+  '';
+
 
   # We use determinate nix installer; so we don't need this enabled..
   nix = {

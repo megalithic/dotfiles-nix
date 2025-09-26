@@ -14,18 +14,24 @@ obj.defaultAudioOutputStr = "MacBook Pro Speakers"
 obj.defaultAudioInputStr = "MacBook Pro Microphone"
 
 function obj.setWifi(connectedState)
-  hs.execute("networksetup -setairportpower airport " .. connectedState, true)
+  hs.execute("networksetup -setairportpower en0 " .. connectedState, true)
   success(fmt("[watcher.dock] wifi set to %s", connectedState))
 end
 
 function obj.setInput(device)
-  local deviceExists = enum.find(hs.usb.attachedDevices(), function(d) return d.productName == device end)
-  if not deviceExists then device = obj.defaultAudioInputStr end
+  local deviceExists = enum.find(hs.usb.attachedDevices(), function(d)
+    return d.productName == device
+  end)
+  if not deviceExists then
+    device = obj.defaultAudioInputStr
+  end
 
   local task = hs.task.new(obj.audioBin, function(_exitCode, _stdOut, _stdErr) end, function(_task, stdOut, _stdErr)
     stdOut = string.gsub(stdOut, "^%s*(.-)%s*$", "%1")
     local continue = stdOut == fmt([[input audio device set to "%s"]], device)
-    if continue then success(fmt("[%s] audio input set to %s", obj.name, device)) end
+    if continue then
+      success(fmt("[%s] audio input set to %s", obj.name, device))
+    end
     return continue
   end, { "-t", "input", "-s", device })
   task:start()
@@ -34,7 +40,9 @@ end
 function obj.setOutput(deviceStr)
   -- NOTE:
   -- here, we're expecting deviceStr to first be "phonak"
-  if not deviceStr then return end
+  if not deviceStr then
+    return
+  end
 
   local device = bt.devices[deviceStr]
 
@@ -47,7 +55,9 @@ function obj.setOutput(deviceStr)
   local task = hs.task.new(obj.audioBin, function(_exitCode, _stdOut, _stdErr) end, function(_task, stdOut, _stdErr)
     stdOut = string.gsub(stdOut, "^%s*(.-)%s*$", "%1")
     local continue = stdOut == fmt([[output audio device set to "%s"]], device.name)
-    if continue then success(fmt("[%s] audio output set to %s", obj.name, device.bt)) end
+    if continue then
+      success(fmt("[%s] audio output set to %s", obj.name, device.bt))
+    end
     return continue
   end, { "-t", "output", "-s", device.name })
   task:start()
@@ -113,6 +123,8 @@ function obj:start()
   return self
 end
 
-function obj:stop() return self end
+function obj:stop()
+  return self
+end
 
 return obj
