@@ -47,7 +47,8 @@ in
     du-dust # du + rust = dust. Like du but more intuitive.
     eza
     fd
-    fish
+    # fish
+    # fzf
     git
     git-lfs
     gnumake
@@ -69,14 +70,14 @@ in
     p7zip
     ripgrep
     starship
-    tmux
+    # tmux
     vim
     wget
     yazi
     yq
     zip
     zoxide
-    zsh
+    # zsh
     zsh-autosuggestions
     zsh-syntax-highlighting
   ];

@@ -13,6 +13,7 @@
   imports = [
     # ./packages.nix
     ./config/jujutsu
+    ./config/tmux
     # ./config/nvim
   ];
 
@@ -86,6 +87,19 @@
     "bin".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/code/dotfiles-nix/users/${username}/bin";
     ".vimrc".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/code/dotfiles-nix/users/${username}/config/nvim/.vimrc";
     # ".ssh/config".source = config/ssh/config;
+    ".editorconfig".text = ''
+      root = true
+
+      [*]
+      indent_style = space
+      indent_size = 2
+      end_of_line = lf
+      insert_final_newline = true
+      trim_trailing_whitespace=true
+      # max_line_length = 80
+      charset = utf-8
+    '';
+
     ".ignore".source = config/git/tool_ignore;
     ".gitignore".source = config/git/gitignore;
     ".gitconfig".source = config/git/gitconfig;
@@ -131,8 +145,8 @@
   # xdg.configFile."nvim".recursive = true;
   xdg.configFile."kanata".source = config/kanata;
   xdg.configFile."kanata".recursive = true;
-  xdg.configFile."tmux".source = config/tmux;
-  xdg.configFile."tmux".recursive = true;
+  # xdg.configFile."tmux".source = config/tmux;
+  # xdg.configFile."tmux".recursive = true;
   xdg.configFile."ghostty".source = config/ghostty;
   xdg.configFile."ghostty".recursive = true;
   xdg.configFile."zsh".source = config/zsh;
@@ -237,15 +251,15 @@
       enable = true;
       interactiveShellInit = ''
         set fish_greeting # N/A
-        
+
         # fish_add_path /opt/homebrew/bin
         # fish_default_key_bindings
-       
+
         set fish_cursor_default     block      blink
         set fish_cursor_insert      line       blink
         set fish_cursor_replace_one underscore
         set fish_cursor_visual      underscore blink
-       
+
         # fish_vi_key_bindings
         # fish_vi_key_bindings insert
         # quickly open text file
@@ -259,10 +273,10 @@
 
         bind -M insert ctrl-r history-pager
         bind ctrl-r history-pager
-       
+
         # Old Ctrl+C behavior, before 4.0
         # bind -M insert ctrl-c cancel-commandline
-       
+
         # Rerun previous command
         bind -M insert ctrl-s 'commandline $history[1]' 'commandline -f execute'
       '';
@@ -372,33 +386,42 @@
       };
     };
 
-    tmux = {
-      enable = true;
-      escapeTime = 10;
-      prefix = "C-space";
-      sensibleOnTop = false;
-      shell = "${pkgs.fish}/bin/fish";
-      terminal = "xterm-ghostty";
-      # NOTE: doing an xdgConfig.source instead..
-      # extraConfig = lib.fileContents config/tmux/tmux.conf;
-      plugins = with pkgs.tmuxPlugins; [
-        pain-control
-        sessionist
-        yank
-        battery
-        cpu
-        copycat
-        open
-        better-mouse-mode
-        # pop
-        fuzzback
-        jump
-        tmux-thumbs
-        mode-indicator
-        # cowboy
-        # suspend
-      ];
-    };
+    # tmux = {
+    #   enable = true;
+    #   shell = "${pkgs.fish}/bin/fish";
+    #   terminal = "xterm-ghostty";
+    #   # NOTE: doing an xdgConfig.source instead..
+    #   # extraConfig = lib.fileContents config/tmux/tmux.conf;
+    #   extraConfig = ''
+    #     set -sg escape-time 0
+    #     set -g history-limit 16384
+    #
+    #     # Enable true-color for terminal type under which tmux runs
+    #     set -ga terminal-overrides ",xterm-256color:Tc"
+    #
+    #     # The terminal type to surface inside of tmux
+    #     set -g default-terminal "xterm-256color"
+    #
+    #     ${lib.concatStrings (map (x: "run-shell ${x.rtp}\n") tmuxPlugins)}
+    #   '';
+    #   plugins = with pkgs.tmuxPlugins; [
+    #     pain-control
+    #     sessionist
+    #     yank
+    #     battery
+    #     cpu
+    #     copycat
+    #     open
+    #     better-mouse-mode
+    #     # pop
+    #     fuzzback
+    #     jump
+    #     tmux-thumbs
+    #     mode-indicator
+    #     # cowboy
+    #     # suspend
+    #   ];
+    # };
 
     nh = {
       enable = true;

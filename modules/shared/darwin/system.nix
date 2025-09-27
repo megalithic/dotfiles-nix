@@ -103,6 +103,9 @@
         NSDocumentSaveNewDocumentsToCloud = false;
         PMPrintingExpandedStateForPrint = true;
         PMPrintingExpandedStateForPrint2 = true;
+        NSNavPanelExpandedStateForSaveMode = true;
+        NSNavPanelExpandedStateForSaveMode2 = true;
+        "com.apple.swipescrolldirection" = false;
       };
 
       screencapture = {

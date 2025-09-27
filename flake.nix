@@ -73,7 +73,6 @@
     , nixpkgs-unstable
     , nix-darwin
     , home-manager
-      # , gift-wrap
     , neovim-nightly-overlay
     , mcp-hub
     , ...

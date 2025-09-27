@@ -6,7 +6,7 @@
   homebrew = {
     enable = true;
     onActivation = {
-      cleanup = "uninstall";
+      cleanup = "zap";
       upgrade = false;
       autoUpdate = true;
     };
@@ -16,41 +16,41 @@
     global.autoUpdate = true;
     global.brewfile = true;
 
-    brews = [
-      "vfkit" # for podman
-      "openconnect"
-      # libvterm is not available in nix for aarch64 so we
-      # install it from homebrew
-      "libvterm"
-      # this is required for mise be able to install erlang,
-      # mise cannot identify openssl version installed in nix so
-      # we need to use homebrew version to be able to use erlang
-      # with no issues
-      "openssl@3"
-      # "qmk"
-      # # QMK dependencies
-      # "avr-binutils"
-      # "avr-gcc@8"
-      # "boost"
-      # "confuse"
-      # "hidapi"
-      # "libftdi"
-      # "libusb-compat"
-      # "avrdude"
-      # "bootloadhid"
-      # "clang-format"
-      # "dfu-programmer"
-      # "dfu-util"
-      # "libimagequant"
-      # "libraqm"
-      # "pillow"
-      # "teensy_loader_cli"
-      # "osx-cross/arm/arm-none-eabi-binutils"
-      # "osx-cross/arm/arm-none-eabi-gcc@8"
-      # "osx-cross/avr/avr-gcc@9"
-      # "qmk/qmk/hid_bootloader_cli"
-      # "qmk/qmk/mdloader"
-    ];
+    # brews = [
+    #   "vfkit" # for podman
+    #   "openconnect"
+    #   # libvterm is not available in nix for aarch64 so we
+    #   # install it from homebrew
+    #   "libvterm"
+    #   # this is required for mise be able to install erlang,
+    #   # mise cannot identify openssl version installed in nix so
+    #   # we need to use homebrew version to be able to use erlang
+    #   # with no issues
+    #   "openssl@3"
+    #   # "qmk"
+    #   # # QMK dependencies
+    #   # "avr-binutils"
+    #   # "avr-gcc@8"
+    #   # "boost"
+    #   # "confuse"
+    #   # "hidapi"
+    #   # "libftdi"
+    #   # "libusb-compat"
+    #   # "avrdude"
+    #   # "bootloadhid"
+    #   # "clang-format"
+    #   # "dfu-programmer"
+    #   # "dfu-util"
+    #   # "libimagequant"
+    #   # "libraqm"
+    #   # "pillow"
+    #   # "teensy_loader_cli"
+    #   # "osx-cross/arm/arm-none-eabi-binutils"
+    #   # "osx-cross/arm/arm-none-eabi-gcc@8"
+    #   # "osx-cross/avr/avr-gcc@9"
+    #   # "qmk/qmk/hid_bootloader_cli"
+    #   # "qmk/qmk/mdloader"
+    # ];
 
     casks = [
       "1password"
