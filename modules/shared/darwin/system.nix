@@ -106,6 +106,21 @@
         NSNavPanelExpandedStateForSaveMode = true;
         NSNavPanelExpandedStateForSaveMode2 = true;
         "com.apple.swipescrolldirection" = false;
+            # Use scroll gesture with the Ctrl (^) modifier key to
+            # zoom, this requires to have "Full disk access" in the
+            # program which run nix-darwin command
+            # NOTE: doesn't exist on sequoia?
+            # universalaccess.closeViewScrollWheelToggle = true;
+"com.apple.trackpad.scaling" = 3.0;
+    AppleInterfaceStyleSwitchesAutomatically = true;
+    AppleShowScrollBars = "Automatic";
+    InitialKeyRepeat = 12;
+    KeyRepeat = 1;
+    # NSAutomaticCapitalizationEnabled = false;
+    # NSAutomaticDashSubstitutionEnabled = false;
+    # NSAutomaticPeriodSubstitutionEnabled = false;
+    # NSAutomaticQuoteSubstitutionEnabled = true;
+    _HIHideMenuBar = false;
       };
 
       screencapture = {
@@ -157,9 +172,9 @@
         # Prevent Photos from opening automatically when devices are plugged in
         "com.apple.ImageCapture".disableHotPlug = true;
         # Disable animation when switching screens or opening apps
-        "com.apple.universalaccess".reduceMotion = true;
+#        "com.apple.universalaccess".reduceMotion = true;
         # tell HS where to find its config file
-        # "org.hammerspoon.Hammerspoon".MJConfigFile = "~/.config/hammerspoon/init.lua";
+        "org.hammerspoon.Hammerspoon".MJConfigFile = "~/.config/hammerspoon/init.lua";
         "com.apple.SoftwareUpdate" = {
           AutomaticCheckEnabled = true;
           # Check for software updates daily, not just once per week

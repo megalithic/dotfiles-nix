@@ -47,6 +47,7 @@
     jwt-cli
     lua-language-server
     k9s
+    kanata
     kubectl
     kubernetes-helm
     kubie
@@ -64,8 +65,9 @@
     shellcheck
     shfmt
     sqlite
+    stylua
     terraform-docs
-    terminal-notifier
+    # terminal-notifier
     tflint
     tfsec
     typst
@@ -84,9 +86,9 @@
     #   recursive = true;
     #   source = ./bin;
     # };
-    "bin".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/code/dotfiles-nix/users/${username}/bin";
-    ".vimrc".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/code/dotfiles-nix/users/${username}/config/nvim/.vimrc";
-    # ".ssh/config".source = config/ssh/config;
+    "bin".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/bin";
+    ".vimrc".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/nvim/.vimrc";
+    ".ssh/config".source = config/ssh/config;
     ".editorconfig".text = ''
       root = true
 
@@ -99,7 +101,7 @@
       # max_line_length = 80
       charset = utf-8
     '';
-
+    ".hushlogin".text = "";
     ".ignore".source = config/git/tool_ignore;
     ".gitignore".source = config/git/gitignore;
     ".gitconfig".source = config/git/gitconfig;
@@ -116,7 +118,9 @@
       recursive = true;
       text = builtins.readFile config/starship/starship.toml;
     };
-    ".hushlogin".text = "";
+
+    "hammerspoon".source = config/hammerspoon;
+    "hammerspoon".recursive = true;
   };
 
   xdg.enable = true;
@@ -135,12 +139,10 @@
   '';
 
 
-  # packages managed outside of home-manager
-  xdg.configFile."hammerspoon".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/code/dotfiles-nix/users/${username}/config/hammerspoon";
-  xdg.configFile."nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/code/dotfiles-nix/users/${username}/config/nvim";
+  xdg.configFile."nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/nvim";
 
-  # xdg.configFile."hammerspoon".source = config/hammerspoon;
-  # xdg.configFile."hammerspoon".recursive = true;
+  xdg.configFile."hammerspoon".source = config/hammerspoon;
+  xdg.configFile."hammerspoon".recursive = true;
   # xdg.configFile."nvim".source = config/nvim;
   # xdg.configFile."nvim".recursive = true;
   xdg.configFile."kanata".source = config/kanata;

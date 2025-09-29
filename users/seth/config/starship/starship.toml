@@ -37,7 +37,7 @@ style = "yellow"
 format = "[$hostname]($style) "
 
 [cmd_duration]
-format = "[$duration]($style) "
+format = "[\t $duration]($style) "
 
 [character]
 format = "$symbol "

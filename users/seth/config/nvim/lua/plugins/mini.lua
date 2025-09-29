@@ -129,7 +129,9 @@ return {
           if needs_init_buf_restore then
             vim.api.nvim_win_set_buf(win_target, init_target_buf)
           end
-          vim.api.nvim_buf_delete(preview_buf_id, { force = true })
+          if vim.api.nvim_buf_is_valid(preview_buf_id) then
+            vim.api.nvim_buf_delete(preview_buf_id, { force = true })
+          end
         end
         vim.api.nvim_create_autocmd("User", { pattern = "MiniPickStop", once = true, callback = cleanup })
       end
@@ -167,13 +169,13 @@ return {
       end
 
       require("mini.pick").setup({
-        mappings = {
-          choose = "<CR>",
-          choose_in_split = "<C-s>",
-          choose_in_vsplit = "<C-v>",
-          choose_in_tabpage = "<C-t>",
-          choose_marked = "",
-        },
+        -- mappings = {
+        --   choose = "<CR>",
+        --   choose_in_split = "<C-s>",
+        --   choose_in_vsplit = "<C-v>",
+        --   choose_in_tabpage = "<C-t>",
+        --   choose_marked = "",
+        -- },
 
         window = {
           config = function()
@@ -307,7 +309,8 @@ return {
 
       -- Using primarily for code action
       -- See https://github.com/echasnovski/mini.nvim/discussions/1437
-      vim.ui.select = MiniPick.ui_select
+      -- vim.ui.select = MiniPick.ui_select
+      -- vim.ui.select = require("lazy-require").require_on_exported_call(plugin.main).ui_select
 
       -- Shorten file paths by default
       local show_short_files = function(buf_id, items_to_show, query)

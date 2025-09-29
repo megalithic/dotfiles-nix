@@ -46,8 +46,8 @@ echo "░ :: -> Running nix-darwin for the first time for $FLAKE.." &&
   (sudo nix --experimental-features 'nix-command flakes' run nix-darwin -- switch --option eval-cache false --flake "$DOTFILES_DIR#$FLAKE" &&
     # echo "Running home-manager for the first time for $FLAKE.."
     # sudo nix --experimental-features 'nix-command flakes' run home-manager/master -- switch --flake "$DOTFILES_DIR#$FLAKE"
-    echo "░ :: -> Setting $DOTFILES_DIR to bare repo.." &&
-    pushd "$DOTFILES_DIR" > /dev/null &&
-    git config --bool core.bare true &&
-    popd > /dev/null &&
+    # echo "░ :: -> Setting $DOTFILES_DIR to bare repo.." &&
+    # pushd "$DOTFILES_DIR" > /dev/null &&
+    # git config --bool core.bare true &&
+    # popd > /dev/null &&
     echo "░ [✓] -> Completed installation of $DOTFILES_DIR flake..") || echo "░ [x] -> Errored while installing $DOTFILES_DIR flake.."

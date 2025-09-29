@@ -1,1 +1,1 @@
-/nix/store/cjafgr8rza8hb2j261h6lc2rjz2w6m2v-home-manager-files/.config/hammerspoon/ptt.lua
+/nix/store/p71z44iaf5gk7w9k26pwhfdq5hdzhdfz-home-manager-files/.config/hammerspoon/ptt.lua

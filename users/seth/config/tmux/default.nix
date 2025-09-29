@@ -39,22 +39,16 @@ in
     sensibleOnTop = false;
     shell = "${pkgs.fish}/bin/fish";
     terminal = "xterm-ghostty";
+    # extraConfig = builtins.readFile ./tmux.conf;
+    plugins = tmuxPlugins;
+    # REF: http://github.com/azzen/home-manager/blob/master/tmux/plugins.nix#L18-L32
     extraConfig = ''
-      source -q ${config.home.homeDirectory}/code/dotfiles-nix/users/${username}/config/tmux/tmux.conf
-      source -q ${config.home.homeDirectory}/code/dotfiles-nix/users/${username}/config/tmux/megaforest.tmux.conf
+      source-file "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/tmux/tmux.conf"
+      # source-file "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/tmux/megaforest.tmux.conf"
 
       ${lib.concatStrings (map (x: "run-shell ${x.rtp}\n") tmuxPlugins)}
 
-      source -q ${config.home.homeDirectory}/code/dotfiles-nix/users/${username}/config/tmux/plugins.tmux.conf
+      # source-file "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/tmux/plugins.tmux.conf"
     '';
-
-    # Don't use tmux-sensible for now because it tries
-    # using reattach-to-user-namespace which causes a
-    # warning in every pane on Catalina
-    # sensibleOnTop = false;
-
-    # Assumes the presence of a /run directory, which we don't have on
-    # macOS
-    # secureSocket = false;
   };
 }

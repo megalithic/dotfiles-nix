@@ -16,17 +16,17 @@
     global.autoUpdate = true;
     global.brewfile = true;
 
-    # brews = [
-    #   "vfkit" # for podman
-    #   "openconnect"
+    brews = [
+      "vfkit" # for podman
+      "openconnect"
     #   # libvterm is not available in nix for aarch64 so we
     #   # install it from homebrew
-    #   "libvterm"
+      "libvterm"
     #   # this is required for mise be able to install erlang,
     #   # mise cannot identify openssl version installed in nix so
     #   # we need to use homebrew version to be able to use erlang
     #   # with no issues
-    #   "openssl@3"
+      "openssl@3"
     #   # "qmk"
     #   # # QMK dependencies
     #   # "avr-binutils"
@@ -50,7 +50,7 @@
     #   # "osx-cross/avr/avr-gcc@9"
     #   # "qmk/qmk/hid_bootloader_cli"
     #   # "qmk/qmk/mdloader"
-    # ];
+    ];
 
     casks = [
       "1password"
@@ -82,6 +82,7 @@
       "karabiner-elements"
       "macwhisper"
       "mailmate@beta"
+      "microsoft-teams" # Only have installed when needed (has some sinister telemetry).
       "mouseless"
       "obs@beta"
       # "orcaslicer-beta"
@@ -111,7 +112,6 @@
       "zen"
       "zoom"
       # "microsoft-office" # Only have installed when needed (has some sinister telemetry).
-      # "microsoft-teams" # Only have installed when needed (has some sinister telemetry).
       # "monitorcontrol" # Brightness and volume controls for external monitors.
     ];
 

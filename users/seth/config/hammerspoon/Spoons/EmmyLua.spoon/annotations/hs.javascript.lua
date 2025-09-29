@@ -1,10 +1,1 @@
---# selene: allow(unused_variable)
----@diagnostic disable: unused-local
-
--- Execute JavaScript code
---
--- This module has been replaced by: [hs.osascript.javascript](./hs.osascript.html#javascript)
----@class hs.javascript
-local M = {}
-hs.javascript = M
-
+/nix/store/p71z44iaf5gk7w9k26pwhfdq5hdzhdfz-home-manager-files/.config/hammerspoon/Spoons/EmmyLua.spoon/annotations/hs.javascript.lua

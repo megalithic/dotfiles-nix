@@ -1,4 +1,4 @@
-;; vim: ft=lisp
+;; vim:ft=lisp
 
 ;; Key reference
 ;; https://github.com/jtroo/kanata/blob/main/parser/src/keys/mod.rs

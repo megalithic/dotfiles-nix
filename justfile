@@ -52,7 +52,7 @@ init host=`hostname`:
 
   if [ -z "$DOTFILES_DIR" ]; then
     echo ":: Cloning bare dotfiles-nix repo to $DOTFILES_DIR.." && \
-    echo "NOTE: we maintain our repo in $HOME/code/dotfiles-nix.." && \
+    echo "NOTE: we maintain our repo in $HOME/.dotfiles-nix.." && \
       git clone --bare https://github.com/megalithic/dotfiles-nix "$DOTFILES_DIR"
   fi
 
