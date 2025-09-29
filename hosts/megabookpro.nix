@@ -1,5 +1,6 @@
 { inputs
 , pkgs
+, config
 , lib
 , username
 , system
@@ -100,6 +101,15 @@ in
     GIT_EDITOR = "$EDITOR";
     MANPAGER = "$EDITOR +Man!";
     # HOMEBREW_PREFIX = "/opt/homebrew";
+    # XDG_CACHE_HOME = "${config.home.homeDirectory}/.local/cache";
+    # XDG_CONFIG_HOME = "${config.home.homeDirectory}/.config";
+    # XDG_DATA_HOME = "${config.home.homeDirectory}/.local/share";
+    # XDG_STATE_HOME = "${config.home.homeDirectory}/.local/state";
+    #
+    # CODE = "${config.home.homeDirectory}/code";
+    # DOTS = "${config.home.homeDirectory}/code/dotfiles-nix";
+    # TMUX_LAYOUTS = "${config.home.homeDirectory}/code/dotfiles-nix/users/$USER/config/tmux/layouts";
+
     XDG_CACHE_HOME = "/Users/${username}/.local/cache";
     XDG_CONFIG_HOME = "/Users/${username}/.config";
     XDG_DATA_HOME = "/Users/${username}/.local/share";
@@ -107,6 +117,7 @@ in
 
     CODE = "/Users/${username}/code";
     DOTS = "/Users/${username}/code/dotfiles-nix";
+    TMUX_LAYOUTS = "/Users/${username}/code/dotfiles-nix/users/${username}/config/tmux/layouts";
   };
 
   environment.extraInit = ''
@@ -136,6 +147,7 @@ in
     settings = {
       trusted-users = [
         "@admin"
+        "root"
         "${username}"
       ];
       experimental-features = [

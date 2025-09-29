@@ -34,9 +34,14 @@ in
 {
   programs.tmux = {
     enable = true;
+    escapeTime = 10;
+    prefix = "C-space";
+    sensibleOnTop = false;
+    shell = "${pkgs.fish}/bin/fish";
+    terminal = "xterm-ghostty";
     extraConfig = ''
       source -q ${config.home.homeDirectory}/code/dotfiles-nix/users/${username}/config/tmux/tmux.conf
-      if-shell 'test -f "${config.home.homeDirectory}/code/dotfiles-nix/users/${username}/config/tmux/megaforest.tmux.conf"' 'source -q ${config.home.homeDirectory}/code/dotfiles-nix/users/${username}/config/tmux/megaforest.tmux.conf'
+      source -q ${config.home.homeDirectory}/code/dotfiles-nix/users/${username}/config/tmux/megaforest.tmux.conf
 
       ${lib.concatStrings (map (x: "run-shell ${x.rtp}\n") tmuxPlugins)}
 

@@ -426,7 +426,7 @@ local function make_keymaps(client, bufnr)
     vim.diagnostic.hide(nil, bufnr)
     vim.lsp.buf.hover({ border = "rounded" })
   end, "hover docs")
-  nmap("gD", vim.lsp.buf.declaration, "[g]oto [d]eclaration")
+  -- nmap("gD", vim.lsp.buf.declaration, "[g]oto [d]eclaration")
   vnmap("ga", function()
     require("fzf-lua").lsp_code_actions({ silent = true })
   end, "run code actions")
@@ -588,17 +588,17 @@ local function make_keymaps(client, bufnr)
   end, "rename symbol/references")
 
   lsp_method(client, "textDocument/references")(function()
-    map("n", "gr", function()
-      vim.cmd.Pick('lsp scope="references"')
-      -- require("fzf-lua").lsp_references({
-      --   include_declaration = false,
-      --   ignore_current_line = true,
-      -- })
-      -- Snacks.picker.lsp_references({
-      --   include_declaration = false,
-      --   include_current = false,
-      -- })
-    end, "[g]oto [r]eferences", { nowait = true })
+    -- map("n", "gr", function()
+    --   vim.cmd.Pick('lsp scope="references"')
+    --   -- require("fzf-lua").lsp_references({
+    --   --   include_declaration = false,
+    --   --   ignore_current_line = true,
+    --   -- })
+    --   -- Snacks.picker.lsp_references({
+    --   --   include_declaration = false,
+    --   --   include_current = false,
+    --   -- })
+    -- end, "[g]oto [r]eferences", { nowait = true })
 
     -- map("n", "gR", function()
     --   Snacks.picker.lsp_references({
@@ -611,12 +611,12 @@ local function make_keymaps(client, bufnr)
   end)
 
   lsp_method(client, "textDocument/definition")(function()
-    nmap("gd", function()
-      -- require("telescope").lsp_definitions({ jump1 = true })
-
-      vim.cmd.Pick('lsp scope="definitions"')
-      -- MiniPick.registry.LspPicker("definition", true)
-    end, "[g]oto [d]efinition")
+    -- nmap("gd", function()
+    --   -- require("telescope").lsp_definitions({ jump1 = true })
+    --
+    --   vim.cmd.Pick('lsp scope="definitions"')
+    --   -- MiniPick.registry.LspPicker("definition", true)
+    -- end, "[g]oto [d]efinition")
     -- nmap(
     --   "gd",
     --   function()

@@ -32,6 +32,7 @@ __root="$(cd "$(dirname "$__dir")" && pwd)"
 __invocation="$(printf %q "$__file")$( (($#)) && printf ' %q' "$@" || true)"
 
 TMUX="${TMUX:-}"
+TMUX_LAYOUTS="${TMUX_LAYOUTS:-""}"
 POPUP="false"
 SAVED_SESSION_NAME="${SAVED_SESSION_NAME:-}"
 
@@ -41,7 +42,7 @@ SESSION_ICON="${SESSION_ICON:-󰢩}"
 [[ -n $TMUX ]] && TMUX_RUNNING="running" || TMUX_RUNNING="not running"
 (command -v fzf &> /dev/null) && FZF_FOUND="installed" || FZF_FOUND="not installed"
 (command -v sk &> /dev/null) && SKIM_FOUND="installed" || SKIM_FOUND="not installed"
-[[ -d "$HOME/.config/tmux/scripts/layouts" ]] && layouts_dir="$HOME/.config/tmux/scripts/layouts" || layouts_dir=""
+[[ -d "$TMUX_LAYOUTS" ]] && layouts_dir="$TMUX_LAYOUTS" || layouts_dir=""
 
 # -- friendly help if -h option given
 function __help() {

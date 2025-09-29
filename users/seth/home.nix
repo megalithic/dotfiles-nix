@@ -299,7 +299,7 @@
 
       shellAbbrs = {
         nvim = "nvim -O";
-        vim = "nvim";
+        vim = "nvim -O";
         j = "just";
       };
 

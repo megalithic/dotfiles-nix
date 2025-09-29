@@ -96,16 +96,11 @@ return {
           -- },
         },
         cmdline = {
-          keymap = {
-            -- preset = "inherit",
-            ["<CR>"] = { "fallback" },
-            ["<Tab>"] = { "show_and_insert_or_accept_single", "select_next" },
-            ["<S-Tab>"] = { "show_and_insert_or_accept_single", "select_prev" },
-            ["<C-n>"] = { "select_next", "fallback" },
-            ["<C-p>"] = { "select_prev", "fallback" },
-            -- ["<CR>"] = { "select_and_accept", "fallback" },
-            ["<C-y>"] = { "select_and_accept", "fallback" },
-          },
+          -- completion = {
+          --   list = { selection = { preselect = false } },
+          --   menu = { auto_show = true },
+          -- },
+
           completion = {
             list = {
               selection = {
@@ -120,6 +115,43 @@ return {
                 -- or vim.fn.getcmdtype() == '@'
               end,
             },
+          },
+          keymap = {
+            preset = "none",
+            ["<CR>"] = { "fallback" },
+            ["<Tab>"] = { "show_and_insert_or_accept_single", "select_next" },
+            ["<S-Tab>"] = { "show_and_insert_or_accept_single", "select_prev" },
+            ["<C-n>"] = { "select_next", "fallback" },
+            ["<C-p>"] = { "select_prev", "fallback" },
+            ["<C-y>"] = { "select_and_accept", "fallback" },
+            ["<C-e>"] = { "cancel" },
+            --
+            -- ["<CR>"] = { "fallback" },
+            -- -- Move
+            -- -- ["<Down>"] = { { "hide", next = true }, "fallback" },
+            -- -- ["<Up>"] = { { "hide", next = true }, "fallback" },
+            -- ["<C-Down>"] = { "show_and_insert", "select_next" },
+            -- -- ["<C-Up>"] = { "show_and_insert", "select_prev" },
+            -- -- ["<Tab>"] = { "show_and_insert", "select_next" },
+            -- -- ["<S-Tab>"] = { "show_and_insert", "select_prev" },
+            -- -- ["<C-j>"] = { "show_and_insert", "select_next" },
+            -- -- ["<C-k>"] = { "show_and_insert", "select_prev" },
+            -- ["<C-n>"] = { "show_and_insert", "insert_next" },
+            -- ["<C-p>"] = { "show_and_insert", "insert_prev" },
+            -- -- Accept
+            -- ["<C-y>"] = { "show_and_insert_or_accept_single" },
+            -- -- Show
+            -- ["<Tab>"] = { "show" },
+            -- -- ["<C-Space>"] = { "show" },
+            -- -- Hide
+            -- ["<C-c>"] = { nil }, -- No need to bind
+            -- ["<C-e>"] = { "cancel" },
+            -- ["<Esc>"] = {
+            --   function()
+            --     local key = vim.api.nvim_replace_termcodes("<C-c>", true, false, true)
+            --     vim.api.nvim_feedkeys(key, "n", false)
+            --   end,
+            -- },
           },
         },
         fuzzy = {
