@@ -1,4 +1,4 @@
-#!/usr/local/bin/zsh
+#!/usr/local/bin/bash
 
 # REF: https://www.jakeworth.com/tmux-application-startup-script/
 # = layouts --------------------------------------------------------------------
@@ -13,12 +13,13 @@
 # tmux select-layout a59c,206x60,0,0[206x51,0,0,0,206x8,0,52,1]
 
 SESSION="${1:-}"
+CODE="${1:~/code}"
 
 if [[ -n $SESSION ]]; then
   CWD="${2:-$CODE}"
 
   export SESSION_ICON="󱃸" # alts: 󱃷  󰲌 󱃸
-  export SESSION_FG="#999f93"
+  export SESSION_FG="#eeeeee"
 
   cd $CWD
 
@@ -30,16 +31,16 @@ if [[ -n $SESSION ]]; then
 
   # Window "code"
   tmux new-window -c "$CWD" -t "$SESSION":2 -n code
-  tmux send-keys -t "$SESSION":2.1 "cd $CODE" "C-m"
+  tmux send-keys -t "$SESSION":2.1 "z $SESSION" "C-m"
   tmux send-keys -t "$SESSION":2.1 ls "C-m"
 
   tmux select-layout -t "$SESSION":2 tiled
 
   tmux select-layout -t "$SESSION":2 main-vertical
   tmux select-pane -t "$SESSION":2.1
-
-  tmux new-window -c "$CWD" -t "$SESSION":3 -n services
-  tmux send-keys -t "$SESSION":3.1 "cd $CODE" "C-m"
+  #
+  # tmux new-window -c "$CWD" -t "$SESSION":3 -n services
+  # tmux send-keys -t "$SESSION":3.1 "cd $CODE" "C-m"
 
   # focus
   tmux select-window -t "$SESSION":2

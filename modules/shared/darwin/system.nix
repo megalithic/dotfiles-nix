@@ -174,7 +174,7 @@
         # Disable animation when switching screens or opening apps
 #        "com.apple.universalaccess".reduceMotion = true;
         # tell HS where to find its config file
-        "org.hammerspoon.Hammerspoon".MJConfigFile = "~/.config/hammerspoon/init.lua";
+        # "org.hammerspoon.Hammerspoon".MJConfigFile = "~/.config/hammerspoon/init.lua";
         "com.apple.SoftwareUpdate" = {
           AutomaticCheckEnabled = true;
           # Check for software updates daily, not just once per week
