@@ -39,8 +39,8 @@
     yaml-language-server
     tailwindcss-language-server
     statix
-    emmylua_ls
-    emmylua_check
+    # emmylua_ls
+    # emmylua_check
     tree-sitter # required for treesitter "auto-install" option to work
     nixd # nix lsp
     actionlint
@@ -188,25 +188,30 @@
     ░
     EOF
     echo "░"
-    echo "░ symlink ssh/config to /Users/${username}/.ssh/config..." &&
-      rm -rf /Users/${username}/.ssh/config > /dev/null 2>&1;
-      ln -sfv /Users/${username}/.dotfiles-nix/config/ssh/config /Users/${username}/.ssh/config
+    rm -rf /Users/${username}/.ssh/config > /dev/null 2>&1;
+    ln -sfv /Users/${username}/.dotfiles-nix/config/ssh/config /Users/${username}/.ssh/config &&
+      echo "░ symlinked ssh/config to /Users/${username}/.ssh/config..."
+
     echo "░"
-    echo "░ symlink hammerspoon to /Users/${username}/.config/hammerspoon..." &&
-      rm -rf /Users/${username}/.config/hammerspoon > /dev/null 2>&1;
-      ln -sfv /Users/${username}/.dotfiles-nix/config/hammerspoon /Users/${username}/.config/
+    rm -rf /Users/${username}/.config/hammerspoon > /dev/null 2>&1;
+    ln -sfv /Users/${username}/.dotfiles-nix/config/hammerspoon /Users/${username}/.config/ &&
+      echo "░ symlinked hammerspoon to /Users/${username}/.config/hammerspoon..."
+
     echo "░"
-    echo "░ symlink tmux to /Users/${username}/.config/tmux..." &&
-      rm -rf /Users/${username}/.config/tmux > /dev/null 2>&1;
-      ln -sfv /Users/${username}/.dotfiles-nix/config/tmux /Users/${username}/.config/
+    rm -rf /Users/${username}/.config/tmux > /dev/null 2>&1;
+    ln -sfv /Users/${username}/.dotfiles-nix/config/tmux /Users/${username}/.config/ &&
+      echo "░ symlink tmux to /Users/${username}/.config/tmux..."
+
     echo "░"
-    echo "░ symlink proton drive to /Users/${username}/protondrive..." &&
-      rm -rf /Users/${username}/protondrive > /dev/null 2>&1;
-      ln -sfv /Users/seth/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder /Users/${username}/protondrive
+    rm -rf /Users/${username}/protondrive > /dev/null 2>&1;
+    ln -sfv /Users/seth/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder /Users/${username}/protondrive &&
+      echo "░ symlink proton drive to /Users/${username}/protondrive..."
+
     echo "░"
-    echo "░ symlink iCloud to /Users/${username}/iclouddrive..." &&
-      rm -rf /Users/${username}/iclouddrive > /dev/null 2>&1;
-      ln -sfv /Users/seth/Library/Mobile\ Documents/com~apple~CloudDocs /Users/${username}/iclouddrive
+    rm -rf /Users/${username}/iclouddrive > /dev/null 2>&1;
+    ln -sfv /Users/seth/Library/Mobile\ Documents/com~apple~CloudDocs /Users/${username}/iclouddrive &&
+      echo "░ symlink iCloud to /Users/${username}/iclouddrive..."
+
     echo "░"
   '';
 

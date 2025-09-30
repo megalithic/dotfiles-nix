@@ -177,6 +177,15 @@
         # "com.raycast.macos" = {
         #   raycastGlobalHotkey = "Command-15";
         # };
+        # REF: https://medium.com/@zmre/nix-darwin-quick-tip-activate-your-preferences-f69942a93236
+        "com.apple.messages.text" = {
+          Autocapitalization = 1;
+          EmojiReplacement = 1;
+          SmartDashes = 1;
+          SmartInsertDelete = 2;
+          SmartQuotes = 1;
+          SpellChecking = 1;
+        };
         "com.apple.ActivityMonitor" = {
           OpenMainWindow = true;
           IconType = 5;

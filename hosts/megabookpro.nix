@@ -144,6 +144,7 @@ in {
       experimental-features = [
         "nix-command"
         "flakes"
+        "extra-platforms = aarch64-darwin x86_64-darwin"
       ];
       download-buffer-size = 5368709120;
       warn-dirty = false;
