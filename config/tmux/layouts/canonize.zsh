@@ -1,7 +1,7 @@
 #!/usr/local/bin/zsh
 
 SESSION="canonize"
-CWD="$CODE/$SESSION"
+CWD="$(z "$SESSION"):-$CODE"
 
 export SESSION_ICON="" # alts:  󰴓 󰃀   
 export SESSION_FG="#e39b7b"

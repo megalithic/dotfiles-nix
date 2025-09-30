@@ -36,12 +36,9 @@ tmux -2 select-pane -t "$SESSION":2.1
 
 tmux new-window -c "$CWD" -t "$SESSION":3 -n services
 tmux send-keys -t "$SESSION":3.1 "z launchdeck_portal" C-m
-tmux send-keys -t "$SESSION":3.1 "brew unlink postgresql@14 && sleep 1" C-m
-
 tmux splitw -c "$CWD" -t "$SESSION":3
 tmux select-layout -t "$SESSION":3 tiled
-tmux send-keys -t "$SESSION":3.2 "z launchdeck_api" "C-m"
-tmux send-keys -t "$SESSION":3.2 "ms $SESSION-tern" "C-m"
+tmux send-keys -t "$SESSION":3.2 "z launchdeck_portal_api" "C-m"
 
 tmux select-layout -t "$SESSION":3 tiled
 tmux select-layout -t "$SESSION":3 even-horizontal

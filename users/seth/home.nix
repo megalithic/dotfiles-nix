@@ -13,7 +13,7 @@
   imports = [
     # ./packages.nix
     ./jujutsu
-    ./tmux
+    # ./tmux
     # ./nvim
   ];
 
