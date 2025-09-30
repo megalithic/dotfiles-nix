@@ -109,7 +109,7 @@ in
 
     CODE = "/Users/${username}/code";
     DOTS = "/Users/${username}/.dotfiles-nix";
-    TMUX_LAYOUTS = "$DOTS/users/${username}/config/tmux/layouts";
+    TMUX_LAYOUTS = "$DOTS/users/${username}/tmux/layouts";
   };
 
   environment.extraInit = ''
@@ -211,6 +211,11 @@ in
     atkinson-hyperlegible
     inter
     jetbrains-mono
+    emacs-all-the-icons-fonts
+    # joypixels
+    fira-code
+    fira-mono
+    font-awesome
     maple-mono.NF
     maple-mono.truetype
     maple-mono.variable
@@ -218,6 +223,10 @@ in
     nerd-fonts.jetbrains-mono
     nerd-fonts.symbols-only
     noto-fonts-emoji
+    nerd-fonts.fantasque-sans-mono
+    nerd-fonts.iosevka
+    nerd-fonts.victor-mono
+    twemoji-color-font
   ];
 
   services = {

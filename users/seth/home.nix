@@ -12,9 +12,9 @@
 {
   imports = [
     # ./packages.nix
-    ./config/jujutsu
-    ./config/tmux
-    # ./config/nvim
+    ./jujutsu
+    ./tmux
+    # ./nvim
   ];
 
   home.username = username;
@@ -82,13 +82,10 @@
     "code/.keep".text = "";
     "src/.keep".text = "";
     "tmp/.keep".text = "";
-    # "bin" = {
-    #   recursive = true;
-    #   source = ./bin;
-    # };
+    ".hushlogin".text = "";
     "bin".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/bin";
-    ".vimrc".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/nvim/.vimrc";
-    ".ssh/config".source = config/ssh/config;
+    ".vimrc".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/nvim/.vimrc";
+    # ".ssh/config".source = ssh/config;
     ".editorconfig".text = ''
       root = true
 
@@ -101,10 +98,9 @@
       # max_line_length = 80
       charset = utf-8
     '';
-    ".hushlogin".text = "";
-    ".ignore".source = config/git/tool_ignore;
-    ".gitignore".source = config/git/gitignore;
-    ".gitconfig".source = config/git/gitconfig;
+    ".ignore".source = git/tool_ignore;
+    ".gitignore".source = git/gitignore;
+    ".gitconfig".source = git/gitconfig;
     ".config/1Password/ssh/agent.toml".text = ''
       [[ssh-keys]]
       vault = "Shared"
@@ -112,15 +108,15 @@
     '';
     ".config/surfingkeys/config.js" = {
       recursive = true;
-      text = builtins.readFile config/surfingkeys/config.js;
+      text = builtins.readFile surfingkeys/config.js;
     };
     ".config/starship.toml" = {
       recursive = true;
-      text = builtins.readFile config/starship/starship.toml;
+      text = builtins.readFile starship/starship.toml;
     };
-
-    "hammerspoon".source = config/hammerspoon;
-    "hammerspoon".recursive = true;
+    # ".hammerspoon".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/hammerspoon";
+    # "hammerspoon".source = hammerspoon;
+    # "hammerspoon".recursive = true;
   };
 
   xdg.enable = true;
@@ -129,6 +125,19 @@
   home.activation.symlinkAdditionalConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     # Handle mutable configs
     echo ":: -> Running symlinkers..."
+
+    echo "# symlink ssh/config to /Users/${username}/.ssh/config..." &&
+      rm /Users/${username}/.ssh/config > /dev/null 2>&1;
+      ln -sfv /Users/${username}/.dotfiles-nix/config/ssh/config /Users/${username}/.ssh/config
+
+    echo "# symlink hammerspoon to /Users/${username}/.config/hammerspoon..." &&
+      rm /Users/${username}/.config/hammerspoon > /dev/null 2>&1;
+      ln -sfv /Users/${username}/.dotfiles-nix/config/hammerspoon /Users/${username}/.config/hammerspoon
+
+    echo "# symlink tmux to /Users/${username}/.config/tmux..." &&
+      rm /Users/${username}/.config/tmux > /dev/null 2>&1;
+      ln -sfv /Users/${username}/.dotfiles-nix/config/tmux /Users/${username}/.config/tmux
+
     echo "# symlink proton drive to /Users/${username}/protondrive..." &&
       rm /Users/${username}/protondrive > /dev/null 2>&1;
       ln -sfv /Users/seth/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder /Users/${username}/protondrive
@@ -139,19 +148,20 @@
   '';
 
 
-  xdg.configFile."nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/config/nvim";
+  xdg.configFile."nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/nvim";
+  # xdg.configFile."hammerspoon".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/hammerspoon";
 
-  xdg.configFile."hammerspoon".source = config/hammerspoon;
-  xdg.configFile."hammerspoon".recursive = true;
+  # xdg.configFile."hammerspoon".source = config/hammerspoon;
+  # xdg.configFile."hammerspoon".recursive = true;
   # xdg.configFile."nvim".source = config/nvim;
   # xdg.configFile."nvim".recursive = true;
-  xdg.configFile."kanata".source = config/kanata;
+  xdg.configFile."kanata".source = ./kanata;
   xdg.configFile."kanata".recursive = true;
   # xdg.configFile."tmux".source = config/tmux;
   # xdg.configFile."tmux".recursive = true;
-  xdg.configFile."ghostty".source = config/ghostty;
+  xdg.configFile."ghostty".source = ./ghostty;
   xdg.configFile."ghostty".recursive = true;
-  xdg.configFile."zsh".source = config/zsh;
+  xdg.configFile."zsh".source = ./zsh;
   xdg.configFile."zsh".recursive = true;
   xdg.configFile."opencode/opencode.json".text = ''
     {
@@ -247,7 +257,7 @@
     # };
 
     starship = { enable = true; };
-    aerc = import ./config/aerc/default.nix { inherit config pkgs lib; };
+    aerc = import ./aerc/default.nix { inherit config pkgs lib; };
     fish = {
       # REF: https://github.com/agdral/home-default/blob/main/shell/fish/functions/develop.nix
       enable = true;
@@ -292,6 +302,7 @@
       shellAliases = {
         ls = "${pkgs.eza}/bin/eza -a --group-directories-first";
         l = "${pkgs.eza}/bin/eza -lahF";
+        ll = "${pkgs.eza}/bin/eza -lahF";
         tree = "${pkgs.eza}/bin/eza --tree";
         opencode = "op run --no-masking -- opencode";
         rm = "${pkgs.darwin.trash}/bin/trash -v";
@@ -432,7 +443,7 @@
       flake = ../../.;
     };
 
-    yazi = import ./config/yazi/default.nix { inherit config pkgs lib; };
+    yazi = import ./yazi/default.nix { inherit config pkgs lib; };
 
     zoxide = {
       enable = true;
