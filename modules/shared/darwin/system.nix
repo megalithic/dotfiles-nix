@@ -106,21 +106,23 @@
         NSNavPanelExpandedStateForSaveMode = true;
         NSNavPanelExpandedStateForSaveMode2 = true;
         "com.apple.swipescrolldirection" = false;
-            # Use scroll gesture with the Ctrl (^) modifier key to
-            # zoom, this requires to have "Full disk access" in the
-            # program which run nix-darwin command
-            # NOTE: doesn't exist on sequoia?
-            # universalaccess.closeViewScrollWheelToggle = true;
-"com.apple.trackpad.scaling" = 3.0;
-    AppleInterfaceStyleSwitchesAutomatically = true;
-    AppleShowScrollBars = "Automatic";
-    InitialKeyRepeat = 12;
-    KeyRepeat = 1;
-    # NSAutomaticCapitalizationEnabled = false;
-    # NSAutomaticDashSubstitutionEnabled = false;
-    # NSAutomaticPeriodSubstitutionEnabled = false;
-    # NSAutomaticQuoteSubstitutionEnabled = true;
-    _HIHideMenuBar = false;
+        # Use scroll gesture with the Ctrl (^) modifier key to
+        # zoom, this requires to have "Full disk access" in the
+        # program which run nix-darwin command
+        # NOTE: doesn't exist on sequoia?
+        # universalaccess.closeViewScrollWheelToggle = true;
+        "com.apple.trackpad.scaling" = 3.0;
+        AppleInterfaceStyleSwitchesAutomatically = true;
+        AppleShowScrollBars = "Automatic";
+        InitialKeyRepeat = 12;
+        KeyRepeat = 1;
+        _HIHideMenuBar = false;
+
+        NSAutomaticCapitalizationEnabled = false;
+        NSAutomaticDashSubstitutionEnabled = false;
+        NSAutomaticPeriodSubstitutionEnabled = false;
+        NSAutomaticQuoteSubstitutionEnabled = false;
+        NSAutomaticSpellingCorrectionEnabled = false;
       };
 
       screencapture = {
@@ -139,6 +141,7 @@
           WebKitDeveloperExtras = true;
           # automatically switch to a new space when switching to the application
           AppleSpacesSwitchOnActivate = true;
+          WebAutomaticSpellingCorrectionEnabled = false;
         };
         # "com.raycast.macos" = {
         #   raycastGlobalHotkey = "Command-15";
@@ -222,6 +225,8 @@
             # "Find..." = "^f";
             "New Private Window" = "^$n";
             "New Tab" = "^t";
+            "Select Next Tab" = "^l";
+            "Select Previous Tab" = "^h";
             "Reload This Page" = "^r";
             "Reopen Closed Tab" = "^$t";
             "Reset zoom" = "^0";
@@ -230,11 +235,9 @@
           };
         };
       };
-      # karabiner-elements.enable = true;
     };
     keyboard = {
       enableKeyMapping = true;
-      # TODO: do this via kanata instead?
       remapCapsLockToControl = false;
     };
   };

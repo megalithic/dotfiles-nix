@@ -127,23 +127,23 @@
     echo ":: -> Running symlinkers..."
 
     echo "# symlink ssh/config to /Users/${username}/.ssh/config..." &&
-      rm /Users/${username}/.ssh/config > /dev/null 2>&1;
+      rm -rf /Users/${username}/.ssh/config > /dev/null 2>&1;
       ln -sfv /Users/${username}/.dotfiles-nix/config/ssh/config /Users/${username}/.ssh/config
 
     echo "# symlink hammerspoon to /Users/${username}/.config/hammerspoon..." &&
-      rm /Users/${username}/.config/hammerspoon > /dev/null 2>&1;
-      ln -sfv /Users/${username}/.dotfiles-nix/config/hammerspoon /Users/${username}/.config/hammerspoon
+      rm -rf /Users/${username}/.config/hammerspoon > /dev/null 2>&1;
+      ln -sfv /Users/${username}/.dotfiles-nix/config/hammerspoon /Users/${username}/.config/
 
     echo "# symlink tmux to /Users/${username}/.config/tmux..." &&
-      rm /Users/${username}/.config/tmux > /dev/null 2>&1;
-      ln -sfv /Users/${username}/.dotfiles-nix/config/tmux /Users/${username}/.config/tmux
+      rm -rf /Users/${username}/.config/tmux > /dev/null 2>&1;
+      ln -sfv /Users/${username}/.dotfiles-nix/config/tmux /Users/${username}/.config/
 
     echo "# symlink proton drive to /Users/${username}/protondrive..." &&
-      rm /Users/${username}/protondrive > /dev/null 2>&1;
+      rm -rf /Users/${username}/protondrive > /dev/null 2>&1;
       ln -sfv /Users/seth/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder /Users/${username}/protondrive
 
     echo "# symlink iCloud to /Users/${username}/iclouddrive..." &&
-      rm /Users/${username}/iclouddrive > /dev/null 2>&1;
+      rm -rf /Users/${username}/iclouddrive > /dev/null 2>&1;
       ln -sfv /Users/seth/Library/Mobile\ Documents/com~apple~CloudDocs /Users/${username}/iclouddrive
   '';
 
@@ -308,6 +308,7 @@
         rm = "${pkgs.darwin.trash}/bin/trash -v";
         q = "exit";
         ",q" = "exit";
+        mega = "ftm mega";
       };
 
       shellAbbrs = {

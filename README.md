@@ -13,13 +13,20 @@
 
 ## 🚀 Installation
 
-Install [Determinate `nix`](https://github.com/DeterminateSystems/nix-installer).
+1. Install [Determinate `nix`](https://github.com/DeterminateSystems/nix-installer).
 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
 ```
 
-Run the installer (_NOTE:_ this clones a bare repo to ~/.dotfiles-nix)
+2. Source nix to run nix things
+
+```bash
+source "/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh"
+
+```
+
+3. Run the installer (_NOTE:_ this clones a bare repo to ~/.dotfiles-nix)
 
 ```bash
 nix run github:megalithic/dotfiles-nix

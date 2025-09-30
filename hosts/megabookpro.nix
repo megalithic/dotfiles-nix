@@ -109,13 +109,13 @@ in
 
     CODE = "/Users/${username}/code";
     DOTS = "/Users/${username}/.dotfiles-nix";
-    TMUX_LAYOUTS = "$DOTS/users/${username}/tmux/layouts";
+
+    TMUX_LAYOUTS = "$XDG_CONFIG_HOME/tmux/layouts";
   };
 
   environment.extraInit = ''
     export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
   '';
-
 
   # We use determinate nix installer; so we don't need this enabled..
   nix = {
