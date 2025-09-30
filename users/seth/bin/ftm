@@ -32,7 +32,7 @@ __root="$(cd "$(dirname "$__dir")" && pwd)"
 __invocation="$(printf %q "$__file")$( (($#)) && printf ' %q' "$@" || true)"
 
 TMUX="${TMUX:-}"
-TMUX_LAYOUTS="${TMUX_LAYOUTS:-"$XDG_CONFIG_HOME/tmux/layouts"}"
+TMUX_LAYOUTS="${TMUX_LAYOUTS:-"$HOME/.config/tmux/layouts"}"
 POPUP="false"
 SAVED_SESSION_NAME="${SAVED_SESSION_NAME:-}"
 

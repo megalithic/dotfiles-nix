@@ -110,7 +110,7 @@ in
     CODE = "/Users/${username}/code";
     DOTS = "/Users/${username}/.dotfiles-nix";
 
-    TMUX_LAYOUTS = "$XDG_CONFIG_HOME/tmux/layouts";
+    TMUX_LAYOUTS = "/Users/${username}/.config/tmux/layouts";
   };
 
   environment.extraInit = ''
