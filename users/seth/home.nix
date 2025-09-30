@@ -85,7 +85,6 @@
     ".hushlogin".text = "";
     "bin".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/bin";
     ".vimrc".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/nvim/.vimrc";
-    # ".ssh/config".source = ssh/config;
     ".editorconfig".text = ''
       root = true
 
@@ -114,51 +113,51 @@
       recursive = true;
       text = builtins.readFile starship/starship.toml;
     };
-    # ".hammerspoon".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/hammerspoon";
-    # "hammerspoon".source = hammerspoon;
-    # "hammerspoon".recursive = true;
   };
 
   xdg.enable = true;
   home.preferXdgDirectories = true;
 
   home.activation.symlinkAdditionalConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    # Handle mutable configs
-    echo ":: -> Running symlinkers..."
+    command cat << EOF
+    ░         ▘             ▜ ▘  ▌
+    ░ ▛▘▌▌▛▌▛▌▌▛▌▛▌  ▛▘▌▌▛▛▌▐ ▌▛▌▙▘█▌▛▘▛▘
+    ░ ▌ ▙▌▌▌▌▌▌▌▌▙▌  ▄▌▙▌▌▌▌▐▖▌▌▌▛▖▙▖▌ ▄▌
+    ░            ▄▌    ▄▌
+    EOF
 
+    echo ""
     echo "# symlink ssh/config to /Users/${username}/.ssh/config..." &&
       rm -rf /Users/${username}/.ssh/config > /dev/null 2>&1;
       ln -sfv /Users/${username}/.dotfiles-nix/config/ssh/config /Users/${username}/.ssh/config
 
+    echo ""
     echo "# symlink hammerspoon to /Users/${username}/.config/hammerspoon..." &&
       rm -rf /Users/${username}/.config/hammerspoon > /dev/null 2>&1;
       ln -sfv /Users/${username}/.dotfiles-nix/config/hammerspoon /Users/${username}/.config/
 
+    echo ""
     echo "# symlink tmux to /Users/${username}/.config/tmux..." &&
       rm -rf /Users/${username}/.config/tmux > /dev/null 2>&1;
       ln -sfv /Users/${username}/.dotfiles-nix/config/tmux /Users/${username}/.config/
 
+    echo ""
     echo "# symlink proton drive to /Users/${username}/protondrive..." &&
       rm -rf /Users/${username}/protondrive > /dev/null 2>&1;
       ln -sfv /Users/seth/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder /Users/${username}/protondrive
 
+    echo ""
     echo "# symlink iCloud to /Users/${username}/iclouddrive..." &&
       rm -rf /Users/${username}/iclouddrive > /dev/null 2>&1;
       ln -sfv /Users/seth/Library/Mobile\ Documents/com~apple~CloudDocs /Users/${username}/iclouddrive
+
+    echo ""
   '';
 
 
   xdg.configFile."nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/nvim";
-  # xdg.configFile."hammerspoon".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/hammerspoon";
-
-  # xdg.configFile."hammerspoon".source = config/hammerspoon;
-  # xdg.configFile."hammerspoon".recursive = true;
-  # xdg.configFile."nvim".source = config/nvim;
-  # xdg.configFile."nvim".recursive = true;
   xdg.configFile."kanata".source = ./kanata;
   xdg.configFile."kanata".recursive = true;
-  # xdg.configFile."tmux".source = config/tmux;
-  # xdg.configFile."tmux".recursive = true;
   xdg.configFile."ghostty".source = ./ghostty;
   xdg.configFile."ghostty".recursive = true;
   xdg.configFile."zsh".source = ./zsh;
