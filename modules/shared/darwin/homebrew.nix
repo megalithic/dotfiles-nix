@@ -122,7 +122,7 @@
       # "" = 1466976675; Rollo app
 
       # https://flexibits.com/fantastical/faq#faq_81 -- in case we need to download older versions
-      "Fantastical" = 975937182;
+      # "Fantastical" = 975937182;
       # mas "Signal Shifter", id: 6446061552
       # mas "Fantastical", id: 975937182
       # # mas "Mayday", id: 1473168024

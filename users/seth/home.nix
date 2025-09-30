@@ -187,30 +187,30 @@
     ░            ▄▌    ▄▌
     ░
     EOF
-    echo "░"
     rm -rf /Users/${username}/.ssh/config > /dev/null 2>&1;
     ln -sfv /Users/${username}/.dotfiles-nix/config/ssh/config /Users/${username}/.ssh/config &&
-      echo "░ symlinked ssh/config to /Users/${username}/.ssh/config..."
+      echo "░ ✓ symlinked ssh/config to /Users/${username}/.ssh/config" ||
+      echo "░ x failed to symlink ssh/config to /Users/${username}/.ssh/config"
 
-    echo "░"
     rm -rf /Users/${username}/.config/hammerspoon > /dev/null 2>&1;
-    ln -sfv /Users/${username}/.dotfiles-nix/config/hammerspoon /Users/${username}/.config/ &&
-      echo "░ symlinked hammerspoon to /Users/${username}/.config/hammerspoon..."
+    ln -sf /Users/${username}/.dotfiles-nix/config/hammerspoon /Users/${username}/.config/ &&
+      echo "░ ✓ symlinked hammerspoon to /Users/${username}/.config/hammerspoon" ||
+      echo "░ x failed to symlink hammerspoon to /Users/${username}/.config/hammerspoon"
 
-    echo "░"
     rm -rf /Users/${username}/.config/tmux > /dev/null 2>&1;
-    ln -sfv /Users/${username}/.dotfiles-nix/config/tmux /Users/${username}/.config/ &&
-      echo "░ symlink tmux to /Users/${username}/.config/tmux..."
+    ln -sf /Users/${username}/.dotfiles-nix/config/tmux /Users/${username}/.config/ &&
+      echo "░ ✓ symlinked tmux to /Users/${username}/.config/tmux" ||
+      echo "░ x failed to symlink tmux to /Users/${username}/.config/tmux"
 
-    echo "░"
     rm -rf /Users/${username}/protondrive > /dev/null 2>&1;
-    ln -sfv /Users/seth/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder /Users/${username}/protondrive &&
-      echo "░ symlink proton drive to /Users/${username}/protondrive..."
+    ln -sf /Users/seth/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder /Users/${username}/protondrive &&
+      echo "░ ✓ symlinked proton drive to /Users/${username}/protondrive" ||
+      echo "░ x failed to symlink proton drive to /Users/${username}/protondrive"
 
-    echo "░"
     rm -rf /Users/${username}/iclouddrive > /dev/null 2>&1;
-    ln -sfv /Users/seth/Library/Mobile\ Documents/com~apple~CloudDocs /Users/${username}/iclouddrive &&
-      echo "░ symlink iCloud to /Users/${username}/iclouddrive..."
+    ln -sf /Users/seth/Library/Mobile\ Documents/com~apple~CloudDocs /Users/${username}/iclouddrive &&
+      echo "░ ✓ symlinked iCloud drive to /Users/${username}/iclouddrive" ||
+      echo "░ x failed to symlink iCloud drive to /Users/${username}/iclouddrive"
 
     echo "░"
   '';
