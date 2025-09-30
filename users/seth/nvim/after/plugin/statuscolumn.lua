@@ -28,6 +28,7 @@ local excluded_bts = { "terminal", "nofile" }
 local excluded_fts = {
   "NeogitCommitMessage",
   "NeogitCommitView",
+  "cmdline",
   "NeogitRebaseTodo",
   "NeogitStatus",
   "NvimTree",
@@ -465,7 +466,8 @@ function mega.ui.statuscolumn.render(is_active)
       { "", "LineNr" },
     },
     after = "",
-  }, is_actively_folding and fold_col or spacer(2))
+  }, spacer(2))
+  -- }, is_actively_folding and fold_col or spacer(2))
 
   if is_active then
     return display({

@@ -119,7 +119,7 @@ require("mini.pick").setup({
 
 -- Using primarily for code action
 -- See https://github.com/echasnovski/mini.nvim/discussions/1437
-vim.ui.select = MiniPick.ui_select
+-- vim.ui.select = MiniPick.ui_select
 
 -- Shorten file paths by default
 local show_short_files = function(buf_id, items_to_show, query)

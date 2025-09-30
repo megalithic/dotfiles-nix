@@ -1,13 +1,13 @@
-{ pkgs
-, lib
-, config
-, inputs
-, username
-, ...
+{
+  pkgs,
+  lib,
+  config,
+  inputs,
+  username,
+  ...
 }:
 # NOTE: docs for nix-darwin found
 # https://daiderd.com/nix-darwin/manual/index.html
-
 # macOS user-specific defaults using home-manager's built-in support
 #
 # VALIDATION BEST PRACTICES:
@@ -29,8 +29,13 @@
     stateVersion = 6;
     startup.chime = false;
     defaults = {
+      # FIXME: this just will NOT work
+      # universalaccess.reduceMotion = true;
+
       dock = {
         autohide = true;
+        autohide-time-modifier = 0.7;
+        # autohide-delay = 600.;
         orientation = "bottom";
         show-process-indicators = true;
         show-recents = false;
@@ -40,7 +45,30 @@
         minimize-to-application = true;
         mineffect = "scale";
         magnification = false;
-        persistent-apps = [ ];
+        persistent-others = null;
+        persistent-apps = [
+          {app = "/Applications/Finder.app";}
+          {app = "/Applications/Brave Browser Nightly.app";}
+          {app = "/Applications/Ghostty.app";}
+          {app = "/System/Applications/Messages.app";}
+
+          # {
+          #   spacer = {
+          #     small = false;
+          #   };
+          # }
+          # {
+          #   spacer = {
+          #     small = true;
+          #   };
+          # }
+          # {
+          #   folder = "/System/Applications/Utilities";
+          # }
+          # {
+          #   file = "/User/example/Downloads/test.csv";
+          # }
+        ];
         tilesize = 60;
         # Mission Control and Spaces behavior
         # Disable automatic rearrangement of spaces based on most recent use
@@ -84,7 +112,7 @@
         ShowRemovableMediaOnDesktop = true;
         _FXSortFoldersFirst = true;
         QuitMenuItem = true;
-        NewWindowTarget = "Documents";
+        NewWindowTarget = "Home";
         # NewWindowTargetPath = "file://Users/${username}/Desktop/";
       };
 
@@ -117,7 +145,10 @@
         InitialKeyRepeat = 12;
         KeyRepeat = 1;
         _HIHideMenuBar = false;
-
+        # Disable press and hold for diacritics.
+        # I want to be able to press and hold j and k
+        # in VSCode with vim keys to move around.
+        ApplePressAndHoldEnabled = false;
         NSAutomaticCapitalizationEnabled = false;
         NSAutomaticDashSubstitutionEnabled = false;
         NSAutomaticPeriodSubstitutionEnabled = false;
@@ -174,8 +205,6 @@
         "com.apple.commerce".AutoUpdate = true;
         # Prevent Photos from opening automatically when devices are plugged in
         "com.apple.ImageCapture".disableHotPlug = true;
-        # Disable animation when switching screens or opening apps
-#        "com.apple.universalaccess".reduceMotion = true;
         # tell HS where to find its config file
         "org.hammerspoon.Hammerspoon".MJConfigFile = "~/.config/hammerspoon/init.lua";
         "com.apple.SoftwareUpdate" = {
@@ -208,8 +237,6 @@
               };
             };
 
-
-
             # Disable Spotlight Shortcuts
             # Disable 'Cmd + Space' for Spotlight Search
             "64".enabled = false;
@@ -225,8 +252,8 @@
             # "Find..." = "^f";
             "New Private Window" = "^$n";
             "New Tab" = "^t";
-            "Select Next Tab" = "^l";
-            "Select Previous Tab" = "^h";
+            # "Select Next Tab" = "^l";
+            # "Select Previous Tab" = "^h";
             "Reload This Page" = "^r";
             "Reopen Closed Tab" = "^$t";
             "Reset zoom" = "^0";
@@ -243,5 +270,4 @@
   };
   security.pam.services.sudo_local.touchIdAuth = true;
   security.sudo.extraConfig = "${username}    ALL = (ALL) NOPASSWD: ALL";
-
 }

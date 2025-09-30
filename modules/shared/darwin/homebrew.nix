@@ -1,8 +1,4 @@
-{ username
-, ...
-}:
-
-{
+{username, ...}: {
   homebrew = {
     enable = true;
     onActivation = {
@@ -19,37 +15,37 @@
     brews = [
       "vfkit" # for podman
       "openconnect"
-    #   # libvterm is not available in nix for aarch64 so we
-    #   # install it from homebrew
+      #   # libvterm is not available in nix for aarch64 so we
+      #   # install it from homebrew
       "libvterm"
-    #   # this is required for mise be able to install erlang,
-    #   # mise cannot identify openssl version installed in nix so
-    #   # we need to use homebrew version to be able to use erlang
-    #   # with no issues
+      #   # this is required for mise be able to install erlang,
+      #   # mise cannot identify openssl version installed in nix so
+      #   # we need to use homebrew version to be able to use erlang
+      #   # with no issues
       "openssl@3"
-    #   # "qmk"
-    #   # # QMK dependencies
-    #   # "avr-binutils"
-    #   # "avr-gcc@8"
-    #   # "boost"
-    #   # "confuse"
-    #   # "hidapi"
-    #   # "libftdi"
-    #   # "libusb-compat"
-    #   # "avrdude"
-    #   # "bootloadhid"
-    #   # "clang-format"
-    #   # "dfu-programmer"
-    #   # "dfu-util"
-    #   # "libimagequant"
-    #   # "libraqm"
-    #   # "pillow"
-    #   # "teensy_loader_cli"
-    #   # "osx-cross/arm/arm-none-eabi-binutils"
-    #   # "osx-cross/arm/arm-none-eabi-gcc@8"
-    #   # "osx-cross/avr/avr-gcc@9"
-    #   # "qmk/qmk/hid_bootloader_cli"
-    #   # "qmk/qmk/mdloader"
+      #   # "qmk"
+      #   # # QMK dependencies
+      #   # "avr-binutils"
+      #   # "avr-gcc@8"
+      #   # "boost"
+      #   # "confuse"
+      #   # "hidapi"
+      #   # "libftdi"
+      #   # "libusb-compat"
+      #   # "avrdude"
+      #   # "bootloadhid"
+      #   # "clang-format"
+      #   # "dfu-programmer"
+      #   # "dfu-util"
+      #   # "libimagequant"
+      #   # "libraqm"
+      #   # "pillow"
+      #   # "teensy_loader_cli"
+      #   # "osx-cross/arm/arm-none-eabi-binutils"
+      #   # "osx-cross/arm/arm-none-eabi-gcc@8"
+      #   # "osx-cross/avr/avr-gcc@9"
+      #   # "qmk/qmk/hid_bootloader_cli"
+      #   # "qmk/qmk/mdloader"
     ];
 
     casks = [
@@ -68,7 +64,7 @@
       "discord"
       "docker-desktop"
       "espanso"
-      "fantastical"
+      # "fantastical"
       "figma"
       "firefox"
       "flameshot"
@@ -115,7 +111,7 @@
       # "monitorcontrol" # Brightness and volume controls for external monitors.
     ];
 
-    taps = [ ];
+    taps = [];
 
     masApps = {
       #"Parcel" = 639968404;
@@ -124,6 +120,8 @@
       #"Toggl" = 1291898086;
       #"Tailscale" = 1475387142;
       # "" = 1466976675; Rollo app
+
+      # https://flexibits.com/fantastical/faq#faq_81 -- in case we need to download older versions
       "Fantastical" = 975937182;
       # mas "Signal Shifter", id: 6446061552
       # mas "Fantastical", id: 975937182

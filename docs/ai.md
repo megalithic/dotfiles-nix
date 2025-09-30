@@ -5,4 +5,4 @@
 #### Personalizations
 
 - Enable brutal-claude
-  - `Be brutaully honest, concise, and critical. Do not curse.`
+  - `Be brutally honest, concise, and critical. Do not curse.`

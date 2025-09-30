@@ -15,6 +15,29 @@ local function mason_bin(opts)
   end
 end
 
+-- -- Some LSP are part of npm packages, so the binaries live inside node_modules/.bin
+-- -- this function helps getting the correct path to the binary and falling
+-- -- back to a global binary if none is found in the local node_modules
+-- local function get_lsp_bin(bin)
+--   -- Get the closest `node_modules` first
+--   local root = vim.fs.root(0, "node_modules/.bin")
+--   local bin_path = string.format("%s/.bin/%s", root, bin)
+--
+--   if vim.uv.fs_stat(bin_path) ~= nil then
+--     return bin_path
+--   end
+--
+--   -- Then maybe we might be in a monorepo, so get the root `node_modules`, maybe it's hoisted up there
+--   root = vim.fs.root(0, ".git")
+--   bin_path = string.format("%s/node_modules/.bin/%s", root, bin)
+--
+--   if vim.uv.fs_stat(bin_path) ~= nil then
+--     return bin_path
+--   end
+--
+--   return bin
+-- end
+
 local M = {}
 
 --
@@ -640,8 +663,48 @@ M = {
       },
     }
   end,
-  nil_ls = {},
-  -- TODO: nil -> nixd
+  nixd = {
+    settings = {
+      nixd = {
+        nixpkgs = {
+          expr = vim.fs.root(0, { "shell.nix" }) ~= nil and "import <nixpkgs> { }" or string.format(
+            'import (builtins.getFlake "%s").inputs.nixpkgs { }',
+            vim.fs.root(0, { "flake.nix" }) or vim.fn.expand("$DOTFILES")
+          ),
+        },
+        formatting = {
+          command = { "alejandra" },
+        },
+        -- options = vim.tbl_extend("force", {
+        --   -- home_manager = {
+        --   -- 	expr = string.format(
+        --   -- 		'(builtins.getFlake "%s").homeConfigurations.%s.options',
+        --   -- 		vim.fn.expand '$DOTFILES',
+        --   -- 		vim.fn.hostname()
+        --   -- 	),
+        --   -- },
+        -- }, vim.fn.has("macunix") and {
+        --   ["nix-darwin"] = {
+        --     expr = string.format(
+        --       '(builtins.getFlake "%s").darwinConfigurations.%s.options',
+        --       vim.fn.expand("$DOTFILES"),
+        --       vim.fn.hostname()
+        --     ),
+        --   },
+        -- } or {
+        --   nixos = {
+        --     expr = string.format(
+        --       '(builtins.getFlake "%s").nixosConfigurations.%s.options',
+        --       vim.fn.expand("$DOTFILES"),
+        --       vim.fn.hostname()
+        --     ),
+        --   },
+        -- }),
+      },
+    },
+  },
+  -- nil_ls = {},
+  -- TODO: nil -> nixd?
   -- REF: https://github.com/ahmedelgabri/dotfiles/commit/5dd61158f6872d4c4b85ddf5df550e0222093ae8
   -- nixd = {
   --   -- https://github.com/nix-community/nixvim/issues/2390#issuecomment-2408101568

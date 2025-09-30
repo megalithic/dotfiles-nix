@@ -1,6 +1,5 @@
 return {
   "stevearc/oil.nvim",
-  -- event = "VeryLazy",
   lazy = false,
   cmd = { "Oil" },
   keys = {
@@ -107,6 +106,9 @@ return {
         ["gs"] = "actions.change_sort",
         ["gx"] = "actions.open_external",
         ["g."] = "actions.toggle_hidden",
+        ["<BS>"] = function()
+          require("oil").open()
+        end,
         ["gd"] = {
           desc = "Toggle detail view",
           callback = function()

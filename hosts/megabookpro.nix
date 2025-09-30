@@ -1,18 +1,16 @@
-{ inputs
-, pkgs
-, config
-, lib
-, username
-, system
-, hostname
-, version
-, ...
-}:
-
-let
-  lang = "en_US.UTF-8";
-in
 {
+  inputs,
+  pkgs,
+  config,
+  lib,
+  username,
+  system,
+  hostname,
+  version,
+  ...
+}: let
+  lang = "en_US.UTF-8";
+in {
   imports = [
     ../modules/shared/darwin/homebrew.nix
   ];
@@ -36,8 +34,8 @@ in
   ids.gids.nixbld = 30000;
 
   # system wide packages (all users)
-  environment.systemPath = [ "/opt/homebrew/bin" ];
-  environment.pathsToLink = [ "/Applications" ];
+  environment.systemPath = ["/opt/homebrew/bin"];
+  environment.pathsToLink = ["/Applications"];
   environment.systemPackages = with pkgs; [
     bat
     curl
@@ -83,20 +81,15 @@ in
     zsh-syntax-highlighting
   ];
 
-  environment.shells = [ pkgs.fish pkgs.zsh ];
+  environment.shells = [pkgs.fish pkgs.zsh];
   # environment.shells = [ pkgs.zsh pkgs.fish pkgs.bashInteractive ];
-
-  environment.shellAliases = {
-    e = "$EDITOR";
-    vim = "$EDITOR";
-  };
 
   environment.variables = {
     LANG = "${lang}";
     LC_CTYPE = "${lang}";
     LC_ALL = "${lang}";
     PAGER = "less -FirSwX";
-    EDITOR = "${pkgs.nvim-nightly}/bin/nvim";
+    EDITOR = "${pkgs.nvim-nightly}/bin/nvim -O";
     VISUAL = "$EDITOR";
     GIT_EDITOR = "$EDITOR";
     MANPAGER = "$EDITOR +Man!";
@@ -111,6 +104,12 @@ in
     DOTS = "/Users/${username}/.dotfiles-nix";
 
     TMUX_LAYOUTS = "/Users/${username}/.config/tmux/layouts";
+  };
+
+  environment.shellAliases = {
+    e = "$EDITOR";
+    vim = "$EDITOR";
+    tmux = "direnv exec / tmux";
   };
 
   environment.extraInit = ''
@@ -182,7 +181,6 @@ in
       path = inputs.nixpkgs-unstable;
     };
   };
-
 
   # extra host specs
   # https://github.com/nix-darwin/nix-darwin/issues/1035

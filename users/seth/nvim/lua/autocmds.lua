@@ -388,6 +388,11 @@ M.augroup("InsertBehaviours", {
       vim.diagnostic.enable(true)
     end,
   },
+  {
+    event = "InsertLeave",
+    command = [[execute 'normal! mI']],
+    desc = "global mark I for last edit",
+  },
 })
 
 M.augroup("Utilities", {

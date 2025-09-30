@@ -680,6 +680,8 @@ function M.on_detach(args)
 end
 
 function M.on_attach(client, bufnr, _client_id)
+  client.flags.allow_incremental_sync = true
+
   vim.b[bufnr].lsp = client.name
   local filetype = vim.bo[bufnr].filetype
   local disabled_lsp_formatting = vim.g.disabled_lsp_formatters
@@ -930,6 +932,7 @@ vim.iter(servers):each(function(name, config)
     end
 
     vim.lsp.config[name] = config
+
     vim.lsp.enable(name, true)
   end
 end)

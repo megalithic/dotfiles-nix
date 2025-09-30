@@ -128,16 +128,6 @@
     uv
     basedpyright
 
-    # rust --------------------------------------------------------------------------------------
-    rustup
-    ruff
-    rust
-    rust-analyzer
-
-    # elixir --------------------------------------------------------------------------------------
-    beam.packages.erlang_28.elixir_1_18
-    beam.packages.erlang_28.erlang
-
     # nix -----------------------------------------------------------------------------------------
     nixfmt-rfc-style
     alejandra
@@ -151,6 +141,16 @@
     tflint
     trivy
     atlas
+
+    # rust --------------------------------------------------------------------------------------
+    rustup
+    ruff
+    rust
+    rust-analyzer
+
+    # elixir --------------------------------------------------------------------------------------
+    beam.packages.erlang_28.elixir_1_18
+    beam.packages.erlang_28.erlang
 
     # google-cloud --------------------------------------------------------------------------------
     # - remember to disable ipv6, otherwise super slow gcloud

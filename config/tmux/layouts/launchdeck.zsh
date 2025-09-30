@@ -4,7 +4,7 @@ SESSION="launchdeck"
 CWD="$(z "$SESSION"):-$CODE"
 
 export SESSION_ICON="󱓞" # alts:  󰴓 󰃀   
-export SESSION_FG="#e39b7b"
+export SESSION_FG="#00b6f0"
 # export SESSION_BG="#626262"
 
 cd $CWD
@@ -26,7 +26,7 @@ tmux -2 new-window -c "$CWD" -t "$SESSION":3 -n services
 tmux -2 send-keys -t "$SESSION":1 C-z "tmux link-window -s mega:chats -t 0 && exit" "C-m"
 
 # Window "code"
-tmux -2 send-keys -t "$SESSION":2.1 "z launchdeck" C-m
+tmux -2 send-keys -t "$SESSION":2.1 "cd ~/code/work/cspire/launchdeck" C-m
 tmux -2 send-keys -t "$SESSION":2.1 "ls" C-m
 
 tmux -2 select-layout -t "$SESSION":2 tiled
@@ -35,15 +35,22 @@ tmux -2 select-layout -t "$SESSION":2 main-vertical
 tmux -2 select-pane -t "$SESSION":2.1
 
 tmux new-window -c "$CWD" -t "$SESSION":3 -n services
-tmux send-keys -t "$SESSION":3.1 "z launchdeck_portal" C-m
+
+tmux send-keys -t "$SESSION":3.1 "cd ~/code/work/cspire/launchdeck/launchdeck_portal" C-m
+tmux send-keys -t "$SESSION":3.1 "devspace purge" C-m
+tmux send-keys -t "$SESSION":3.1 "devspace dev -n smesser-dev" C-m
+
 tmux splitw -c "$CWD" -t "$SESSION":3
 tmux select-layout -t "$SESSION":3 tiled
-tmux send-keys -t "$SESSION":3.2 "z launchdeck_portal_api" "C-m"
+
+tmux send-keys -t "$SESSION":3.2 "cd ~/code/work/cspire/launchdeck/launchdeck_portal_api" "C-m"
+tmux send-keys -t "$SESSION":3.2 "devspace purge" C-m
+tmux send-keys -t "$SESSION":3.2 "devspace run-pipeline debug -p smesser-dev -n smesser-dev" C-m
 
 tmux select-layout -t "$SESSION":3 tiled
 tmux select-layout -t "$SESSION":3 even-horizontal
 tmux select-pane -t "$SESSION":3.2
-tmux resize-pane -Z -t "$SESSION":3.2
+# tmux resize-pane -Z -t "$SESSION":3.2
 
 tmux -2 select-window -t "$SESSION":2
 tmux -2 select-pane -t "$SESSION":2.1

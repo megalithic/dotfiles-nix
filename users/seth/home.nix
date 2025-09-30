@@ -1,15 +1,15 @@
-{ config
-, pkgs
-, lib
-, inputs
-, username
-, system
-, hostname
-, version
-, overlays
-, ...
-}:
 {
+  config,
+  pkgs,
+  lib,
+  inputs,
+  username,
+  system,
+  hostname,
+  version,
+  overlays,
+  ...
+}: {
   imports = [
     # ./packages.nix
     ./jujutsu
@@ -26,16 +26,96 @@
     "${config.home.homeDirectory}/.cargo/bin"
   ];
   home.packages = with pkgs; [
-    _1password-cli
+    # [for neovim] --------------------------------------------------------------------------------
+    par
+    hadolint # Docker linter
+    dotenv-linter
+    shfmt # Doesn't work with zsh, only sh & bash
+    vscode-langservers-extracted # HTML, CSS, JSON & ESLint LSPs
+    # vscode-json-languageserver
+    nodePackages.prettier
+    bash-language-server
+    vtsls # js/ts LSP
+    yaml-language-server
+    tailwindcss-language-server
+    statix
+    emmylua_ls
+    emmylua_check
+    tree-sitter # required for treesitter "auto-install" option to work
+    nixd # nix lsp
+    actionlint
+    taplo # TOML linter and formatter
+    # neovim luarocks support requires lua 5.1
+    # https://github.com/folke/lazy.nvim/issues/1570#issuecomment-2194329169
+    lua51Packages.luarocks
+    typos
+    typos-lsp
+    copilot-language-server
+    pngpaste # For Obsidian paste_img command
+    stylelint-lsp
+
+    # [ai] ----------------------------------------------------------------------------------------
     ai-tools.opencode
+    ai-tools.claude-code
+    # [langs] --------------------------------------------------------------------------------------
+    harper
+    k9s
+    kubectl
+    kubernetes-helm
+    kubie
+    lua-language-server
+    markdown-oxide
+    podman
+    rustup
+    shellcheck
+    shfmt
+    stylua
+    # docker --------------------------------------------------------------------------------------
+    colima
+    docker
+    docker-compose
+    docker-compose-language-service
+    dockerfile-language-server-nodejs
+    # node/js/ts ----------------------------------------------------------------------------------
+    nodejs_22
+    # nodePackages_latest.nodejs
+    # nodePackages_latest.prettier
+    # nodePackages_latest.vscode-json-languageserver
+    pnpm
+    vue-language-server
+    # python --------------------------------------------------------------------------------------
+    basedpyright
+    # python3
+    python313
+    python313Packages.pip
+    python313Packages.websockets
+    python313Packages.websocket-client
+    python313Packages.ipython
+    python313Packages.sqlfmt
+    uv
+    # nix -----------------------------------------------------------------------------------------
+    nixfmt-rfc-style
     alejandra
+    nix-direnv
+    nil
+    # terraform -----------------------------------------------------------------------------------
+    # terraform
+    # terraform-docs
+    # terraform-ls
+    # tflint
+    # tfsec
+    # trivy
+    # atlas
+    # typst
+    # [rest] ----------------------------------------------------------------------------------------
+    _1password-cli
     amber
     argc
     aws-sam-cli
     awscli2
     cachix
-    codex
     curlie
+    delta
     devbox
     difftastic
     ffmpeg
@@ -43,37 +123,17 @@
     gh
     git-lfs
     gum
-    harper
     jwt-cli
-    lua-language-server
-    k9s
     kanata
-    kubectl
-    kubernetes-helm
-    kubie
-    markdown-oxide
-    nil
-    nixd
-    nixfmt-rfc-style
-    podman
     poppler
     pre-commit
     procs
     quarto
     ripgrep
-    rustup
-    shellcheck
-    shfmt
     sqlite
-    stylua
-    terraform-docs
-    # terminal-notifier
-    tflint
-    tfsec
-    typst
-    unstable.claude-code
+    # terminal-notifier FIXME: not working with nixpkgs (arch not supported?)
+    tmux
     unstable.devenv
-    uv
     yubikey-manager
     yubikey-personalization
   ];
@@ -118,42 +178,37 @@
   xdg.enable = true;
   home.preferXdgDirectories = true;
 
-  home.activation.symlinkAdditionalConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+  home.activation.symlinkAdditionalConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
     command cat << EOF
+    ░
     ░         ▘             ▜ ▘  ▌
     ░ ▛▘▌▌▛▌▛▌▌▛▌▛▌  ▛▘▌▌▛▛▌▐ ▌▛▌▙▘█▌▛▘▛▘
     ░ ▌ ▙▌▌▌▌▌▌▌▌▙▌  ▄▌▙▌▌▌▌▐▖▌▌▌▛▖▙▖▌ ▄▌
     ░            ▄▌    ▄▌
+    ░
     EOF
-
-    echo ""
-    echo "# symlink ssh/config to /Users/${username}/.ssh/config..." &&
+    echo "░"
+    echo "░ symlink ssh/config to /Users/${username}/.ssh/config..." &&
       rm -rf /Users/${username}/.ssh/config > /dev/null 2>&1;
       ln -sfv /Users/${username}/.dotfiles-nix/config/ssh/config /Users/${username}/.ssh/config
-
-    echo ""
-    echo "# symlink hammerspoon to /Users/${username}/.config/hammerspoon..." &&
+    echo "░"
+    echo "░ symlink hammerspoon to /Users/${username}/.config/hammerspoon..." &&
       rm -rf /Users/${username}/.config/hammerspoon > /dev/null 2>&1;
       ln -sfv /Users/${username}/.dotfiles-nix/config/hammerspoon /Users/${username}/.config/
-
-    echo ""
-    echo "# symlink tmux to /Users/${username}/.config/tmux..." &&
+    echo "░"
+    echo "░ symlink tmux to /Users/${username}/.config/tmux..." &&
       rm -rf /Users/${username}/.config/tmux > /dev/null 2>&1;
       ln -sfv /Users/${username}/.dotfiles-nix/config/tmux /Users/${username}/.config/
-
-    echo ""
-    echo "# symlink proton drive to /Users/${username}/protondrive..." &&
+    echo "░"
+    echo "░ symlink proton drive to /Users/${username}/protondrive..." &&
       rm -rf /Users/${username}/protondrive > /dev/null 2>&1;
       ln -sfv /Users/seth/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder /Users/${username}/protondrive
-
-    echo ""
-    echo "# symlink iCloud to /Users/${username}/iclouddrive..." &&
+    echo "░"
+    echo "░ symlink iCloud to /Users/${username}/iclouddrive..." &&
       rm -rf /Users/${username}/iclouddrive > /dev/null 2>&1;
       ln -sfv /Users/seth/Library/Mobile\ Documents/com~apple~CloudDocs /Users/${username}/iclouddrive
-
-    echo ""
+    echo "░"
   '';
-
 
   xdg.configFile."nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/nvim";
   xdg.configFile."kanata".source = ./kanata;
@@ -184,7 +239,7 @@
     }
   '';
 
-  accounts = import ./accounts.nix { inherit config pkgs lib; };
+  accounts = import ./accounts.nix {inherit config pkgs lib;};
 
   # applications/programs
   programs.home-manager.enable = true;
@@ -255,8 +310,8 @@
     #   '';
     # };
 
-    starship = { enable = true; };
-    aerc = import ./aerc/default.nix { inherit config pkgs lib; };
+    starship = {enable = true;};
+    aerc = import ./aerc/default.nix {inherit config pkgs lib;};
     fish = {
       # REF: https://github.com/agdral/home-default/blob/main/shell/fish/functions/develop.nix
       enable = true;
@@ -352,7 +407,10 @@
       enableZshIntegration = false;
       installBatSyntax = !pkgs.stdenv.hostPlatform.isDarwin;
       # FIXME: Remove this hack when the nixpkgs pkg works again
-      package = if pkgs.stdenv.hostPlatform.isDarwin then lib.brew-alias pkgs "ghostty" else pkgs.ghostty;
+      package =
+        if pkgs.stdenv.hostPlatform.isDarwin
+        then lib.brew-alias pkgs "ghostty"
+        else pkgs.ghostty;
       settings = {
         quit-after-last-window-closed = true;
       };
@@ -364,7 +422,7 @@
       userName = "Seth Messer";
       userEmail = "seth@megalithic.io";
       includes = [
-        { path = "~/.gitconfig"; }
+        {path = "~/.gitconfig";}
       ];
       # extraConfig = {
       #   gpg.format = "ssh";
@@ -395,7 +453,7 @@
         global.load_dotenv = true;
         global.warn_timeout = 0;
         global.hide_env_diff = true;
-        whitelist.prefix = [ config.home.homeDirectory ];
+        whitelist.prefix = [config.home.homeDirectory];
       };
     };
 
@@ -406,7 +464,7 @@
       flake = ../../.;
     };
 
-    yazi = import ./yazi/default.nix { inherit config pkgs lib; };
+    yazi = import ./yazi/default.nix {inherit config pkgs lib;};
 
     zoxide = {
       enable = true;
@@ -481,4 +539,3 @@
     # };
   };
 }
-

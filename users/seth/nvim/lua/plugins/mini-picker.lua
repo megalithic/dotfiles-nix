@@ -346,24 +346,26 @@ return {
 
     -- Using primarily for code action
     -- See https://github.com/echasnovski/mini.nvim/discussions/1437
-    vim.ui.select = function()
-      MiniPick.ui_select({}, {
-        window = {
-          config = function()
-            local height = math.floor(0.618 * vim.o.lines)
-            local width = math.floor(0.618 * vim.o.columns)
-            return {
-              relative = "cursor",
-              anchor = "NW",
-              height = height,
-              width = width,
-              row = 0,
-              col = 0,
-            }
-          end,
-        },
-      })
-    end
+    -- vim.ui.select = function()
+    --   MiniPick.ui_select({}, {
+    --     window = {
+    --       config = function()
+    --         -- local height = math.floor(0.618 * vim.o.lines)
+    --         -- local width = math.floor(0.618 * vim.o.columns)
+    --         local height = 50
+    --         local width = 50
+    --         return {
+    --           relative = "cursor",
+    --           anchor = "NW",
+    --           height = height,
+    --           width = width,
+    --           row = 0,
+    --           col = 0,
+    --         }
+    --       end,
+    --     },
+    --   })
+    -- end
 
     local ns = vim.api.nvim_create_namespace("DVT MiniPickRanges")
     vim.keymap.set("n", "<leader>sg", function()
@@ -444,19 +446,19 @@ return {
       })
     end, { desc = "[S]earch [G]rep" })
 
-    vim.keymap.set("n", "<leader>sG", function()
-      vim.ui.input({
-        prompt = "What directory do you want to search in? ",
-        default = vim.uv.cwd(),
-        completion = "dir",
-      }, function(input)
-        if not input or input == "" then
-          return
-        end
-
-        MiniPick.builtin.grep_live({}, { source = { cwd = input } })
-      end)
-    end, { desc = "[S]earch [G]rep in specific directory" })
+    -- vim.keymap.set("n", "<leader>sG", function()
+    --   vim.ui.input({
+    --     prompt = "What directory do you want to search in? ",
+    --     default = vim.uv.cwd(),
+    --     completion = "dir",
+    --   }, function(input)
+    --     if not input or input == "" then
+    --       return
+    --     end
+    --
+    --     MiniPick.builtin.grep_live({}, { source = { cwd = input } })
+    --   end)
+    -- end, { desc = "[S]earch [G]rep in specific directory" })
 
     vim.keymap.set("n", "<leader>a", function()
       -- MiniPick.builtin.grep_live()

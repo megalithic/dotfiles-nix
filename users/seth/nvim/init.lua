@@ -1,7 +1,7 @@
 vim.loader.enable()
 
 require("vim._extui").enable({
-  enable = true,
+  enable = false,
   msg = {
     -- msg: similar rendering to the notifier.nvim plugin
     -- cmd: normal cmd mode looking stuff

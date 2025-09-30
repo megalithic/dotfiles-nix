@@ -19,6 +19,12 @@ require("ftplugin").extend_all({
   --     -- map("n", "0", "^")
   --   },
   -- },
+  cmdline = {
+    opt = {
+      number = false,
+      relativenumber = false,
+    },
+  },
   [{ "elixir", "eelixir" }] = {
     opt = {
       syntax = "OFF",
