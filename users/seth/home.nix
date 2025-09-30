@@ -400,43 +400,6 @@
       };
     };
 
-    # tmux = {
-    #   enable = true;
-    #   shell = "${pkgs.fish}/bin/fish";
-    #   terminal = "xterm-ghostty";
-    #   # NOTE: doing an xdgConfig.source instead..
-    #   # extraConfig = lib.fileContents config/tmux/tmux.conf;
-    #   extraConfig = ''
-    #     set -sg escape-time 0
-    #     set -g history-limit 16384
-    #
-    #     # Enable true-color for terminal type under which tmux runs
-    #     set -ga terminal-overrides ",xterm-256color:Tc"
-    #
-    #     # The terminal type to surface inside of tmux
-    #     set -g default-terminal "xterm-256color"
-    #
-    #     ${lib.concatStrings (map (x: "run-shell ${x.rtp}\n") tmuxPlugins)}
-    #   '';
-    #   plugins = with pkgs.tmuxPlugins; [
-    #     pain-control
-    #     sessionist
-    #     yank
-    #     battery
-    #     cpu
-    #     copycat
-    #     open
-    #     better-mouse-mode
-    #     # pop
-    #     fuzzback
-    #     jump
-    #     tmux-thumbs
-    #     mode-indicator
-    #     # cowboy
-    #     # suspend
-    #   ];
-    # };
-
     nh = {
       enable = true;
       package = pkgs.unstable.nh;

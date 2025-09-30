@@ -238,7 +238,7 @@
     };
     keyboard = {
       enableKeyMapping = true;
-      remapCapsLockToControl = false;
+      remapCapsLockToControl = true;
     };
   };
   security.pam.services.sudo_local.touchIdAuth = true;
