@@ -1,4 +1,4 @@
-#!/usr/local/bin/bash
+#!/usr/local/bin/zsh
 
 # REF: https://www.jakeworth.com/tmux-application-startup-script/
 # = layouts --------------------------------------------------------------------
