@@ -31,6 +31,7 @@ in {
         };
         flavor = "gmail.com";
 
+        thunderbird.enable = true;
         aerc.enable = true;
         himalaya = {
           enable = true;
@@ -87,6 +88,7 @@ in {
           tls.enable = true;
         };
 
+        thunderbird.enable = true;
         aerc.enable = true;
         himalaya = {
           enable = true;
@@ -138,6 +140,7 @@ in {
           tls.enable = true;
         };
 
+        thunderbird.enable = true;
         aerc.enable = true;
         himalaya.enable = true;
         notmuch.enable = true;

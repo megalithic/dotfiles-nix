@@ -30,7 +30,7 @@ function obj.captureImage(image, openImageUrl)
 
   if image:saveToFile(capturedImage) then
     local std_out, success, type, rc =
-      hs.execute(fmt("%s -ci '%s/.dotfiles/bin/capper %s'", os.getenv("SHELL"), os.getenv("HOME"), capturedImage))
+      hs.execute(fmt("%s -ci '%s/.dotfiles-nix/bin/capper %s'", os.getenv("SHELL"), os.getenv("HOME"), capturedImage))
 
     local std_out_lines = {}
     for s in std_out:gmatch("[^\r\n]+") do
@@ -91,7 +91,9 @@ function obj.sendToImgur(image, open_image_url)
         hs.pasteboard.setContents(imageUrl, "imageUrl")
         hs.pasteboard.setContents(image, "image")
 
-        if open_image_url then hs.urlevent.openURLWithBundle(imageUrl, hs.urlevent.getDefaultHandler("https")) end
+        if open_image_url then
+          hs.urlevent.openURLWithBundle(imageUrl, hs.urlevent.getDefaultHandler("https"))
+        end
         hs.execute("rm " .. obj.tempImage)
       else
         error(fmt("[%s] sendToImgur: %s/%s/%s/%s", obj.name, status, body, I(headers)))

@@ -11,14 +11,8 @@
 # Matches are substitution rules: when you type the "trigger" string
 # it gets replaced by the "replace" string.
 matches:
-  # INFO https://www.reddit.com/r/espanso/comments/1h7ajx8/use_espanso_for_mousefree_emojireacts_in_discord/
-  - {trigger: ':::', replace: '+:'} # open selection
-  - {trigger: 'hhh', replace: "+:heart:\n"} # Slack does not support :grey_heart:
-  - {trigger: 'yyy', replace: "+:+1:\n"} # 👍
-  - {trigger: '->', replace: →, word: true} # unicode arrow
+  # - {trigger: '->', replace: →, word: true} # unicode arrow
   # - {trigger: ' mm', replace: ' 🙈'}
-  - {trigger: '<3', replace: '🩶'} # use grey haeart instead of red one
-  - {trigger: ':h:', replace: '+:heart:\n'} # use grey haeart instead of red one
 
   - trigger: '::date'
     replace: '{{date}}'
@@ -57,3 +51,50 @@ matches:
         type: shell
         params:
           cmd: 'curl ifconfig.me'
+
+  - {trigger: '<3', replace: '🩶'} # use grey haeart instead of red one
+  - trigger: ':wave:'
+    replace: 👋
+    word: true
+  - trigger: ':thumb:'
+    replace: 👍
+    word: true
+  - trigger: ':+1:'
+    replace: 👍
+    word: true
+  - trigger: ':thumbsup:'
+    replace: 👍
+    word: true
+  - trigger: ':-1:'
+    replace: 👎
+    word: true
+  - trigger: ':thumbsdown:'
+    replace: 👎
+    word: true
+  - trigger: ':flex:'
+    replace: 💪
+    word: true
+  - trigger: ':pray:'
+    replace: 🙏
+    word: true
+  - trigger: ':rock:'
+    replace: 🤘
+    word: true
+  - trigger: ':rofl:'
+    replace: 🤣
+    word: true
+  - trigger: ':poop:'
+    replace: 💩
+    word: true
+  - trigger: ':100:'
+    replace: 💯
+    word: true
+  - trigger: ':eyes:'
+    replace: 👀
+    word: true
+  - trigger: ':facepalm:'
+    replace: 🤦
+    word: true
+  - trigger: ':hands:'
+    replace: 🙌🏼
+    word: true

@@ -96,6 +96,7 @@
       "spotify"
       "steam"
       "telegram"
+      "thunderbird"
       "tunnelblick"
       "vlc"
       "zoom"

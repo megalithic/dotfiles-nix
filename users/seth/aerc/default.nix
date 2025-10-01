@@ -1,10 +1,11 @@
 # REF: https://github.com/jeffa5/nix-home/blob/main/home/modules/aerc.nix
-{ pkgs, config, ... }:
-
-let
-  aerc-filters = "${pkgs.aerc}/libexec/aerc/filters";
-in
 {
+  pkgs,
+  config,
+  ...
+}: let
+  aerc-filters = "${pkgs.aerc}/libexec/aerc/filters";
+in {
   enable = true;
   extraAccounts = {
     gmail = {
@@ -239,11 +240,9 @@ in
       "pb" = ":patch rebase<Enter>";
       "pt" = ":patch term<Enter>";
       "ps" = ":patch switch <Tab>";
-
     };
     "messages:folder=Drafts" = {
       "<Enter>" = ":recall<Enter>";
-
     };
     "view" = {
       "/" = ":toggle-key-passthrough<Enter>/";
@@ -272,13 +271,11 @@ in
       "<C-Right>" = ":next<Enter>";
       "K" = ":prev<Enter>";
       "<C-Left>" = ":prev<Enter>";
-
     };
     "view::passthrough" = {
       "$noinherit" = "true";
       "$ex" = "<C-x>";
       "<Esc>" = ":toggle-key-passthrough<Enter>";
-
     };
     "compose" = {
       "$noinherit" = "true";
@@ -298,7 +295,6 @@ in
       "<C-PgUp>" = ":prev-tab<Enter>";
       "<C-n>" = ":next-tab<Enter>";
       "<C-PgDn>" = ":next-tab<Enter>";
-
     };
     "compose::editor" = {
       "$noinherit" = "true";
@@ -311,7 +307,6 @@ in
       "<C-PgUp>" = ":prev-tab<Enter>";
       "<C-n>" = ":next-tab<Enter>";
       "<C-PgDn>" = ":next-tab<Enter>";
-
     };
     "compose::review" = {
       "y" = ":send<Enter>";
@@ -322,7 +317,6 @@ in
       "e" = ":edit<Enter>";
       "a" = ":attach<space>";
       "d" = ":detach<space>";
-
     };
     "terminal" = {
       "$noinherit" = "true";
@@ -334,5 +328,4 @@ in
       "<C-PgDn>" = ":next-tab<Enter>";
     };
   };
-
 }

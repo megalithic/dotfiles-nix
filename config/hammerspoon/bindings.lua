@@ -7,15 +7,25 @@ local utils = require("utils")
 local function activateModal(mods, key, timeout)
   timeout = timeout or false
   local modal = hs.hotkey.modal.new(mods, key)
-  local timer = hs.timer.new(1, function() modal:exit() end)
-  modal:bind("", "escape", nil, function() modal:exit() end)
-  modal:bind("ctrl", "c", nil, function() modal:exit() end)
+  local timer = hs.timer.new(1, function()
+    modal:exit()
+  end)
+  modal:bind("", "escape", nil, function()
+    modal:exit()
+  end)
+  modal:bind("ctrl", "c", nil, function()
+    modal:exit()
+  end)
   function modal:entered()
-    if timeout then timer:start() end
+    if timeout then
+      timer:start()
+    end
     print("modal entered")
   end
   function modal:exited()
-    if timeout then timer:stop() end
+    if timeout then
+      timer:stop()
+    end
     print("modal exited")
   end
   return modal
@@ -25,7 +35,9 @@ local function modalBind(modal, key, fn, exitAfter)
   exitAfter = exitAfter or false
   modal:bind("", key, nil, function()
     fn()
-    if exitAfter then modal:exit() end
+    if exitAfter then
+      modal:exit()
+    end
   end)
 end
 
@@ -74,7 +86,11 @@ do
       end
     end
 
-    if localBinds then enum.each(localBinds, function(key) hyper:bindPassThrough(key, bundleID) end) end
+    if localBinds then
+      enum.each(localBinds, function(key)
+        hyper:bindPassThrough(key, bundleID)
+      end)
+    end
   end)
 end
 
@@ -86,7 +102,9 @@ req("hyper", { id = "meeting" }):start():bind({}, "z", nil, function()
     hs.application.launchOrFocusByBundleID("us.zoom.xos")
     local app = hs.application.find("us.zoom.xos")
     local targetWin = app:findWindow("Zoom Meeting")
-    if targetWin and targetWin:isStandard() then targetWin:focus() end
+    if targetWin and targetWin:isStandard() then
+      targetWin:focus()
+    end
   elseif hs.application.find("com.brave.Browser.nightly.app.kjgfgldnnfoeklkmfkjfagphfepbbdan") then
     hs.application.launchOrFocusByBundleID("com.brave.Browser.nightly.app.kjgfgldnnfoeklkmfkjfagphfepbbdan")
   elseif hs.application.find("com.microsoft.teams2") then
@@ -134,15 +152,16 @@ req("hyper", { id = "utils" })
   end)
   :bind({ "shift", "ctrl" }, "l", nil, req("wm").placeAllApps)
   -- focus daily notes; splitting it 30/70 with currently focused app window
-  :bind(
-    { "shift" },
-    "o",
-    nil,
-    function() utils.tmux.focusDailyNote(true) end
-  )
+  :bind({ "shift" }, "o", nil, function()
+    utils.tmux.focusDailyNote(true)
+  end)
   -- focus daily note; window layout untouched
-  :bind({ "ctrl" }, "o", nil, function() utils.tmux.focusDailyNote() end)
-  :bind({ "ctrl" }, "d", nil, function() utils.dnd() end)
+  :bind({ "ctrl" }, "o", nil, function()
+    utils.tmux.focusDailyNote()
+  end)
+  :bind({ "ctrl" }, "d", nil, function()
+    utils.dnd()
+  end)
 
 -- FIXME:
 -- Maybe use this? REF: https://github.com/jackieaskins/dotfiles/blob/main/hammerspoon/config/hotkeyStore.lua
@@ -182,9 +201,13 @@ wmModality
     {},
     "r",
     req("wm").placeAllApps,
-    function() wmModality:exit(0.1) end
+    function()
+      wmModality:exit(0.1)
+    end
   )
-  :bind({}, "escape", function() wmModality:exit() end)
+  :bind({}, "escape", function()
+    wmModality:exit()
+  end)
   -- :bind({}, "space", function() wm.place(POSITIONS.preview) end, function() wmModality:exit(0.1) end)
   :bind(
     {},
@@ -199,17 +222,25 @@ wmModality
       POSITIONS.preview,
     }, wmModality, 1.0)
   )
-  :bind({}, "return", function() wm.place(POSITIONS.full) end, function() wmModality:exit(0.1) end)
+  :bind({}, "return", function()
+    wm.place(POSITIONS.full)
+  end, function()
+    wmModality:exit(0.1)
+  end)
   :bind({ "shift" }, "return", function()
     wm.toNextScreen()
     wm.place(POSITIONS.full)
-  end, function() wmModality:exit() end)
+  end, function()
+    wmModality:exit()
+  end)
   :bind(
     {},
     "h",
     chain(
       enum.map({ "halves", "thirds", "twoThirds", "fiveSixths", "sixths" }, function(size)
-        if type(POSITIONS[size]) == "string" then return POSITIONS[size] end
+        if type(POSITIONS[size]) == "string" then
+          return POSITIONS[size]
+        end
         return POSITIONS[size]["left"]
       end),
       wmModality,
@@ -221,7 +252,9 @@ wmModality
     "l",
     chain(
       enum.map({ "halves", "thirds", "twoThirds", "fiveSixths", "sixths" }, function(size)
-        if type(POSITIONS[size]) == "string" then return POSITIONS[size] end
+        if type(POSITIONS[size]) == "string" then
+          return POSITIONS[size]
+        end
         return POSITIONS[size]["right"]
       end),
       wmModality,
@@ -232,7 +265,9 @@ wmModality
     wm.toPrevScreen()
     chain(
       enum.map({ "halves", "thirds", "twoThirds", "fiveSixths", "sixths" }, function(size)
-        if type(POSITIONS[size]) == "string" then return POSITIONS[size] end
+        if type(POSITIONS[size]) == "string" then
+          return POSITIONS[size]
+        end
         return POSITIONS[size]["left"]
       end),
       wmModality,
@@ -243,7 +278,9 @@ wmModality
     wm.toNextScreen()
     chain(
       enum.map({ "halves", "thirds", "twoThirds", "fiveSixths", "sixths" }, function(size)
-        if type(POSITIONS[size]) == "string" then return POSITIONS[size] end
+        if type(POSITIONS[size]) == "string" then
+          return POSITIONS[size]
+        end
         return POSITIONS[size]["right"]
       end),
       wmModality,
@@ -254,7 +291,9 @@ wmModality
   :bind(
     {},
     "j",
-    function() wm.place(POSITIONS.center.large) end,
+    function()
+      wm.place(POSITIONS.center.large)
+    end,
     -- chain({
     --   POSITIONS.center.mini,
     --   POSITIONS.center.tiny,
@@ -262,12 +301,16 @@ wmModality
     --   POSITIONS.center.medium,
     --   POSITIONS.center.large,
     -- }, wmModality, 1.0)
-    function() wmModality:exit() end
+    function()
+      wmModality:exit()
+    end
   )
   :bind(
     {},
     "k",
-    function() wm.place(POSITIONS.center.medium) end,
+    function()
+      wm.place(POSITIONS.center.medium)
+    end,
     -- chain({
     --   POSITIONS.center.large,
     --   POSITIONS.center.medium,
@@ -275,7 +318,9 @@ wmModality
     --   POSITIONS.center.tiny,
     --   POSITIONS.center.mini,
     -- }, wmModality, 1.0)
-    function() wmModality:exit() end
+    function()
+      wmModality:exit()
+    end
   )
   :bind({}, "v", function()
     require("wm").tile()
@@ -302,7 +347,9 @@ wmModality
   end)
   :bind({}, "f", function()
     local focused = hs.window.focusedWindow()
-    enum.map(focused:otherWindowsAllScreens(), function(win) win:application():hide() end)
+    enum.map(focused:otherWindowsAllScreens(), function(win)
+      win:application():hide()
+    end)
     wmModality:exit()
   end)
   :bind({}, "c", function()
@@ -351,7 +398,9 @@ wmModality
 --   end)
 -- end)
 
-req("hyper", { id = "wm" }):bind({}, "l", function() wmModality:toggle() end)
+req("hyper", { id = "wm" }):bind({}, "l", function()
+  wmModality:toggle()
+end)
 
 --[[]
 req("hyper", { id = "wm" })

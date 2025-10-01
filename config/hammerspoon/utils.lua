@@ -9,10 +9,12 @@ obj.__index = obj
 obj.name = "utils"
 obj.debug = true
 
-obj.dndCmd = os.getenv("HOME") .. "/.dotfiles/bin/dnd"
-obj.slckCmd = os.getenv("HOME") .. "/.dotfiles/bin/slck"
+obj.dndCmd = os.getenv("HOME") .. "/.dotfiles-nix/bin/dnd"
+obj.slckCmd = os.getenv("HOME") .. "/.dotfiles-nix/bin/slck"
 
-function obj.template(template, vars) return string.gsub(template, "{(.-)}", vars) end
+function obj.template(template, vars)
+  return string.gsub(template, "{(.-)}", vars)
+end
 
 --- utils.scriptPath([n]) -> string
 --- Function
@@ -24,7 +26,9 @@ function obj.template(template, vars) return string.gsub(template, "{(.-)}", var
 --- Returns:
 ---  * String with the path from where the calling code was loaded.
 function obj.scriptPath(n)
-  if n == nil then n = 2 end
+  if n == nil then
+    n = 2
+  end
   local str = debug.getinfo(n, "S").source:sub(2)
   return str:match("(.*/)")
 end
@@ -38,12 +42,16 @@ end
 ---
 --- Returns:
 ---  * Absolute path of the file. Note: no existence or other checks are done on the path.
-function obj.resourcePath(partial) return (obj.scriptPath(3) .. partial) end
+function obj.resourcePath(partial)
+  return (obj.scriptPath(3) .. partial)
+end
 
 function obj.eventString(e)
   local a = hs.application.watcher
 
-  if type(e) == "string" then return e end
+  if type(e) == "string" then
+    return e
+  end
 
   local enum_tbl = {
     [0] = { "launching", a.launching },
@@ -81,9 +89,13 @@ function obj.truncate(str, width, at_tail)
   -- @usage ('1234567890'):shorten(8, true) == '...67890'
   -- @usage ('1234567890'):shorten(20) == '1234567890'
   local function shorten(s, w, tail)
-    if s == nil then return "" end
+    if s == nil then
+      return ""
+    end
     if #s > w then
-      if w < n_ellipsis then return ellipsis:sub(1, w) end
+      if w < n_ellipsis then
+        return ellipsis:sub(1, w)
+      end
       if tail then
         local i = #s - w + 1 + n_ellipsis
         return ellipsis .. s:sub(i)
@@ -99,12 +111,22 @@ end
 
 ---@param status boolean|string|nil dnd status on or off as a boolean to pass to the dnd binary
 function obj.dnd(status)
-  if type(status) == "boolean" then status = status and "on" or "off" end
+  if type(status) == "boolean" then
+    status = status and "on" or "off"
+  end
 
   if status ~= nil then
-    hs.task.new(obj.dndCmd, function(_exitCode, _stdOut, _stdErr) info("[RUN] dnd/" .. status) end, { status }):start()
+    hs.task
+      .new(obj.dndCmd, function(_exitCode, _stdOut, _stdErr)
+        info("[RUN] dnd/" .. status)
+      end, { status })
+      :start()
   else
-    hs.task.new(obj.dndCmd, function(_exitCode, _stdOut, _stdErr) info("[RUN] dnd/toggle") end, { "toggle" }):start()
+    hs.task
+      .new(obj.dndCmd, function(_exitCode, _stdOut, _stdErr)
+        info("[RUN] dnd/toggle")
+      end, { "toggle" })
+      :start()
   end
 end
 
@@ -212,7 +234,7 @@ function obj.vidconvert(path, opts)
 end
 
 function obj.tmux.update()
-  hs.task.new("/opt/homebrew/bin/tmux", function() end, { "refresh-client" }):start()
+  hs.task.new("tmux", function() end, { "refresh-client" }):start()
 end
 
 function obj.tmux.focusDailyNote(splitFocusedWindow)
@@ -233,7 +255,9 @@ function obj.tmux.focusDailyNote(splitFocusedWindow)
 
     term:activate()
 
-    hs.timer.waitUntil(function() return term:isFrontmost() end, function()
+    hs.timer.waitUntil(function()
+      return term:isFrontmost()
+    end, function()
       -- mimics pressing the tmux prefix `ctrl-space`,
       hs.eventtap.keyStroke({ "ctrl" }, "space", 10000, term)
       -- then the daily note binding, `ctrl-o`,
@@ -249,15 +273,21 @@ function obj.tmux.focusDailyNote(splitFocusedWindow)
 end
 
 -- Takes a list of path parts, returns a string with the parts delimited by '/'
-function obj.file.toPath(...) return table.concat({ ... }, "/") end
+function obj.file.toPath(...)
+  return table.concat({ ... }, "/")
+end
 
 function obj.file.splitPath(file)
   -- Splits a string by '/', returning the parent dir, filename (with extension),
   -- and the extension alone.
   local parent = file:match("(.+)/[^/]+$")
-  if parent == nil then parent = "." end
+  if parent == nil then
+    parent = "."
+  end
   local filename = file:match("/([^/]+)$")
-  if filename == nil then filename = file end
+  if filename == nil then
+    filename = file
+  end
   local ext = filename:match("%.([^.]+)$")
   return parent, filename, ext
 end
@@ -280,9 +310,13 @@ function obj.file.runOnFiles(path, callback)
   local files = {}
   repeat
     local item = iter(data)
-    if item ~= nil then table.insert(files, obj.file.toPath(path, item)) end
+    if item ~= nil then
+      table.insert(files, obj.file.toPath(path, item))
+    end
   until item == nil
-  if #files > 0 then callback(files) end
+  if #files > 0 then
+    callback(files)
+  end
 end
 
 -- Make a parent dir for a file. Does not error if it exists already.
@@ -290,19 +324,25 @@ function obj.file.makeParentDir(path)
   local parent, _, _ = obj.file.splitPath(path)
   local ok, err = hs.fs.mkdir(parent)
   if ok == nil then
-    if err == "File exists" then ok = true end
+    if err == "File exists" then
+      ok = true
+    end
   end
   return ok, err
 end
 
 -- Create a file (making parent directories if necessary).
 function obj.file.create(path)
-  if obj.file.makeParentDir(path) then io.open(path, "w"):close() end
+  if obj.file.makeParentDir(path) then
+    io.open(path, "w"):close()
+  end
 end
 
 -- Append a line of text to a file.
 function obj.file.append(file, text)
-  if text == "" then return end
+  if text == "" then
+    return
+  end
 
   local f = io.open(file, "a")
   f:write(tostring(text) .. "\n")
@@ -323,7 +363,9 @@ function obj.file.move(from, to, force, onSuccess, onFailure)
     end
   end
 
-  if obj.file.exists(from) then hs.task.new("/bin/mv", callback, { force, from, to }):start() end
+  if obj.file.exists(from) then
+    hs.task.new("/bin/mv", callback, { force, from, to }):start()
+  end
 end
 
 -- If the given file is older than the given time (in epoch seconds), return
@@ -331,22 +373,30 @@ end
 -- time.
 function obj.file.isOlderThan(file, seconds)
   local age = os.time() - hs.fs.attributes(file, "change")
-  if age > seconds then return true end
+  if age > seconds then
+    return true
+  end
   return false
 end
 
 -- Return the last modified time of a file in epoch seconds.
 function obj.file.lastModified(file)
   local when = os.time()
-  if obj.file.exists(file) then when = hs.fs.attributes(file, "modification") end
+  if obj.file.exists(file) then
+    when = hs.fs.attributes(file, "modification")
+  end
   return when
 end
 
 function obj.file.moveFileToPath(file, toPath)
   -- move a given file to toPath, overwriting the destination, with logging
-  local function onFileMoveSuccess(_) info("Moved " .. file .. " to " .. toPath) end
+  local function onFileMoveSuccess(_)
+    info("Moved " .. file .. " to " .. toPath)
+  end
 
-  local function onFileMoveFailure(stdErr) error("Error moving " .. file .. " to " .. toPath .. ": " .. stdErr) end
+  local function onFileMoveFailure(stdErr)
+    error("Error moving " .. file .. " to " .. toPath .. ": " .. stdErr)
+  end
 
   obj.file.makeParentDir(toPath)
   obj.file.move(file, toPath, true, onFileMoveSuccess, onFileMoveFailure)
@@ -397,7 +447,7 @@ function obj.download_lib(rel_file_path, url)
     hs.notify
       .new({
         title = "Library download failed",
-        informativeText = string.format("Failed to download \"%s\"", filename),
+        informativeText = string.format('Failed to download "%s"', filename),
         autoWithdraw = false,
       })
       :send()

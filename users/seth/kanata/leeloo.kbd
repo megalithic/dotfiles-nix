@@ -1,0 +1,18 @@
+;; vim:ft=lisp
+
+;; Key reference
+;; https://github.com/jtroo/kanata/blob/main/parser/src/keys/mod.rs
+;; minimal home row-mods and hyper key
+
+;; un-mapped keys behave as normally
+(defcfg
+  concurrent-tap-hold yes
+  process-unmapped-keys yes
+  macos-dev-names-include (
+    "Apple Internal Keyboard / Trackpad"
+  )
+)
+
+(defalias
+  cbspc_del (tap-hold 100 100 bspc c-bspc)
+)

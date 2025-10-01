@@ -167,6 +167,7 @@
       };
 
       CustomUserPreferences = {
+        "com.apple.print.PrintingPrefs" = {"Quit When Finished" = true;}; # quit printer app once jobs complete
         NSGlobalDomain = {
           # Add a context menu item for showing the Web Inspector in web views
           WebKitDeveloperExtras = true;
@@ -185,6 +186,7 @@
           SmartInsertDelete = 2;
           SmartQuotes = 1;
           SpellChecking = 1;
+          ApplePressAndHoldEnabled = false;
         };
         "com.apple.ActivityMonitor" = {
           OpenMainWindow = true;

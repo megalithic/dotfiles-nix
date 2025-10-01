@@ -1,3 +1,5 @@
-.jj/
-.direnv/
+.jj
+.direnv
+**/.direnv
+**/.jj
 users/seth/config/hammerspoon/Spoons

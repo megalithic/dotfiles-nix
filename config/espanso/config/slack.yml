@@ -3,7 +3,7 @@
 # DOCS https://espanso.org/docs/configuration/app-specific-configurations/
 
 # also include browser, for Slack/Discord in the browser
-# filter_class: com.tinyspeck.slackmacgap
-#
-# extra_includes:
-#   - ../match/_emoji-reacts.yml
+filter_class: com.tinyspeck.slackmacgap
+
+extra_includes:
+  - ../match/_emoji-reactions.yml

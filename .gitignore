@@ -34,8 +34,10 @@ todo.txt
 .opencode
 .claude
 !.ignore
-.jj/
-./.jj
+.jj
+.direnv
+**/.direnv
+**/.jj
 
 weechat
 users/seth/config/weechat

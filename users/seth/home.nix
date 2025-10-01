@@ -145,7 +145,7 @@
     "src/.keep".text = "";
     "tmp/.keep".text = "";
     ".hushlogin".text = "";
-    "bin".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/bin";
+    "bin".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/bin";
     ".vimrc".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/nvim/.vimrc";
     ".editorconfig".text = ''
       root = true
@@ -167,14 +167,8 @@
       vault = "Shared"
       item = "megaenv"
     '';
-    ".config/surfingkeys/config.js" = {
-      recursive = true;
-      text = builtins.readFile surfingkeys/config.js;
-    };
-    ".config/starship.toml" = {
-      recursive = true;
-      text = builtins.readFile starship/starship.toml;
-    };
+    ".config/surfingkeys/config.js".text = builtins.readFile surfingkeys/config.js;
+    ".config/starship.toml".text = builtins.readFile starship/starship.toml;
   };
 
   xdg.enable = true;
@@ -183,36 +177,41 @@
   home.activation.symlinkAdditionalConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
     command cat << EOF
 
-    ░         ▘             ▜ ▘  ▌
-    ░ ▛▘▌▌▛▌▛▌▌▛▌▛▌  ▛▘▌▌▛▛▌▐ ▌▛▌▙▘█▌▛▘▛▘
-    ░ ▌ ▙▌▌▌▌▌▌▌▌▙▌  ▄▌▙▌▌▌▌▐▖▌▌▌▛▖▙▖▌ ▄▌
-    ░            ▄▌    ▄▌
-    ░
+    ░ ┏━┓╻ ╻┏┳┓╻  ╻┏┓╻╻┏ ╻┏┓╻┏━╸
+    ░ ┗━┓┗┳┛┃┃┃┃  ┃┃┗┫┣┻┓┃┃┗┫┃╺┓
+    ░ ┗━┛ ╹ ╹ ╹┗━╸╹╹ ╹╹ ╹╹╹ ╹┗━┛╹╹
     EOF
     rm -rf /Users/${username}/.ssh/config > /dev/null 2>&1;
-    ln -sf /Users/${username}/.dotfiles-nix/config/ssh/config /Users/${username}/.ssh/config &&
-      echo "░ ✓ symlinked ssh/config to /Users/${username}/.ssh/config" ||
-      echo "░ x failed to symlink ssh/config to /Users/${username}/.ssh/config"
+    ln -sf /Users/${username}/.dotfiles-nix/config/ssh/config /Users/${username}/.ssh/ > /dev/null 2>&1 &&
+      echo "░ ✓ symlinked ssh_config to /Users/${username}/.ssh/config" ||
+      echo "░ x failed to symlink ssh_config to /Users/${username}/.ssh/config"
 
     rm -rf /Users/${username}/.config/hammerspoon > /dev/null 2>&1;
-    ln -sf /Users/${username}/.dotfiles-nix/config/hammerspoon /Users/${username}/.config/ &&
+    ln -sf /Users/${username}/.dotfiles-nix/config/hammerspoon /Users/${username}/.config/ > /dev/null 2>&1 &&
       echo "░ ✓ symlinked hammerspoon to /Users/${username}/.config/hammerspoon" ||
       echo "░ x failed to symlink hammerspoon to /Users/${username}/.config/hammerspoon"
 
     rm -rf /Users/${username}/.config/tmux > /dev/null 2>&1;
-    ln -sf /Users/${username}/.dotfiles-nix/config/tmux /Users/${username}/.config/ &&
+    ln -sf /Users/${username}/.dotfiles-nix/config/tmux /Users/${username}/.config/ > /dev/null 2>&1 &&
       echo "░ ✓ symlinked tmux to /Users/${username}/.config/tmux" ||
       echo "░ x failed to symlink tmux to /Users/${username}/.config/tmux"
 
-    rm -rf /Users/${username}/protondrive > /dev/null 2>&1;
-    ln -sf /Users/seth/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder /Users/${username}/protondrive &&
-      echo "░ ✓ symlinked proton drive to /Users/${username}/protondrive" ||
-      echo "░ x failed to symlink proton drive to /Users/${username}/protondrive"
+    if [[ -d "/Users/${username}/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder" ]]; then
+      rm -rf /Users/${username}/protondrive > /dev/null 2>&1;
+      ln -sf /Users/${username}/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder /Users/${username}/protondrive > /dev/null 2>&1 &&
+        echo "░ ✓ symlinked proton drive to /Users/${username}/protondrive" ||
+        echo "░ x failed to symlink proton drive to /Users/${username}/protondrive"
+    fi
 
     rm -rf /Users/${username}/iclouddrive > /dev/null 2>&1;
-    ln -sf /Users/seth/Library/Mobile\ Documents/com~apple~CloudDocs /Users/${username}/iclouddrive &&
+    ln -sf /Users/seth/Library/Mobile\ Documents/com~apple~CloudDocs /Users/${username}/iclouddrive > /dev/null 2>&1 &&
       echo "░ ✓ symlinked iCloud drive to /Users/${username}/iclouddrive" ||
       echo "░ x failed to symlink iCloud drive to /Users/${username}/iclouddrive"
+
+    rm -rf /Users/${username}/Library/Application\ Support/espanso > /dev/null 2>&1;
+    ln -sf /Users/${username}/.dotfiles-nix/config/espanso /Users/${username}/Library/Application\ Support/ > /dev/null 2>&1 &&
+      echo "░ ✓ symlinked espanso to /Users/${username}/Library/Application\ Support/espanso" ||
+      echo "░ x failed to symlink espanso to /Users/${username}/Library/Application\ Support/espanso"
   '';
 
   xdg.configFile."nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/nvim";
@@ -334,8 +333,8 @@
         # fish_vi_key_bindings
         # fish_vi_key_bindings insert
         # quickly open text file
-        bind -M insert \co 'fzf | xargs -r $EDITOR'
-        bind -M insert \cd 'fd -d | fzf | xargs -r cd'
+        bind -M insert \co '${pkgs.fzf}/bin/fzf | xargs -r $EDITOR'
+        bind -M insert \cd '${pkgs.fd}/bin/fd -d | fzf | xargs -r cd'
 
         bind -M insert ctrl-a beginning-of-line
         bind -M insert ctrl-e end-of-line
@@ -401,24 +400,24 @@
         }
       ];
     };
+
     fzf = {
       enable = true;
-      enableFishIntegration = false; # broken
-      # defaultCommand = "fd --type file --follow"; # FZF_DEFAULT_COMMAND
-      # defaultOptions = ["--height 20%"]; # FZF_DEFAULT_OPTS
-      # fileWidgetCommand = "fd --type file --follow"; # FZF_CTRL_T_COMMAND
-      fileWidgetCommand = "${pkgs.fd}/bin/fd --type f --hidden --follow -E .git -E .jj -E .direnv . \\$dir";
+      enableFishIntegration = true; # broken
+      fileWidgetCommand = "${pkgs.fd}/bin/fd --type f --hidden --no-ignore-vcs --follow --exclude .git --exclude .jj --exclude .direnv . \\$dir";
       fileWidgetOptions = [
         "--preview '${pkgs.bat}/bin/bat --color=always --style=numbers --line-range :300 {}'"
         "--style=minimal"
       ];
-      defaultCommand = "${pkgs.fd}/bin/fd --type f --hidden --follow -E .git -E .jj -E .direnv .";
+      defaultCommand = "${pkgs.fd}/bin/fd --type f --hidden  --no-ignore-vcs --follow --exclude .git --exclude .jj --exclude .direnv .";
       defaultOptions = [
         "--style=minimal"
         "--height 20%"
       ];
+      tmux.enableShellIntegration = true;
       tmux.shellIntegrationOptions = ["-d 40%"];
     };
+
     ghostty = {
       enable = true;
       enableBashIntegration = false;
@@ -553,6 +552,12 @@
     himalaya.enable = true;
     k9s.enable = true;
     jq.enable = true;
+    thunderbird = {
+      enable = true;
+      profiles."default" = {
+        isDefault = true;
+      };
+    };
 
     # espanso.enable = {
     #   enable = true;
