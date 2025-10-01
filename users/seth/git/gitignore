@@ -121,7 +121,10 @@ _deps
 .yarn
 
 .direnv
+**/.direnv
 .envrc
+.jj
+**/.jj
 .worktrees
 
 **/erl_crash.dump

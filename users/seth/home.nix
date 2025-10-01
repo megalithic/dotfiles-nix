@@ -13,6 +13,8 @@
   imports = [
     # ./packages.nix
     ./jujutsu
+    ./qutebrowser.nix
+    # ./zen-browser.nix
     # ./tmux
     # ./nvim
   ];
@@ -128,7 +130,7 @@
     poppler
     pre-commit
     procs
-    quarto
+    # qutebrowser
     ripgrep
     sqlite
     # terminal-notifier FIXME: not working with nixpkgs (arch not supported?)
@@ -180,7 +182,7 @@
 
   home.activation.symlinkAdditionalConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
     command cat << EOF
-    ░
+
     ░         ▘             ▜ ▘  ▌
     ░ ▛▘▌▌▛▌▛▌▌▛▌▛▌  ▛▘▌▌▛▛▌▐ ▌▛▌▙▘█▌▛▘▛▘
     ░ ▌ ▙▌▌▌▌▌▌▌▌▙▌  ▄▌▙▌▌▌▌▐▖▌▌▌▛▖▙▖▌ ▄▌
@@ -188,7 +190,7 @@
     ░
     EOF
     rm -rf /Users/${username}/.ssh/config > /dev/null 2>&1;
-    ln -sfv /Users/${username}/.dotfiles-nix/config/ssh/config /Users/${username}/.ssh/config &&
+    ln -sf /Users/${username}/.dotfiles-nix/config/ssh/config /Users/${username}/.ssh/config &&
       echo "░ ✓ symlinked ssh/config to /Users/${username}/.ssh/config" ||
       echo "░ x failed to symlink ssh/config to /Users/${username}/.ssh/config"
 
@@ -211,8 +213,6 @@
     ln -sf /Users/seth/Library/Mobile\ Documents/com~apple~CloudDocs /Users/${username}/iclouddrive &&
       echo "░ ✓ symlinked iCloud drive to /Users/${username}/iclouddrive" ||
       echo "░ x failed to symlink iCloud drive to /Users/${username}/iclouddrive"
-
-    echo "░"
   '';
 
   xdg.configFile."nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/nvim";
@@ -403,7 +403,21 @@
     };
     fzf = {
       enable = true;
-      enableFishIntegration = false;
+      enableFishIntegration = false; # broken
+      # defaultCommand = "fd --type file --follow"; # FZF_DEFAULT_COMMAND
+      # defaultOptions = ["--height 20%"]; # FZF_DEFAULT_OPTS
+      # fileWidgetCommand = "fd --type file --follow"; # FZF_CTRL_T_COMMAND
+      fileWidgetCommand = "${pkgs.fd}/bin/fd --type f --hidden --follow -E .git -E .jj -E .direnv . \\$dir";
+      fileWidgetOptions = [
+        "--preview '${pkgs.bat}/bin/bat --color=always --style=numbers --line-range :300 {}'"
+        "--style=minimal"
+      ];
+      defaultCommand = "${pkgs.fd}/bin/fd --type f --hidden --follow -E .git -E .jj -E .direnv .";
+      defaultOptions = [
+        "--style=minimal"
+        "--height 20%"
+      ];
+      tmux.shellIntegrationOptions = ["-d 40%"];
     };
     ghostty = {
       enable = true;
@@ -470,7 +484,13 @@
     };
 
     yazi = import ./yazi/default.nix {inherit config pkgs lib;};
-
+    htop = {
+      enable = true;
+      settings = {
+        sort_direction = true;
+        sort_key = "PERCENT_CPU";
+      };
+    };
     zoxide = {
       enable = true;
       enableFishIntegration = true;
@@ -518,16 +538,22 @@
       ignores = [
         ".git"
         ".jj"
+        ".direnv"
         "pkg"
         "Library"
         ".Trash"
       ];
+    };
+    television = {
+      enable = true;
+      enableFishIntegration = false;
     };
     mbsync.enable = true;
     notmuch.enable = true;
     himalaya.enable = true;
     k9s.enable = true;
     jq.enable = true;
+
     # espanso.enable = {
     #   enable = true;
     #   package = lib.brew-alias pkgs "espanso";

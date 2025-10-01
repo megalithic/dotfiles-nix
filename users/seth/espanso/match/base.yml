@@ -1,3 +1,5 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/espanso/espanso/dev/schemas/match.schema.json
+#───────────────────────────────────────────────────────────────────────────────
 ---
 # espanso match file
 
@@ -9,40 +11,49 @@
 # Matches are substitution rules: when you type the "trigger" string
 # it gets replaced by the "replace" string.
 matches:
-  - trigger: "::date"
-    replace: "{{date}}"
+  # INFO https://www.reddit.com/r/espanso/comments/1h7ajx8/use_espanso_for_mousefree_emojireacts_in_discord/
+  - {trigger: ':::', replace: '+:'} # open selection
+  - {trigger: 'hhh', replace: "+:heart:\n"} # Slack does not support :grey_heart:
+  - {trigger: 'yyy', replace: "+:+1:\n"} # 👍
+  - {trigger: '->', replace: →, word: true} # unicode arrow
+  # - {trigger: ' mm', replace: ' 🙈'}
+  - {trigger: '<3', replace: '🩶'} # use grey haeart instead of red one
+  - {trigger: ':h:', replace: '+:heart:\n'} # use grey haeart instead of red one
+
+  - trigger: '::date'
+    replace: '{{date}}'
     vars:
       - name: date
         type: date
         params:
-          format: "%m/%d/%Y"
+          format: '%m/%d/%Y'
 
-  - trigger: "::isodate"
-    replace: "{{date}}"
+  - trigger: '::isodate'
+    replace: '{{date}}'
     vars:
       - name: date
         type: date
         params:
-          format: "%Y-%m-%d"
+          format: '%Y-%m-%d'
 
-  - trigger: "::time"
-    replace: "{{time}}"
+  - trigger: '::time'
+    replace: '{{time}}'
     vars:
       - name: time
         type: date
         params:
-          format: "%X"
+          format: '%X'
 
-  - trigger: ":flip:"
-    replace: "(ノ°Д°）ノ︵ ┻━┻"
+  - trigger: ':flip:'
+    replace: '(ノ°Д°）ノ︵ ┻━┻'
 
-  - trigger: ":shrug:"
+  - trigger: ':shrug:'
     replace: "¯\\_(ツ)_/¯"
 
-  - trigger: "::ip"
-    replace: "{{ip}}"
+  - trigger: '::ip'
+    replace: '{{ip}}'
     vars:
       - name: ip
         type: shell
         params:
-          cmd: "curl ifconfig.me"
+          cmd: 'curl ifconfig.me'

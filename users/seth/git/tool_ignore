@@ -67,5 +67,7 @@ erl_crash.dump
 .obsidian
 .jj
 .direnv
+**/.jj
+**/.direnv
 
 # vim:ft=gitignore:tw=0

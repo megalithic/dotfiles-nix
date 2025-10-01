@@ -104,6 +104,27 @@ in {
     DOTS = "/Users/${username}/.dotfiles-nix";
 
     TMUX_LAYOUTS = "/Users/${username}/.config/tmux/layouts";
+
+    # FZF_DEFAULT_COMMAND = "fd --type f --follow --hidden --color=always --no-ignore-vcs";
+
+    l = "eza --all --long --color-scale=all --group-directories-first --sort=type --hyperlink --icons=auto --octal-permissions";
+    ll = "eza --icons --tree --group-directories-first --all --level=2";
+    lt = "eza --tree --group-directories-first --all";
+    cat = "bat";
+    grep = "grep --color=auto";
+    get = "wget --continue --progress=bar --timestamping";
+
+    EZA_COLORS = "ur=35;nnn:gr=35;nnn:tr=35;nnn:uw=34;nnn:gw=34;nnn:tw=34;nnn:ux=36;nnn:ue=36;nnn:gx=36;nnn:tx=36;nnn:uu=36;nnn:uu=38;5;235:da=38;5;238";
+    EZA_ICON_SPACING = "2";
+    FZF_ALT_C_COMMAND = "$FZF_CTRL_T_COMMAND --type d .";
+    FZF_ALT_C_OPTS = "--preview='($FZF_PREVIEW_COMMAND) 2> /dev/null' --walker-skip .git,node_modules";
+    FZF_CTRL_R_OPTS = "--preview 'echo {}' --preview-window down:3:wrap:hidden --bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort' --header 'Press CTRL-Y to copy command into clipboard'";
+    FZF_CTRL_T_COMMAND = "${pkgs.fd}/bin/fd --strip-cwd-prefix --hidden --follow --no-ignore-vcs";
+    FZF_CTRL_T_OPTS = "--preview-window right:border-left:60%:hidden --preview='($FZF_PREVIEW_COMMAND)' --walker-skip .git,node_modules";
+    FZF_DEFAULT_COMMAND = "$FZF_CTRL_T_COMMAND --type f";
+    FZF_DEFAULT_OPTS = "--border thinblock --prompt='» ' --pointer='▶' --marker='✓ ' --reverse --tabstop 2 --multi --color=bg+:-1,marker:010 --separator='' --bind '?:toggle-preview' --info inline-right";
+    # https://github.com/sharkdp/bat/issues/634#issuecomment-524525661
+    FZF_PREVIEW_COMMAND = "COLORTERM=truecolor previewer {}";
   };
 
   environment.shellAliases = {

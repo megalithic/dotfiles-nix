@@ -1,4 +1,10 @@
-{ pkgs, config, ... }: {
+{
+  pkgs,
+  config,
+  ...
+}: let
+  inherit (pkgs) lib;
+in {
   # TODO: lookup attrsets for git/jj/etc account info to share
   # vcs = {
   #   username = "megalithic";
@@ -17,7 +23,12 @@
         userName = "seth.messer@gmail.com";
         passwordCommand = "op read op://Shared/aw6tbw4va5bpnippcdqh2mkfq4/tui";
 
-        folders = { inbox = "INBOX"; sent = "\[Gmail\]/Sent\ Mail"; trash = "\[Gmail\]/Trash"; };
+        folders = {
+          inbox = "Inbox";
+          sent = "\[Gmail\]/Sent\\ Mail";
+          trash = "\[Gmail\]/Trash";
+          drafts = "\[Gmail\]/Drafts";
+        };
         flavor = "gmail.com";
 
         aerc.enable = true;
@@ -39,6 +50,12 @@
           remove = "both";
           # expunge = "none";
           # remove = "none";
+        };
+        imapnotify = {
+          enable = true;
+          boxes = ["Inbox"];
+          onNotify = "${lib.getExe config.my.services.mbsync.package} -a";
+          onNotifyPost = ''osascript -e "display notification \"New mail arrived\" with title \"email\""'';
         };
         # search = {
         #   maildir.path = "search";
