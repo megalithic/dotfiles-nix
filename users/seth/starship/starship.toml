@@ -43,7 +43,7 @@ format = "[\t $duration]($style) "
 format = "$symbol "
 success_symbol = "[›](bold green)"
 error_symbol = "[›](bold red)"
-vicmd_symbol = "[](bold fg:white,bg:#614b51)"
+# vicmd_symbol = "[](bold fg:white,bg:#614b51)"
 
 [jobs]
 symbol = "󰄉(white dimmed)" # 
@@ -58,12 +58,12 @@ format = "$number$symbol"
 
 
 [custom.nix_shell]
-symbol="󱄅"
-command='''
+symbol = "󱄅"
+command = '''
   echo "$(echo $name | sed 's/-shell//')/$IN_NIX_SHELL"
 '''
 format = '\[[[$symbol](#ffffff) $output](#aaaaaa)\] '
-when="[[ -n $IN_NIX_SHELL ]]"
+when = "[[ -n $IN_NIX_SHELL ]]"
 
 # [nix_shell]
 # impure_msg = '[-impure](#614b51)'
@@ -81,7 +81,7 @@ when = "sudo -vn &>/dev/null"
 [custom.jj]
 ignore_timeout = true
 description = "The current jj status"
-detect_folders = [ ".jj" ]
+detect_folders = [".jj"]
 symbol = ""
 # symbol = "󱗆 "
 # hidden? 👻
@@ -105,7 +105,7 @@ command = '''
     )
   '
 '''
-        # "(no description set)",
+# "(no description set)",
 
 [git_branch]
 disabled = true
@@ -113,32 +113,32 @@ truncation_symbol = "…"
 truncation_length = 20
 symbol = "[](bold fg:#626262)" # 
 format = "[$branch]($style)"
-style = "italic fg:#7c8377" # 245
+style = "italic fg:#7c8377"     # 245
 
 [custom.git_branch]
 detect_folders = [".git", "!.jj"]
 command = "starship module git_branch"
-style = "italic fg:#7c8377" # 245
+style = "italic fg:#7c8377"            # 245
 format = "[$output]($style)"
 
 [git_status]
 disabled = true
 style = "#7c8377"
 format = '([$conflicted$staged$modified$renamed$deleted$untracked$stashed$ahead_behind](fg:$style) )'
-ahead = "[ ](fg:white)" # ⇡
-behind = "[ ](fg:white)" # ⇣
+ahead = " [](fg:white)"                                                                              # ⇡
+behind = " [](fg:white)"                                                                             # ⇣
 diverged = " 󰧈${ahead_count}${behind_count}"
-modified = "[ 󰛄](fg:purple)" #•﯂
+modified = " [󰛄](fg:purple)"                                                                          #•﯂
 # modified = "[~${count}](fg:red)"
-staged = "[ ](fg:green)"
+staged = " [](fg:green)"
 # staged = "[$count](fg:green)"
-conflicted = "[ 󰔷](bold fg:#FAB005)[${count}](fg:#d9bb80)"
-stashed = "[ ${count}](fg:white)"
-deleted = "[ ](fg:red)"
+conflicted = " [󰔷](bold fg:#FAB005)[${count}](fg:#d9bb80)"
+stashed = " [${count}](fg:white)"
+deleted = " [](fg:red)"
 # deleted = "[$count](fg:red)"
-renamed = "[ ](fg:white)"
+renamed = " [](fg:white)"
 # renamed = "[${count}](fg:white)"
-untracked = "[ 󱏘](fg:#eeeeee)"
+untracked = " [󱏘](fg:#eeeeee)"
 # untracked = "[󱏘${count}](fg:#7c8377)"
 
 [custom.git_status]

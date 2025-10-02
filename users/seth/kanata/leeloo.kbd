@@ -7,8 +7,10 @@
   macos-dev-names-include (
     "Apple Internal Keyboard / Trackpad"
   )
+  ;; macos-dev-names-exclude (
+  ;;   "Leeloo"
+  ;; )
 )
-
 
 ;; define values for tap time and hold time
 (defvar
@@ -18,14 +20,16 @@
 
 ;; define the keys to remap
 (defsrc
-  lsft lalt lctrl bspc del
-)
-;; use lctrl+backspace to forward-delete
-(defoverrides
-  (lctrl bspc) del
+  lctrl lsft lalt bspc del
 )
 
-;; use lshift+backspace to delete word
 (defoverrides
-    (lsft bspc) (lalt bspc)
+  ;; use lctrl+backspace to forward-delete
+  (lctrl bspc) (del)
+  ;; use lshift+backspace to delete word
+  (lsft bspc) (lalt bspc)
+)
+
+(deflayer base
+  lctrl lsft lalt bspc del
 )

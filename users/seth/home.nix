@@ -126,7 +126,6 @@
     git-lfs
     gum
     jwt-cli
-    kanata
     poppler
     pre-commit
     procs
@@ -218,8 +217,6 @@
   '';
 
   xdg.configFile."nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/nvim";
-  xdg.configFile."kanata".source = ./kanata;
-  xdg.configFile."kanata".recursive = true;
   xdg.configFile."ghostty".source = ./ghostty;
   xdg.configFile."ghostty".recursive = true;
   xdg.configFile."zsh".source = ./zsh;
@@ -368,8 +365,6 @@
         q = "exit";
         ",q" = "exit";
         mega = "ftm mega";
-        # karabiner = "sudo '/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/Applications/Karabiner-VirtualHIDDevice-Daemon.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Daemon'";
-        # kanata = "sudo kanata -c ~/.config/kanata/kanata.kbd";
       };
 
       shellAbbrs = {
@@ -453,6 +448,9 @@
       #   # user.signingKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPqAEvgo0iyCrzXC2i03sTHQIAgSbzwPp9U44fIOGXMu";
       # };
     };
+    programs.git.extraConfig.gpg.ssh.program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+    programs.git.extraConfig.gpg.format = "ssh";
+    programs.git.extraConfig.commit.gpgSign = true;
     #   // lib.optionalAttrs pkgs.stdenv.isDarwin {
     #   extraConfig = {
     #     gpg.format = "ssh";

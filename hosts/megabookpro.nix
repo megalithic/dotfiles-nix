@@ -56,7 +56,7 @@ in {
     jujutsu
     just
     kanata
-    karabiner-elements.driver
+    # karabiner-elements.driver
     ldns # supplies drill replacement for dig
     mise
     netcat

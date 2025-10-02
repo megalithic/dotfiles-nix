@@ -99,20 +99,26 @@ end
 req("hyper", { id = "meeting" }):start():bind({}, "z", nil, function()
   local focusedApp = hs.application.frontmostApplication()
   if hs.application.find("us.zoom.xos") then
-    hs.application.launchOrFocusByBundleID("us.zoom.xos")
+    local prevWin = hs.window.focusedWindow()
+    -- hs.application.launchOrFocusByBundleID("us.zoom.xos")
     local app = hs.application.find("us.zoom.xos")
     local targetWin = app:findWindow("Zoom Meeting")
     if targetWin and targetWin:isStandard() then
       targetWin:focus()
+    else
+      prevWin:focus()
     end
   -- elseif hs.application.find("com.brave.Browser.nightly.app.kjgfgldnnfoeklkmfkjfagphfepbbdan") then
   --   hs.application.launchOrFocusByBundleID("com.brave.Browser.nightly.app.kjgfgldnnfoeklkmfkjfagphfepbbdan")
   elseif hs.application.find("com.microsoft.teams2") then
-    hs.application.launchOrFocusByBundleID("com.microsoft.teams2")
+    local prevWin = hs.window.focusedWindow()
+    -- hs.application.launchOrFocusByBundleID("com.microsoft.teams2")
     local app = hs.application.find("com.microsoft.teams2")
     local targetWin = app:findWindow("Meeting")
     if targetWin and targetWin:isStandard() then
       targetWin:focus()
+    else
+      prevWin:focus()
     end
   elseif hs.application.find("com.pop.pop.app") then
     wm.focusMainWindow("com.pop.pop.app")

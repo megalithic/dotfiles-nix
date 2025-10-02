@@ -184,6 +184,7 @@
 
         ./hosts/${hostname}.nix
         ./modules/shared/darwin/system.nix
+        ./modules/shared/darwin/kanata.nix
 
         home-manager.darwinModules.default
         {
@@ -198,6 +199,8 @@
             # };
             extraSpecialArgs = {inherit inputs username system hostname version overlays;};
           };
+
+          # homeModules.default = import ./users/${username}/home.nix;
         }
 
         # inputs.nix-homebrew.darwinModules.nix-homebrew

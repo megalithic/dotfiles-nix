@@ -34,17 +34,17 @@ tmux -2 select-pane -t "$SESSION":2.1
 # AI AGENTS and CLIENTS
 tmux send-keys -t "$SESSION":3.1 "cd ~/code/work/cspire/launchdeck" C-m
 tmux send-keys -t "$SESSION":3.1 "claude" C-m
-tmux splitw -c "$CWD" -t "$SESSION":3
-# tmux select-layout -t "$SESSION":3 tiled
-tmux send-keys -t "$SESSION":3.2 "cd ~/code/work/cspire/launchdeck/launchdeck_portal" "C-m"
-# tmux send-keys -t "$SESSION":3.2 "claude" C-m
-tmux splitw -c "$CWD" -t "$SESSION":3.2
-# tmux select-layout -t "$SESSION":3.2 tiled
-tmux send-keys -t "$SESSION":3.3 "cd ~/code/work/cspire/launchdeck/launchdeck_portal_api" "C-m"
-# tmux send-keys -t "$SESSION":3.3 "claude" C-m
-# tmux select-layout -t "$SESSION":3 tiled
-tmux select-layout -t "$SESSION":3 main-vertical
-tmux select-pane -t "$SESSION":3.1
+# tmux splitw -c "$CWD" -t "$SESSION":3
+# # tmux select-layout -t "$SESSION":3 tiled
+# tmux send-keys -t "$SESSION":3.2 "cd ~/code/work/cspire/launchdeck/launchdeck_portal" "C-m"
+# # tmux send-keys -t "$SESSION":3.2 "claude" C-m
+# tmux splitw -c "$CWD" -t "$SESSION":3.2
+# # tmux select-layout -t "$SESSION":3.2 tiled
+# tmux send-keys -t "$SESSION":3.3 "cd ~/code/work/cspire/launchdeck/launchdeck_portal_api" "C-m"
+# # tmux send-keys -t "$SESSION":3.3 "claude" C-m
+# # tmux select-layout -t "$SESSION":3 tiled
+# tmux select-layout -t "$SESSION":3 main-vertical
+# tmux select-pane -t "$SESSION":3.1
 
 # PERSISTENT SERVICES
 tmux send-keys -t "$SESSION":4.1 "cd ~/code/work/cspire/launchdeck/launchdeck_portal" C-m
@@ -54,13 +54,17 @@ tmux splitw -c "$CWD" -t "$SESSION":4
 tmux select-layout -t "$SESSION":4 even-horizontal
 tmux send-keys -t "$SESSION":4.2 "cd ~/code/work/cspire/launchdeck/launchdeck_portal_api" "C-m"
 # tmux send-keys -t "$SESSION":4.2 "devspace purge" C-m
-tmux send-keys -t "$SESSION":4.2 "devspace run-pipeline debug -p smesser-dev -n smesser-dev" C-m
+
+# TODO: launch debug with vscode running
+# tmux send-keys -t "$SESSION":4.2 "devspace run-pipeline debug -p smesser-dev -n smesser-dev" C-m
+# TODO: launch dev mode, all in background
+tmux send-keys -t "$SESSION":4.2 "devspace run-pipeline dev  -n smesser-dev --kube-context launchdeck-dev-core -p smesser-dev" C-m
 tmux select-pane -t "$SESSION":4.2
 # ZOOM A PANE:
 # tmux resize-pane -Z -t "$SESSION":3.2
 
-tmux -2 select-window -t "$SESSION":2
-tmux -2 select-pane -t "$SESSION":2.1
+tmux -2 select-window -t "$SESSION":3
+tmux -2 select-pane -t "$SESSION":3.1
 
 tmux setenv -t ${SESSION} 'SESSION_ICON' "${SESSION_ICON}"
 tmux setenv -t ${SESSION} 'SESSION_FG' "${SESSION_FG}"
