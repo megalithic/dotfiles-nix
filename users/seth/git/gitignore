@@ -132,4 +132,5 @@ obsidian/.obsidian
 **/.marksman.toml
 
 **/*.bak
+.claude/settings.local.json
 # vim:ft=gitignore:tw=0

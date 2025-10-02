@@ -105,10 +105,15 @@ req("hyper", { id = "meeting" }):start():bind({}, "z", nil, function()
     if targetWin and targetWin:isStandard() then
       targetWin:focus()
     end
-  elseif hs.application.find("com.brave.Browser.nightly.app.kjgfgldnnfoeklkmfkjfagphfepbbdan") then
-    hs.application.launchOrFocusByBundleID("com.brave.Browser.nightly.app.kjgfgldnnfoeklkmfkjfagphfepbbdan")
+  -- elseif hs.application.find("com.brave.Browser.nightly.app.kjgfgldnnfoeklkmfkjfagphfepbbdan") then
+  --   hs.application.launchOrFocusByBundleID("com.brave.Browser.nightly.app.kjgfgldnnfoeklkmfkjfagphfepbbdan")
   elseif hs.application.find("com.microsoft.teams2") then
-    wm.focusMainWindow("com.microsoft.teams2")
+    hs.application.launchOrFocusByBundleID("com.microsoft.teams2")
+    local app = hs.application.find("com.microsoft.teams2")
+    local targetWin = app:findWindow("Meeting")
+    if targetWin and targetWin:isStandard() then
+      targetWin:focus()
+    end
   elseif hs.application.find("com.pop.pop.app") then
     wm.focusMainWindow("com.pop.pop.app")
 

@@ -10,9 +10,6 @@ auto-update = download
 
 minimum-contrast = 1.0
 
-# Leading
-adjust-cell-height = 10%
-
 # adjust-underline-thickness = 0.5
 # adjust-underline-thickness = -50%
 # adjust-underline-position = 25%
@@ -22,8 +19,8 @@ macos-option-as-alt = true
 fullscreen = true
 
 # visible-menu
-macos-non-native-fullscreen = visible-menu
-# macos-non-native-fullscreen = padded-notch
+# macos-non-native-fullscreen = visible-menu
+macos-non-native-fullscreen = padded-notch
 # macos-non-native-fullscreen = true
 macos-window-shadow = false
 
@@ -73,7 +70,10 @@ mouse-shift-capture = true
 
 quick-terminal-position = left
 
-font-family             = "JetBrainsMono"
+font-family = ""
+font-family = JetBrains Mono
+font-family = Symbols Nerd Font Mono
+
 # font-family             = "JetBrainsMono Nerd Font"
 font-style              = "Medium"
 # font-family-bold        = "JetBrainsMono Nerd Font"
@@ -97,11 +97,15 @@ font-thicken = false
 # font-codepoint-map = U+2610-U+2612=Noto Sans Symbols 2
 # font-codepoint-map = U+25E0-U+25E1,U+2026=DejaVu Sans Mono
 
+# font-codepoint-map = U+E000-U+E00A,U+E0A0-U+E0A3,U+E0B0-U+E0C8,U+E0CA,U+E0CC-U+E0D7,U+E200-U+E2A9,U+E300-U+E3E3,U+E5FA-U+E6B7,U+E700-U+E8EF,U+EA60-U+EC1E,U+ED00-U+F2FF,U+EE00-U+EE0B,U+F300-U+F381,U+F400-U+F533,U+F0001-U+F1AF0=Symbols Nerd Font
 adjust-underline-position = 99
 adjust-underline-thickness = 50%
 
+
+# Leading
+adjust-cell-height = 5%
 # adjust-cell-width = -5%
-adjust-cell-height = 10%
+# adjust-cell-height = 10%
 # adjust-underline-position = 6
 # adjust-underline-thickness = 100%
 # adjust-cursor-thickness = 150%

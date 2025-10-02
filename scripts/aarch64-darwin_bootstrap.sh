@@ -8,7 +8,7 @@ DOTFILES_DIR="$HOME/.$DOTFILES_NAME"
 SUDO_USER=$(whoami)
 FLAKE=$(hostname -s)
 
-command cat << EOF
+command cat <<EOF
 
 ░
 ░  ┌┬┐┌─┐┌─┐┌─┐┬  ┬┌┬┐┬ ┬┬┌─┐
@@ -16,14 +16,23 @@ command cat << EOF
 ░  ┴ ┴└─┘└─┘┴ ┴┴─┘┴ ┴ ┴ ┴┴└─┘
 ░  @megalithic 🗿
 ░
-
 EOF
 
-if ! command -v xcode-select > /dev/null 2>&1; then
+# gather sudo privileges:
+echo "░ :: -> sudo required:"
+sudo -u $SUDO_USER -v || exit 1
+
+# Keep-alive: update existing `sudo` time stamp until setup has finished
+while true; do
+  sudo -n true
+  sleep 60
+  kill -0 "$$" || exit
+done 2>/dev/null &
+
+if ! command -v xcode-select >/dev/null 2>&1; then
   echo "░ :: -> Installing Xcode for $SUDO_USER.." &&
     xcode-select --install &&
-    sudo -u "$SUDO_USER" softwareupdate --install-rosetta --agree-to-license
-  # sudo -u "$SUDO_USER" xcodebuild -license
+    sudo softwareupdate --install-rosetta --agree-to-license
 fi
 
 if [ -d "$DOTFILES_DIR" ]; then
@@ -37,7 +46,7 @@ echo "░ :: -> Cloning $DOTFILES_NAME repo to $DOTFILES_DIR.." &&
   # git init --bare "$DOTFILES_DIR"
   git clone $DOTFILES_REPO "$DOTFILES_DIR"
 
-if ! command -v brew > /dev/null 2>&1 && [ ! -f "/opt/homebrew/bin/brew" ]; then
+if ! command -v brew >/dev/null 2>&1 && [ ! -f "/opt/homebrew/bin/brew" ]; then
   echo "░ :: -> Installing homebrew.." &&
     bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
@@ -51,3 +60,13 @@ echo "░ :: -> Running nix-darwin for the first time for $FLAKE.." &&
     # git config --bool core.bare true &&
     # popd > /dev/null &&
     echo "░ [✓] -> Completed installation of $DOTFILES_DIR flake..") || echo "░ [x] -> Errored while installing $DOTFILES_DIR flake.."
+
+echo "░ :: -> Running post-install settings.." &&
+  (sudo scutil --set HostName "$FLAKE" &&
+    sudo scutil --set LocalHostName "$FLAKE" &&
+    sudo scutil --set ComputerName "$FLAKE" &&
+    sudo defaults write \
+      /Library/Preferences/SystemConfiguration/com.apple.smb.server \
+      NetBIOSName -string "$FLAKE") &&
+  echo "░ [✓] -> Completed post-install settings" ||
+  echo "░ [x] -> Errored post-install settings"

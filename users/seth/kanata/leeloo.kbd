@@ -1,9 +1,5 @@
 ;; vim:ft=lisp
 
-;; Key reference
-;; https://github.com/jtroo/kanata/blob/main/parser/src/keys/mod.rs
-;; minimal home row-mods and hyper key
-
 ;; un-mapped keys behave as normally
 (defcfg
   concurrent-tap-hold yes
@@ -13,6 +9,23 @@
   )
 )
 
-(defalias
-  cbspc_del (tap-hold 100 100 bspc c-bspc)
+
+;; define values for tap time and hold time
+(defvar
+  tap-time 150
+  hold-time 200
+)
+
+;; define the keys to remap
+(defsrc
+  lsft lalt lctrl bspc del
+)
+;; use lctrl+backspace to forward-delete
+(defoverrides
+  (lctrl bspc) del
+)
+
+;; use lshift+backspace to delete word
+(defoverrides
+    (lsft bspc) (lalt bspc)
 )

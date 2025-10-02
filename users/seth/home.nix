@@ -177,10 +177,13 @@
   home.activation.symlinkAdditionalConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
     command cat << EOF
 
-    ░ ┏━┓╻ ╻┏┳┓╻  ╻┏┓╻╻┏ ╻┏┓╻┏━╸
-    ░ ┗━┓┗┳┛┃┃┃┃  ┃┃┗┫┣┻┓┃┃┗┫┃╺┓
-    ░ ┗━┛ ╹ ╹ ╹┗━╸╹╹ ╹╹ ╹╹╹ ╹┗━┛╹╹
+    ░        ▜ ▘  ▌ ▘
+    ░ ▛▘▌▌▛▛▌▐ ▌▛▌▙▘▌▛▌▛▌
+    ░ ▄▌▙▌▌▌▌▐▖▌▌▌▛▖▌▌▌▙▌
+    ░   ▄▌             ▄▌
+    ░
     EOF
+
     rm -rf /Users/${username}/.ssh/config > /dev/null 2>&1;
     ln -sf /Users/${username}/.dotfiles-nix/config/ssh/config /Users/${username}/.ssh/ > /dev/null 2>&1 &&
       echo "░ ✓ symlinked ssh_config to /Users/${username}/.ssh/config" ||
@@ -333,19 +336,17 @@
         # fish_vi_key_bindings
         # fish_vi_key_bindings insert
         # quickly open text file
-        bind -M insert \co '${pkgs.fzf}/bin/fzf | xargs -r $EDITOR'
-        bind -M insert \cd '${pkgs.fd}/bin/fd -d | fzf | xargs -r cd'
+        bind -M insert ctrl-o '${pkgs.fzf}/bin/fzf | xargs -r $EDITOR'
+        # bind -M insert \cd '${pkgs.fd}/bin/fd -d | fzf | xargs -r cd'
 
         bind -M insert ctrl-a beginning-of-line
         bind -M insert ctrl-e end-of-line
         bind -M insert ctrl-y accept-autosuggestion
         bind ctrl-y accept-autosuggestion
 
-        bind -M insert ctrl-r history-pager
-        bind ctrl-r history-pager
-
-        # Old Ctrl+C behavior, before 4.0
-        # bind -M insert ctrl-c cancel-commandline
+        # NOTE: using fzf for this:
+        # bind -M insert ctrl-r history-pager
+        # bind ctrl-r history-pager
 
         # Rerun previous command
         bind -M insert ctrl-s 'commandline $history[1]' 'commandline -f execute'
@@ -367,6 +368,8 @@
         q = "exit";
         ",q" = "exit";
         mega = "ftm mega";
+        # karabiner = "sudo '/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/Applications/Karabiner-VirtualHIDDevice-Daemon.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Daemon'";
+        # kanata = "sudo kanata -c ~/.config/kanata/kanata.kbd";
       };
 
       shellAbbrs = {

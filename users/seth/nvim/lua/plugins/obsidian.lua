@@ -61,8 +61,8 @@ return {
     end,
     picker = {
       -- REF: https://github.com/insanum/dotfiles/blob/master/config/nvim/lua/plugins/obsidian.lua
-      name = "telescope.nvim", -- alts: telescope.nvim
-      -- name = "mini.pick", -- alts: telescope.nvim
+      -- name = "telescope.nvim", -- alts: telescope.nvim
+      name = "mini.pick", -- alts: telescope.nvim
     },
     checkbox = {},
     ui = {

@@ -173,7 +173,7 @@ M.augroup("Writing", {
       if not_executable and has_shebang and has_bin then
         vim.notify(string.format("made %s executable", args.file), L.INFO)
         vim.fn.system("chmod a+x " .. vim.fn.expand("%"))
-        -- vim.defer_fn(vim.cmd.edit, 100)
+        vim.defer_fn(vim.cmd.edit, 100)
       end
     end,
   },

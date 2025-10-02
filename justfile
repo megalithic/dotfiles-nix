@@ -24,17 +24,11 @@ upgrade-nix:
 
 # run home-manager switch
 hm:
-  # home-manager switch --flake . -b backup
-  nh darwin switch ./ -b backup
+  nh home switch . -b backup
 
 news:
   home-manager news --flake .
 
-# initial nix-darwin build
-[macos]
-build host=`hostname`:
-  sudo nix --experimental-features 'nix-command flakes' run nix-darwin/nix-darwin-25.05 -- switch --option eval-cache false --flake {{flake}}#{{host}} --refresh
-  # eventually: nh darwin switch ./
 
 init host=`hostname`:
   #!/usr/bin/env bash
@@ -67,13 +61,6 @@ init host=`hostname`:
   # echo ":: Running home-manager for the first time.." && \
   #   sudo nix --experimental-features 'nix-command flakes' run home-manager/master -- switch --option eval-cache false --flake "$DOTFILES_DIR#$FLAKE" --refresh
 
-# rebuild nix darwin
-[macos]
-rebuild:
-  # rebuild host=`hostname`:
-  # darwin-rebuild switch --flake ./
-  nh darwin switch ./
-
 
 # update and upgrade homebrew packages
 [macos]
@@ -94,6 +81,23 @@ fix-shell-files:
 [macos]
 update:
   update-brew update-flake hm
+
+
+[macos]
+rebuild:
+  # rebuild host=`hostname`:
+  # darwin-rebuild switch --flake ./
+  nh darwin switch .
+
+[macos]
+mac:
+  nh darwin switch .
+
+# initial nix-darwin build
+[macos]
+build host=`hostname`:
+  sudo nix --experimental-features 'nix-command flakes' run nix-darwin/nix-darwin-25.05 -- switch --option eval-cache false --flake {{flake}}#{{host}} --refresh
+  # eventually: nh darwin switch ./
 
 # REF: https://docs.determinate.systems/troubleshooting/installation-failed-macos#run-the-uninstaller
 [macos]

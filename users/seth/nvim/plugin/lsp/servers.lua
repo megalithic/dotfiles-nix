@@ -757,15 +757,22 @@ M = {
       },
     },
   },
-  pyright = {
+
+  basedpyright = {
     single_file_support = false,
     settings = {
+      pyright = {
+        -- Using Ruff's import organizer
+        disableOrganizeImports = true,
+      },
       python = {
         format = false,
         analysis = {
           autoSearchPaths = true,
           diagnosticMode = "workspace",
           useLibraryCodeForTypes = true,
+          -- Ignore all files for analysis to exclusively use Ruff for linting
+          ignore = { "*" },
         },
       },
     },
@@ -782,6 +789,7 @@ M = {
       },
     },
   },
+
   solargraph = {
     manual_install = true,
     single_file_support = false,
@@ -795,6 +803,7 @@ M = {
       },
     },
   },
+
   sqlls = function()
     return {
       cmd = { "sql-language-server", "up", "--method", "stdio" },
@@ -808,6 +817,7 @@ M = {
       end,
     }
   end,
+
   tailwindcss = {},
   -- tailwindcss = function()
   --   -- bypasses my config and uses tailwind-tools instead..
@@ -981,10 +991,53 @@ M = {
   --     -- end,
   --   }
   -- end,
+  taplo = {
+    settings = {
+      -- Use the defaults that the VSCode extension uses: https://github.com/tamasfe/taplo/blob/2e01e8cca235aae3d3f6d4415c06fd52e1523934/editors/vscode/package.json
+      taplo = {
+        configFile = { enabled = true },
+        schema = {
+          enabled = true,
+          catalogs = {
+            "https://www.schemastore.org/api/json/catalog.json",
+          },
+          cache = {
+            memoryExpiration = 60,
+            diskExpiration = 600,
+          },
+        },
+      },
+    },
+  },
   terraformls = {},
   -- NOTE: presently enabled via typescript-tools
   tinymist = {},
   ts_ls = {},
+  tsgo = {
+    cmd = { "tsgo", "lsp", "--stdio" },
+    workspace_required = true,
+    root_dir = function(_, on_dir)
+      on_dir(not vim.fs.root(0, { ".flowconfig", "deno.json", "deno.jsonc" }) and vim.fs.root(0, {
+        "tsconfig.json",
+        "jsconfig.json",
+        "package.json",
+        ".git",
+        vim.api.nvim_buf_get_name(0),
+      }))
+    end,
+  },
+  typos_lsp = {
+    cmd_env = { RUST_LOG = "error" },
+    init_options = {
+      -- Custom config. Used together with a config file found in the workspace or its parents,
+      -- taking precedence for settings declared in both.
+      -- Equivalent to the typos `--config` cli argument.
+      -- config = '~/code/typos-lsp/crates/typos-lsp/tests/typos.toml',
+      -- How typos are rendered in the editor, can be one of an Error, Warning, Info or Hint.
+      -- Defaults to error.
+      diagnosticSeverity = "Error",
+    },
+  },
   vimls = { init_options = { isNeovim = true } },
   --- https://github.com/golang/tools/blob/master/gopls/doc/settings.md
   yamlls = function()
