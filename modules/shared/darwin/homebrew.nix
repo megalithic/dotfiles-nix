@@ -80,6 +80,7 @@
       "mailmate@beta"
       "microsoft-teams" # Only have installed when needed (has some sinister telemetry).
       "mouseless"
+      "nimble-commander"
       "obs@beta"
       # "orcaslicer-beta"
       "orion"

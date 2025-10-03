@@ -125,6 +125,9 @@ in {
     FZF_DEFAULT_OPTS = "--border thinblock --prompt='» ' --pointer='▶' --marker='✓ ' --reverse --tabstop 2 --multi --color=bg+:-1,marker:010 --separator='' --bind '?:toggle-preview' --info inline-right";
     # https://github.com/sharkdp/bat/issues/634#issuecomment-524525661
     FZF_PREVIEW_COMMAND = "COLORTERM=truecolor previewer {}";
+
+    TMUX_PLUGIN_MANAGER_PATH = "/Users/${username}/.local/share/tmux/plugins";
+    TMUX_PLUGINS_HOME = "/Users/${username}/.local/share/tmux/plugins";
   };
 
   environment.shellAliases = {
@@ -236,6 +239,7 @@ in {
     fira-code
     fira-mono
     font-awesome
+    victor-mono
     maple-mono.NF
     maple-mono.truetype
     maple-mono.variable

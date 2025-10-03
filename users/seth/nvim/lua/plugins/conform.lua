@@ -97,7 +97,7 @@ return {
         ["markdown.mdx"] = { "prettier", "injected" },
         mdx = { "prettier", "injected" },
         html = { "prettier", "injected" },
-        yaml = { "prettier", "injected" },
+        -- yaml = { "prettier", "injected" },
         css = { "biome", "prettier", stop_after_first = true },
         vue = { "prettier" },
         scss = { "prettier" },
@@ -157,25 +157,43 @@ return {
         })
       end, { range = true })
 
-      vim.api.nvim_create_user_command("FormatToggle", function(args)
-        -- FormatToggle! will toggle formatting globally
-        if args.bang then
-          if vim.g.disable_autoformat == true then
-            vim.g.disable_autoformat = nil
-          else
-            vim.g.disable_autoformat = true
-          end
+      Command("ToggleAutoFormat", function()
+        vim.g.disable_autoformat = not vim.g.disable_autoformat
+        if vim.g.disable_autoformat then
+          vim.notify("Disabled auto-formatting.", L.WARN)
         else
-          if vim.b.disable_autoformat == true then
-            vim.b.disable_autoformat = nil
-          else
-            vim.b.disable_autoformat = true
-          end
+          vim.notify("Enabled auto-formatting.", L.INFO)
         end
-      end, {
-        desc = "Toggle autoformat-on-save",
-        bang = true,
-      })
+      end, {})
+
+      -- vim.api.nvim_create_user_command("ToggleAutoFormat", function(args)
+      --   -- FormatToggle! will toggle formatting globally
+      --   if args.bang then
+      --     if vim.g.disable_autoformat == true then
+      --       vim.g.disable_autoformat = nil
+      --     else
+      --       vim.g.disable_autoformat = true
+      --     end
+      --
+      --     vim.notify(
+      --       string.format("%s auto-formatting (global)", vim.g.disable_autoformat and "Disabled" or "Enabled"),
+      --       L.WARN
+      --     )
+      --   else
+      --     if vim.b.disable_autoformat == true then
+      --       vim.b.disable_autoformat = nil
+      --     else
+      --       vim.b.disable_autoformat = true
+      --     end
+      --     vim.notify(
+      --       string.format("%s auto-formatting (local)", vim.b.disable_autoformat and "Disabled" or "Enabled"),
+      --       L.WARN
+      --     )
+      --   end
+      -- end, {
+      --   desc = "Toggle autoformat-on-save",
+      --   bang = true,
+      -- })
     end,
   },
 }

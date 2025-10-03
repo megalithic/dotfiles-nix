@@ -9,7 +9,9 @@
   version,
   overlays,
   ...
-}: {
+}: let
+  inherit (pkgs.stdenv.hostPlatform) isDarwin;
+in {
   imports = [
     # ./packages.nix
     ./jujutsu
@@ -60,6 +62,7 @@
     ai-tools.opencode
     ai-tools.claude-code
     # [langs] --------------------------------------------------------------------------------------
+    cargo
     harper
     k9s
     kubectl
@@ -68,7 +71,6 @@
     lua-language-server
     markdown-oxide
     podman
-    rustup
     shellcheck
     shfmt
     stylua
@@ -176,11 +178,10 @@
   home.activation.symlinkAdditionalConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
     command cat << EOF
 
-    ░        ▜ ▘  ▌ ▘
-    ░ ▛▘▌▌▛▛▌▐ ▌▛▌▙▘▌▛▌▛▌
-    ░ ▄▌▙▌▌▌▌▐▖▌▌▌▛▖▌▌▌▙▌
-    ░   ▄▌             ▄▌
-    ░
+    ░       ▗   ▘    ▗   ▜ ▜
+    ░ ▛▌▛▌▛▘▜▘▄▖▌▛▌▛▘▜▘▀▌▐ ▐
+    ░ ▙▌▙▌▄▌▐▖  ▌▌▌▄▌▐▖█▌▐▖▐▖
+    ░ ▌
     EOF
 
     rm -rf /Users/${username}/.ssh/config > /dev/null 2>&1;
@@ -197,6 +198,12 @@
     ln -sf /Users/${username}/.dotfiles-nix/config/tmux /Users/${username}/.config/ > /dev/null 2>&1 &&
       echo "░ ✓ symlinked tmux to /Users/${username}/.config/tmux" ||
       echo "░ x failed to symlink tmux to /Users/${username}/.config/tmux"
+
+    (pushd "/Users/${username}/.local/share/tmux/plugins/tmux-thumbs" > /dev/null 2>&1 &&
+      ${pkgs.cargo}/bin/cargo build --release > /dev/null 2>&1 &&
+      popd > /dev/null 2>&1) &&
+      echo "░ ✓ compiled tmux-thumbs" ||
+      echo "░ x failed to compile tmux-thumbs"
 
     if [[ -d "/Users/${username}/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder" ]]; then
       rm -rf /Users/${username}/protondrive > /dev/null 2>&1;
@@ -319,9 +326,11 @@
     fish = {
       # REF: https://github.com/agdral/home-default/blob/main/shell/fish/functions/develop.nix
       enable = true;
+      shellInit = ''
+        export PATH="/etc/profiles/per-user/${username}/bin:$PATH"
+        set -g fish_prompt_pwd_dir_length 20
+      '';
       interactiveShellInit = ''
-        set fish_greeting # N/A
-
         # fish_add_path /opt/homebrew/bin
         # fish_default_key_bindings
 
@@ -347,7 +356,59 @@
 
         # Rerun previous command
         bind -M insert ctrl-s 'commandline $history[1]' 'commandline -f execute'
+
+        # restore old ctrl+c behavior; it should not clear the line in case I want to copy it or something
+        # the new default behavior is stupid and bad, it just clears the current prompt
+        # https://github.com/fish-shell/fish-shell/issues/11327
+        bind -M insert -m insert ctrl-c cancel-commandline
+
+        # I like to keep the prompt at the bottom rather than the top
+        # of the terminal window so that running `clear` doesn't make
+        # me move my eyes from the bottom back to the top of the screen;
+        # keep the prompt consistently at the bottom
+        _prompt_move_to_bottom # call function manually to load it since event handlers don't get autoloaded
       '';
+      functions = {
+        fish_greeting = "";
+        _prompt_move_to_bottom = {
+          onEvent = "fish_postexec";
+          body = "tput cup $LINES";
+        };
+        nix-shell = {
+          wraps = "nix-shell";
+          body = ''
+            for ARG in $argv
+                if [ "$ARG" = --run ]
+                    command nix-shell $argv
+                    return $status
+                end
+            end
+            command nix-shell $argv --run "exec fish"
+          '';
+        };
+        pr = ''
+          set -l PROJECT_PATH (git config --get remote.origin.url)
+          set -l PROJECT_PATH (string replace "git@github.com:" "" "$PROJECT_PATH")
+          set -l PROJECT_PATH (string replace "https://github.com/" "" "$PROJECT_PATH")
+          set -l PROJECT_PATH (string replace ".git" "" "$PROJECT_PATH")
+          set -l GIT_BRANCH (git branch --show-current || echo "")
+          set -l MASTER_BRANCH (git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
+
+          if test -z "$GIT_BRANCH"
+              set GIT_BRANCH (jj log -r @- --no-graph --no-pager -T 'self.bookmarks()')
+          end
+
+          if test -z "$GIT_BRANCH"
+              echo "Error: not a git repository"
+              return 1
+          end
+          ${
+            if isDarwin
+            then "open"
+            else "xdg-open"
+          } "https://github.com/$PROJECT_PATH/compare/$MASTER_BRANCH...$GIT_BRANCH"
+        '';
+      };
 
       # direnv hook fish | source
       # tv init fish | source
@@ -365,6 +426,19 @@
         q = "exit";
         ",q" = "exit";
         mega = "ftm mega";
+        copy =
+          if isDarwin
+          then "pbcopy"
+          else "xclip -selection clipboard";
+        paste =
+          if isDarwin
+          then "pbpaste"
+          else "xlip -o -selection clipboard";
+        cat = "bat";
+        "!!" = "eval \\$history[1]";
+        clear = "clear && _prompt_move_to_bottom";
+        # inspect $PATH
+        pinspect = ''echo "$PATH" | tr ":" "\n"'';
       };
 
       shellAbbrs = {
@@ -421,10 +495,10 @@
       enableBashIntegration = false;
       enableFishIntegration = true;
       enableZshIntegration = false;
-      installBatSyntax = !pkgs.stdenv.hostPlatform.isDarwin;
+      installBatSyntax = !isDarwin;
       # FIXME: Remove this hack when the nixpkgs pkg works again
       package =
-        if pkgs.stdenv.hostPlatform.isDarwin
+        if isDarwin
         then lib.brew-alias pkgs "ghostty"
         else pkgs.ghostty;
       settings = {
@@ -447,11 +521,12 @@
       #   # user.signingKey = builtins.readFile /Users/${username}/.ssh/${username}-${hostname}.pub;
       #   # user.signingKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPqAEvgo0iyCrzXC2i03sTHQIAgSbzwPp9U44fIOGXMu";
       # };
+      # extraConfig.gpg.ssh.program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+      # extraConfig.gpg.format = "ssh";
+      # extraConfig.commit.gpgSign = true;
     };
-    programs.git.extraConfig.gpg.ssh.program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
-    programs.git.extraConfig.gpg.format = "ssh";
-    programs.git.extraConfig.commit.gpgSign = true;
-    #   // lib.optionalAttrs pkgs.stdenv.isDarwin {
+
+    #   // lib.optionalAttrs isDarwin {
     #   extraConfig = {
     #     gpg.format = "ssh";
     #     "gpg \"ssh\"".program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
