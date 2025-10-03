@@ -199,11 +199,11 @@ in {
       echo "░ ✓ symlinked tmux to /Users/${username}/.config/tmux" ||
       echo "░ x failed to symlink tmux to /Users/${username}/.config/tmux"
 
-    (pushd "/Users/${username}/.local/share/tmux/plugins/tmux-thumbs" > /dev/null 2>&1 &&
-      ${pkgs.cargo}/bin/cargo build --release > /dev/null 2>&1 &&
-      popd > /dev/null 2>&1) &&
-      echo "░ ✓ compiled tmux-thumbs" ||
-      echo "░ x failed to compile tmux-thumbs"
+    # (pushd "/Users/${username}/.local/share/tmux/plugins/tmux-thumbs" > /dev/null 2>&1 &&
+    #   ${pkgs.cargo}/bin/cargo build --release > /dev/null 2>&1 &&
+    #   popd > /dev/null 2>&1) &&
+    #   echo "░ ✓ compiled tmux-thumbs" ||
+    #   echo "░ x failed to compile tmux-thumbs"
 
     if [[ -d "/Users/${username}/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder" ]]; then
       rm -rf /Users/${username}/protondrive > /dev/null 2>&1;
@@ -326,10 +326,10 @@ in {
     fish = {
       # REF: https://github.com/agdral/home-default/blob/main/shell/fish/functions/develop.nix
       enable = true;
-      shellInit = ''
-        export PATH="/etc/profiles/per-user/${username}/bin:$PATH"
-        set -g fish_prompt_pwd_dir_length 20
-      '';
+      # shellInit = ''
+      #   export PATH="/etc/profiles/per-user/${username}/bin:$PATH"
+      #   set -g fish_prompt_pwd_dir_length 20
+      # '';
       interactiveShellInit = ''
         # fish_add_path /opt/homebrew/bin
         # fish_default_key_bindings
@@ -342,8 +342,8 @@ in {
         # fish_vi_key_bindings
         # fish_vi_key_bindings insert
         # quickly open text file
-        bind -M insert ctrl-o '${pkgs.fzf}/bin/fzf | xargs -r $EDITOR'
         # bind -M insert \cd '${pkgs.fd}/bin/fd -d | fzf | xargs -r cd'
+        bind -M insert ctrl-o '${pkgs.fzf}/bin/fzf | xargs -r $EDITOR'
 
         bind -M insert ctrl-a beginning-of-line
         bind -M insert ctrl-e end-of-line
@@ -366,7 +366,7 @@ in {
         # of the terminal window so that running `clear` doesn't make
         # me move my eyes from the bottom back to the top of the screen;
         # keep the prompt consistently at the bottom
-        _prompt_move_to_bottom # call function manually to load it since event handlers don't get autoloaded
+        # _prompt_move_to_bottom # call function manually to load it since event handlers don't get autoloaded
       '';
       functions = {
         fish_greeting = "";
@@ -374,18 +374,18 @@ in {
           onEvent = "fish_postexec";
           body = "tput cup $LINES";
         };
-        nix-shell = {
-          wraps = "nix-shell";
-          body = ''
-            for ARG in $argv
-                if [ "$ARG" = --run ]
-                    command nix-shell $argv
-                    return $status
-                end
-            end
-            command nix-shell $argv --run "exec fish"
-          '';
-        };
+        # nix-shell = {
+        #   wraps = "nix-shell";
+        #   body = ''
+        #     for ARG in $argv
+        #         if [ "$ARG" = --run ]
+        #             command nix-shell $argv
+        #             return $status
+        #         end
+        #     end
+        #     command nix-shell $argv --run "exec fish"
+        #   '';
+        # };
         pr = ''
           set -l PROJECT_PATH (git config --get remote.origin.url)
           set -l PROJECT_PATH (string replace "git@github.com:" "" "$PROJECT_PATH")
@@ -492,8 +492,8 @@ in {
 
     ghostty = {
       enable = true;
-      enableBashIntegration = false;
       enableFishIntegration = true;
+      enableBashIntegration = false;
       enableZshIntegration = false;
       installBatSyntax = !isDarwin;
       # FIXME: Remove this hack when the nixpkgs pkg works again
@@ -585,17 +585,17 @@ in {
         experimental = true;
         verbose = false;
       };
-      globalConfig = {
-        tools = {
-          elixir = "1.18.4-otp-27"; # alts: 1.18.4-otp-28
-          erlang = "27.3.4.1"; # alts: 28.0.1
-          python = "3.13.4";
-          rust = "beta";
-          node = "lts";
-          pnpm = "latest";
-          aws-cli = "2";
-        };
-      };
+      # globalConfig = {
+      #   tools = {
+      #     elixir = "1.18.4-otp-27"; # alts: 1.18.4-otp-28
+      #     erlang = "27.3.4.1"; # alts: 28.0.1
+      #     python = "3.13.4";
+      #     rust = "beta";
+      #     node = "lts";
+      #     pnpm = "latest";
+      #     aws-cli = "2";
+      #   };
+      # };
     };
 
     eza = {

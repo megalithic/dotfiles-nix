@@ -144,7 +144,8 @@
         AppleShowScrollBars = "Automatic";
         InitialKeyRepeat = 12;
         KeyRepeat = 1;
-        _HIHideMenuBar = false;
+        # _HIHideMenuBar = false;
+
         # Disable press and hold for diacritics.
         # I want to be able to press and hold j and k
         # in VSCode with vim keys to move around.
@@ -263,8 +264,8 @@
             # "Find..." = "^f";
             "New Private Window" = "^$n";
             "New Tab" = "^t";
-            # "Select Next Tab" = "^l";
-            # "Select Previous Tab" = "^h";
+            "Select Previous Tab" = "^h";
+            "Select Next Tab" = "^l";
             "Reload This Page" = "^r";
             "Reopen Closed Tab" = "^$t";
             "Reset zoom" = "^0";
@@ -279,6 +280,8 @@
       remapCapsLockToControl = true;
     };
   };
+  system.defaults.NSGlobalDomain._HIHideMenuBar = false;
+
   security.pam.services.sudo_local.touchIdAuth = true;
   security.sudo.extraConfig = "${username}    ALL = (ALL) NOPASSWD: ALL";
 }
