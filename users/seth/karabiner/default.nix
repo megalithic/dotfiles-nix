@@ -9,7 +9,7 @@ in {
   # /Applications/.Nix-Karabiner/.Karabiner-VirtualHIDDevice-Manager.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager deactivate
   # then restarting and re-allowing Karabiner when prompted.
 
-  home.file.".config/karabiner.json" = lib.mkIf isDarwin {
+  home.file.".config/karabiner/default.json" = lib.mkIf isDarwin {
     source = ./karabiner.json;
     # onChange = "${pkgs.goku}/bin/goku";
   };

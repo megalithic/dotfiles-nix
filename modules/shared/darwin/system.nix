@@ -31,6 +31,13 @@
     defaults = {
       # FIXME: this just will NOT work
       # universalaccess.reduceMotion = true;
+      controlcenter = {
+        BatteryShowPercentage = true;
+        # Display icon in menu bar.
+        Bluetooth = true;
+        # Hide icon in menu bar.
+        AirDrop = true;
+      };
 
       dock = {
         autohide = true;
@@ -142,7 +149,7 @@
         # NOTE: doesn't exist on sequoia?
         # universalaccess.closeViewScrollWheelToggle = true;
         "com.apple.trackpad.scaling" = 3.0;
-        AppleInterfaceStyleSwitchesAutomatically = true;
+        AppleInterfaceStyleSwitchesAutomatically = false;
         AppleShowScrollBars = "Automatic";
         InitialKeyRepeat = 12;
         KeyRepeat = 1;
@@ -282,6 +289,9 @@
       remapCapsLockToControl = true;
     };
   };
+
+  # Mute a startup sound
+  # nvram.variables."StartupMute" = "%01";
 
   security.pam.services.sudo_local.touchIdAuth = true;
   security.sudo.extraConfig = "${username}    ALL = (ALL) NOPASSWD: ALL";

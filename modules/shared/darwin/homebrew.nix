@@ -70,12 +70,11 @@
       "flameshot"
       # "flux"
       "ghostty@tip"
-      # "ghostty"
       "hammerspoon"
       "homerow"
       "iina"
       "inkscape"
-      # "karabiner-elements"
+      "karabiner-elements"
       "macwhisper"
       "mailmate@beta"
       "microsoft-teams" # Only have installed when needed (has some sinister telemetry).

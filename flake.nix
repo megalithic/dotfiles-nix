@@ -116,6 +116,8 @@
       inputs.yazi.overlays.default
       inputs.nur.overlays.default
 
+      # https://github.com/will-lol/.dotfiles/blob/main/overlays/helium.nix
+
       # This overlay makes unstable packages available through pkgs.unstable
       (final: prev: rec {
         unstable = import nixpkgs-unstable {
@@ -185,7 +187,7 @@
 
         ./hosts/${hostname}.nix
         ./modules/shared/darwin/system.nix
-        ./modules/shared/darwin/kanata.nix
+        # ./modules/shared/darwin/kanata.nix
 
         home-manager.darwinModules.default
         {

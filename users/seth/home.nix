@@ -16,8 +16,8 @@ in {
     # ./packages.nix
     ./jujutsu
     ./qutebrowser.nix
-    ./karabiner
-    ./kanata
+    # ./karabiner
+    # ./kanata
     # ./zen-browser.nix
     # ./tmux
     # ./nvim
@@ -174,6 +174,13 @@ in {
     '';
     ".config/surfingkeys/config.js".text = builtins.readFile surfingkeys/config.js;
     ".config/starship.toml".text = builtins.readFile starship/starship.toml;
+    ".config/karabiner/karabiner.json" = {
+      # NOTE: If karabiner ever stops working and restarts don't fix the problem, try:
+      # /Applications/.Nix-Karabiner/.Karabiner-VirtualHIDDevice-Manager.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager deactivate
+      # then restarting and re-allowing Karabiner when prompted.
+      source = ./karabiner/karabiner.json;
+      # onChange = "${pkgs.goku}/bin/goku";
+    };
   };
 
   xdg.enable = true;
@@ -226,7 +233,6 @@ in {
       echo "░ ✓ symlinked espanso to /Users/${username}/Library/Application\ Support/espanso" ||
       echo "░ x failed to symlink espanso to /Users/${username}/Library/Application\ Support/espanso"
   '';
-
   xdg.configFile."nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/nvim";
   xdg.configFile."ghostty".source = ./ghostty;
   xdg.configFile."ghostty".recursive = true;

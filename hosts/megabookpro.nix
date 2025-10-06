@@ -264,9 +264,9 @@ in {
     # usbmuxd = { enable = true; };
   };
 
-  services.karabiner-elements.enable = true;
-  services.kanata.enable = true;
-  services.kanata.configFile = "/Users/${username}/.config/kanata/megabookpro.kbd";
+  # services.karabiner-elements.enable = true;
+  # services.kanata.enable = true;
+  # services.kanata.configFile = "/Users/${username}/.config/kanata/megabookpro.kbd";
 
   # The platform the configuration will be used on.
   nixpkgs.hostPlatform = "${system}";

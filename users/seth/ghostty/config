@@ -19,8 +19,8 @@ macos-option-as-alt = true
 fullscreen = true
 
 # visible-menu
-# macos-non-native-fullscreen = visible-menu
-macos-non-native-fullscreen = padded-notch
+macos-non-native-fullscreen = visible-menu
+# macos-non-native-fullscreen = padded-notch
 # macos-non-native-fullscreen = true
 macos-window-shadow = false
 
