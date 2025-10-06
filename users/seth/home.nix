@@ -16,6 +16,8 @@ in {
     # ./packages.nix
     ./jujutsu
     ./qutebrowser.nix
+    ./karabiner
+    ./kanata
     # ./zen-browser.nix
     # ./tmux
     # ./nvim
@@ -38,6 +40,8 @@ in {
     vscode-langservers-extracted # HTML, CSS, JSON & ESLint LSPs
     # vscode-json-languageserver
     nodePackages.prettier
+    deno
+    biome
     bash-language-server
     vtsls # js/ts LSP
     yaml-language-server
@@ -354,6 +358,10 @@ in {
         # bind -M insert ctrl-r history-pager
         # bind ctrl-r history-pager
 
+
+        # edit command in $EDITOR
+        bind -M insert ctrl-v edit_command_buffer
+
         # Rerun previous command
         bind -M insert ctrl-s 'commandline $history[1]' 'commandline -f execute'
 
@@ -387,6 +395,28 @@ in {
         #   '';
         # };
         pr = ''
+          set -l PROJECT_PATH (git config --get remote.origin.url)
+          set -l PROJECT_PATH (string replace "git@github.com:" "" "$PROJECT_PATH")
+          set -l PROJECT_PATH (string replace "https://github.com/" "" "$PROJECT_PATH")
+          set -l PROJECT_PATH (string replace ".git" "" "$PROJECT_PATH")
+          set -l GIT_BRANCH (git branch --show-current || echo "")
+          set -l MASTER_BRANCH (git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
+
+          if test -z "$GIT_BRANCH"
+              set GIT_BRANCH (jj log -r @- --no-graph --no-pager -T 'self.bookmarks()')
+          end
+
+          if test -z "$GIT_BRANCH"
+              echo "Error: not a git repository"
+              return 1
+          end
+          ${
+            if isDarwin
+            then "open"
+            else "xdg-open"
+          } "https://github.com/$PROJECT_PATH/compare/$MASTER_BRANCH...$GIT_BRANCH"
+        '';
+        ghb = ''
           set -l PROJECT_PATH (git config --get remote.origin.url)
           set -l PROJECT_PATH (string replace "git@github.com:" "" "$PROJECT_PATH")
           set -l PROJECT_PATH (string replace "https://github.com/" "" "$PROJECT_PATH")

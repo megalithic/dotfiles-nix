@@ -10,7 +10,9 @@ obj.secrets = hs.settings.get("secrets")
 
 -- https://stackoverflow.com/questions/19326368/iterate-over-lines-including-blank-lines
 local function magiclines(s)
-  if s:sub(-1) ~= "\n" then s = s .. "\n" end
+  if s:sub(-1) ~= "\n" then
+    s = s .. "\n"
+  end
   return s:gmatch("(.-)\n")
 end
 
@@ -71,7 +73,9 @@ function obj.getSelectedText()
   local element = hs.uielement.focusedElement()
   local selection
 
-  if element then selection = element:selectedText() end
+  if element then
+    selection = element:selectedText()
+  end
 
   return selection
 end
@@ -91,6 +95,9 @@ function obj:init(opts)
     local browser = hs.application.get(BROWSER)
     local frontMostApp = hs.application.frontmostApplication()
     local is_browser_active = browser and browser == frontMostApp
+
+    print(browser:bundleID())
+    print(browser:bundleID())
 
     local win = frontMostApp:mainWindow() or hs.window.focusedWindow()
     local title = is_browser_active and win:title():gsub("- Brave Canary", "") or win:title()
@@ -122,7 +129,7 @@ function obj:init(opts)
 
     if is_browser_active then
       local _, url = hs.osascript.applescript(
-        "tell application \"" .. browser:name() .. "\" to return URL of active tab of front window"
+        'tell application "' .. browser:name() .. '" to return URL of active tab of front window'
       )
       url = url:gsub("?utm_source=.*", "")
 
@@ -135,8 +142,12 @@ function obj:init(opts)
     end
   end
 
-  req("hyper", { id = self.name }):start():bind({ "shift" }, "s", nil, function() snip("prod") end)
-  req("hyper", { id = self.name }):start():bind({ "ctrl" }, "s", nil, function() snip("dev") end)
+  req("hyper", { id = self.name }):start():bind({ "shift" }, "s", nil, function()
+    snip("prod")
+  end)
+  req("hyper", { id = self.name }):start():bind({ "ctrl" }, "s", nil, function()
+    snip("dev")
+  end)
 
   info(string.format("[INIT] bindings.%s", self.name))
 end

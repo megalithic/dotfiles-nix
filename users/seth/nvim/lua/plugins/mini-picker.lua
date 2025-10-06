@@ -482,7 +482,7 @@ return {
 
     vim.keymap.set("n", "<leader>ff", function()
       if pcall(require, "fff") then
-        MiniPick.registry.fffiles({ mappings = opts.mappings })
+        MiniPick.registry.fffiles()
       else
         MiniPick.registry.files()
       end

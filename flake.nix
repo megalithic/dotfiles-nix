@@ -139,6 +139,7 @@
           enableLua = true;
         };
 
+        karabiner-driverkit = prev.callPackage ./packages/karabiner-driverkit {};
         # inherit (inputs.emmylua-analyzer-rust.packages.${prev.system}) emmylua_ls emmylua_check;
       })
     ];

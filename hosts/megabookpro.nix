@@ -255,7 +255,7 @@ in {
 
   services = {
     jankyborders = {
-      enable = true;
+      enable = false;
       blur_radius = 5.0;
       hidpi = true;
       active_color = "0xAAB279A7";
@@ -263,6 +263,10 @@ in {
     };
     # usbmuxd = { enable = true; };
   };
+
+  services.karabiner-elements.enable = true;
+  services.kanata.enable = true;
+  services.kanata.configFile = "/Users/${username}/.config/kanata/megabookpro.kbd";
 
   # The platform the configuration will be used on.
   nixpkgs.hostPlatform = "${system}";

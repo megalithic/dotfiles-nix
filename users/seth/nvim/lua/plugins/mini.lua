@@ -1,3 +1,29 @@
+local MiniConf = {}
+
+-- https://github.com/echasnovski/mini.nvim/blob/2e38ed16c2ced64bcd576986ccad4b18e2006e18/doc/mini-pick.txt#L650-L660
+MiniConf.win_config = {
+  helix = function()
+    local height = math.floor(0.4 * vim.o.lines)
+    local width = math.floor(0.35 * vim.o.columns)
+    return {
+      relative = "laststatus",
+      anchor = "NW",
+      height = height,
+      width = width,
+      row = 0,
+      col = 0,
+    }
+  end,
+  cursor = function()
+    return {
+      relative = "cursor",
+      anchor = "NW",
+      row = 0,
+      col = 0,
+    }
+  end,
+}
+
 return {
   { "nvim-mini/mini.jump", enabled = false, version = false, opts = {} },
   { "nvim-mini/mini.icons", version = false, opts = {} },
@@ -108,6 +134,20 @@ return {
         choose_in_vsplit = "<CR>",
         choose_in_tabpage = "<C-t>",
         choose_marked = "<C-q>",
+        -- choose_all = {
+        --   char = "<C-a>",
+        --   func = function()
+        --     local mappings = require("mini.pick").get_picker_opts().mappings
+        --     vim.api.nvim_input(mappings.mark_all .. mappings.choose_marked)
+        --   end,
+        -- },
+        -- choose_alt = {
+        --   char = "<CR>",
+        --   func = function()
+        --     local choose_mapping = MiniPick.get_picker_opts().mappings.choose
+        --     vim.api.nvim_input(choose_mapping)
+        --   end,
+        -- },
 
         delete_char = "<BS>",
         delete_char_right = "<Del>",
@@ -134,14 +174,6 @@ return {
 
         toggle_info = "<S-Tab>",
         toggle_preview = "<Tab>",
-
-        -- another_choose = {
-        --   char = "<CR>",
-        --   func = function()
-        --     local choose_mapping = MiniPick.get_picker_opts().mappings.choose
-        --     vim.api.nvim_input(choose_mapping)
-        --   end,
-        -- },
         -- actual_paste = {
         --   char = "<C-y>",
         --   func = function()
@@ -153,6 +185,22 @@ return {
         --     end
         --   end,
         -- },
+        -- pick_actions = {
+        --   char = "<cr>",
+        --   func = function()
+        --     local opts = require("mini.pick").get_picker_opts()
+        --     local actions = vim.tbl_keys(opts.mappings)
+        --     table.sort(actions)
+        --     require("mini.pick").start({
+        --       source = {
+        --         items = actions,
+        --         choose = function(item)
+        --           -- <execute the chosen action in the previous picker>
+        --         end,
+        --       },
+        --     })
+        --   end,
+        -- },
       },
 
       options = {
@@ -160,24 +208,13 @@ return {
       },
 
       window = {
-        config = function()
-          local height = math.floor(0.4 * vim.o.lines)
-          local width = math.floor(0.35 * vim.o.columns)
-          return {
-            relative = "laststatus",
-            anchor = "NW",
-            height = height,
-            width = width,
-            row = 0,
-            col = 0,
-          }
-        end,
+        config = MiniConf.win_config.helix,
         prompt_prefix = "󰁔 ",
         prompt_caret = " ",
       },
     },
     init = function()
-      local setup_target_win_preview = function()
+      local setup_target_win_preview = function(args)
         local opts = MiniPick.get_picker_opts()
         local show, preview, choose = opts.source.show, opts.source.preview, opts.source.choose
 
@@ -190,10 +227,12 @@ return {
         -- Hook into source's methods
         opts.source.show = function(...)
           show(...)
+
           local cur_item = MiniPick.get_picker_matches().current
           if cur_item == nil then
             return
           end
+
           preview(preview_buf_id, cur_item)
         end
 
@@ -206,7 +245,7 @@ return {
         MiniPick.set_picker_opts(opts)
 
         -- Set up buffer cleanup
-        local cleanup = function()
+        local cleanup = function(args)
           if needs_init_buf_restore then
             vim.api.nvim_win_set_buf(win_target, init_target_buf)
           end

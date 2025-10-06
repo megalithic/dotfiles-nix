@@ -7,6 +7,7 @@ local enabled_plugins = {
   "lsp",
   "statusline",
   "statuscolumn",
+  "gotroot",
   -- "fakecolumn",
   "undo",
   -- "term",
@@ -403,11 +404,10 @@ end
 
 vim.filetype.add({
   filename = {
-    ["~/.dotfiles/config"] = "gitconfig",
     [".env"] = "bash",
+    [".envrc"] = "bash",
     [".eslintrc"] = "jsonc",
     [".eslintrc.json"] = "jsonc",
-    [".gitignore"] = "conf",
     [".prettierrc"] = "jsonc",
     [".tool-versions"] = "conf",
     -- ["Brewfile"] = "ruby",
@@ -451,7 +451,7 @@ vim.filetype.add({
     [".*%.prettierrc%..*"] = "jsonc",
     [".*%.theme"] = "conf",
     -- [".*env%..*"] = "bash",
-    [".*ignore"] = "conf",
+    [".*ignore$"] = "gitignore",
     [".nvimrc"] = "lua",
     ["default-*%-packages"] = "conf",
   },

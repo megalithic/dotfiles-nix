@@ -52,12 +52,12 @@ in {
           # expunge = "none";
           # remove = "none";
         };
-        imapnotify = {
-          enable = true;
-          boxes = ["Inbox"];
-          onNotify = "${lib.getExe config.my.services.mbsync.package} -a";
-          onNotifyPost = ''osascript -e "display notification \"New mail arrived\" with title \"email\""'';
-        };
+        # imapnotify = {
+        #   enable = true;
+        #   boxes = ["Inbox"];
+        #   onNotify = "${lib.getExe config.my.services.mbsync.package} -a";
+        #   onNotifyPost = ''osascript -e "display notification \"New mail arrived\" with title \"email\""'';
+        # };
         # search = {
         #   maildir.path = "search";
         #   realName = "Search Index";
@@ -81,11 +81,24 @@ in {
         realName = "Seth Messer";
         address = "seth@megalithic.io";
 
-        userName = "seth.messer@fastmail.com";
+        userName = "sethmesser@fastmail.com";
         passwordCommand = "op read op://Shared/Fastmail/apps/tui";
-        imap = {
-          host = "imap.fastmail.com";
-          tls.enable = true;
+        # imap = {
+        #   host = "imap.fastmail.com";
+        #   tls.enable = true;
+        #   port = 993;
+        # };
+        flavor = "fastmail.com";
+        aliases = ["seth@megalithic.io"];
+
+        signature = {
+          text = ''
+            Regards,
+            Seth Messer
+            seth@megalithic.io
+          '';
+
+          showSignature = "append";
         };
 
         thunderbird.enable = true;

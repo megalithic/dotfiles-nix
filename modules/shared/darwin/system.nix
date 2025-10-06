@@ -123,6 +123,8 @@
       };
 
       NSGlobalDomain = {
+        AppleInterfaceStyle = "Dark";
+        _HIHideMenuBar = false;
         AppleICUForce24HourTime = true;
         AppleKeyboardUIMode = 3;
         "com.apple.keyboard.fnState" = true;
@@ -280,7 +282,6 @@
       remapCapsLockToControl = true;
     };
   };
-  system.defaults.NSGlobalDomain._HIHideMenuBar = false;
 
   security.pam.services.sudo_local.touchIdAuth = true;
   security.sudo.extraConfig = "${username}    ALL = (ALL) NOPASSWD: ALL";

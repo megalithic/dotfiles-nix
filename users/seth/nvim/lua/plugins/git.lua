@@ -1,7 +1,7 @@
-local SETTINGS = require("options")
 local icons = Icons
 
 local git_keys = {}
+vim.g.gitter = "neogit"
 
 if vim.g.gitter == "neogit" then
   git_keys = {
@@ -41,7 +41,42 @@ if vim.g.gitter == "neogit" then
       desc = "neogit: push commit(s)",
     },
     {
-      "<localleader>gbb",
+      "<leader>gf",
+      function()
+        require("neogit").action("log", "log_current", { "--", vim.fn.expand("%") })()
+      end,
+      desc = "neogit: git log for file",
+    },
+    {
+      "<leader>gf",
+      function()
+        local file = vim.fn.expand("%")
+        vim.cmd([[execute "normal! \<ESC>"]])
+        local line_start = vim.fn.getpos("'<")[2]
+        local line_end = vim.fn.getpos("'>")[2]
+
+        require("neogit").action("log", "log_current", { "-L" .. line_start .. "," .. line_end .. ":" .. file })()
+      end,
+      desc = "neogit: git log for selection",
+      mode = "v",
+    },
+    {
+      "<leader>gbc",
+      function()
+        local current_file = vim.loop.fs_realpath(vim.api.nvim_buf_get_name(0))
+        if current_file then
+          local result = vim
+            .system({ "git", "blame", "-L" .. vim.fn.line(".") .. "," .. vim.fn.line("."), current_file }, { text = true })
+            :wait()
+
+          local commit_sha, _ = result.stdout:gsub("%s.*$", "")
+          vim.cmd("DiffviewOpen " .. commit_sha .. "^.." .. commit_sha)
+        end
+      end,
+      desc = "git: blame commit",
+    },
+    {
+      "<localleader>gbl",
       function()
         local line = vim.api.nvim_win_get_cursor(0)[1]
         local line_range = line .. "," .. line
@@ -62,7 +97,7 @@ if vim.g.gitter == "neogit" then
         local commit_view = require("neogit.buffers.commit_view").new(ref, false)
         commit_view:open()
       end,
-      desc = "git: view full line blame commit",
+      desc = "neogit: view full line blame commit",
     },
   }
 elseif vim.g.gitter == "fugitive" then
@@ -303,24 +338,29 @@ return {
     dependencies = { "nvim-lua/plenary.nvim" },
     -- commit = "b89ef391d20f45479e92bd4190e444c9ec9163a3",
     keys = git_keys,
-    config = function()
-      require("neogit").setup({
-        disable_signs = false,
-        disable_hint = true,
-        disable_commit_confirmation = true,
-        disable_builtin_notifications = true,
-        disable_insert_on_commit = false,
-        signs = {
-          section = { "", "" }, -- "󰁙", "󰁊"
-          item = { "▸", "▾" },
-          hunk = { "󰐕", "󰍴" },
-        },
-        integrations = {
-          diffview = true,
-        },
-      })
+    opts = {
+      disable_signs = false,
+      disable_hint = true,
+      disable_commit_confirmation = true,
+      disable_builtin_notifications = true,
+      disable_insert_on_commit = false,
+      fetch_after_checkout = true,
+      signs = {
+        section = { "", "" }, -- "󰁙", "󰁊"
+        item = { "▸", "▾" },
+        hunk = { "󰐕", "󰍴" },
+      },
+      integrations = {
+        diffview = true,
+        mini_pick = true,
+      },
+      graph_style = "kitty",
+      process_spinner = "true",
+    },
+    config = function(_, opts)
+      require("neogit").setup(opts)
 
-      require("autocmds").augroup("Neogit", {
+      Augroup("Neogit", {
         pattern = "NeogitPushComplete",
         callback = require("neogit").close,
       })
@@ -538,13 +578,13 @@ return {
         mode = { "n", "v" },
       },
       {
-        "<leader>gb",
+        "<localleader>gb",
         "<cmd>GitLink! blame<cr>",
         desc = "gitlinker: blame in browser",
         mode = { "n", "v" },
       },
       {
-        "<leader>gB",
+        "<localleader>gB",
         "<cmd>GitLink blame<cr>",
         desc = "gitlinker: copy blame to clipboard",
         mode = { "n", "v" },

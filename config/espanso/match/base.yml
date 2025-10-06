@@ -56,6 +56,9 @@ matches:
   - trigger: ':wave:'
     replace: 👋
     word: true
+  - trigger: ':heart:'
+    replace: ❤️
+    word: true
   - trigger: ':thumb:'
     replace: 👍
     word: true
