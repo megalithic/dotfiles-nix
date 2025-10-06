@@ -116,8 +116,6 @@
       inputs.yazi.overlays.default
       inputs.nur.overlays.default
 
-      # https://github.com/will-lol/.dotfiles/blob/main/overlays/helium.nix
-
       # This overlay makes unstable packages available through pkgs.unstable
       (final: prev: rec {
         unstable = import nixpkgs-unstable {
@@ -134,7 +132,6 @@
         # NOTE: here's how to do a custom neovim-nightly overlay:
         # REF: https://github.com/fredrikaverpil/dotfiles/blob/main/nix/shared/overlays/neovim.nix
         nvim-nightly = inputs.neovim-nightly-overlay.packages.${prev.system}.default;
-        # karabiner-driverkit = prev.callPackage ./packages/karabiner-driverkit { };
         notmuch = prev.notmuch.override {withEmacs = false;};
 
         neomutt = prev.neomutt.override {
@@ -142,9 +139,10 @@
         };
 
         karabiner-driverkit = prev.callPackage ./packages/karabiner-driverkit {};
-        helium = prev.callpackage ./packages/helium.nix {};
-        # inherit (inputs.emmylua-analyzer-rust.packages.${prev.system}) emmylua_ls emmylua_check;
       })
+
+      # https://github.com/will-lol/.dotfiles/blob/main/overlays/helium.nix
+      (import ./packages/helium.nix {inherit lib;})
     ];
 
     mkInit = {

@@ -16,7 +16,7 @@ in {
     # ./packages.nix
     ./jujutsu
     ./qutebrowser.nix
-    ./chromium.nix
+    ./chromium
     # ./karabiner
     # ./kanata
     # ./zen-browser.nix
@@ -382,6 +382,69 @@ in {
         # me move my eyes from the bottom back to the top of the screen;
         # keep the prompt consistently at the bottom
         # _prompt_move_to_bottom # call function manually to load it since event handlers don't get autoloaded
+
+        set -gx EZA_COLORS "\
+        di=#7fbbb3:\
+        ex=#e67e80:\
+        fi=#d3c6aa:\
+        ln=#83c092:\
+        or=#e67e80:\
+        ow=#7fbbb3:\
+        pi=#d699b6:\
+        so=#e69875:\
+        bd=#dbbc7f:\
+        cd=#dbbc7f:\
+        su=#e67e80:\
+        sg=#e67e80:\
+        tw=#7fbbb3:\
+        st=#9da9a0:\
+        *.tar=#e69875:\
+        *.zip=#e69875:\
+        *.7z=#e69875:\
+        *.gz=#e69875:\
+        *.bz2=#e69875:\
+        *.xz=#e69875:\
+        *.jpg=#d699b6:\
+        *.jpeg=#d699b6:\
+        *.png=#d699b6:\
+        *.gif=#d699b6:\
+        *.svg=#d699b6:\
+        *.pdf=#a7c080:\
+        *.txt=#d3c6aa:\
+        *.md=#a7c080:\
+        *.json=#dbbc7f:\
+        *.yml=#dbbc7f:\
+        *.yaml=#dbbc7f:\
+        *.xml=#dbbc7f:\
+        *.toml=#dbbc7f:\
+        *.ini=#dbbc7f:\
+        *.cfg=#dbbc7f:\
+        *.conf=#dbbc7f:\
+        *.log=#9da9a0:\
+        *.tmp=#9da9a0:\
+        *.bak=#9da9a0:\
+        *.swp=#9da9a0:\
+        *.lock=#9da9a0:\
+        *.js=#dbbc7f:\
+        *.ts=#7fbbb3:\
+        *.jsx=#7fbbb3:\
+        *.tsx=#7fbbb3:\
+        *.py=#7fbbb3:\
+        *.rb=#e67e80:\
+        *.go=#83c092:\
+        *.rs=#e69875:\
+        *.c=#7fbbb3:\
+        *.cpp=#7fbbb3:\
+        *.h=#d699b6:\
+        *.hpp=#d699b6:\
+        *.java=#e69875:\
+        *.class=#e69875:\
+        *.sh=#a7c080:\
+        *.bash=#a7c080:\
+        *.zsh=#a7c080:\
+        *.fish=#a7c080:\
+        *.vim=#a7c080:\
+        *.nvim=#a7c080"
       '';
       functions = {
         fish_greeting = "";
@@ -639,6 +702,7 @@ in {
       enable = true;
       enableZshIntegration = true;
       enableFishIntegration = true;
+      colors = "always";
     };
 
     bat.enable = true;

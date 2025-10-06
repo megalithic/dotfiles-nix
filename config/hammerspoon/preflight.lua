@@ -1,9 +1,11 @@
 package.path = package.path .. ";" .. hs.configdir .. "/mods/?.mod/init.lua"
 
-if not hs.ipc.cliStatus() then hs.ipc.cliInstall() end
+if not hs.ipc.cliStatus() then
+  hs.ipc.cliInstall()
+end
 require("hs.ipc")
 
-hs.settings.set("secrets", hs.json.read(".secrets.json"))
+-- hs.settings.set("secrets", hs.json.read(".secrets.json"))
 
 --- Created by muescha.
 --- DateTime: 15.10.24
@@ -12,8 +14,12 @@ hs.settings.set("secrets", hs.json.read(".secrets.json"))
 --- https://github.com/Hammerspoon/hammerspoon/issues/3277
 
 local function axHotfix(win, infoText)
-  if not win then win = hs.window.frontmostWindow() end
-  if not infoText then infoText = "?" end
+  if not win then
+    win = hs.window.frontmostWindow()
+  end
+  if not infoText then
+    infoText = "?"
+  end
 
   local axApp = hs.axuielement.applicationElement(win:application())
   local wasEnhanced = axApp.AXEnhancedUserInterface
@@ -29,7 +35,9 @@ local function axHotfix(win, infoText)
 end
 
 local function withAxHotfix(fn, position, infoText)
-  if not position then position = 1 end
+  if not position then
+    position = 1
+  end
   return function(...)
     local revert = axHotfix(select(position, ...), infoText)
     fn(...)
@@ -148,7 +156,9 @@ function _G.dbg(msg, force, tag1, tag2)
     tag2 = tag1
   end
 
-  if not _G.debug_enabled then return end
+  if not _G.debug_enabled then
+    return
+  end
 
   local tag = tag2 and "[DEBUG] " or "[DEBUG] "
   tag1 = type(tag1) == "table" and I(tag1) or tag1
@@ -164,7 +174,9 @@ end
 
 function Windows()
   local app
-  if type(app) == "string" then app = hs.application.get(app) end
+  if type(app) == "string" then
+    app = hs.application.get(app)
+  end
   local windows = app == nil and hs.window.allWindows() or app:allWindows()
 
   return hs.fnutils.each(windows, function(win)
@@ -213,18 +225,15 @@ function Usb()
 end
 
 function AudioInput()
-  hs.fnutils.each(
-    hs.audiodevice.allInputDevices(),
-    function(d)
-      print(hs.inspect({
-        name = d:name(),
-        uid = d:uid(),
-        muted = d:muted(),
-        volume = d:volume(),
-        device = d,
-      }))
-    end
-  )
+  hs.fnutils.each(hs.audiodevice.allInputDevices(), function(d)
+    print(hs.inspect({
+      name = d:name(),
+      uid = d:uid(),
+      muted = d:muted(),
+      volume = d:volume(),
+      device = d,
+    }))
+  end)
   local d = hs.audiodevice.defaultInputDevice()
   warn("current input device: ")
   print(hs.inspect({
@@ -237,18 +246,15 @@ function AudioInput()
 end
 
 function AudioOutput()
-  hs.fnutils.each(
-    hs.audiodevice.allOutputDevices(),
-    function(d)
-      print(hs.inspect({
-        name = d:name(),
-        uid = d:uid(),
-        muted = d:muted(),
-        volume = d:volume(),
-        device = d,
-      }))
-    end
-  )
+  hs.fnutils.each(hs.audiodevice.allOutputDevices(), function(d)
+    print(hs.inspect({
+      name = d:name(),
+      uid = d:uid(),
+      muted = d:muted(),
+      volume = d:volume(),
+      device = d,
+    }))
+  end)
   local d = hs.audiodevice.defaultOutputDevice()
   warn("current output device: ")
   print(hs.inspect({

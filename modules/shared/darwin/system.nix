@@ -6,6 +6,8 @@
   username,
   ...
 }:
+# TODO:
+# - wallpaper setting: https://github.com/Lalit64/snowflake/blob/main/modules/darwin/suites/desktop/default.nix#L25
 # NOTE: docs for nix-darwin found
 # https://daiderd.com/nix-darwin/manual/index.html
 # macOS user-specific defaults using home-manager's built-in support
@@ -29,14 +31,22 @@
     stateVersion = 6;
     startup.chime = false;
     defaults = {
-      # FIXME: this just will NOT work
-      # universalaccess.reduceMotion = true;
+      # Reduce window resize animation duration.
+      NSGlobalDomain.NSWindowResizeTime = 0.001;
+
+      # Reduce motion.
+      CustomSystemPreferences."com.apple.Accessibility".ReduceMotionEnabled = 1;
+      universalaccess.reduceMotion = true;
+
       controlcenter = {
         BatteryShowPercentage = true;
-        # Display icon in menu bar.
-        Bluetooth = true;
-        # Hide icon in menu bar.
-        AirDrop = true;
+        # Control Center menu bar items (null = system default, true = show, false = hide)
+        AirDrop = null; # AirDrop control - use system default
+        Bluetooth = true; # Bluetooth control in menu bar
+        Display = true; # Screen brightness control in menu bar
+        FocusModes = false; # Focus modes control (Do Not Disturb)
+        NowPlaying = true; # Now Playing media control
+        Sound = true; # Volume control in menu bar
       };
 
       dock = {
@@ -54,9 +64,9 @@
         magnification = false;
         persistent-others = null;
         persistent-apps = [
-          {app = "/Applications/Finder.app";}
-          {app = "/Applications/Brave Browser Nightly.app";}
-          {app = "/Applications/Ghostty.app";}
+          {app = "~/Applications/Finder.app";}
+          {app = "~/Applications/Brave Browser Nightly.app";}
+          {app = "~/Applications/Ghostty.app";}
           {app = "/System/Applications/Messages.app";}
 
           # {
