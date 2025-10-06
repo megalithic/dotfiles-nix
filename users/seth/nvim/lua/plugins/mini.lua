@@ -129,7 +129,7 @@ return {
         caret_left = "<Left>",
         caret_right = "<Right>",
 
-        choose = "<C-o>",
+        choose = "",
         choose_in_split = "<C-s>",
         choose_in_vsplit = "<CR>",
         choose_in_tabpage = "<C-t>",
@@ -257,7 +257,7 @@ return {
         vim.api.nvim_create_autocmd("User", { pattern = "MiniPickStop", once = true, callback = cleanup })
       end
 
-      -- vim.api.nvim_create_autocmd("User", { pattern = "MiniPickStart", callback = setup_target_win_preview })
+      vim.api.nvim_create_autocmd("User", { pattern = "MiniPickStart", callback = setup_target_win_preview })
 
       require("plugins.mini-picker")
     end,
