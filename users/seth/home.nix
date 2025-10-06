@@ -132,6 +132,7 @@ in {
     gh
     git-lfs
     gum
+    helium
     jwt-cli
     poppler
     pre-commit
@@ -333,7 +334,7 @@ in {
     # };
 
     starship = {enable = true;};
-    aerc = import ./aerc/default.nix {inherit config pkgs lib;};
+    aerc = import ./aerc.nix {inherit config pkgs lib;};
     fish = {
       # REF: https://github.com/agdral/home-default/blob/main/shell/fish/functions/develop.nix
       enable = true;

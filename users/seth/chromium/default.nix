@@ -46,15 +46,15 @@ in {
     #     # version = "4.7.0";
     #   })
     # ];
-    commandLineArgs = [
-      "--ignore-gpu-blocklist"
-      "--disk-cache=$XDG_RUNTIME_DIR/helium-cache"
-      "--no-first-run"
-      "--disable-wake-on-wifi"
-      "--disable-breakpad"
-      "--no-default-browser-check"
-      "--enable-features=TouchpadOverscrollHistoryNavigation"
-    ];
+    # commandLineArgs = [
+    #   "--ignore-gpu-blocklist"
+    #   "--disk-cache=$XDG_RUNTIME_DIR/helium-cache"
+    #   "--no-first-run"
+    #   "--disable-wake-on-wifi"
+    #   "--disable-breakpad"
+    #   "--no-default-browser-check"
+    #   "--enable-features=TouchpadOverscrollHistoryNavigation"
+    # ];
   };
 
   imports = [./extension.nix];
