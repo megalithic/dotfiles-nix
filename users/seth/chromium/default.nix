@@ -1,6 +1,6 @@
 {
   pkgs,
-  lib,
+  # lib,
   ...
 }: let
   extensionIds = [
@@ -12,8 +12,6 @@
     "egpjdkipkomnmjhjmdamaniclmdlobbo" # firenvim
   ];
 in {
-  imports = [./chromium_builder.nix];
-
   # REF: https://github.com/will-lol/.dotfiles/blob/main/home/extensions/chromium.nix
   programs.helium = {
     enable = true;
@@ -58,6 +56,8 @@ in {
       "--enable-features=TouchpadOverscrollHistoryNavigation"
     ];
   };
+
+  imports = [./extension.nix];
 
   home.file = pkgs.lib.optionalAttrs pkgs.stdenv.isDarwin builtins.listToAttrs (
     map (id: {
