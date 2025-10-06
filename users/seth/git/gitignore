@@ -133,4 +133,6 @@ obsidian/.obsidian
 
 **/*.bak
 .claude/settings.local.json
+.claude-cspire
+.vscode
 # vim:ft=gitignore:tw=0

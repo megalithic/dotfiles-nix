@@ -142,6 +142,7 @@
         };
 
         karabiner-driverkit = prev.callPackage ./packages/karabiner-driverkit {};
+        helium = prev.callpackage ./packages/helium.nix {};
         # inherit (inputs.emmylua-analyzer-rust.packages.${prev.system}) emmylua_ls emmylua_check;
       })
     ];

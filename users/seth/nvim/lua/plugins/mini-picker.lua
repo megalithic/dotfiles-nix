@@ -1,6 +1,162 @@
+local MiniConf = {}
+
+-- https://github.com/echasnovski/mini.nvim/blob/2e38ed16c2ced64bcd576986ccad4b18e2006e18/doc/mini-pick.txt#L650-L660
+MiniConf.win_config = {
+  helix = function()
+    local height = math.floor(0.4 * vim.o.lines)
+    local width = math.floor(0.35 * vim.o.columns)
+    return {
+      relative = "laststatus",
+      anchor = "NW",
+      height = height,
+      width = width,
+      row = 0,
+      col = 0,
+    }
+  end,
+  cursor = function()
+    return {
+      relative = "cursor",
+      anchor = "NW",
+      row = 0,
+      col = 0,
+      height = 50,
+      width = 16,
+    }
+  end,
+  center_small = function()
+    local height = math.floor(0.40 * vim.o.lines)
+    local width = math.floor(0.40 * vim.o.columns)
+    return {
+      -- 3 - Center small window
+      border = "rounded",
+      anchor = "NW",
+      height = height,
+      width = width,
+      row = math.floor(0.5 * (vim.o.lines - height)),
+      col = math.floor(0.5 * (vim.o.columns - width)),
+      -- relative = "editor",
+    }
+  end,
+}
+
 return {
   "nvim-mini/mini.pick",
+  opts = {
+    delay = {
+      busy = 1,
+    },
+
+    mappings = {
+      caret_left = "<Left>",
+      caret_right = "<Right>",
+
+      choose_in_vsplit = "<CR>",
+      choose = "",
+      choose_in_split = "<C-s>",
+      choose_in_tabpage = "<C-t>",
+      choose_marked = "<C-q>",
+      -- choose_all = {
+      --   char = "<C-a>",
+      --   func = function()
+      --     local mappings = require("mini.pick").get_picker_opts().mappings
+      --     vim.api.nvim_input(mappings.mark_all .. mappings.choose_marked)
+      --   end,
+      -- },
+      -- choose_alt = {
+      --   char = "<CR>",
+      --   func = function()
+      --     local choose_mapping = MiniPick.get_picker_opts().mappings.choose
+      --     vim.api.nvim_input(choose_mapping)
+      --   end,
+      -- },
+
+      delete_char = "<BS>",
+      delete_char_right = "<Del>",
+      delete_left = "<C-u>",
+      delete_word = "<C-w>",
+
+      mark = "<C-x>",
+      mark_all = "<C-a>",
+
+      move_down = "<C-n>",
+      move_start = "<C-g>",
+      move_up = "<C-p>",
+
+      paste = "",
+      refine = "<C-r>",
+      refine_marked = "",
+
+      scroll_down = "<C-f>",
+      scroll_left = "<C-Left>",
+      scroll_right = "<C-Right>",
+      scroll_up = "<C-b>",
+
+      stop = "<Esc>",
+
+      toggle_info = "<S-Tab>",
+      toggle_preview = "<Tab>",
+    },
+
+    options = {
+      use_cache = false,
+    },
+
+    window = {
+      config = MiniConf.win_config.helix,
+      prompt_prefix = "󰁔 ",
+      prompt_caret = " ",
+    },
+  },
+
   config = function(_, opts)
+    -- REF: fancy full-buffer preview window:
+    -- https://github.com/SylvanFranklin/.config/issues/14#issuecomment-3289525083
+    local setup_target_win_preview = function(args)
+      local opts = MiniPick.get_picker_opts()
+      local show, preview, choose = opts.source.show, opts.source.preview, opts.source.choose
+
+      -- Prepare preview and initial buffers
+      local preview_buf_id = vim.api.nvim_create_buf(false, true)
+      local win_target = MiniPick.get_picker_state().windows.target
+      local init_target_buf = vim.api.nvim_win_get_buf(win_target)
+      vim.api.nvim_win_set_buf(win_target, preview_buf_id)
+
+      -- Hook into source's methods
+      opts.source.show = function(...)
+        show(...)
+
+        local cur_item = MiniPick.get_picker_matches().current
+        if cur_item == nil then
+          return
+        end
+
+        preview(preview_buf_id, cur_item)
+      end
+
+      local needs_init_buf_restore = true
+      opts.source.choose = function(...)
+        needs_init_buf_restore = false
+        choose(...)
+      end
+
+      MiniPick.set_picker_opts(opts)
+
+      -- Set up buffer cleanup
+      local cleanup = function(args)
+        if needs_init_buf_restore then
+          vim.api.nvim_win_set_buf(win_target, init_target_buf)
+        end
+        if vim.api.nvim_buf_is_valid(preview_buf_id) then
+          vim.api.nvim_buf_delete(preview_buf_id, { force = true })
+        end
+      end
+
+      vim.api.nvim_create_autocmd("User", { pattern = "MiniPickStop", once = true, callback = cleanup })
+    end
+
+    -- vim.api.nvim_create_autocmd("User", { pattern = "MiniPickStart", callback = setup_target_win_preview })
+
     require("mini.pick").setup(opts)
 
     -- Use proper slash depending on OS
@@ -346,6 +502,11 @@ return {
 
     -- Using primarily for code action
     -- See https://github.com/echasnovski/mini.nvim/discussions/1437
+    ---- Customize with fourth argument inside a function wrapper
+    vim.ui.select = function(items, opts, on_choice)
+      local start_opts = { window = { config = MiniConf.win_config.cursor() } }
+      return MiniPick.ui_select(items, opts, on_choice, start_opts)
+    end
     -- vim.ui.select = function()
     --   MiniPick.ui_select({}, {
     --     window = {

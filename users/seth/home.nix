@@ -16,6 +16,7 @@ in {
     # ./packages.nix
     ./jujutsu
     ./qutebrowser.nix
+    ./chromium.nix
     # ./karabiner
     # ./kanata
     # ./zen-browser.nix

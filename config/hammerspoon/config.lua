@@ -129,7 +129,7 @@ LAUNCHERS = {
   -- { "com.apple.Mail", "e", nil, false },
   { "com.freron.MailMate", "e", nil, false },
   { "com.flexibits.fantastical2.mac", "y", { "'" }, false },
-  { "com.raycast.macos", "space", { "c" }, false },
+  { "com.raycast.macos", "space", { "space", "c" }, false },
   { "com.superultra.Homerow", nil, { ";" }, false },
   { "com.tinyspeck.slackmacgap", "s", nil, false },
   { "com.microsoft.teams2", "t", nil, false },
