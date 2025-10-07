@@ -14,7 +14,7 @@
 in {
   imports = [
     # ./packages.nix
-    ./mail.nix
+    ./mail
     ./jujutsu
     ./qutebrowser.nix
     ./chromium
@@ -262,7 +262,6 @@ in {
       "small_model": "anthropic/claude-3-5-haiku-20241022"
     }
   '';
-
 
   # applications/programs
   programs.home-manager.enable = true;
@@ -539,6 +538,13 @@ in {
         clear = "clear && _prompt_move_to_bottom";
         # inspect $PATH
         pinspect = ''echo "$PATH" | tr ":" "\n"'';
+        brew = "op plugin run -- brew";
+        cachix = "op plugin run -- cachix";
+        # doctl = "op plugin run -- doctl";
+        gh = "op plugin run -- gh";
+        git = "op plugin run -- git";
+        tmux = "op plugin run -- tmux";
+        pulumi = "op plugin run -- pulumi";
       };
 
       shellAbbrs = {

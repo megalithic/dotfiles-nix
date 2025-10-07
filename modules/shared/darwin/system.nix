@@ -30,6 +30,16 @@
     # $ darwin-rebuild changelog
     stateVersion = 6;
     startup.chime = false;
+    # power = {
+    #   restartAfterFreeze = true;
+    #   # restartAfterPowerFailure = true;
+    #   sleep = {
+    #     allowSleepByPowerButton = false;
+    #     computer = "never";
+    #     display = 2;
+    #     harddisk = 10;
+    #   };
+    # };
     defaults = {
       # Reduce window resize animation duration.
       NSGlobalDomain.NSWindowResizeTime = 0.001;
@@ -37,6 +47,14 @@
       # Reduce motion.
       CustomSystemPreferences."com.apple.Accessibility".ReduceMotionEnabled = 1;
       universalaccess.reduceMotion = true;
+
+      alf = {
+        allowdownloadsignedenabled = 1;
+        allowsignedenabled = 1;
+        globalstate = 1;
+        loggingenabled = 1;
+        stealthenabled = 1;
+      };
 
       controlcenter = {
         BatteryShowPercentage = true;
@@ -187,6 +205,31 @@
       };
 
       CustomUserPreferences = {
+        bluetoothaudiod = {
+          "AAC Bitrate" = 320;
+          "AAC max packet size" = 644;
+          "Apple Bitpool Max" = 80;
+          "Apple Bitpool Min" = 80;
+          "Apple Initial Bitpool Min" = 80;
+          "Apple Initial Bitpool" = 80;
+          "Enable AAC codec" = true;
+          "Enable AptX codec" = true;
+          "Negotiated Bitpool Max" = 80;
+          "Negotiated Bitpool Min" = 80;
+          "Negotiated Bitpool" = 80;
+        };
+        "com.apple.BluetoothAudioAgent" = {
+          "Apple Bitpool Max (editable)" = 80;
+          "Apple Bitpool Min (editable)" = 80;
+          "Apple Initial Bitpool (editable)" = 80;
+          "Apple Initial Bitpool Min (editable)" = 80;
+          "Negotiated Bitpool Max" = 80;
+          "Negotiated Bitpool Min" = 80;
+          "Negotiated Bitpool" = 80;
+          "Stream - Flush Ring on Packet Drop (editable)" = 0;
+          "Stream - Max Outstanding Packets (editable)" = 16;
+          "Stream Resume Delay" = "0.75";
+        };
         "com.apple.print.PrintingPrefs" = {"Quit When Finished" = true;}; # quit printer app once jobs complete
         NSGlobalDomain = {
           # Add a context menu item for showing the Web Inspector in web views

@@ -843,6 +843,20 @@ M = {
           inlayHints = {
             callArgumentNames = true, -- = basedpyright.analysis.inlayHints.callArgumentNames
           },
+          autoSearchPaths = true,
+          diagnosticMode = "openFilesOnly",
+          useLibraryCodeForTypes = true,
+          typeCheckingMode = "standard",
+          diagnosticSeverityOverrides = {
+            reportAny = false,
+            reportMissingTypeArgument = false,
+            reportMissingTypeStubs = false,
+            reportUnknownArgumentType = false,
+            reportUnknownMemberType = false,
+            reportUnknownParameterType = false,
+            reportUnknownVariableType = false,
+            reportUnusedCallResult = false,
+          },
         },
       },
       python = {

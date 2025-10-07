@@ -10,6 +10,21 @@
     "khgocmkkpikpnmmkgmdnfckapcdkgfaf" # 1password Beta
     "gfbliohnnapiefjpjlpjnehglfpaknnc" # surfingkeys
     "egpjdkipkomnmjhjmdamaniclmdlobbo" # firenvim
+    # { id = "aeblfdkhhhdcdjpifhhbdiojplfjncoa"; } # 1Password
+    #        { id = "hdokiejnpimakedhajhdlcegeplioahd"; } # LastPass
+    #        { id = "cjpalhdlnbpafiamejdnhcphjbkeiagm"; } # uBlock Origin
+    #        { id = "kbfnbcaeplbcioakkpcpgfkobkghlhen"; } # Grammarly
+    #        { id = "mdjildafknihdffpkfmmpnpoiajfjnjd"; } # Consent-O-Matic
+    #        { id = "mnjggcdmjocbbbhaepdhchncahnbgone"; } # SponsorBlock for YouTube
+    #        { id = "gebbhagfogifgggkldgodflihgfeippi"; } # Return YouTube Dislike
+    #        { id = "fdpohaocaechififmbbbbbknoalclacl"; } # GoFullPage
+    #        { id = "clpapnmmlmecieknddelobgikompchkk"; } # Disable Automatic Gain Control
+    #        { id = "cdglnehniifkbagbbombnjghhcihifij"; } # Kagi
+    #        { id = "dpaefegpjhgeplnkomgbcmmlffkijbgp"; } # Kagi Summariser
+    #        { id = "mdkgfdijbhbcbajcdlebbodoppgnmhab"; } # GoLinks
+    #        { id = "glnpjglilkicbckjpbgcfkogebgllemb"; } # Okta
+    #        { id = "cfpdompphcacgpjfbonkdokgjhgabpij"; } # Glean
+    #        { id = "idefohglmnkliiadgfofeokcpjobdeik"; } # Ramp
   ];
 in {
   # REF:
@@ -21,6 +36,7 @@ in {
     dictionaries = [pkgs.hunspellDictsChromium.en_US];
     extensions = map (id: {inherit id;}) extensionIds;
     # FIXME: https://github.com/nix-community/home-manager/issues/2216
+    # FIXME: also THIS! https://github.com/johnae/world/blob/main/users/modules/chromiums.nix
     # extensions = let
     #   createChromiumExtensionFor = browserVersion: {
     #     id,

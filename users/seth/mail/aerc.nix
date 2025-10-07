@@ -8,34 +8,34 @@
 in {
   enable = true;
   extraAccounts = {
-    unified = {
+    combined = {
       from = "<noreply@megalithic.io>";
 
       source = "notmuch://${config.accounts.email.maildirBasePath}";
 
       maildir-store = config.accounts.email.maildirBasePath;
-      query-map = "${config.home.homeDirectory}/.dotfiles-nix/users/seth/notmuch-query-map";
+      query-map = "${config.home.homeDirectory}/.dotfiles-nix/users/seth/mail/notmuch-query-map";
       default = "Inbox";
 
-      check-mail-cmd = ''
-        #!/bin/sh
+      # check-mail-cmd = ''
+      #   #!/bin/sh
+      #   #
+      #   # MBSYNC=$(pgrep mbsync)
+      #   # NOTMUCH=$(pgrep notmuch)
+      #   #
+      #   # if [ -n "$MBSYNC" -o -n "$NOTMUCH" ]; then
+      #   #     echo "Already running one instance of mbsync or notmuch. Exiting..."
+      #   #     exit 0
+      #   # fi
+      #
+      #   # Actually delete the emails tagged as deleted
+      #   notmuch search --format=text0 --output=files tag:deleted | xargs -0 --no-run-if-empty rm -v
+      #
+      #   mbsync -a
+      #   notmuch new
+      # '';
 
-        MBSYNC=$(pgrep mbsync)
-        NOTMUCH=$(pgrep notmuch)
-
-        if [ -n "$MBSYNC" -o -n "$NOTMUCH" ]; then
-            echo "Already running one instance of mbsync or notmuch. Exiting..."
-            exit 0
-        fi
-
-        # Actually delete the emails tagged as deleted
-        notmuch search --format=text0 --output=files tag:deleted | xargs -0 --no-run-if-empty rm -v
-
-        mbsync -a
-        notmuch new
-      '';
-
-      # "mbsync -a && notmuch new";
+      check-mail-cmd = "notmuch search --format=text0 --output=files tag:deleted | xargs -0 --no-run-if-empty rm -v; mbsync -a && notmuch new";
       # check-mail = "2m";
       # check-mail-timeout = "30s";
       cache-headers = true;
@@ -97,36 +97,71 @@ in {
       unsafe-accounts-conf = true;
     };
     viewer = {
-      pager = "${pkgs.less}/bin/less -R";
-      header-layout = "From,To,Cc,Bc,Date,Subject";
+      pager = "${pkgs.less}/bin/less -Rc -+S --wordwrap";
+      header-layout = "From,To,Cc,Bcc,Date,Subject,Labels";
+      alternatives = "text/plain,text/html";
       always-show-mime = true;
+      parse-http-links = true;
     };
     filters = {
       "subject,~^\\[PATCH" = "${aerc-filters}/hldiff";
-      "text/plain" = "${pkgs.aerc}/libexec/aerc/filters/colorize";
-      "text/calendar" = "${pkgs.aerc}/libexec/aerc/filters/calendar";
+      # "text/plain" = "${pkgs.aerc}/libexec/aerc/filters/colorize";
+
+      "text/plain" = "! wrap -w 88 | ${pkgs.aerc}/libexec/aerc/filters/colorize | ${pkgs.delta}/bin/delta --color-only --diff-highlight";
+      "text/calendar" = "${pkgs.aerc}/libexec/aerc/filters/calendar | ${pkgs.aerc}/libexec/aerc/filters/colorize";
       "text/html" = "! ${pkgs.aerc}/libexec/aerc/filters/html";
-      "message/delivery-status" = "${pkgs.aerc}/libexec/aerc/filters/colorize";
-      "message/rfc822" = "${pkgs.aerc}/libexec/aerc/filters/colorize";
+      "text/*" = ''test -n "$AERC_FILENAME" && ${pkgs.bat}/bin/bat -fP --file-name="$AERC_FILENAME" --style=plain || ${pkgs.aerc}/libexec/aerc/filters/colorize'';
+      "application/pgp-keys" = "gpg";
+      "application/x-*" = ''${pkgs.bat}/bin/bat -fP --file-name="$AERC_FILENAME" --style=auto'';
+      "message/delivery-status" = "wrap | ${pkgs.aerc}/libexec/aerc/filters/colorize";
+      "message/rfc822" = "wrap | ${pkgs.aerc}/libexec/aerc/filters/colorize";
       ".headers" = "${pkgs.aerc}/libexec/aerc/filters/colorize";
+    };
+    multipart-converters = {
+      "text/html" = "pandoc -f gfm -t html --self-contained";
     };
     compose = {
       # address-book-cmd = "khard email --remove-first-line --parsable '%s'";
+      # editor = "${pkgs.nvim-nightly}/bin/nvim-nightly +/^$ +nohl ++1";
+      editor = "$EDITOR +/^$ +nohl ++1";
+      header-layout = "To,From,Cc,Bcc,Subject";
       edit-headers = true;
+      reply-to-self = false;
       empty-subject-warning = true;
       no-attachment-warning = "^[^>]*attach(ed|ment)";
+      file-picker-cmd = "${pkgs.fd}/bin/fd -t file . ~ | ${pkgs.fzf}/bin/fzf";
     };
+
     ui = {
       threading-enabled = true;
       show-thread-context = true;
-      styleset-name = "nord";
+      sort-thread-siblings = false;
+      threading-by-subject = true;
+      styleset-name = "everforest";
       border-char-vertical = "┃";
+      # border-char-vertical = "│";
+      # border-char-horizontal = "─";
       dirlist-tree = true;
       auto-mark-read = false;
       fuzzy-complete = true;
-      sidebar-width = 30;
+      sidebar-width = 35;
       mouse-enabled = true;
       sort = "-r date";
+      message-view-timestamp-format = "2006 Jan 02, 15:04 GMT-0700";
+      index-columns = "star:1,name<15%,reply:1,subject,labels>=,size>=,date>=";
+      column-star = "{{if .IsFlagged}}  {{end}}";
+      column-name = ''        {{if eq .Role "sent" }}To: {{.To | names | join ", "}}{{ \
+                	else }}{{.From | names | join ", "}}{{ end }}'';
+      column-reply = "{{if .IsReplied}}{{end}}";
+      column-subject = ''        {{.Style .ThreadPrefix "thread"}}{{ \
+                	.StyleSwitch .Subject (case `^(\[[\w-]+\]\s*)?\[(RFC )?PATCH` "patch")}}'';
+      column-labels = ''        {{.StyleMap .Labels \
+                	(exclude .Folder) \
+                	(exclude "Important") \
+                	(default "thread") \
+                	| join " "}}'';
+      column-size = "{{if .HasAttachment}}  {{end}}{{humanReadable .Size}}";
+      column-date = "{{.DateAutoFormat .Date.Local}}";
       timestamp-format = "Jan 02, 2006";
       this-day-time-format = "15:04";
       tab-title-account = "{{.Account}} {{if .Unread \"Inbox\"}}({{.Unread \"Inbox\"}}){{end}}";
@@ -136,16 +171,23 @@ in {
       # default:
       # spinner = "[ ⡿ ],[ ⣟ ],[ ⣯ ],[ ⣷ ],[ ⣾ ],[ ⣽ ],[ ⣻ ],[ ⢿ ]";
 
-      icon-new = "✨ ";
-      icon-attachment = " ";
-      icon-old = "󰔟 ";
-      icon-replied = "󰍨 ";
-      icon-flagged = " ";
-      icon-deleted = " ";
+      icon-new = "  ";
+      icon-attachment = "  ";
+      icon-old = " 󰔟 ";
+      icon-replied = "  ";
+      icon-flagged = "  ";
+      icon-deleted = "  ";
     };
 
-    "ui:account=unified" = {
+    "ui:account=combined" = {
       sort = "-r date";
+    };
+
+    statusline = {
+      status-columns = "left<*,center:=,right>*";
+      column-left = "[{{.Account}}] {{.StatusInfo}}";
+      column-center = "{{.PendingKeys}}";
+      column-right = ''{{.TrayInfo}} | {{.Style cwd "cyan"}}'';
     };
   };
 

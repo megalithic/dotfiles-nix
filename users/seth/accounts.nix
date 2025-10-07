@@ -4,16 +4,14 @@
   ...
 }: let
   inherit (pkgs) lib;
+  ca-bundle_path = "${pkgs.cacert}/etc/ssl/certs/";
+  ca-bundle_crt = "${ca-bundle_path}/ca-bundle.crt";
 in {
   # TODO: lookup attrsets for git/jj/etc account info to share
   # TODO: use go/imapnotify? https://github.com/apeyroux/home.nix/blob/master/nix/gmail.nix
 
-  # vcs = {
-  #   username = "megalithic";
-  #   name = "Seth Messer";
-  #   email = "seth@megalithic.io";
-  # };
   email = {
+    certificatesFile = ca-bundle_crt;
     maildirBasePath = "${config.home.homeDirectory}/.mail";
     accounts = {
       fastmail = {

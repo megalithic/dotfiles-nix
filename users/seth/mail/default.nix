@@ -8,26 +8,29 @@
 }: let
   # inherit (builtins) readFile;
 in {
-  accounts = import ./accounts.nix {inherit config pkgs lib;};
+  accounts = import ../accounts.nix {inherit config pkgs lib;};
   programs = {
     aerc = import ./aerc.nix {inherit config pkgs lib;};
     mbsync.enable = true;
     notmuch = {
       enable = true;
       new = {
+        # TODO:
+        # tags: https://github.com/listx/syscfg/blob/master/notmuch/tags
         tags = [
           "unread"
           "inbox"
         ];
       };
       search = {
-        exclude_tags = [
-          "deteled"
+        excludeTags = [
+          "deleted"
+          "trash"
           "spam"
         ];
       };
       maildir = {
-        synchronize_flags = true;
+        synchronizeFlags = true;
       };
     };
     himalaya.enable = true;
