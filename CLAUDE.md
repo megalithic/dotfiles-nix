@@ -1,0 +1,1 @@
+- When running nix-related commands, you can use `nh`, so for a darwin-rebuild it'd be `nh darwin switch .`, and for home-manager, it'd be `nh home switch .`

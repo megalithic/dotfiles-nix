@@ -1,0 +1,7 @@
+# Unified inbox queries across all accounts
+Inbox=path:fastmail/INBOX/** or path:gmail/Inbox/** or path:nibuild/INBOX/**
+Sent=path:fastmail/Sent/** or path:"gmail/[Gmail]/Sent Mail/**" or path:nibuild/Sent/**
+Drafts=path:fastmail/Drafts/** or path:"gmail/[Gmail]/Drafts/**" or path:nibuild/Drafts/**
+Archive=path:fastmail/Archive/** or path:"gmail/[Gmail]/All Mail/**" or path:nibuild/Archive/**
+Trash=path:fastmail/Trash/** or path:"gmail/[Gmail]/Trash/**" or path:nibuild/Trash/**
+Spam=path:fastmail/Spam/** or path:"gmail/[Gmail]/Spam/**" or path:nibuild/Spam/**

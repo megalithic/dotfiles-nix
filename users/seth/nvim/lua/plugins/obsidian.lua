@@ -1,7 +1,6 @@
 -- REF:
---
--- https://github.com/ViViDboarder/vim-settings/blob/master/neovim/lua/lazy/obsidian.lua
---
+-- - https://github.com/ViViDboarder/vim-settings/blob/master/neovim/lua/lazy/obsidian.lua
+-- - https://github.com/joelazar/nvim-config/blob/main/lua/plugins/obsidian.lua
 
 return {
   "obsidian-nvim/obsidian.nvim",

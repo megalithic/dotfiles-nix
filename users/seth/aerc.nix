@@ -8,6 +8,39 @@
 in {
   enable = true;
   extraAccounts = {
+    unified = {
+      from = "<noreply@megalithic.io>";
+
+      source = "notmuch://${config.accounts.email.maildirBasePath}";
+
+      maildir-store = config.accounts.email.maildirBasePath;
+      query-map = "${config.home.homeDirectory}/.dotfiles-nix/users/seth/notmuch-query-map";
+      default = "Inbox";
+
+      check-mail-cmd = ''
+        #!/bin/sh
+
+        MBSYNC=$(pgrep mbsync)
+        NOTMUCH=$(pgrep notmuch)
+
+        if [ -n "$MBSYNC" -o -n "$NOTMUCH" ]; then
+            echo "Already running one instance of mbsync or notmuch. Exiting..."
+            exit 0
+        fi
+
+        # Actually delete the emails tagged as deleted
+        notmuch search --format=text0 --output=files tag:deleted | xargs -0 --no-run-if-empty rm -v
+
+        mbsync -a
+        notmuch new
+      '';
+
+      # "mbsync -a && notmuch new";
+      # check-mail = "2m";
+      # check-mail-timeout = "30s";
+      cache-headers = true;
+    };
+
     gmail = {
       from = "<noreply@gmail.com>";
 
@@ -19,8 +52,8 @@ in {
       default = "Inbox";
 
       check-mail-cmd = "mbsync gmail && notmuch new";
-      check-mail = "2m";
-      check-mail-timout = "30s";
+      # check-mail = "2m";
+      # check-mail-timeout = "30s";
       postpone = "[Gmail]/Drafts";
       cache-headers = true;
     };
@@ -36,8 +69,8 @@ in {
       default = "Inbox";
 
       check-mail-cmd = "mbsync fastmail && notmuch new";
-      check-mail = "2m";
-      check-mail-timout = "30s";
+      # check-mail = "2m";
+      # check-mail-timeout = "30s";
       cache-headers = true;
     };
 
@@ -52,8 +85,8 @@ in {
       default = "Inbox";
 
       check-mail-cmd = "mbsync nibuild && notmuch new";
-      check-mail = "2m";
-      check-mail-timout = "30s";
+      # check-mail = "2m";
+      # check-mail-timeout = "30s";
       cache-headers = true;
     };
   };
@@ -103,21 +136,17 @@ in {
       # default:
       # spinner = "[ ⡿ ],[ ⣟ ],[ ⣯ ],[ ⣷ ],[ ⣾ ],[ ⣽ ],[ ⣻ ],[ ⢿ ]";
 
-      ## This broke in wezterm + tmux when swapping windows
-      # icon-new = "✨";
-      # icon-attachment = "📎";
-      # icon-old = "🕰️";
-      # icon-replied = "📝";
-      # icon-flagged = "🚩";
-      # icon-deleted = "🗑️";
+      icon-new = "✨ ";
+      icon-attachment = " ";
+      icon-old = "󰔟 ";
+      icon-replied = "󰍨 ";
+      icon-flagged = " ";
+      icon-deleted = " ";
     };
 
-    "ui:account=nibuild" = {
+    "ui:account=unified" = {
       sort = "-r date";
     };
-    # "ui:account=All" = {
-    #   sort = "-r date";
-    # };
   };
 
   extraBinds = {

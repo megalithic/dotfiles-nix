@@ -14,6 +14,7 @@
 in {
   imports = [
     # ./packages.nix
+    ./mail.nix
     ./jujutsu
     ./qutebrowser.nix
     ./chromium
@@ -262,7 +263,6 @@ in {
     }
   '';
 
-  accounts = import ./accounts.nix {inherit config pkgs lib;};
 
   # applications/programs
   programs.home-manager.enable = true;
@@ -334,7 +334,6 @@ in {
     # };
 
     starship = {enable = true;};
-    aerc = import ./aerc.nix {inherit config pkgs lib;};
     fish = {
       # REF: https://github.com/agdral/home-default/blob/main/shell/fish/functions/develop.nix
       enable = true;
@@ -725,17 +724,8 @@ in {
       enable = true;
       enableFishIntegration = false;
     };
-    mbsync.enable = true;
-    notmuch.enable = true;
-    himalaya.enable = true;
     k9s.enable = true;
     jq.enable = true;
-    thunderbird = {
-      enable = true;
-      profiles."default" = {
-        isDefault = true;
-      };
-    };
 
     # espanso.enable = {
     #   enable = true;

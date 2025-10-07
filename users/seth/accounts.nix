@@ -6,6 +6,8 @@
   inherit (pkgs) lib;
 in {
   # TODO: lookup attrsets for git/jj/etc account info to share
+  # TODO: use go/imapnotify? https://github.com/apeyroux/home.nix/blob/master/nix/gmail.nix
+
   # vcs = {
   #   username = "megalithic";
   #   name = "Seth Messer";
@@ -54,8 +56,6 @@ in {
           create = "both";
           expunge = "both";
           remove = "both";
-          # expunge = "none";
-          # remove = "none";
         };
         # search = {
         #   maildir.path = "search";
@@ -119,8 +119,6 @@ in {
           create = "both";
           expunge = "both";
           remove = "both";
-          # expunge = "none";
-          # remove = "none";
         };
         # imapnotify = {
         #   enable = true;
@@ -153,10 +151,18 @@ in {
 
         userName = "seth@nibuild.com";
         passwordCommand = "op read op://Shared/nibuild/password";
+        flavor = "plain";
+        aliases = ["smesser@nibuild.com"];
 
         imap = {
           host = "mail.nibuild.com";
           tls.enable = true;
+          port = 993;
+        };
+        smtp = {
+          host = "smtp.nibuild.com";
+          tls.enable = true;
+          port = 465;
         };
 
         signature = {
@@ -181,8 +187,6 @@ in {
           create = "both";
           expunge = "both";
           remove = "both";
-          # expunge = "none";
-          # remove = "none";
         };
       };
     };

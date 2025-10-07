@@ -758,12 +758,92 @@ M = {
     },
   },
 
+  -- pyright = {
+  --   enabled = false,
+  --   single_file_support = false,
+  --   settings = {
+  --     pyright = {
+  --       -- Using Ruff's import organizer
+  --       disableOrganizeImports = true,
+  --     },
+  --     python = {
+  --       format = false,
+  --       analysis = {
+  --         autoSearchPaths = true,
+  --         diagnosticMode = "workspace",
+  --         useLibraryCodeForTypes = true,
+  --         -- Ignore all files for analysis to exclusively use Ruff for linting
+  --         ignore = { "*" },
+  --       },
+  --     },
+  --   },
+  -- },
+  -- pylsp = {
+  --   settings = {
+  --     pylsp = {
+  --       -- :PyLspInstall <tab>
+  --       plugins = {
+  --         -- Unklar, was es macht, wird ggfl. auch von ruff[-lsp] übernommen
+  --         rope = {
+  --           enabled = false,
+  --         },
+  --         -- All disabled to avoid overlap with ruff
+  --         -- list from python-lsp-ruff
+  --         pycodestyle = {
+  --           enabled = false,
+  --           maxLineLength = 150,
+  --         },
+  --         mccabe = {
+  --           enabled = false,
+  --         },
+  --         pydocstyle = {
+  --           enabled = false,
+  --         },
+  --         -- autopep8, yapf formatieren beide, Unterschied unklar. yapf = false, autopep8 = true macht es so, wie ich es möchte
+  --         yapf = {
+  --           enabled = false,
+  --         },
+  --         autopep8 = {
+  --           enabled = false,
+  --         },
+  --       },
+  --     },
+  --   },
+  -- },
+
   basedpyright = {
+    enabled = true,
     single_file_support = false,
     settings = {
-      pyright = {
+      basedpyright = {
         -- Using Ruff's import organizer
         disableOrganizeImports = true,
+        -- analysis = {
+        --   useLibraryCodeForTypes = true,
+        --   typeCheckingMode = "standard",
+        --   diagnosticMode = "workspace",
+        --   autoSearchPath = true,
+        --   inlayHints = {
+        --     callArgumentNames = true,
+        --   },
+        --   extraPaths = {
+        --     "...",
+        --     "...",
+        --   },
+        -- },
+        -- reportImplicitOverride = false,
+        reportMissingSuperCall = "none",
+        -- reportUnusedImport = false,
+        -- basedpyright very intrusive with errors, this calms it down
+        typeCheckingMode = "standard",
+        -- works, if pyproject.toml is used
+        reportAttributeAccessIssue = false,
+        -- doesn't work, even if pyproject.toml is used
+        analysis = {
+          inlayHints = {
+            callArgumentNames = true, -- = basedpyright.analysis.inlayHints.callArgumentNames
+          },
+        },
       },
       python = {
         format = false,

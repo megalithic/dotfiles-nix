@@ -12,11 +12,15 @@
     "egpjdkipkomnmjhjmdamaniclmdlobbo" # firenvim
   ];
 in {
-  # REF: https://github.com/will-lol/.dotfiles/blob/main/home/extensions/chromium.nix
+  # REF:
+  # - https://github.com/will-lol/.dotfiles/blob/main/home/extensions/chromium.nix
+  # - https://github.com/isabelroses/dotfiles/blob/main/modules/home/programs/chromium.nix
+
   programs.helium = {
     enable = true;
     dictionaries = [pkgs.hunspellDictsChromium.en_US];
     extensions = map (id: {inherit id;}) extensionIds;
+    # FIXME: https://github.com/nix-community/home-manager/issues/2216
     # extensions = let
     #   createChromiumExtensionFor = browserVersion: {
     #     id,
