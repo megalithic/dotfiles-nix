@@ -336,10 +336,13 @@ in {
     fish = {
       # REF: https://github.com/agdral/home-default/blob/main/shell/fish/functions/develop.nix
       enable = true;
-      # shellInit = ''
-      #   export PATH="/etc/profiles/per-user/${username}/bin:$PATH"
-      #   set -g fish_prompt_pwd_dir_length 20
-      # '';
+      shellInit = ''
+        export PATH="/etc/profiles/per-user/${username}/bin:$PATH"
+        set -g fish_prompt_pwd_dir_length 20
+
+        bind --erase -- ctrl-d
+        bind --erase --mode insert -- ctrl-d
+      '';
       interactiveShellInit = ''
         # fish_add_path /opt/homebrew/bin
         # fish_default_key_bindings

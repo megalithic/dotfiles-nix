@@ -7,14 +7,23 @@
   aerc-filters = "${pkgs.aerc}/libexec/aerc/filters";
 in {
   enable = true;
+  stylesets.everforest = builtins.readFile ./stylesets/everforest;
   extraAccounts = {
     combined = {
       from = "<noreply@megalithic.io>";
-
       source = "notmuch://${config.accounts.email.maildirBasePath}";
-
       maildir-store = config.accounts.email.maildirBasePath;
-      query-map = "${config.home.homeDirectory}/.dotfiles-nix/users/seth/mail/notmuch-query-map";
+      # query-map = pkgs.writeText "querymap" ''
+      #   # Unified inbox queries across all accounts
+      #   Inbox=path:fastmail/INBOX/** or path:gmail/Inbox/** or path:nibuild/INBOX/**
+      #   Sent=path:fastmail/Sent/** or path:"gmail/[Gmail]/Sent\ Mail/**" or path:nibuild/Sent/**
+      #   Drafts=path:fastmail/Drafts/** or path:"gmail/[Gmail]/Drafts/**" or path:nibuild/Drafts/**
+      #   Archive=path:fastmail/Archive/** or path:"gmail/[Gmail]/Archive/**" or path:nibuild/Archive/**
+      #   # Archive=path:fastmail/Archive/** or path:"gmail/[Gmail]/All\ Mail/**" or path:nibuild/Archive/**
+      #   Trash=path:fastmail/Trash/** or path:"gmail/[Gmail]/Trash/**" or path:nibuild/Trash/**
+      #   Spam=path:fastmail/Spam/** or path:"gmail/[Gmail]/Spam/**" or path:nibuild/Spam/**
+      # '';
+      query-map = builtins.readFile ./query-map;
       default = "Inbox";
 
       # check-mail-cmd = ''
@@ -45,17 +54,31 @@ in {
       from = "<noreply@gmail.com>";
 
       source = "notmuch://${config.accounts.email.maildirBasePath}";
-
       maildir-store = config.accounts.email.maildirBasePath;
       maildir-account-path = "gmail";
       multi-file-strategy = "act-dir";
       default = "Inbox";
-
-      check-mail-cmd = "mbsync gmail && notmuch new";
+      # check-mail-cmd = "mbsync gmail && notmuch new";
       # check-mail = "2m";
       # check-mail-timeout = "30s";
       postpone = "[Gmail]/Drafts";
       cache-headers = true;
+      # folder-map = pkgs.writeText "folderMap" ''
+      #   Archive=[Gmail]/All Mail
+      #   Sent=[Gmail]/Sent Mail
+      #   Drafts=[Gmail]/Drafts
+      #   Spam=[Gmail]/Spam
+      #   Starred=[Gmail]/Starred
+      #   Trash=[Gmail]/Trash
+      # '';
+      folder-map.text = ''
+        Archive=[Gmail]/All Mail
+        Sent=[Gmail]/Sent Mail
+        Drafts=[Gmail]/Drafts
+        Spam=[Gmail]/Spam
+        Starred=[Gmail]/Starred
+        Trash=[Gmail]/Trash
+      '';
     };
 
     fastmail = {
@@ -67,8 +90,11 @@ in {
       maildir-account-path = "fastmail";
       multi-file-strategy = "act-dir";
       default = "Inbox";
-
-      check-mail-cmd = "mbsync fastmail && notmuch new";
+      use-labels = true;
+      cache-state = true;
+      cache-blobs = true;
+      use-envelope-from = true;
+      # check-mail-cmd = "mbsync fastmail && notmuch new";
       # check-mail = "2m";
       # check-mail-timeout = "30s";
       cache-headers = true;
@@ -84,7 +110,7 @@ in {
       multi-file-strategy = "act-dir";
       default = "Inbox";
 
-      check-mail-cmd = "mbsync nibuild && notmuch new";
+      # check-mail-cmd = "mbsync nibuild && notmuch new";
       # check-mail = "2m";
       # check-mail-timeout = "30s";
       cache-headers = true;
@@ -93,7 +119,8 @@ in {
 
   extraConfig = {
     general = {
-      default-save-path = "~/Downloads";
+      default-save-path = "~/Downloads/_email";
+      log-file = "~/.cache/aerc/aerc.log";
       unsafe-accounts-conf = true;
     };
     viewer = {
@@ -137,6 +164,117 @@ in {
       show-thread-context = true;
       sort-thread-siblings = false;
       threading-by-subject = true;
+      #
+      # Thread prefix customization:
+      #
+      # Customize the thread prefix appearance by selecting the arrow head.
+      #
+      # Default: ">"
+      #thread-prefix-tip = ">"
+      thread-prefix-tip = "";
+
+      #
+      # Customize the thread prefix appearance by selecting the arrow indentation.
+      #
+      # Default: " "
+      thread-prefix-indent = "";
+
+      #
+      # Customize the thread prefix appearance by selecting the vertical extension of
+      # the arrow.
+      #
+      # Default: "│"
+      thread-prefix-stem = "│";
+
+      #
+      # Customize the thread prefix appearance by selecting the horizontal extension
+      # of the arrow.
+      #
+      # Default: ""
+      thread-prefix-limb = "─";
+
+      #
+      # Customize the thread prefix appearance by selecting the folded thread
+      # indicator.
+      #
+      # Default: "+"
+      thread-prefix-folded = "+";
+
+      #
+      # Customize the thread prefix appearance by selecting the unfolded thread
+      # indicator.
+      #
+      # Default: ""
+      thread-prefix-unfolded = "";
+
+      #
+      # Customize the thread prefix appearance by selecting the first child connector.
+      #
+      # Default: ""
+      thread-prefix-first-child = "┬";
+
+      #
+      # Customize the thread prefix appearance by selecting the connector used if
+      # the message has siblings.
+      #
+      # Default: "├─"
+      thread-prefix-has-siblings = "├";
+
+      #
+      # Customize the thread prefix appearance by selecting the connector used if the
+      # message has no parents and no children.
+      #
+      # Default: ""
+      thread-prefix-lone = "";
+
+      #
+      # Customize the thread prefix appearance by selecting the connector used if the
+      # message has no parents and has children.
+      #
+      # Default: ""
+      thread-prefix-orphan = "┌";
+
+      #
+      # Customize the thread prefix appearance by selecting the connector for the last
+      # sibling.
+      #
+      # Default: "└─"
+      thread-prefix-last-sibling = "╰";
+
+      #
+      # Customize the reversed thread prefix appearance by selecting the connector for
+      # the last sibling.
+      #
+      # Default: "┌─"
+      #thread-prefix-last-sibling-reverse = "┌─"
+
+      #
+      # Customize the thread prefix appearance by selecting the connector for dummy
+      # thread.
+      #
+      # Default: "┬─"
+      thread-prefix-dummy = "┬";
+
+      #
+      # Customize the reversed thread prefix appearance by selecting the connector for
+      # dummy thread.
+      #
+      # Default: "┴─"
+      #thread-prefix-dummy-reverse = "┴─"
+
+      #
+      # Customize the reversed thread prefix appearance by selecting the first child
+      # connector.
+      #
+      # Default: ""
+      #thread-prefix-first-child-reverse = ""
+
+      #
+      # Customize the reversed thread prefix appearance by selecting the connector
+      # used if the message has no parents and has children.
+      #
+      # Default: ""
+      #thread-prefix-orphan-reverse = ""
       styleset-name = "everforest";
       border-char-vertical = "┃";
       # border-char-vertical = "│";
@@ -146,7 +284,7 @@ in {
       fuzzy-complete = true;
       sidebar-width = 35;
       mouse-enabled = true;
-      sort = "-r date";
+      sort = "-r arrival";
       message-view-timestamp-format = "2006 Jan 02, 15:04 GMT-0700";
       index-columns = "star:1,name<15%,reply:1,subject,labels>=,size>=,date>=";
       column-star = "{{if .IsFlagged}}  {{end}}";
@@ -164,8 +302,21 @@ in {
       column-date = "{{.DateAutoFormat .Date.Local}}";
       timestamp-format = "Jan 02, 2006";
       this-day-time-format = "15:04";
-      tab-title-account = "{{.Account}} {{if .Unread \"Inbox\"}}({{.Unread \"Inbox\"}}){{end}}";
-      dirlist-left = "{{compactDir .Folder}}";
+      # tab-title-account = "{{.Account}} {{if .Unread \"Inbox\"}}({{.Unread \"Inbox\"}}){{end}}";
+      tab-title-account = "{{.Account}}/{{.Folder}} {{if .Exists .Folder}}[  {{if .Unread .Folder}}{{.Unread .Folder | humanReadable}}{{else}}0{{end}}/{{.Exists .Folder| humanReadable}}]{{end}}";
+      tab-title-composer = ''To:{{(.To | shortmboxes) | join ","}}{{ if .Cc }}|Cc:{{(.Cc | shortmboxes) | join ","}}{{end}}|{{.Subject}}'';
+      # dirlist-left = "{{compactDir .Folder}}";
+      dirlist-left = ''
+        {{switch .Folder \
+          (case "Inbox" "󰚇 ") \
+          (case "INBOX" "󰚇 ") \
+          (case "Archive" "󰀼 ") \
+          (case "Drafts" "󰙏 ") \
+          (case "Spam" "󱚝 ") \
+          (case "Sent" "󰑚 ") \
+          (case "Trash" "󰩺 ") \
+        (default "󰓼 ")}} {{.Folder}}
+      '';
       # REF: https://github.com/ash-project/igniter/blob/main/installer/lib/loading.ex#L6
       spinner = "⠁,⠂,⠄,⡀,⡁,⡂,⡄,⡅,⡇,⡏,⡗,⡧,⣇,⣏,⣗,⣧,⣯,⣷,⣿,⢿,⣻,⢻,⢽,⣹,⢹,⢸,⠸,⢘,⠘,⠨,⢈,⠈,⠐,⠠,⢀";
       # default:
@@ -177,6 +328,27 @@ in {
       icon-replied = "  ";
       icon-flagged = "  ";
       icon-deleted = "  ";
+
+      icon-unencrypted = "";
+      icon-encrypted = "";
+      icon-signed = "";
+      icon-signed-encrypted = "";
+      # icon-new = "";
+      # icon-old = "";
+      icon-marked = "✔";
+      icon-unknown = "󱎘";
+      icon-invalid = "⚠";
+      # icon-attachment = "";
+      # icon-replied = "⮪";
+      icon-forwarded = "⮫";
+      # icon-flagged = "";
+      icon-draft = "󰙏";
+      icon-inbox = "";
+      # icon-deleted = "";
+      # icon-spam=
+      # icon-sent=
+      # icon-calendar=
+      # icon-list=
     };
 
     "ui:account=combined" = {
@@ -246,7 +418,7 @@ in {
       "<C-u>" = ":prev 50%<Enter>";
       "<C-b>" = ":prev 100%<Enter>";
       "<PgUp>" = ":prev 100%<Enter>";
-      "g" = ":select 0<Enter>";
+      "gg" = ":select 0<Enter>";
       "G" = ":select -1<Enter>";
 
       "J" = ":next-folder<Enter>";
@@ -277,6 +449,9 @@ in {
       "<Enter>" = ":view<Enter>";
       # "d" = ":choose -o y 'Really delete this message' delete-message<Enter>";
       # "D" = ":delete<Enter>";
+
+      "x" = ":move Trash<Enter>";
+      "e" = ":move Archive<Enter>";
       "a" = ":archive flat<Enter>";
       "A" = ":unmark -a<Enter>:mark -T<Enter>:archive flat<Enter>";
 
@@ -318,6 +493,8 @@ in {
     "view" = {
       "/" = ":toggle-key-passthrough<Enter>/";
       "q" = ":close<Enter>";
+      "x" = ":move Trash<Enter>";
+      "e" = ":move Archive<Enter>";
       "O" = ":open<Enter>";
       "o" = ":open<Enter>";
       "S" = ":save<space>";

@@ -5,9 +5,7 @@
   hostname,
   lib,
   ...
-}: let
-  # inherit (builtins) readFile;
-in {
+}: {
   accounts = import ../accounts.nix {inherit config pkgs lib;};
   programs = {
     aerc = import ./aerc.nix {inherit config pkgs lib;};
@@ -29,6 +27,13 @@ in {
           "spam"
         ];
       };
+      # query = {
+      #   # inbox=tag:inbox and tag:unread
+      #   # sent=tag:sent
+      #   # archive=not tag:inbox
+      #   # github=tag:github or from:notifications@github.com
+      #   # urgent=tag:urgent
+      # };
       maildir = {
         synchronizeFlags = true;
       };
