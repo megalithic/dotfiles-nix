@@ -63,22 +63,7 @@ in {
       # check-mail-timeout = "30s";
       postpone = "[Gmail]/Drafts";
       cache-headers = true;
-      # folder-map = pkgs.writeText "folderMap" ''
-      #   Archive=[Gmail]/All Mail
-      #   Sent=[Gmail]/Sent Mail
-      #   Drafts=[Gmail]/Drafts
-      #   Spam=[Gmail]/Spam
-      #   Starred=[Gmail]/Starred
-      #   Trash=[Gmail]/Trash
-      # '';
-      folder-map.text = ''
-        Archive=[Gmail]/All Mail
-        Sent=[Gmail]/Sent Mail
-        Drafts=[Gmail]/Drafts
-        Spam=[Gmail]/Spam
-        Starred=[Gmail]/Starred
-        Trash=[Gmail]/Trash
-      '';
+      folder-map = builtins.readFile ./folder-map;
     };
 
     fastmail = {
