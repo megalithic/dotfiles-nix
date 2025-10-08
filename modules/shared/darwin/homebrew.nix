@@ -75,6 +75,7 @@
       "iina"
       "inkscape"
       "karabiner-elements"
+      "kitty@nightly"
       "macwhisper"
       "mailmate@beta"
       "microsoft-teams" # Only have installed when needed (has some sinister telemetry).

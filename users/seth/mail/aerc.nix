@@ -1,4 +1,6 @@
-# REF: https://github.com/jeffa5/nix-home/blob/main/home/modules/aerc.nix
+# REF:
+# - https://github.com/jeffa5/nix-home/blob/main/home/modules/aerc.nix
+# - https://github.com/eriqueo/nixos-hwc/tree/main/domains/home/apps/aerc (robust theming too)
 {
   pkgs,
   config,
@@ -62,6 +64,7 @@ in {
       # check-mail = "2m";
       # check-mail-timeout = "30s";
       postpone = "[Gmail]/Drafts";
+      copy-to = null;
       cache-headers = true;
       folder-map = builtins.readFile ./folder-map;
     };
@@ -136,7 +139,8 @@ in {
       # address-book-cmd = "khard email --remove-first-line --parsable '%s'";
       # editor = "${pkgs.nvim-nightly}/bin/nvim-nightly +/^$ +nohl ++1";
       editor = "$EDITOR +/^$ +nohl ++1";
-      header-layout = "To,From,Cc,Bcc,Subject";
+      address-book-cmd = "khard email --parsable %s";
+      header-layout = "To|From,Cc|Bcc,Subject";
       edit-headers = true;
       reply-to-self = false;
       empty-subject-warning = true;

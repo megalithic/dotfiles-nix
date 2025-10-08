@@ -15,12 +15,13 @@ in {
   imports = [
     # ./packages.nix
     ./mail
-    ./jujutsu
-    ./qutebrowser.nix
     ./chromium
+    ./jujutsu.nix
+    ./qutebrowser.nix
+    ./fish.nix
+    ./fzf.nix
     # ./karabiner
     # ./kanata
-    # ./zen-browser.nix
     # ./tmux
     # ./nvim
   ];
@@ -184,6 +185,235 @@ in {
       source = ./karabiner/karabiner.json;
       # onChange = "${pkgs.goku}/bin/goku";
     };
+
+    ".config/eza/theme.yml".text = ''
+      colourful: true
+
+      # Everforest Medium Palette
+      # Background: #2d353b
+      # Foreground: #d3c6aa
+      # Black: #343f44
+      # Red: #e67e80
+      # Green: #a7c080
+      # Yellow: #dbbc7f
+      # Blue: #7fbbb3
+      # Magenta: #d699b6
+      # Cyan: #83c092
+      # White: #d3c6aa
+      # Gray: #859289
+      # Bright Black: #475258
+      # Bright Red: #e67e80
+      # Bright Green: #a7c080
+      # Bright Yellow: #dbbc7f
+      # Bright Blue: #7fbbb3
+      # Bright Magenta: #d699b6
+      # Bright Cyan: #83c092
+      # Bright White: #d3c6aa
+
+      filekinds:
+        normal: { foreground: "#d3c6aa" }
+        directory: { foreground: "#e69875" }
+        symlink: { foreground: "#859289" }
+        pipe: { foreground: "#475258" }
+        block_device: { foreground: "#e67e80" }
+        char_device: { foreground: "#dbbc7f" }
+        socket: { foreground: "#343f44" }
+        special: { foreground: "#d699b6" }
+        executable: { foreground: "#a7c080" }
+        mount_point: { foreground: "#475258" }
+
+      perms:
+        user_read: { foreground: "#859289" }
+        user_write: { foreground: "#475258" }
+        user_execute_file: { foreground: "#a7c080" }
+        user_execute_other: { foreground: "#a7c080" }
+        group_read: { foreground: "#859289" }
+        group_write: { foreground: "#475258" }
+        group_execute: { foreground: "#a7c080" }
+        other_read: { foreground: "#859289" }
+        other_write: { foreground: "#475258" }
+        other_execute: { foreground: "#a7c080" }
+        special_user_file: { foreground: "#d699b6" }
+        special_other: { foreground: "#475258" }
+        attribute: { foreground: "#859289" }
+
+      size:
+        major: { foreground: "#859289" }
+        minor: { foreground: "#e69875" }
+        number_byte: { foreground: "#859289" }
+        number_kilo: { foreground: "#859289" }
+        number_mega: { foreground: "#83c092" }
+        number_giga: { foreground: "#d699b6" }
+        number_huge: { foreground: "#d699b6" }
+        unit_byte: { foreground: "#859289" }
+        unit_kilo: { foreground: "#83c092" }
+        unit_mega: { foreground: "#d699b6" }
+        unit_giga: { foreground: "#d699b6" }
+        unit_huge: { foreground: "#e69875" }
+
+      users:
+        user_you: { foreground: "#dbbc7f" }
+        user_root: { foreground: "#e67e80" }
+        user_other: { foreground: "#d699b6" }
+        group_yours: { foreground: "#859289" }
+        group_other: { foreground: "#475258" }
+        group_root: { foreground: "#e67e80" }
+
+      links:
+        normal: { foreground: "#e69875" }
+        multi_link_file: { foreground: "#83c092" }
+
+      git:
+        new: { foreground: "#a7c080" }
+        modified: { foreground: "#dbbc7f" }
+        deleted: { foreground: "#e67e80" }
+        renamed: { foreground: "#83c092" }
+        typechange: { foreground: "#d699b6" }
+        ignored: { foreground: "#475258" }
+        conflicted: { foreground: "#e67e80" }
+
+      git_repo:
+        branch_main: { foreground: "#859289" }
+        branch_other: { foreground: "#d699b6" }
+        git_clean: { foreground: "#a7c080" }
+        git_dirty: { foreground: "#e67e80" }
+
+      security_context:
+        colon: { foreground: "#859289" }
+        user: { foreground: "#e69875" }
+        role: { foreground: "#d699b6" }
+        typ: { foreground: "#475258" }
+        range: { foreground: "#d699b6" }
+
+      file_type:
+        image: { foreground: "#dbbc7f" }
+        video: { foreground: "#e67e80" }
+        music: { foreground: "#e69875" }
+        lossless: { foreground: "#475258" }
+        crypto: { foreground: "#343f44" }
+        document: { foreground: "#859289" }
+        compressed: { foreground: "#d699b6" }
+        temp: { foreground: "#e67e80" }
+        compiled: { foreground: "#83c092" }
+        build: { foreground: "#475258" }
+        source: { foreground: "#a7c080" }
+
+      punctuation: { foreground: "#859289" }
+      date: { foreground: "#83c092" }
+      inode: { foreground: "#859289" }
+      blocks: { foreground: "#859289" }
+      header: { foreground: "#859289" }
+      octal: { foreground: "#e69875" }
+      flags: { foreground: "#d699b6" }
+
+      symlink_path: { foreground: "#e69875" }
+      control_char: { foreground: "#83c092" }
+      broken_symlink: { foreground: "#e67e80" }
+      broken_path_overlay: { foreground: "#859289" }
+
+      # colourful: true
+      #
+      # filekinds:
+      #   normal: { foreground: "#d3c6aa" }
+      #   directory: { foreground: "#e69875" }
+      #   symlink: { foreground: "#859289" }
+      #   pipe: { foreground: "#727e85" }
+      #   block_device: { foreground: "#e67e80" }
+      #   char_device: { foreground: "#dbbc7f" }
+      #   socket: { foreground: "#343f44" }
+      #   special: { foreground: "#d699b6" }
+      #   executable: { foreground: "#a7c080" }
+      #   mount_point: { foreground: "#727e85" }
+      #
+      # perms:
+      #   user_read: { foreground: "#859289" }
+      #   user_write: { foreground: "#727e85" }
+      #   user_execute_file: { foreground: "#a7c080" }
+      #   user_execute_other: { foreground: "#a7c080" }
+      #   group_read: { foreground: "#859289" }
+      #   group_write: { foreground: "#727e85" }
+      #   group_execute: { foreground: "#a7c080" }
+      #   other_read: { foreground: "#859289" }
+      #   other_write: { foreground: "#727e85" }
+      #   other_execute: { foreground: "#a7c080" }
+      #   special_user_file: { foreground: "#d699b6" }
+      #   special_other: { foreground: "#727e85" }
+      #   attribute: { foreground: "#859289" }
+      #
+      # size:
+      #   major: { foreground: "#859289" }
+      #   minor: { foreground: "#e69875" }
+      #   number_byte: { foreground: "#859289" }
+      #   number_kilo: { foreground: "#859289" }
+      #   number_mega: { foreground: "#83c092" }
+      #   number_giga: { foreground: "#d699b6" }
+      #   number_huge: { foreground: "#d699b6" }
+      #   unit_byte: { foreground: "#859289" }
+      #   unit_kilo: { foreground: "#83c092" }
+      #   unit_mega: { foreground: "#d699b6" }
+      #   unit_giga: { foreground: "#d699b6" }
+      #   unit_huge: { foreground: "#e69875" }
+      #
+      # users:
+      #   user_you: { foreground: "#dbbc7f" }
+      #   user_root: { foreground: "#e67e80" }
+      #   user_other: { foreground: "#d699b6" }
+      #   group_yours: { foreground: "#859289" }
+      #   group_other: { foreground: "#727e85" }
+      #   group_root: { foreground: "#e67e80" }
+      #
+      # links:
+      #   normal: { foreground: "#e69875" }
+      #   multi_link_file: { foreground: "#83c092" }
+      #
+      # git:
+      #   new: { foreground: "#a7c080" }
+      #   modified: { foreground: "#dbbc7f" }
+      #   deleted: { foreground: "#e67e80" }
+      #   renamed: { foreground: "#83c092" }
+      #   typechange: { foreground: "#d699b6" }
+      #   ignored: { foreground: "#727e85" }
+      #   conflicted: { foreground: "#e67e80" }
+      #
+      # git_repo:
+      #   branch_main: { foreground: "#859289" }
+      #   branch_other: { foreground: "#d699b6" }
+      #   git_clean: { foreground: "#a7c080" }
+      #   git_dirty: { foreground: "#e67e80" }
+      #
+      # security_context:
+      #   colon: { foreground: "#859289" }
+      #   user: { foreground: "#e69875" }
+      #   role: { foreground: "#d699b6" }
+      #   typ: { foreground: "#727e85" }
+      #   range: { foreground: "#d699b6" }
+      #
+      # file_type:
+      #   image: { foreground: "#dbbc7f" }
+      #   video: { foreground: "#e67e80" }
+      #   music: { foreground: "#e69875" }
+      #   lossless: { foreground: "#727e85" }
+      #   crypto: { foreground: "#343f44" }
+      #   document: { foreground: "#859289" }
+      #   compressed: { foreground: "#d699b6" }
+      #   temp: { foreground: "#e67e80" }
+      #   compiled: { foreground: "#83c092" }
+      #   build: { foreground: "#727e85" }
+      #   source: { foreground: "#a7c080" }
+      #
+      # punctuation: { foreground: "#859289" }
+      # date: { foreground: "#83c092" }
+      # inode: { foreground: "#859289" }
+      # blocks: { foreground: "#859289" }
+      # header: { foreground: "#859289" }
+      # octal: { foreground: "#e69875" }
+      # flags: { foreground: "#d699b6" }
+      #
+      # symlink_path: { foreground: "#e69875" }
+      # control_char: { foreground: "#83c092" }
+      # broken_symlink: { foreground: "#e67e80" }
+      # broken_path_overlay: { foreground: "#859289" }
+    '';
   };
 
   xdg.enable = true;
@@ -333,271 +563,6 @@ in {
     # };
 
     starship = {enable = true;};
-    fish = {
-      # REF: https://github.com/agdral/home-default/blob/main/shell/fish/functions/develop.nix
-      enable = true;
-      shellInit = ''
-        export PATH="/etc/profiles/per-user/${username}/bin:$PATH"
-        set -g fish_prompt_pwd_dir_length 20
-
-        bind --erase -- ctrl-d
-        bind --erase --mode insert -- ctrl-d
-      '';
-      interactiveShellInit = ''
-        # fish_add_path /opt/homebrew/bin
-        # fish_default_key_bindings
-
-        set fish_cursor_default     block      blink
-        set fish_cursor_insert      line       blink
-        set fish_cursor_replace_one underscore
-        set fish_cursor_visual      underscore blink
-
-        # fish_vi_key_bindings
-        # fish_vi_key_bindings insert
-        # quickly open text file
-        # bind -M insert \cd '${pkgs.fd}/bin/fd -d | fzf | xargs -r cd'
-        bind -M insert ctrl-o '${pkgs.fzf}/bin/fzf | xargs -r $EDITOR'
-
-        bind -M insert ctrl-a beginning-of-line
-        bind -M insert ctrl-e end-of-line
-        bind -M insert ctrl-y accept-autosuggestion
-        bind ctrl-y accept-autosuggestion
-
-        # NOTE: using fzf for this:
-        # bind -M insert ctrl-r history-pager
-        # bind ctrl-r history-pager
-
-
-        # edit command in $EDITOR
-        bind -M insert ctrl-v edit_command_buffer
-
-        # Rerun previous command
-        bind -M insert ctrl-s 'commandline $history[1]' 'commandline -f execute'
-
-        # restore old ctrl+c behavior; it should not clear the line in case I want to copy it or something
-        # the new default behavior is stupid and bad, it just clears the current prompt
-        # https://github.com/fish-shell/fish-shell/issues/11327
-        bind -M insert -m insert ctrl-c cancel-commandline
-
-        # I like to keep the prompt at the bottom rather than the top
-        # of the terminal window so that running `clear` doesn't make
-        # me move my eyes from the bottom back to the top of the screen;
-        # keep the prompt consistently at the bottom
-        # _prompt_move_to_bottom # call function manually to load it since event handlers don't get autoloaded
-
-        set -gx EZA_COLORS "\
-        di=#7fbbb3:\
-        ex=#e67e80:\
-        fi=#d3c6aa:\
-        ln=#83c092:\
-        or=#e67e80:\
-        ow=#7fbbb3:\
-        pi=#d699b6:\
-        so=#e69875:\
-        bd=#dbbc7f:\
-        cd=#dbbc7f:\
-        su=#e67e80:\
-        sg=#e67e80:\
-        tw=#7fbbb3:\
-        st=#9da9a0:\
-        *.tar=#e69875:\
-        *.zip=#e69875:\
-        *.7z=#e69875:\
-        *.gz=#e69875:\
-        *.bz2=#e69875:\
-        *.xz=#e69875:\
-        *.jpg=#d699b6:\
-        *.jpeg=#d699b6:\
-        *.png=#d699b6:\
-        *.gif=#d699b6:\
-        *.svg=#d699b6:\
-        *.pdf=#a7c080:\
-        *.txt=#d3c6aa:\
-        *.md=#a7c080:\
-        *.json=#dbbc7f:\
-        *.yml=#dbbc7f:\
-        *.yaml=#dbbc7f:\
-        *.xml=#dbbc7f:\
-        *.toml=#dbbc7f:\
-        *.ini=#dbbc7f:\
-        *.cfg=#dbbc7f:\
-        *.conf=#dbbc7f:\
-        *.log=#9da9a0:\
-        *.tmp=#9da9a0:\
-        *.bak=#9da9a0:\
-        *.swp=#9da9a0:\
-        *.lock=#9da9a0:\
-        *.js=#dbbc7f:\
-        *.ts=#7fbbb3:\
-        *.jsx=#7fbbb3:\
-        *.tsx=#7fbbb3:\
-        *.py=#7fbbb3:\
-        *.rb=#e67e80:\
-        *.go=#83c092:\
-        *.rs=#e69875:\
-        *.c=#7fbbb3:\
-        *.cpp=#7fbbb3:\
-        *.h=#d699b6:\
-        *.hpp=#d699b6:\
-        *.java=#e69875:\
-        *.class=#e69875:\
-        *.sh=#a7c080:\
-        *.bash=#a7c080:\
-        *.zsh=#a7c080:\
-        *.fish=#a7c080:\
-        *.vim=#a7c080:\
-        *.nvim=#a7c080"
-      '';
-      functions = {
-        fish_greeting = "";
-        _prompt_move_to_bottom = {
-          onEvent = "fish_postexec";
-          body = "tput cup $LINES";
-        };
-        # nix-shell = {
-        #   wraps = "nix-shell";
-        #   body = ''
-        #     for ARG in $argv
-        #         if [ "$ARG" = --run ]
-        #             command nix-shell $argv
-        #             return $status
-        #         end
-        #     end
-        #     command nix-shell $argv --run "exec fish"
-        #   '';
-        # };
-        pr = ''
-          set -l PROJECT_PATH (git config --get remote.origin.url)
-          set -l PROJECT_PATH (string replace "git@github.com:" "" "$PROJECT_PATH")
-          set -l PROJECT_PATH (string replace "https://github.com/" "" "$PROJECT_PATH")
-          set -l PROJECT_PATH (string replace ".git" "" "$PROJECT_PATH")
-          set -l GIT_BRANCH (git branch --show-current || echo "")
-          set -l MASTER_BRANCH (git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
-
-          if test -z "$GIT_BRANCH"
-              set GIT_BRANCH (jj log -r @- --no-graph --no-pager -T 'self.bookmarks()')
-          end
-
-          if test -z "$GIT_BRANCH"
-              echo "Error: not a git repository"
-              return 1
-          end
-          ${
-            if isDarwin
-            then "open"
-            else "xdg-open"
-          } "https://github.com/$PROJECT_PATH/compare/$MASTER_BRANCH...$GIT_BRANCH"
-        '';
-        ghb = ''
-          set -l PROJECT_PATH (git config --get remote.origin.url)
-          set -l PROJECT_PATH (string replace "git@github.com:" "" "$PROJECT_PATH")
-          set -l PROJECT_PATH (string replace "https://github.com/" "" "$PROJECT_PATH")
-          set -l PROJECT_PATH (string replace ".git" "" "$PROJECT_PATH")
-          set -l GIT_BRANCH (git branch --show-current || echo "")
-          set -l MASTER_BRANCH (git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
-
-          if test -z "$GIT_BRANCH"
-              set GIT_BRANCH (jj log -r @- --no-graph --no-pager -T 'self.bookmarks()')
-          end
-
-          if test -z "$GIT_BRANCH"
-              echo "Error: not a git repository"
-              return 1
-          end
-          ${
-            if isDarwin
-            then "open"
-            else "xdg-open"
-          } "https://github.com/$PROJECT_PATH/compare/$MASTER_BRANCH...$GIT_BRANCH"
-        '';
-      };
-
-      # direnv hook fish | source
-      # tv init fish | source
-      # ${pkgs.trashy}/bin/trashy completions fish | source
-      # ${pkgs.rqbit}/bin/rqbit -v error completions fish | source
-      # ${inputs.rimi.packages.${system}.rimi}/bin/rimi completions fish | source
-
-      shellAliases = {
-        ls = "${pkgs.eza}/bin/eza -a --group-directories-first";
-        l = "${pkgs.eza}/bin/eza -lahF";
-        ll = "${pkgs.eza}/bin/eza -lahF";
-        tree = "${pkgs.eza}/bin/eza --tree";
-        opencode = "op run --no-masking -- opencode";
-        rm = "${pkgs.darwin.trash}/bin/trash -v";
-        q = "exit";
-        ",q" = "exit";
-        mega = "ftm mega";
-        copy =
-          if isDarwin
-          then "pbcopy"
-          else "xclip -selection clipboard";
-        paste =
-          if isDarwin
-          then "pbpaste"
-          else "xlip -o -selection clipboard";
-        cat = "bat";
-        "!!" = "eval \\$history[1]";
-        clear = "clear && _prompt_move_to_bottom";
-        # inspect $PATH
-        pinspect = ''echo "$PATH" | tr ":" "\n"'';
-        brew = "op plugin run -- brew";
-        cachix = "op plugin run -- cachix";
-        # doctl = "op plugin run -- doctl";
-        gh = "op plugin run -- gh";
-        git = "op plugin run -- git";
-        tmux = "op plugin run -- tmux";
-        pulumi = "op plugin run -- pulumi";
-      };
-
-      shellAbbrs = {
-        nvim = "nvim -O";
-        vim = "nvim -O";
-        j = "just";
-      };
-
-      plugins = [
-        {
-          name = "autopair";
-          inherit (pkgs.fishPlugins.autopair) src;
-        }
-        {
-          name = "nix-env";
-          src = pkgs.fetchFromGitHub {
-            owner = "lilyball";
-            repo = "nix-env.fish";
-            rev = "7b65bd228429e852c8fdfa07601159130a818cfa";
-            hash = "sha256-RG/0rfhgq6aEKNZ0XwIqOaZ6K5S4+/Y5EEMnIdtfPhk";
-          };
-        }
-        {
-          name = "done";
-          src = pkgs.fetchFromGitHub {
-            owner = "franciscolourenco";
-            repo = "done";
-            rev = "d6abb267bb3fb7e987a9352bc43dcdb67bac9f06";
-            sha256 = "6oeyN9ngXWvps1c5QAUjlyPDQwRWAoxBiVTNmZ4sG8E=";
-          };
-        }
-      ];
-    };
-
-    fzf = {
-      enable = true;
-      enableFishIntegration = true; # broken
-      fileWidgetCommand = "${pkgs.fd}/bin/fd --type f --hidden --no-ignore-vcs --follow --exclude .git --exclude .jj --exclude .direnv . \\$dir";
-      fileWidgetOptions = [
-        "--preview '${pkgs.bat}/bin/bat --color=always --style=numbers --line-range :300 {}'"
-        "--style=minimal"
-      ];
-      defaultCommand = "${pkgs.fd}/bin/fd --type f --hidden  --no-ignore-vcs --follow --exclude .git --exclude .jj --exclude .direnv .";
-      defaultOptions = [
-        "--style=minimal"
-        "--height 20%"
-      ];
-      tmux.enableShellIntegration = true;
-      tmux.shellIntegrationOptions = ["-d 40%"];
-    };
 
     ghostty = {
       enable = true;
@@ -712,9 +677,15 @@ in {
       enableZshIntegration = true;
       enableFishIntegration = true;
       colors = "always";
+      git = true;
+      icons = "always";
+      extraOptions = ["-lah" "--group-directories-first" "--color-scale"];
     };
 
-    bat.enable = true;
+    bat = {
+      enable = true;
+      extraPackages = with pkgs.bat-extras; [batman];
+    };
     ripgrep = {
       enable = true;
     };
@@ -730,25 +701,10 @@ in {
       ];
     };
     television = {
-      enable = true;
+      enable = false;
       enableFishIntegration = false;
     };
     k9s.enable = true;
     jq.enable = true;
-
-    # espanso.enable = {
-    #   enable = true;
-    #   package = lib.brew-alias pkgs "espanso";
-    # };
-    # obs-studio = {
-    #   enable = true;
-    #   plugins = with pkgs.obs-studio-plugins; [
-    #     obs-vaapi
-    #     obs-pipewire-audio-capture
-    #     input-overlay
-    #     droidcam-obs
-    #     obs-websocket
-    #   ];
-    # };
   };
 }

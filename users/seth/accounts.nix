@@ -83,8 +83,10 @@ in {
 
         folders = {
           inbox = "Inbox";
+          # archive = "\[Gmail\]/All\\ Mail";
           sent = "\[Gmail\]/Sent\\ Mail";
           trash = "\[Gmail\]/Trash";
+          # spam = "\[Gmail\]/Spam";
           drafts = "\[Gmail\]/Drafts";
         };
         flavor = "gmail.com";
@@ -98,7 +100,6 @@ in {
 
           showSignature = "append";
         };
-
         thunderbird.enable = true;
         aerc.enable = true;
         himalaya = {

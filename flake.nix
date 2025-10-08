@@ -57,7 +57,7 @@
     # zen-browser.inputs.home-manager.follows = "home-manager";
     mcp-hub.url = "github:ravitemer/mcp-hub";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    jujutsu.url = "github:martinvonz/jj";
+    # jujutsu.url = "github:martinvonz/jj";
     agenix.url = "github:ryantm/agenix";
     nix-ai-tools.url = "github:numtide/nix-ai-tools";
     yazi.url = "github:sxyazi/yazi";
@@ -112,7 +112,7 @@
 
     # pkgs = nixpkgs.legacyPackages.${system};
     overlays = [
-      inputs.jujutsu.overlays.default
+      # inputs.jujutsu.overlays.default
       inputs.yazi.overlays.default
       inputs.nur.overlays.default
 

@@ -18,6 +18,8 @@ export FZF_DEFAULT_OPTS="
 --inline-info
 --select-1
 --ansi
+--highlight-line
+--info=inline-right
 --no-border
 --reverse
 --extended
@@ -36,7 +38,7 @@ export FZF_DEFAULT_OPTS="
 --prompt=' '
 --pointer=' '
 --marker='󰛄 '
---scrollbar='▓',
+--scrollbar='▓'
 "
 # --tiebreak=index
 

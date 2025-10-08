@@ -10,6 +10,7 @@
   programs = {
     aerc = import ./aerc.nix {inherit config pkgs lib;};
     mbsync.enable = true;
+    msmtp.enable = true;
     notmuch = {
       enable = true;
       new = {
@@ -43,6 +44,23 @@
       enable = true;
       profiles."default" = {
         isDefault = true;
+      };
+    };
+    khard = {
+      enable = true;
+      settings = {
+        "contact table" = {
+          display = "formatted_name";
+          preferred_phone_number_type = [
+            "pref"
+            "cell"
+          ];
+          preferred_email_address_type = [
+            "pref"
+            "work"
+            "home"
+          ];
+        };
       };
     };
   };

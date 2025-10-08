@@ -1,10 +1,10 @@
-{ config
-, pkgs
-, username
-, hostname
-, ...
-}:
 {
+  config,
+  pkgs,
+  username,
+  hostname,
+  ...
+}: {
   programs.jujutsu = {
     enable = true;
     settings = {
@@ -64,29 +64,29 @@
         "node working_copy" = "green";
         "node conflict" = "red";
         "node immutable" = "red";
-        "node normal" = { bold = false; };
-        "node" = { bold = false; };
+        "node normal" = {bold = false;};
+        "node" = {bold = false;};
       };
       # git = {
       #   sign-on-push = true;
       #   write-change-id-header = true;
       # };
       aliases = {
-        s = [ "status" ];
-        l = [ "log" ];
-        ll = [ "log" "-T" "builtin_log_compact_full_description" ];
+        s = ["status"];
+        l = ["log"];
+        ll = ["log" "-T" "builtin_log_compact_full_description"];
         # ll = [ "log" "-r" ".." ];
-        d = [ "diff" ];
-        rb = [ "rebase" ];
-        b = [ "bookmark" ];
-        g = [ "git" ];
-        push = [ "git" "push" ];
-        dv = [ "desc" ];
-        dm = [ "desc" "-m" ];
-        main = [ "bookmark" "move" "main" "--to" "@" ];
+        d = ["diff"];
+        rb = ["rebase"];
+        b = ["bookmark"];
+        g = ["git"];
+        push = ["git" "push"];
+        dv = ["desc"];
+        dm = ["desc" "-m"];
+        main = ["bookmark" "move" "main" "--to" "@"];
         # tug = [ "bookmark" "move" "--from" "heads(::@- & bookmarks())" "--to" "@-" ];
         # Advances closest bookmark to parent commit
-        tug = [ "bookmark" "move" "--from" "closest_bookmark(@-)" "--to" "@-" ];
+        tug = ["bookmark" "move" "--from" "closest_bookmark(@-)" "--to" "@-"];
       };
       revsets = {
         log = "current_work";

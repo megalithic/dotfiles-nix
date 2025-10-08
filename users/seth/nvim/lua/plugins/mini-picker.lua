@@ -720,8 +720,8 @@ return {
       })
     end, { desc = "grep cursor/selection" })
 
-    vim.keymap.set("n", "<leader><localleader>", MiniPick.registry.frecency, { desc = "find smart files" })
-    vim.keymap.set("n", "<leader>ff", function()
+    vim.keymap.set("n", "<leader>ff", MiniPick.registry.frecency, { desc = "find smart files" })
+    vim.keymap.set("n", "<leader><space>", function()
       if pcall(require, "fff") then
         MiniPick.registry.fffiles()
       else
