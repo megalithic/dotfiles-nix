@@ -21,6 +21,16 @@
 # 6. Case sensitivity matters for both domains and keys
 # 7. Not all `defaults` commands have targets.darwin.defaults equivalents
 {
+  power = {
+    restartAfterFreeze = true;
+    # restartAfterPowerFailure = true;
+    sleep = {
+      display = "never";
+      computer = "never";
+      harddisk = "never";
+      allowSleepByPowerButton = false;
+    };
+  };
   system = {
     primaryUser = "${username}";
     # Used for backwards compatibility, please read the changelog before changing.
@@ -59,7 +69,7 @@
       controlcenter = {
         BatteryShowPercentage = true;
         # Control Center menu bar items (null = system default, true = show, false = hide)
-        AirDrop = null; # AirDrop control - use system default
+        AirDrop = false; # AirDrop control - use system default
         Bluetooth = true; # Bluetooth control in menu bar
         Display = true; # Screen brightness control in menu bar
         FocusModes = false; # Focus modes control (Do Not Disturb)
@@ -279,8 +289,18 @@
         "com.apple.commerce".AutoUpdate = true;
         # Prevent Photos from opening automatically when devices are plugged in
         "com.apple.ImageCapture".disableHotPlug = true;
+
         # tell HS where to find its config file
         "org.hammerspoon.Hammerspoon".MJConfigFile = "~/.config/hammerspoon/init.lua";
+
+        # https://tyler.io/2020/04/additional-mailmate-tips/
+        "com.freron.MailMate" = {
+          MmCustomKeyBindingsName = "Mega";
+          MmComposerInitialFocus = "alwaysTextView";
+          MmShowAttachmentsFirst = true;
+          MmSingleMessageWindowClosesAfterMove = true;
+        };
+
         "com.apple.SoftwareUpdate" = {
           AutomaticCheckEnabled = true;
           # Check for software updates daily, not just once per week

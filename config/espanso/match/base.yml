@@ -38,10 +38,10 @@ matches:
         params:
           format: '%X'
 
-  - trigger: ':flip:'
+  - trigger: ':flip'
     replace: '(ノ°Д°）ノ︵ ┻━┻'
 
-  - trigger: ':shrug:'
+  - trigger: ':shrug'
     replace: "¯\\_(ツ)_/¯"
 
   - trigger: '::ip'
@@ -53,51 +53,89 @@ matches:
           cmd: 'curl ifconfig.me'
 
   - {trigger: '<3', replace: '🩶'} # use grey haeart instead of red one
-  - trigger: ':wave:'
+  - {trigger: ":shrug", replace: "¯\\_(ツ)_/¯"}
+  - trigger: ':wave'
     replace: 👋
-    word: true
-  - trigger: ':heart:'
+    word: false
+  - trigger: ':heart'
     replace: ❤️
-    word: true
-  - trigger: ':thumb:'
+    word: false
+  - trigger: ':up'
     replace: 👍
-    word: true
-  - trigger: ':+1:'
+    word: false
+  - trigger: ':thumb'
     replace: 👍
-    word: true
-  - trigger: ':thumbsup:'
+    word: false
+  - trigger: ':+1'
     replace: 👍
-    word: true
-  - trigger: ':-1:'
+    word: false
+  - trigger: ':thumbsup'
+    replace: 👍
+    word: false
+  - trigger: ':-1'
     replace: 👎
-    word: true
-  - trigger: ':thumbsdown:'
+    word: false
+  - trigger: ':thumbsdown'
     replace: 👎
-    word: true
-  - trigger: ':flex:'
+    word: false
+  - trigger: ':flex'
     replace: 💪
-    word: true
-  - trigger: ':pray:'
+    word: false
+  - trigger: ':pray'
     replace: 🙏
-    word: true
-  - trigger: ':rock:'
+    word: false
+  - trigger: ':rock'
     replace: 🤘
-    word: true
-  - trigger: ':rofl:'
+    word: false
+  - trigger: ':rofl'
     replace: 🤣
-    word: true
-  - trigger: ':poop:'
+    word: false
+  - trigger: ':poop'
     replace: 💩
-    word: true
-  - trigger: ':100:'
+    word: false
+  - trigger: ':100'
     replace: 💯
-    word: true
-  - trigger: ':eyes:'
+    word: false
+  - trigger: ':eyes'
     replace: 👀
-    word: true
-  - trigger: ':facepalm:'
+    word: false
+  - trigger: ':facepalm'
     replace: 🤦
-    word: true
-  - trigger: ':hands:'
+    word: false
+  - trigger: ':hands'
     replace: 🙌🏼
-    word: true
+    word: false
+
+  - trigger: ":smile"
+    replace: "😃"
+    word: false
+  - trigger: ":cry"
+    replace: "😢"
+    word: false
+  - trigger: ":hmm"
+    replace: "🤔"
+    word: false
+  - trigger: ":think"
+    replace: "🤔"
+    word: false
+  - trigger: ":yay"
+    replace: "🎉"
+    word: false
+
+  - trigger: "Rene "
+    replace: "René"
+  - trigger: ":rene"
+    replace: "René"
+  # - trigger: ":zoom:"
+  #   replace: "https://whereby.com/sethmesser"
+  # - trigger: ":meet:"
+  #   replace: "https://whereby.com/sethmesser"
+  - trigger: ":pop"
+    replace: "https://pop.com/j/953-644-320"
+    word: false
+  - trigger: ":meet"
+    replace: "https://meet.google.com/kry-nbrg-rmy"
+    word: false
+  - trigger: ":tm"
+    replace: "™"
+    word: false

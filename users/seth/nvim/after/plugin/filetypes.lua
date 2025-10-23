@@ -554,6 +554,25 @@ require("ftplugin").extend_all({
       abbr("!=", "~=", bufnr)
     end,
   },
+  mail = {
+    callback = function(bufnr)
+      vim.keymap.set("n", "j", "gj", { buffer = true })
+      vim.keymap.set("n", "k", "gk", { buffer = true })
+
+      vim.opt_local.textwidth = 80
+      vim.opt_local.wrap = true
+      vim.opt_local.linebreak = true
+      vim.opt_local.spell = true
+      vim.opt_local.spelllang = "en"
+      vim.opt_local.formatoptions = "tcqwan"
+      vim.opt_local.list = false
+      vim.opt_local.synmaxcol = 0
+
+      -- Start in insert mode after headers
+      vim.cmd("normal! }o")
+      vim.cmd.startinsert()
+    end,
+  },
   make = {
     opt = {
       expandtab = false,
@@ -711,106 +730,106 @@ require("ftplugin").extend_all({
       buflisted = false,
       wrap = false,
     },
-    callback = function()
-      vim.cmd("wincmd J")
-      vim.cmd([[
-        " Autosize quickfix to match its minimum content
-        " https://vim.fandom.com/wiki/Automatically_fitting_a_quickfix_window_height
-        function! s:adjust_height(minheight, maxheight)
-          exe max([min([line("$"), a:maxheight]), a:minheight]) . "wincmd _"
-        endfunction
-
-        " force quickfix to open beneath all other splits
-        call s:adjust_height(3, 10)
-
-        " REF: https://github.com/romainl/vim-qf/blob/2e385e6d157314cb7d0385f8da0e1594a06873c5/autoload/qf.vim#L22
-      ]])
-
-      -- nnoremap("<C-n>", function()
-      --   pcall(function()
-      --     vim.cmd.lne({
-      --       count = vim.v.count1,
-      --     })
-      --   end)
-      -- end, { buffer = 0, label = "QF: next" })
-      -- nnoremap("<C-p>", function()
-      --   pcall(function()
-      --     vim.cmd.lp({
-      --       count = vim.v.count1,
-      --     })
-      --   end)
-      -- end, { buffer = 0, label = "QF: previous" })
-      -- vim.keymap.set(
-      --   { "n", "x" },
-      --   "<CR>",
-      --   function()
-      --     vim.cmd.ll({
-      --       count = vim.api.nvim_win_get_cursor(0)[1],
-      --     })
-      --   end,
-      --   {
-      --     buffer = true,
-      --   }
-      -- )
-
-      local ok_bqf, bqf = pcall(require, "bqf")
-      if not ok_bqf then
-        return
-      end
-
-      local fugitive_pv_timer
-      local preview_fugitive = function(bufnr, qwinid, bufname)
-        local is_loaded = vim.api.nvim_buf_is_loaded(bufnr)
-        if fugitive_pv_timer and fugitive_pv_timer:get_due_in() > 0 then
-          fugitive_pv_timer:stop()
-          fugitive_pv_timer = nil
-        end
-        fugitive_pv_timer = vim.defer_fn(function()
-          if not is_loaded then
-            vim.api.nvim_buf_call(bufnr, function()
-              vim.cmd(("do fugitive BufReadCmd %s"):format(bufname))
-            end)
-          end
-          require("bqf.preview.handler").open(qwinid, nil, true)
-          vim.api.nvim_set_option_value(
-            "filetype",
-            "git",
-            { buf = require("bqf.preview.session").float_bufnr(), win = qwinid }
-          )
-        end, is_loaded and 0 or 60)
-        return true
-      end
-
-      bqf.setup({
-        auto_enable = true,
-        auto_resize_height = true,
-        preview = {
-          auto_preview = true,
-          win_height = 15,
-          win_vheight = 15,
-          delay_syntax = 80,
-          border_chars = { "┃", "┃", "━", "━", "┏", "┓", "┗", "┛", "█" },
-          ---@diagnostic disable-next-line: unused-local
-          should_preview_cb = function(bufnr, qwinid)
-            local bufname = vim.api.nvim_buf_get_name(bufnr)
-            local fsize = vim.fn.getfsize(bufname)
-            if fsize > 100 * 1024 then
-              -- skip file size greater than 100k
-              return false
-            elseif bufname:match("^fugitive://") then
-              return preview_fugitive(bufnr, qwinid, bufname)
-            end
-
-            return true
-          end,
-        },
-        filter = {
-          fzf = {
-            extra_opts = { "--bind", "ctrl-o:toggle-all", "--delimiter", "│" },
-          },
-        },
-      })
-    end,
+    -- callback = function()
+    --   vim.cmd("wincmd J")
+    --   vim.cmd([[
+    --     " Autosize quickfix to match its minimum content
+    --     " https://vim.fandom.com/wiki/Automatically_fitting_a_quickfix_window_height
+    --     function! s:adjust_height(minheight, maxheight)
+    --       exe max([min([line("$"), a:maxheight]), a:minheight]) . "wincmd _"
+    --     endfunction
+    --
+    --     " force quickfix to open beneath all other splits
+    --     call s:adjust_height(3, 10)
+    --
+    --     " REF: https://github.com/romainl/vim-qf/blob/2e385e6d157314cb7d0385f8da0e1594a06873c5/autoload/qf.vim#L22
+    --   ]])
+    --
+    --   -- nnoremap("<C-n>", function()
+    --   --   pcall(function()
+    --   --     vim.cmd.lne({
+    --   --       count = vim.v.count1,
+    --   --     })
+    --   --   end)
+    --   -- end, { buffer = 0, label = "QF: next" })
+    --   -- nnoremap("<C-p>", function()
+    --   --   pcall(function()
+    --   --     vim.cmd.lp({
+    --   --       count = vim.v.count1,
+    --   --     })
+    --   --   end)
+    --   -- end, { buffer = 0, label = "QF: previous" })
+    --   -- vim.keymap.set(
+    --   --   { "n", "x" },
+    --   --   "<CR>",
+    --   --   function()
+    --   --     vim.cmd.ll({
+    --   --       count = vim.api.nvim_win_get_cursor(0)[1],
+    --   --     })
+    --   --   end,
+    --   --   {
+    --   --     buffer = true,
+    --   --   }
+    --   -- )
+    --
+    --   local ok_bqf, bqf = pcall(require, "bqf")
+    --   if not ok_bqf then
+    --     return
+    --   end
+    --
+    --   local fugitive_pv_timer
+    --   local preview_fugitive = function(bufnr, qwinid, bufname)
+    --     local is_loaded = vim.api.nvim_buf_is_loaded(bufnr)
+    --     if fugitive_pv_timer and fugitive_pv_timer:get_due_in() > 0 then
+    --       fugitive_pv_timer:stop()
+    --       fugitive_pv_timer = nil
+    --     end
+    --     fugitive_pv_timer = vim.defer_fn(function()
+    --       if not is_loaded then
+    --         vim.api.nvim_buf_call(bufnr, function()
+    --           vim.cmd(("do fugitive BufReadCmd %s"):format(bufname))
+    --         end)
+    --       end
+    --       require("bqf.preview.handler").open(qwinid, nil, true)
+    --       vim.api.nvim_set_option_value(
+    --         "filetype",
+    --         "git",
+    --         { buf = require("bqf.preview.session").float_bufnr(), win = qwinid }
+    --       )
+    --     end, is_loaded and 0 or 60)
+    --     return true
+    --   end
+    --
+    --   bqf.setup({
+    --     auto_enable = true,
+    --     auto_resize_height = true,
+    --     preview = {
+    --       auto_preview = true,
+    --       win_height = 15,
+    --       win_vheight = 15,
+    --       delay_syntax = 80,
+    --       border_chars = { "┃", "┃", "━", "━", "┏", "┓", "┗", "┛", "█" },
+    --       ---@diagnostic disable-next-line: unused-local
+    --       should_preview_cb = function(bufnr, qwinid)
+    --         local bufname = vim.api.nvim_buf_get_name(bufnr)
+    --         local fsize = vim.fn.getfsize(bufname)
+    --         if fsize > 100 * 1024 then
+    --           -- skip file size greater than 100k
+    --           return false
+    --         elseif bufname:match("^fugitive://") then
+    --           return preview_fugitive(bufnr, qwinid, bufname)
+    --         end
+    --
+    --         return true
+    --       end,
+    --     },
+    --     filter = {
+    --       fzf = {
+    --         extra_opts = { "--bind", "ctrl-o:toggle-all", "--delimiter", "│" },
+    --       },
+    --     },
+    --   })
+    -- end,
   },
   lazy = {
     opt = {

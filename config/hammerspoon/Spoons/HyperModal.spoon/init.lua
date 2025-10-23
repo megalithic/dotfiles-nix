@@ -1,3 +1,4 @@
+local fmt = string.format
 local obj = hs.hotkey.modal.new({}, nil)
 
 obj.name = "HyperModal"

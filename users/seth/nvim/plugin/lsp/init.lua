@@ -774,29 +774,29 @@ function M.on_attach(client, bufnr, _client_id)
     })
   end)
 
-  -- Code lens
-  lsp_method(client, methods.textDocument_codeLens)(function()
-    Augroup(lsp_group, {
-      {
-        event = { "LspProgress" },
-        pattern = "end",
-        command = function(args)
-          if args.buf == bufnr then
-            vim.lsp.codelens.refresh({ bufnr = args.buf })
-          end
-        end,
-      },
-      {
-        event = { "BufEnter", "TextChanged", "InsertLeave" },
-        buffer = bufnr,
-        command = function(args)
-          vim.lsp.codelens.refresh({ bufnr = args.buf })
-        end,
-      },
-    })
-
-    vim.lsp.codelens.refresh({ bufnr = bufnr })
-  end)
+  -- -- Code lens
+  -- lsp_method(client, methods.textDocument_codeLens)(function()
+  --   Augroup(lsp_group, {
+  --     {
+  --       event = { "LspProgress" },
+  --       pattern = "end",
+  --       command = function(args)
+  --         if args.buf == bufnr then
+  --           vim.lsp.codelens.refresh({ bufnr = args.buf })
+  --         end
+  --       end,
+  --     },
+  --     {
+  --       event = { "BufEnter", "TextChanged", "InsertLeave" },
+  --       buffer = bufnr,
+  --       command = function(args)
+  --         vim.lsp.codelens.refresh({ bufnr = args.buf })
+  --       end,
+  --     },
+  --   })
+  --
+  --   vim.lsp.codelens.refresh({ bufnr = bufnr })
+  -- end)
 
   lsp_method(client, methods.textDocument_signatureHelp)(function()
     Augroup(lsp_group, {

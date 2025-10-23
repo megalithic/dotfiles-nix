@@ -46,28 +46,29 @@ in {
       #   notmuch new
       # '';
 
+      # check-mail-cmd = "mbsync -a && notmuch new";
       check-mail-cmd = "notmuch search --format=text0 --output=files tag:deleted | xargs -0 --no-run-if-empty rm -v; mbsync -a && notmuch new";
       # check-mail = "2m";
       # check-mail-timeout = "30s";
       cache-headers = true;
     };
 
-    gmail = {
-      from = "<noreply@gmail.com>";
-
-      source = "notmuch://${config.accounts.email.maildirBasePath}";
-      maildir-store = config.accounts.email.maildirBasePath;
-      maildir-account-path = "gmail";
-      multi-file-strategy = "act-dir";
-      default = "Inbox";
-      # check-mail-cmd = "mbsync gmail && notmuch new";
-      # check-mail = "2m";
-      # check-mail-timeout = "30s";
-      postpone = "[Gmail]/Drafts";
-      copy-to = null;
-      cache-headers = true;
-      folder-map = builtins.readFile ./folder-map;
-    };
+    # gmail = {
+    #   from = "<noreply@gmail.com>";
+    #
+    #   source = "notmuch://${config.accounts.email.maildirBasePath}";
+    #   maildir-store = config.accounts.email.maildirBasePath;
+    #   maildir-account-path = "gmail";
+    #   multi-file-strategy = "act-dir";
+    #   default = "Inbox";
+    #   # check-mail-cmd = "mbsync gmail && notmuch new";
+    #   # check-mail = "2m";
+    #   # check-mail-timeout = "30s";
+    #   postpone = "[Gmail]/Drafts";
+    #   copy-to = null;
+    #   cache-headers = true;
+    #   # folder-map = builtins.readFile ./gmail-folder-map;
+    # };
 
     fastmail = {
       from = "<noreply@megalithic.io>";
@@ -77,12 +78,13 @@ in {
       maildir-store = config.accounts.email.maildirBasePath;
       maildir-account-path = "fastmail";
       multi-file-strategy = "act-dir";
-      default = "Inbox";
+      default = "INBOX";
       use-labels = true;
       cache-state = true;
       cache-blobs = true;
       use-envelope-from = true;
       # check-mail-cmd = "mbsync fastmail && notmuch new";
+      # check-mail-cmd = "notmuch search --format=text0 --output=files tag:deleted | xargs -0 --no-run-if-empty rm -v; mbsync fastmail && notmuch new";
       # check-mail = "2m";
       # check-mail-timeout = "30s";
       cache-headers = true;
@@ -96,7 +98,7 @@ in {
       maildir-store = config.accounts.email.maildirBasePath;
       maildir-account-path = "nibuild";
       multi-file-strategy = "act-dir";
-      default = "Inbox";
+      default = "INBOX";
 
       # check-mail-cmd = "mbsync nibuild && notmuch new";
       # check-mail = "2m";
@@ -340,9 +342,9 @@ in {
       # icon-list=
     };
 
-    "ui:account=combined" = {
-      sort = "-r date";
-    };
+    # "ui:account=combined" = {
+    #   sort = "-r date";
+    # };
 
     statusline = {
       status-columns = "left<*,center:=,right>*";

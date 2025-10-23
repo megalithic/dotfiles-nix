@@ -37,10 +37,12 @@ local bg_abyss = "#111111"
 local bg_hard = "#2b3339"
 local bg_medium = "#2b3339"
 local bg_soft = "#323d43"
+local bg_everforest = "#2e353c"
 
 C.transparent = "none"
 C.none = "none"
-C.bg0 = hsluv(bg_soft) -- #2f3d44 / #323d43
+C.bg0 = hsluv(bg_everforest)
+-- C.bg0 = hsluv(bg_soft) -- #2f3d44 / #323d43
 C.bg1 = C.bg0.lighten(5) -- #3c474d
 C.bg2 = C.bg0.lighten(10) -- #465258
 C.bg3 = C.bg0.lighten(15) -- #505a60
@@ -1215,6 +1217,44 @@ local theme = lush(function(injected_functions)
     MiniHipatternsTodo({ sym("@comment.todo") }),
     MiniHipatternsNote({ sym("@comment.note") }),
     MiniHipatternsRef({ sym("@comment.ref"), gui = "bold" }),
+
+    ---- :help mini.pick --------------------------------------------------------
+    --- - `MiniPickBorder` - window border.
+    --- - `MiniPickBorderBusy` - window border while picker is busy processing.
+    --- - `MiniPickBorderText` - non-prompt on border.
+    --- - `MiniPickCursor` - cursor during active picker (hidden by default).
+    --- - `MiniPickIconDirectory` - default icon for directory.
+    --- - `MiniPickIconFile` - default icon for file.
+    --- - `MiniPickHeader` - headers in info buffer and previews.
+    --- - `MiniPickMatchCurrent` - current matched item.
+    --- - `MiniPickMatchMarked` - marked matched items.
+    --- - `MiniPickMatchRanges` - ranges matching query elements.
+    --- - `MiniPickNormal` - basic foreground/background highlighting.
+    --- - `MiniPickPreviewLine` - target line in preview.
+    --- - `MiniPickPreviewRegion` - target region in preview.
+    --- - `MiniPickPrompt` - prompt.
+    --- - `MiniPickPromptCaret` - caret in prompt.
+    --- - `MiniPickPromptPrefix` - prefix of the prompt.
+
+    MiniPickNormal({ fg = C.fg, bg = C.bg3.darken(25) }),
+    -- MiniPickCursor({ MiniPickNormal }),
+    MiniPickBorder({ fg = C.bg0, bg = C.bg3.darken(25) }),
+
+    MiniPickHeader({ fg = C.red, bg = C.bg2.darken(20) }),
+
+    MiniPickMatchCurrent({ bg = C.bg2.darken(20), gui = "italic,bold" }),
+    MiniPickMatchMarked({ Title, gui = "italic" }),
+    MiniPickMatchRanges({ Title, gui = "italic" }),
+
+    MiniPickPreviewLine({ bg = PanelBackground.bg, fg = PanelBackground.bg }),
+    MiniPickPreviewRegion({ bg = PanelBackground.bg, fg = PanelBackground.bg }),
+
+    MiniPickPrompt({ fg = C.fg.darken(30), bg = MiniPickNormal.bg }),
+    MiniPickPromptPrefix({ fg = C.orange, bg = MiniPickNormal.bg }),
+    MiniPickPromptCaret({ MiniPickNormal }),
+
+    MiniPickSelection({ bg = C.bg3, gui = "bold,italic" }),
+    MiniPickSelectionCaret({ fg = C.orange, bg = C.bg3 }),
 
     ---- :help leap.txt --------------------------------------------------------
 

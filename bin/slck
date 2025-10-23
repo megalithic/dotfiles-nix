@@ -55,9 +55,9 @@ req_cmd="$(which curlie)" #"/usr/local/opt/curl/bin/curl"
 fzf_cmd="$(which fzf)"
 
 # -- command checks
-(command -v "$req_cmd" &> /dev/null) && CURL_FOUND="${green}installed${reset}" || CURL_FOUND="${red}not installed${reset}"
-(command -v "$fzf_cmd" &> /dev/null) && FZF_FOUND="${green}installed${reset}" || FZF_FOUND="${red}not installed${reset}"
-(command -v "$jq_cmd" &> /dev/null) && JQ_FOUND="${green}installed${reset}" || JQ_FOUND="${red}not installed${reset}"
+(command -v "$req_cmd" &>/dev/null) && CURL_FOUND="${green}installed${reset}" || CURL_FOUND="${red}not installed${reset}"
+(command -v "$fzf_cmd" &>/dev/null) && FZF_FOUND="${green}installed${reset}" || FZF_FOUND="${red}not installed${reset}"
+(command -v "$jq_cmd" &>/dev/null) && JQ_FOUND="${green}installed${reset}" || JQ_FOUND="${red}not installed${reset}"
 
 # -- arrays for request data and channel message randomizer
 declare -a request_data
@@ -103,30 +103,30 @@ __help() {
 
 while getopts "fhrps" OPTION; do
   case $OPTION in
-    f)
-      FSLCK=true
-      ;;
-    h)
-      __help
-      ;;
-    p)
-      TMUX_POPUP=1
-      # TMUX_POPUP=${TMUX_POPUP:1}
-      ;;
-    r)
-      RAW_EXECUTION=1
-      ;;
-    s)
-      __statuses $0
-      exit 0
-      ;;
+  f)
+    FSLCK=true
+    ;;
+  h)
+    __help
+    ;;
+  p)
+    TMUX_POPUP=1
+    # TMUX_POPUP=${TMUX_POPUP:1}
+    ;;
+  r)
+    RAW_EXECUTION=1
+    ;;
+  s)
+    __statuses $0
+    exit 0
+    ;;
 
-    \?)
-      # NOTE: this covers the case where an optarg may not be provided
-      # and will exit errored
-      echo "Invalid Option: -$OPTARG" 1>&2
-      __help
-      ;;
+  \?)
+    # NOTE: this covers the case where an optarg may not be provided
+    # and will exit errored
+    echo "Invalid Option: -$OPTARG" 1>&2
+    __help
+    ;;
   esac
 done
 shift "$((OPTIND - 1))"

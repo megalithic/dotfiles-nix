@@ -1,3 +1,7 @@
+if true then
+  return nil
+end
+
 --- SmartPick - Enhanced file and buffer picker with intelligent highlighting
 --- ==========================================================================
 --- @author Suliatis

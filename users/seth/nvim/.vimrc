@@ -41,11 +41,20 @@ if exists('&undodir')
 endif
 
 let mapleader=','
-let maplocalleader=','
+let maplocalleader=' '
 
 " Jump key
 nnoremap ` '
 nnoremap ' `
+
+" Line movements
+nnoremap 0 ^
+nnoremap H ^
+nnoremap L $
+vnoremap H g^
+xnoremap H g^
+vnoremap L g_
+xnoremap L g_
 
 " Change pane
 nnoremap <C-h> <C-w>h
@@ -53,12 +62,17 @@ nnoremap <C-j> <C-w>j
 nnoremap <C-k> <C-w>k
 nnoremap <C-l> <C-w>l
 
+" "set clipboard^=unnamed,unnamedplus
+
 " Turn off search highlight
-nnoremap <localleader>/ :nohlsearch<CR>
+nnoremap <esc> :nohlsearch<CR>
 
 " Trim trailing whitespace
-nnoremap <localleader>tw m`:%s/\s\+$//e<CR>:nohlsearch<CR>``
+"nnoremap <localleader>tw m`:%s/\s\+$//e<CR>:nohlsearch<CR>``
 
 " Fancy macros
 nnoremap Q @q
 vnoremap Q :norm @q<cr>
+
+nnoremap ,w :w<cr>
+nnoremap ,q :q<cr>

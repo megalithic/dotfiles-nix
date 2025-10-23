@@ -28,13 +28,6 @@
           "spam"
         ];
       };
-      # query = {
-      #   # inbox=tag:inbox and tag:unread
-      #   # sent=tag:sent
-      #   # archive=not tag:inbox
-      #   # github=tag:github or from:notifications@github.com
-      #   # urgent=tag:urgent
-      # };
       maildir = {
         synchronizeFlags = true;
       };

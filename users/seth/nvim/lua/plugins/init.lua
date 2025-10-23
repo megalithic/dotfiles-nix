@@ -6,6 +6,22 @@ return {
   -- { "tpope/vim-apathy", event = { "VeryLazy" } },
   -- { "tpope/vim-scriptease", event = { "VeryLazy" }, cmd = { "Messages", "Mess", "Noti" } },
   -- { "tpope/vim-sleuth" }, -- Detect tabstop and shiftwidth automatically
+  {
+    "max397574/better-escape.nvim",
+    event = { "InsertEnter" },
+    config = function()
+      require("better_escape").setup({
+        timeout = vim.o.timeoutlen,
+        default_mappings = false,
+        mappings = {
+          i = { k = { j = "<esc>" } },
+          c = { k = { j = "<esc>" } },
+          -- HACK: move the cursor back before escaping
+          v = { k = { j = "j<esc>" } },
+        },
+      })
+    end,
+  },
   { "tjdevries/lazy-require.nvim" },
   {
     "EinfachToll/DidYouMean",
@@ -267,60 +283,60 @@ return {
   --     },
   --   },
   -- },
-  {
-    "folke/flash.nvim",
-    event = "VeryLazy",
-    opts = {},
-    keys = {
-      {
-        "s",
-        mode = { "n", "x", "o" },
-        function()
-          require("flash").jump()
-        end,
-        desc = "Flash",
-      },
-      {
-        "S",
-        mode = { "n" },
-        function()
-          require("flash").treesitter()
-        end,
-        desc = "Flash Treesitter",
-      },
-      {
-        "m",
-        mode = { "o", "x" },
-        function()
-          require("flash").treesitter()
-        end,
-      },
-      {
-        "r",
-        mode = "o",
-        function()
-          require("flash").remote()
-        end,
-        desc = "Remote Flash",
-      },
-      {
-        "R",
-        mode = { "o", "x" },
-        function()
-          require("flash").treesitter_search()
-        end,
-        desc = "Treesitter Search",
-      },
-      {
-        "<c-s>",
-        mode = { "c" },
-        function()
-          require("flash").toggle()
-        end,
-        desc = "Toggle Flash Search",
-      },
-    },
-  },
+  -- {
+  --   "folke/flash.nvim",
+  --   event = "VeryLazy",
+  --   opts = {},
+  --   keys = {
+  --     {
+  --       "s",
+  --       mode = { "n", "x", "o" },
+  --       function()
+  --         require("flash").jump()
+  --       end,
+  --       desc = "Flash",
+  --     },
+  --     {
+  --       "S",
+  --       mode = { "n" },
+  --       function()
+  --         require("flash").treesitter()
+  --       end,
+  --       desc = "Flash Treesitter",
+  --     },
+  --     {
+  --       "m",
+  --       mode = { "o", "x" },
+  --       function()
+  --         require("flash").treesitter()
+  --       end,
+  --     },
+  --     {
+  --       "r",
+  --       mode = "o",
+  --       function()
+  --         require("flash").remote()
+  --       end,
+  --       desc = "Remote Flash",
+  --     },
+  --     {
+  --       "R",
+  --       mode = { "o", "x" },
+  --       function()
+  --         require("flash").treesitter_search()
+  --       end,
+  --       desc = "Treesitter Search",
+  --     },
+  --     {
+  --       "<c-s>",
+  --       mode = { "c" },
+  --       function()
+  --         require("flash").toggle()
+  --       end,
+  --       desc = "Toggle Flash Search",
+  --     },
+  --   },
+  -- },
   {
     "nacro90/numb.nvim",
     event = "CmdlineEnter",

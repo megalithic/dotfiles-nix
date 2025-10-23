@@ -246,6 +246,7 @@ function fuzzy_find() {
   #       --exit-0 \
   #       --tac
   # )"
+  export FZF_TMUX_HEIGHT='22%'
   selected_session="$(
     echo \
       "${fzf_list}" |
@@ -258,9 +259,11 @@ function fuzzy_find() {
         --padding="1" \
         --prompt="${fzf_prompt_text}" \
         --header="${fzf_header_text}" \
+        --color="bg:#3c474d,bg+:#323d43" \
         --bind="change:first" \
         --bind="focus:transform-preview-label:echo [ {} ]" \
         --bind="?:toggle-preview" \
+        --no-preview \
         --bind="ctrl-u:preview-half-page-up,ctrl-d:preview-half-page-down" \
         \
         --bind="${CTRL_X_kill_session_bind}" \

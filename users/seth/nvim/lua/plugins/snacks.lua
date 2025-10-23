@@ -1,4 +1,7 @@
 if true then
+  return {}
+end
+if true then
   if false then
     return {}
   end

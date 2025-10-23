@@ -24,13 +24,20 @@ in {
       set fish_cursor_visual      underscore blink
 
       # quickly open text file
-      bind -M insert ctrl-o '${pkgs.fzf}/bin/fzf | xargs -r $EDITOR'
-      bind ctrl-o '${pkgs.fzf}/bin/fzf | xargs -r $EDITOR'
+      # bind -M insert ctrl-o '${pkgs.fzf}/bin/fzf | xargs -r $EDITOR'
+      # bind ctrl-o '${pkgs.fzf}/bin/fzf | xargs -r $EDITOR'
 
       bind -M insert ctrl-a beginning-of-line
+      bind -M normal ctrl-a beginning-of-line
+      bind -M default ctrl-a beginning-of-line
+
       bind -M insert ctrl-e end-of-line
+      bind -M normal ctrl-e end-of-line
+      bind -M default ctrl-e end-of-line
+
       bind -M insert ctrl-y accept-autosuggestion
-      bind ctrl-y accept-autosuggestion
+      bind -M normal ctrl-y accept-autosuggestion
+      bind -M default ctrl-y accept-autosuggestion
 
       # NOTE: using fzf for this:
       # bind -M insert ctrl-r history-pager
@@ -54,40 +61,19 @@ in {
       # keep the prompt consistently at the bottom
       # _prompt_move_to_bottom # call function manually to load it since event handlers don't get autoloaded
 
-      bind -M insert \cd '${pkgs.fd}/bin/fd --type d | fzf | xargs -r'
-      bind \cd '${pkgs.fd}/bin/fd --type d | fzf | xargs -r'
-      #
-      # # Theme inspired by Everforest with darker background
-      # # Base colors
-      # set -g fish_color_normal d3c6aa
-      # set -g fish_color_command a7c080
-      # set -g fish_color_keyword d699b6
-      # set -g fish_color_quote e69875
-      # set -g fish_color_redirection 7fbbb3
-      # set -g fish_color_end e67e80
-      # set -g fish_color_error e67e80
-      # set -g fish_color_param d3c6aa
-      # set -g fish_color_comment 859289
-      # set -g fish_color_selection --background=3c474d
-      # set -g fish_color_search_match --background=3c474d
-      # set -g fish_color_operator 7fbbb3
-      # set -g fish_color_escape d699b6
-      # set -g fish_color_autosuggestion 6c7b77
-      #
-      # # Darker background settings
-      # set -g fish_color_host_remote d699b6
-      # set -g fish_color_host 7fbbb3
-      # set -g fish_color_cancel e67e80
-      # set -g fish_pager_color_prefix 7fbbb3
-      # set -g fish_pager_color_completion d3c6aa
-      # set -g fish_pager_color_description 6c7b77
-      # set -g fish_pager_color_progress 7fbbb3
-      #
-      # # Set darker background for prompt
-      # set -g fish_color_cwd_root e67e80
-      # set -g fish_color_user 7fbbb3
+      bind -M insert ctrl-d fzf-dir-widget
+      bind -M normal ctrl-d fzf-dir-widget
+      bind -M default ctrl-d fzf-dir-widget
 
-      # everforest
+      bind -M insert ctrl-b fzf-jj-bookmarks
+      bind -M normal ctrl-b fzf-jj-bookmarks
+      bind -M default ctrl-b fzf-jj-bookmarks
+
+      bind -M insert ctrl-o fzf-vim-widget
+      bind -M normal ctrl-o fzf-vim-widget
+      bind -M default ctrl-o fzf-vim-widget
+
+      # everforest theme
       set -l foreground d3c6aa
       set -l selection 2d4f67
       set -l comment 859289
@@ -120,6 +106,19 @@ in {
       set -g fish_pager_color_prefix $cyan
       set -g fish_pager_color_completion $foreground
       set -g fish_pager_color_description $comment
+
+      # Darker background settings
+      set -g fish_color_host_remote d699b6
+      set -g fish_color_host 7fbbb3
+      set -g fish_color_cancel e67e80
+      set -g fish_pager_color_prefix 7fbbb3
+      set -g fish_pager_color_completion d3c6aa
+      set -g fish_pager_color_description 6c7b77
+      set -g fish_pager_color_progress 7fbbb3
+
+      # Set darker background for prompt
+      set -g fish_color_cwd_root e67e80
+      set -g fish_color_user 7fbbb3
     '';
     functions = {
       fish_greeting = "";
@@ -127,18 +126,18 @@ in {
         onEvent = "fish_postexec";
         body = "tput cup $LINES";
       };
-      # nix-shell = {
-      #   wraps = "nix-shell";
-      #   body = ''
-      #     for ARG in $argv
-      #         if [ "$ARG" = --run ]
-      #             command nix-shell $argv
-      #             return $status
-      #         end
-      #     end
-      #     command nix-shell $argv --run "exec fish"
-      #   '';
-      # };
+      nix-shell = {
+        wraps = "nix-shell";
+        body = ''
+          for ARG in $argv
+              if [ "$ARG" = --run ]
+                  command nix-shell $argv
+                  return $status
+              end
+          end
+          command nix-shell $argv --run "exec fish"
+        '';
+      };
       pr = ''
         set -l PROJECT_PATH (git config --get remote.origin.url)
         set -l PROJECT_PATH (string replace "git@github.com:" "" "$PROJECT_PATH")
@@ -161,39 +160,220 @@ in {
           else "xdg-open"
         } "https://github.com/$PROJECT_PATH/compare/$MASTER_BRANCH...$GIT_BRANCH"
       '';
-      ghb = ''
-        set -l PROJECT_PATH (git config --get remote.origin.url)
-        set -l PROJECT_PATH (string replace "git@github.com:" "" "$PROJECT_PATH")
-        set -l PROJECT_PATH (string replace "https://github.com/" "" "$PROJECT_PATH")
-        set -l PROJECT_PATH (string replace ".git" "" "$PROJECT_PATH")
-        set -l GIT_BRANCH (git branch --show-current || echo "")
-        set -l MASTER_BRANCH (git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
+      chk = ''
+        # Directly use ps command because it is often aliased to a different command entirely
+        # or with options that dirty the search results and preview output
+        set -f ps_cmd (command -v ps || echo "ps")
+        # use all caps to be consistent with ps default format
+        # snake_case because ps doesn't seem to allow spaces in the field names
+        set -f ps_preview_fmt (string join ',' 'pid' 'ppid=PARENT' 'user' '%cpu' 'rss=RSS_IN_KB' 'start=START_TIME' 'command')
+        set -f processes_selected (
+            $ps_cmd -A -opid,command | \
+            ${pkgs.fzf}/bin/fzf --multi \
+                        --prompt="search processes » " \
+                        --query (commandline --current-token) \
+                        --ansi \
+                        --header=" $(tput sitm)$(tput setaf 5)processes: $(tput sgr 0)[ $(tput setaf 255)ctrl-x$(tput sgr 0): $(tput setaf 245)kill single process $(tput sgr 0)]" \
+                        # first line outputted by ps is a header, so we need to mark it as so
+                        --header-lines=1 \
+                        # ps uses exit code 1 if the process was not found, in which case show an message explaining so
+                        --preview="$ps_cmd -o '$ps_preview_fmt' -p {1} || echo 'Cannot preview {1} because it exited.'" \
+                        --preview-window="right:60%:wrap" \
+                        # --preview-window="top:4:wrap" \
+                        --bind="ctrl-x:execute(kill {})+change-prompt(⚡ )+reload($ps_cmd -A -opid,command)"
+        )
 
-        if test -z "$GIT_BRANCH"
-            set GIT_BRANCH (jj log -r @- --no-graph --no-pager -T 'self.bookmarks()')
+        if test $status -eq 0
+            for process in $processes_selected
+                set -f --append pids_selected (string split --no-empty --field=1 -- " " $process)
+            end
+
+            # string join to replace the newlines outputted by string split with spaces
+            commandline --current-token --replace -- (string join ' ' $pids_selected)
         end
 
-        if test -z "$GIT_BRANCH"
-            echo "Error: not a git repository"
-            return 1
+        commandline --function repaint
+      '';
+
+      die = ''
+        # Accept optional argument to pre-populate fzf query
+
+          # --preview="ps -p {2} -o pid,ppid,user,%cpu,%mem,etime,command || echo 'Cannot preview {2} because it has exited.'" \
+        set -l query ""
+        if test (count $argv) -gt 0
+          set query $argv[1]
         end
-        ${
-          if isDarwin
-          then "open"
-          else "xdg-open"
-        } "https://github.com/$PROJECT_PATH/compare/$MASTER_BRANCH...$GIT_BRANCH"
+
+        # Create temp file to track killed processes
+        set -l killed_pids_file (mktemp)
+        set -f ps_preview_fmt (string join ',' 'pid' 'ppid=PARENT' 'user' '%cpu' 'rss=RSS_IN_KB' 'start=START_TIME' 'command')
+
+        ps aux | grep -vE "(ps aux|fzf)" | \
+        ${pkgs.fzf}/bin/fzf --multi \
+          --query="$query" \
+          --prompt="search processes » " \
+          --header=" $(tput sitm)$(tput setaf 5)processes: $(tput sgr 0)[ $(tput setaf 255)ctrl-x$(tput sgr 0): $(tput setaf 245)kill process(es) $(tput sgr 0)| $(tput setaf 255)ctrl-y$(tput sgr 0): $(tput setaf 245)copy pid(s) $(tput sgr 0)]" \
+          --header-lines=1 \
+          --bind="enter:execute-silent(
+            for line in {+}; do
+              pid=\$(echo \"\$line\" | awk '{print \$2}')
+              cmd=\$(echo \"\$line\" | awk '{for(i=11;i<=NF;i++) printf \$i\" \"}' | cut -c1-60)
+              if kill \$pid 2>/dev/null; then
+                echo \"\$pid|\$cmd\" >> $killed_pids_file
+              else
+                osascript -e \"display notification 'Failed to kill PID: '\$pid' ('\$cmd')' with title 'Kill Failed' sound name 'Basso'\"
+              fi
+            done
+          )+reload(ps aux | grep -vE \"(ps aux|fzf)\")" \
+          --bind='ctrl-y:execute-silent(echo -n {+2} | tr "\n" "," | pbcopy && osascript -e "display notification \"PIDs copied to clipboard\" with title \"Process Manager\" sound name \"Glass\"")' \
+          --preview="ps -o '$ps_preview_fmt' -p {+2}  || echo 'Cannot preview {2} because it has exited.'" \
+          --preview-window="right:60%:wrap"
+
+        # Display successfully killed processes
+        if test -s $killed_pids_file
+          echo ""
+          echo "$(tput setaf 2)✓ Successfully killed processes:$(tput sgr0)"
+          while read -l line
+            set -l parts (string split "|" $line)
+            echo "  $(tput setaf 6)PID $parts[1]:$(tput sgr0) $parts[2]"
+          end < $killed_pids_file
+          echo ""
+
+
+          # Clean up temp file
+          rm -f $killed_pids_file && echo "$(tput setaf 2)✓ cleaned up temp files for chk$(tput sgr0)"
+        end
+
+        commandline --function repaint
+      '';
+      fzf-jj-bookmarks = ''
+        set -l selected_bookmark (jj bookmark list | fzf --height 40%)
+        if test -n "$selected_bookmark"
+            # parse the bookmark name out of the full bookmark info line
+            set -l bookmark_name (string split ":" "$selected_bookmark" | head -n 1 | string trim)
+            commandline -i " $bookmark_name "
+        end
+        commandline -f repaint
+      '';
+      _fzf_preview_file = ''
+        # because there's no way to guarantee that _fzf_search_directory passes the path to _fzf_preview_file
+        # as one argument, we collect all the arguments into one single variable and treat that as the path
+        set -f file_path $argv
+
+        if test -L "$file_path" # symlink
+            # notify user and recurse on the target of the symlink, which can be any of these file types
+            set -l target_path (realpath "$file_path")
+
+            set_color yellow
+            echo "'$file_path' is a symlink to '$target_path'."
+            set_color normal
+
+            _fzf_preview_file "$target_path"
+        else if test -f "$file_path" # regular file
+            if set --query fzf_preview_file_cmd
+                # need to escape quotes to make sure eval receives file_path as a single arg
+                eval "$fzf_preview_file_cmd '$file_path'"
+            else
+                bat --style=numbers --color=always "$file_path"
+            end
+        else if test -d "$file_path" # directory
+            if set --query fzf_preview_dir_cmd
+                # see above
+                eval "$fzf_preview_dir_cmd '$file_path'"
+            else
+                # -A list hidden files as well, except for . and ..
+                # -F helps classify files by appending symbols after the file name
+                # command ls -A -F "$file_path"
+                command eza -ahFT -L=1 --color=always --icons=always --sort=size --group-directories-first "$file_path" ;;
+            end
+        else if test -c "$file_path"
+            _fzf_report_file_type "$file_path" "character device file"
+        else if test -b "$file_path"
+            _fzf_report_file_type "$file_path" "block device file"
+        else if test -S "$file_path"
+            _fzf_report_file_type "$file_path" socket
+        else if test -p "$file_path"
+            _fzf_report_file_type "$file_path" "named pipe"
+        else
+            command preview "$file_path"
+            # echo "$file_path doesn't exist." >&2
+        end
+      '';
+      fzf-dir-widget = ''
+        # Directly use fd binary to avoid output buffering delay caused by a fd alias, if any.
+        # Debian-based distros install fd as fdfind and the fd package is something else, so
+        # check for fdfind first. Fall back to "fd" for a clear error message.
+        set -f fd_cmd (command -v fdfind || command -v fd  || echo "fd")
+        set -f --append fd_cmd --color=always $fzf_fd_opts --type d
+
+        set -f fzf_arguments --multi --ansi $fzf_directory_opts
+        set -f token (commandline --current-token)
+        # expand any variables or leading tilde (~) in the token
+        set -f expanded_token (eval echo -- $token)
+        # unescape token because it's already quoted so backslashes will mess up the path
+        set -f unescaped_exp_token (string unescape -- $expanded_token)
+
+        # If the current token is a directory and has a trailing slash,
+        # then use it as fd's base directory.
+        if string match --quiet -- "*/" $unescaped_exp_token && test -d "$unescaped_exp_token"
+            set --append fd_cmd --base-directory=$unescaped_exp_token
+            # use the directory name as fzf's prompt to indicate the search is limited to that directory
+            set --prepend fzf_arguments --prompt="Directory $unescaped_exp_token> " --preview="_fzf_preview_file $expanded_token{}"
+            set -f file_paths_selected $unescaped_exp_token($fd_cmd 2>/dev/null | command fzf $fzf_arguments)
+        else
+            set --prepend fzf_arguments --prompt="Directory> " --query="$unescaped_exp_token" --preview='_fzf_preview_file {}'
+            set -f file_paths_selected ($fd_cmd 2>/dev/null | command fzf $fzf_arguments)
+        end
+
+
+        if test $status -eq 0
+            commandline --current-token --replace -- (string escape -- $file_paths_selected | string join ' ')
+        end
+
+        commandline --function repaint
+      '';
+      fzf-vim-widget = ''
+        # modified from fzf-file-widget
+        set -l commandline $(__fzf_parse_commandline)
+        set -l dir $commandline[1]
+        set -l fzf_query $commandline[2]
+        set -l prefix $commandline[3]
+
+        # "-path \$dir'*/\\.*'" matches hidden files/folders inside $dir but not
+        # $dir itself, even if hidden.
+        test -n "$FZF_CTRL_T_COMMAND"; or set -l FZF_CTRL_T_COMMAND "
+        command find -L \$dir -mindepth 1 \\( -path \$dir'*/\\.*' -o -fstype 'sysfs' -o -fstype 'devfs' -o -fstype 'devtmpfs' \\) -prune \
+        -o -type f -print \
+        -o -type d -print \
+        -o -type l -print 2> /dev/null | sed 's@^\./@@'"
+
+        test -n "$FZF_TMUX_HEIGHT"; or set FZF_TMUX_HEIGHT 40%
+        begin
+            set -lx FZF_DEFAULT_OPTS "--height $FZF_TMUX_HEIGHT --reverse --bind=ctrl-z:ignore $FZF_DEFAULT_OPTS $FZF_CTRL_T_OPTS"
+            eval "$FZF_CTRL_T_COMMAND | "(__fzfcmd)' -m --query "'$fzf_query'"' | while read -l r
+                set result $result $r
+            end
+        end
+        if [ -z "$result" ]
+            # _prompt_move_to_bottom
+            commandline -f repaint
+            return
+        end
+        set -l filepath_result
+        for i in $result
+            set filepath_result "$filepath_result$prefix"
+            set filepath_result "$filepath_result$(string escape $i)"
+            set filepath_result "$filepath_result "
+        end
+        # _prompt_move_to_bottom
+        commandline -f repaint
+        $EDITOR $result
       '';
     };
 
-    # direnv hook fish | source
-    # tv init fish | source
-    # ${pkgs.trashy}/bin/trashy completions fish | source
-    # ${pkgs.rqbit}/bin/rqbit -v error completions fish | source
-    # ${inputs.rimi.packages.${system}.rimi}/bin/rimi completions fish | source
-
     shellAliases = {
       ls = "${pkgs.eza}/bin/eza --all --group-directories-first --color=always --hyperlink";
-      l = "${pkgs.eza}/bin/eza --all --long --color=always --color-scale=all --group-directories-first --sort=type --hyperlink --icons=auto --octal-permissions";
+      l = "${pkgs.eza}/bin/eza --all --long --color=always --color-scale=all --group-directories-first --sort=type --hyperlink --icons=always --octal-permissions";
       # l = "${pkgs.eza}/bin/eza -lhF --group-directories-first --color=always --icons=always --hyperlink";
       ll = "${pkgs.eza}/bin/eza -lahF --group-directories-first --color=always --icons=always --hyperlink";
       la = "${pkgs.eza}/bin/eza -lahF --group-directories-first --color=always --icons=always --hyperlink";
@@ -216,19 +396,15 @@ in {
       clear = "clear && _prompt_move_to_bottom";
       # inspect $PATH
       pinspect = ''echo "$PATH" | tr ":" "\n"'';
+      pathi = ''echo "$PATH" | tr ":" "\n"'';
       # brew = "op plugin run -- brew";
-      # cachix = "op plugin run -- cachix";
-      # doctl = "op plugin run -- doctl";
-      # gh = "op plugin run -- gh";
-      # git = "op plugin run -- git";
-      # tmux = "op plugin run -- tmux";
-      # pulumi = "op plugin run -- pulumi";
     };
 
     shellAbbrs = {
       nvim = "nvim -O";
       vim = "nvim -O";
       j = "just";
+      ju = "just";
     };
 
     plugins = [

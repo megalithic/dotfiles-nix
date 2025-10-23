@@ -15,38 +15,26 @@ cd $CWD
 # Create the session and the first window. Manually switch to root
 # directory if required to support tmux < 1.9
 tmux -2 new-session -d -s "$SESSION" -n comms
-tmux -2 send-keys -t "$SESSION":1 "cd ~/code/work/cspire/launchdeck_workspace" C-m
+tmux -2 send-keys -t "$SESSION":1 "cd ~/code/work/cspire/launchdeck" C-m
 
-# Create other windows.
 # COMMUNICATIONS
-# tmux -2 send-keys -t "$SESSION":1 C-z "tmux link-window -s mega:chats -t 0 && exit" "C-m"
+tmux -2 send-keys -t "$SESSION":1 C-z "tmux link-window -s mega:comms -t 0 && exit" "C-m"
 
 # MANUAL CODE MODE
 tmux -2 new-window -c "$CWD" -t "$SESSION":2 -n code
-tmux -2 send-keys -t "$SESSION":2.1 "cd ~/code/work/cspire/launchdeck_workspace" C-m
+tmux -2 send-keys -t "$SESSION":2.1 "cd ~/code/work/cspire/launchdeck" C-m
 tmux -2 send-keys -t "$SESSION":2.1 "ls" C-m
 tmux -2 select-layout -t "$SESSION":2 main-vertical
 tmux -2 select-pane -t "$SESSION":2.1
 
-# AI AGENTS and CLIENTS
+# AI
 tmux -2 new-window -c "$CWD" -t "$SESSION":3 -n agents
-tmux send-keys -t "$SESSION":3.1 "cd ~/code/work/cspire/launchdeck_workspace" C-m
-tmux send-keys -t "$SESSION":3.1 "claude --continue" C-m
-# tmux splitw -c "$CWD" -t "$SESSION":3
-# # tmux select-layout -t "$SESSION":3 tiled
-# tmux send-keys -t "$SESSION":3.2 "cd ~/code/work/cspire/launchdeck/launchdeck_portal" "C-m"
-# # tmux send-keys -t "$SESSION":3.2 "claude" C-m
-# tmux splitw -c "$CWD" -t "$SESSION":3.2
-# # tmux select-layout -t "$SESSION":3.2 tiled
-# tmux send-keys -t "$SESSION":3.3 "cd ~/code/work/cspire/launchdeck/launchdeck_portal_api" "C-m"
-# # tmux send-keys -t "$SESSION":3.3 "claude" C-m
-# # tmux select-layout -t "$SESSION":3 tiled
-# tmux select-layout -t "$SESSION":3 main-vertical
-# tmux select-pane -t "$SESSION":3.1
+tmux send-keys -t "$SESSION":3.1 "cd ~/code/work/cspire/launchdeck" C-m
+tmux send-keys -t "$SESSION":3.1 "opencode "
 
 # PERSISTENT SERVICES
 tmux -2 new-window -c "$CWD" -t "$SESSION":4 -n services
-tmux send-keys -t "$SESSION":4.1 "cd ~/code/work/cspire/launchdeck_workspace" C-m
+tmux send-keys -t "$SESSION":4.1 "cd ~/code/work/cspire/launchdeck" C-m
 # tmux send-keys -t "$SESSION":4.1 "devspace purge" C-m
 tmux send-keys -t "$SESSION":4.1 "./start-devspace.sh -p smesser-dev" C-m
 

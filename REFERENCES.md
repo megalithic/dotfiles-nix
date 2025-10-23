@@ -72,3 +72,7 @@ dotfiles/nix/etc.
 
 - microsoft teams specific things:
   https://github.com/Pr1st0n/dotfiles/blob/main/.hammerspoon/init.lua
+
+#### Keyboards
+
+skhd: https://github.com/danielcorin/nix-config/blob/main/home/skhd/default.nix

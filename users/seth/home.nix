@@ -14,7 +14,8 @@
 in {
   imports = [
     # ./packages.nix
-    ./mail
+    ./email.nix
+    # ./mail
     ./chromium
     ./jujutsu.nix
     ./qutebrowser.nix
@@ -23,7 +24,7 @@ in {
     # ./karabiner
     # ./kanata
     # ./tmux
-    # ./nvim
+    ./nvim.nix
   ];
 
   home.username = username;
@@ -35,6 +36,37 @@ in {
     "${config.home.homeDirectory}/.cargo/bin"
   ];
   home.packages = with pkgs; [
+    # [rest] ----------------------------------------------------------------------------------------
+    _1password-cli
+    amber
+    argc
+    aws-sam-cli
+    awscli2
+    bash # macOS ships with a very old version of bash for whatever reason
+    cachix
+    curlie
+    delta
+    devbox
+    difftastic
+    ffmpeg
+    flyctl
+    gh
+    git-lfs
+    gum
+    helium
+    jwt-cli
+    poppler
+    pre-commit
+    procs
+    # qutebrowser
+    ripgrep
+    sqlite
+    # terminal-notifier FIXME: not working with nixpkgs (arch not supported?)
+    tmux
+    unstable.devenv
+    w3m
+    yubikey-manager
+    yubikey-personalization
     # [for neovim] --------------------------------------------------------------------------------
     par
     hadolint # Docker linter
@@ -118,35 +150,28 @@ in {
     # trivy
     # atlas
     # typst
-    # [rest] ----------------------------------------------------------------------------------------
-    _1password-cli
-    amber
-    argc
-    aws-sam-cli
-    awscli2
-    cachix
-    curlie
-    delta
-    devbox
-    difftastic
-    ffmpeg
-    flyctl
-    gh
-    git-lfs
-    gum
-    helium
-    jwt-cli
-    poppler
-    pre-commit
-    procs
-    # qutebrowser
-    ripgrep
-    sqlite
-    # terminal-notifier FIXME: not working with nixpkgs (arch not supported?)
-    tmux
-    unstable.devenv
-    yubikey-manager
-    yubikey-personalization
+
+    # fonts ---------------------------------------------------------------------------------------
+    atkinson-hyperlegible
+    inter
+    jetbrains-mono
+    emacs-all-the-icons-fonts
+    # joypixels
+    fira-code
+    fira-mono
+    font-awesome
+    victor-mono
+    maple-mono.NF
+    maple-mono.truetype
+    maple-mono.variable
+    nerd-fonts.fira-code
+    nerd-fonts.jetbrains-mono
+    nerd-fonts.symbols-only
+    noto-fonts-emoji
+    nerd-fonts.fantasque-sans-mono
+    nerd-fonts.iosevka
+    nerd-fonts.victor-mono
+    twemoji-color-font
   ];
 
   home.file = {
@@ -155,7 +180,6 @@ in {
     "tmp/.keep".text = "";
     ".hushlogin".text = "";
     "bin".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/bin";
-    ".vimrc".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/nvim/.vimrc";
     ".editorconfig".text = ''
       root = true
 
@@ -185,7 +209,6 @@ in {
       source = ./karabiner/karabiner.json;
       # onChange = "${pkgs.goku}/bin/goku";
     };
-
     ".config/eza/theme.yml".text = ''
       colourful: true
 
@@ -443,11 +466,11 @@ in {
       echo "░ ✓ symlinked tmux to /Users/${username}/.config/tmux" ||
       echo "░ x failed to symlink tmux to /Users/${username}/.config/tmux"
 
-    # (pushd "/Users/${username}/.local/share/tmux/plugins/tmux-thumbs" > /dev/null 2>&1 &&
-    #   ${pkgs.cargo}/bin/cargo build --release > /dev/null 2>&1 &&
-    #   popd > /dev/null 2>&1) &&
-    #   echo "░ ✓ compiled tmux-thumbs" ||
-    #   echo "░ x failed to compile tmux-thumbs"
+    rm -rf /Users/${username}/.config/kitty > /dev/null 2>&1;
+    ln -sf /Users/${username}/.dotfiles-nix/config/kitty /Users/${username}/.config/ > /dev/null 2>&1 &&
+      echo "░ ✓ symlinked kitty to /Users/${username}/.config/kitty" ||
+      echo "░ x failed to symlink kitty to /Users/${username}/.config/kitty"
+
 
     if [[ -d "/Users/${username}/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder" ]]; then
       rm -rf /Users/${username}/protondrive > /dev/null 2>&1;
@@ -466,7 +489,6 @@ in {
       echo "░ ✓ symlinked espanso to /Users/${username}/Library/Application\ Support/espanso" ||
       echo "░ x failed to symlink espanso to /Users/${username}/Library/Application\ Support/espanso"
   '';
-  xdg.configFile."nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/nvim";
   xdg.configFile."ghostty".source = ./ghostty;
   xdg.configFile."ghostty".recursive = true;
   xdg.configFile."zsh".source = ./zsh;
@@ -474,45 +496,32 @@ in {
   xdg.configFile."opencode/opencode.json".text = ''
     {
       "$schema": "https://opencode.ai/config.json",
-      "provider": {
-        "ollama": {
-          "npm": "@ai-sdk/openai-compatible",
-          "name": "Ollama (local)",
-          "options": {
-            "baseURL": "http://localhost:11434/v1"
-          },
-          "models": {
-            "gpt-oss:20b": {
-              "name": "GPT OSS:20b"
-            }
-          }
-        }
-      },
-      "model": "anthropic/claude-sonnet-4-20250514",
+      "theme": "system",
+      "model": "anthropic/claude-sonnet-4.5",
       "small_model": "anthropic/claude-3-5-haiku-20241022"
     }
   '';
 
-  # applications/programs
-  programs.home-manager.enable = true;
   programs = {
+    home-manager.enable = true;
+
     # speed up rebuilds
     # HT: @tmiller
     man.generateCaches = false;
 
-    neovim = {
-      enable = true;
-      package = pkgs.nvim-nightly;
-      # defaultEditor = true;
-      # # extraLuaConfig = lib.fileContents config/nvim/init.lua;
-      # plugins = [
-      #   {
-      #     plugin = pkgs.vimPlugins.sqlite-lua;
-      #     config = "let g:sqlite_clib_path = '${pkgs.sqlite.out}/lib/libsqlite3${pkgs.stdenv.hostPlatform.extensions.sharedLibrary}'";
-      #   }
-      # ];
-    };
-    #
+    # neovim = {
+    #   enable = true;
+    #   package = pkgs.nvim-nightly;
+    #   # defaultEditor = true;
+    #   # # extraLuaConfig = lib.fileContents config/nvim/init.lua;
+    #   # plugins = [
+    #   #   {
+    #   #     plugin = pkgs.vimPlugins.sqlite-lua;
+    #   #     config = "let g:sqlite_clib_path = '${pkgs.sqlite.out}/lib/libsqlite3${pkgs.stdenv.hostPlatform.extensions.sharedLibrary}'";
+    #   #   }
+    #   # ];
+    # };
+
     #   withPython3 = true;
     #   withNodeJs = true;
     #   withRuby = true;
@@ -684,7 +693,24 @@ in {
 
     bat = {
       enable = true;
-      extraPackages = with pkgs.bat-extras; [batman];
+      extraPackages = with pkgs.bat-extras; [batman prettybat batgrep];
+      config = {
+        theme = "everforest";
+      };
+      themes = {
+        everforest = {
+          src =
+            pkgs.fetchFromGitHub {
+              owner = "neuromaancer";
+              repo = "everforest_collection";
+              rev = "main";
+              sha256 = "9XPriKTmFapURY66f7wu76aojtBXFsp//Anug8e5BTk=";
+            }
+            + "/bat";
+
+          file = "everforest-soft.tmtheme";
+        };
+      };
     };
     ripgrep = {
       enable = true;

@@ -59,53 +59,6 @@ settings.tabsMRUOrder = false;
 // Input box true
 settings.cursorAtEndOfInput = false;
 
-// -----------------------------------------------------------------------------------------------------------------------
-// -- [ HINTS ]
-// -----------------------------------------------------------------------------------------------------------------------
-
-Hints.characters = "qwertasdfgzxcvb";
-// Hints.characters = "asdfgyuiopqwertnmzxcvb";
-// Link Hints
-Hints.style(`
-    font-family: 'JetBrainsMono Nerd Font Mono', 'SF Pro', monospace;
-    font-size: 15px;
-    font-weight: bold;
-    text-transform: lowercase;
-    color: #E5E9F0 !important;
-    background: #3B4252 !important;
-    border: solid 1px #4C566A !important;
-    text-align: center;
-    padding: 5px;
-    line-height: 1;
-  `);
-
-// Text Hints
-Hints.style(
-  `
-    font-family: 'JetBrainsMono Nerd Font Mono', 'SF Pro', monospace;
-    font-size: 15px;
-    font-weight: bold;
-    text-transform: lowercase;
-    color: #E5E9F0 !important;
-    background: #6272a4 !important;
-    border: solid 2px #4C566A !important;
-    text-align: center;
-    padding: 5px;
-    line-height: 1;
-  `,
-  "text",
-);
-
-// set visual-mode style
-Visual.style(
-  "marks",
-  "background-color: #A3BE8C; border: 1px solid #3B4252 !important; text-decoration: underline;",
-);
-Visual.style(
-  "cursor",
-  "background-color: #E5E9F0 !important; border: 1px solid #6272a4 !important; border-bottom: 2px solid green !important; padding: 2px !important; outline: 1px solid rgba(255,255,255,.75) !important;",
-);
-
 // -- UNMAPS
 // (Unused; unmap these first so they can be mapped to other things)
 //
@@ -464,24 +417,51 @@ addSearchAlias(
 );
 
 addSearchAlias(
+  "gh",
+  "github search",
+  "https://github.com/search?utf8=%E2%9C%93&q=",
+);
+
+addSearchAlias(
+  "!gh",
+  "github search",
+  "https://github.com/search?utf8=%E2%9C%93&q=",
+);
+
+addSearchAlias(
   "ghc",
   "github code search",
   "https://github.com/search?type=Code&utf8=%E2%9C%93&q=",
 );
+
 addSearchAlias(
   "!ghc",
   "github code search",
   "https://github.com/search?type=Code&utf8=%E2%9C%93&q=",
 );
+
 addSearchAlias(
-  "gh",
-  "github search",
-  "https://github.com/search?utf8=%E2%9C%93&q=",
+  "!ghnix",
+  "github .nix code search",
+  "https://github.com/search?type=Code&utf8=%E2%9C%93&q=language:nix ",
 );
+
 addSearchAlias(
-  "!gh",
-  "github search",
-  "https://github.com/search?utf8=%E2%9C%93&q=",
+  "!ghlua",
+  "github .lua code search",
+  "https://github.com/search?type=Code&utf8=%E2%9C%93&q=language:lua ",
+);
+
+addSearchAlias(
+  "!nix",
+  "nix package and options search",
+  "https://mynixos.com/search?q=",
+);
+
+addSearchAlias(
+  "!hm",
+  "nix home-manager options search",
+  "https://home-manager-options.extranix.com/?release=master&query=",
 );
 
 addSearchAlias(
@@ -498,7 +478,56 @@ addSearchAlias(
   },
 );
 
-// set theme
+// -----------------------------------------------------------------------------------------------------------------------
+// -- [ HINTS ]
+// -----------------------------------------------------------------------------------------------------------------------
+
+Hints.characters = "qwertasdfgzxcvb";
+// Hints.characters = "asdfgyuiopqwertnmzxcvb";
+// Link Hints
+Hints.style(`
+    font-family: 'JetBrainsMono Nerd Font Mono', 'SF Pro', monospace;
+    font-size: 15px;
+    font-weight: bold;
+    text-transform: lowercase;
+    color: #E5E9F0 !important;
+    background: #3B4252 !important;
+    border: solid 1px #4C566A !important;
+    text-align: center;
+    padding: 5px;
+    line-height: 1;
+  `);
+
+// Text Hints
+Hints.style(
+  `
+    font-family: 'JetBrainsMono Nerd Font Mono', 'SF Pro', monospace;
+    font-size: 15px;
+    font-weight: bold;
+    text-transform: lowercase;
+    color: #E5E9F0 !important;
+    background: #6272a4 !important;
+    border: solid 2px #4C566A !important;
+    text-align: center;
+    padding: 5px;
+    line-height: 1;
+  `,
+  "text",
+);
+
+// set visual-mode style
+Visual.style(
+  "marks",
+  "background-color: #A3BE8C; border: 1px solid #3B4252 !important; text-decoration: underline;",
+);
+Visual.style(
+  "cursor",
+  "background-color: #E5E9F0 !important; border: 1px solid #6272a4 !important; border-bottom: 2px solid green !important; padding: 2px !important; outline: 1px solid rgba(255,255,255,.75) !important;",
+);
+
+// -----------------------------------------------------------------------------------------------------------------------
+// -- [ THEME ]
+// -----------------------------------------------------------------------------------------------------------------------
 settings.theme = `
   :root {
     --font: "JetBrainsMono Nerd Font Mono", Arial, sans-serif;
@@ -631,7 +660,7 @@ settings.theme = `
   .sk_theme #sk_omnibarSearchArea .prompt:after {
     content: "";
     display: inline-block;
-    margin-right: 5px;
+    padding: 0 5px;
     color: var(--accent-fg);
   }
   .sk_theme #sk_omnibarSearchArea .separator {
@@ -641,7 +670,7 @@ settings.theme = `
   .sk_theme #sk_omnibarSearchArea .separator:after {
     content: "";
     display: inline-block;
-    margin-right: 5px;
+    padding: 0 5px;
     color: var(--accent-fg);
   }
 
@@ -837,6 +866,8 @@ color:#D3C6AA;
 background: initial;
 background-color: #2D353B;
     font-family: 'JetBrainsMono Nerd Font Mono', 'SF Pro', monospace;
+
+    font-size: 15px;
 `);
 api.Hints.style(
   `
@@ -846,6 +877,7 @@ color: #83C092 !important;
 background: #2D353B !important;
 
     font-family: 'JetBrainsMono Nerd Font Mono', 'SF Pro', monospace !important;
+    font-size: 15px;
 `,
   "text",
 );
@@ -854,11 +886,27 @@ api.Visual.style("cursor", "background-color: #D3C6AA;");
 
 /* set theme */
 settings.theme = `
-.sk_theme {
-  font-family: 'JetBrainsMono Nerd Font Mono', 'SF Pro', Cascadia Mono, Cascadia Mono, Input Sans Condensed, Charcoal, sans-serif;
+  :root {
+    --font: "JetBrainsMono Nerd Font Mono", Arial, sans-serif;
+    --font-size: 16px;
+    --font-weight: bold;
+    --fg: #E5E9F0;
+    --bg: #3B4252;
+    --bg-dark: #2b383f;
+    --border: #4C566A;
+    --main-fg: #88C0D0;
+    --accent-fg: #A3BE8C;
+    --info-fg: #5E81AC;
+    --select: #4C566A;
+    --orange: #D08770;
+    --red: #BF616A;
+    --yellow: #EBCB8B;
+  }
 
-  font-size: 10pt;
-  background: #2D353B;
+.sk_theme {
+  font-family: var(--font);
+  font-size: var(--font-size);
+  background: var(--bg-dark);
   color: #ebdbb2;
 }
 
@@ -1118,6 +1166,17 @@ settings.theme = `
   width: auto;
 }
 
+div.surfingkeys_match_mark {
+    background-color: var(--accent-fg);
+    color: #000;
+    opacity: 0.7;
+}
+
+div.surfingkeys_selection_mark {
+    background-color: var(--info-fg);
+    color: #000;
+    opacity: 0.7;
+}
 
   #sk_omnibarSearchArea {
     border-top-color: var(--border);
@@ -1143,7 +1202,7 @@ settings.theme = `
   #sk_omnibarSearchArea .prompt:after {
     content: "";
     display: inline-block;
-    margin-right: 5px;
+    padding: 0 5px;
     color: var(--accent-fg);
   }
   #sk_omnibarSearchArea .separator {
@@ -1153,7 +1212,7 @@ settings.theme = `
   #sk_omnibarSearchArea .separator:after {
     content: "";
     display: inline-block;
-    margin-right: 5px;
+    padding: 0 5px;
     color: var(--accent-fg);
   }
 

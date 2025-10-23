@@ -8,23 +8,24 @@ local enabled_plugins = {
   "statusline",
   "statuscolumn",
   "gotroot",
-  -- "fakecolumn",
   "undo",
+  "windows",
+  -- "cursorline",
+  -- "windows",
+  -- "filetypes",
+  -- "fakecolumn",
   -- "term",
   -- "abbreviations",
   -- -- "winbar",
   -- -- "tabline",
   -- -- "megaterm",
   -- "repls",
-  "cursorline",
   -- "colorcolumn",
-  "windows",
   -- "numbers",
   -- "clipboard",
   -- "folds",
   -- "dotenv",
   -- "notes",
-  "filetypes",
   -- "chat",
 }
 
@@ -274,6 +275,7 @@ M.opt = {
     - "2", -- I'm not in gradeschool anymore
   -- Preview substitutions live, as you type!
   inccommand = "split",
+  splitkeep = "cursor",
   list = true,
   listchars = {
     eol = nil,
@@ -329,7 +331,6 @@ M.opt = {
   showmatch = true, -- Highlight matching brackets
   matchtime = 2, -- How long to show matching bracket
   completeopt = "menuone,noinsert,noselect", -- Completion options
-  showmode = false, -- Don't show mode in command line
   pumheight = 10, -- Popup menu height
   pumblend = 10, -- Popup menu transparency
   winblend = 0, -- Floating window transparency
@@ -359,7 +360,6 @@ M.opt = {
   iskeyword = vim.opt.iskeyword:append("-"), -- Treat dash as part of word
   path = vim.opt.path:append("**"), -- include subdirectories in search
   selection = "exclusive", -- Selection behavior
-  mouse = "a", -- Enable mouse support
   clipboard = vim.opt.clipboard:append("unnamedplus"), -- Use system clipboard
   modifiable = true, -- Allow buffer modifications
   encoding = "UTF-8", -- Set encoding

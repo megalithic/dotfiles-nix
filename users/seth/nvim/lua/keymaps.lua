@@ -3,6 +3,7 @@ local map = vim.keymap.set
 local unmap = vim.keymap.del
 local remap_opts = { noremap = false, silent = true }
 local noremap_opts = { noremap = true, silent = true }
+local U = require("utils")
 
 -- -- Map a key in the given mode. Defaults to non-recursive and silent.
 local function keymap(modes, from, to, opts)
@@ -207,12 +208,9 @@ imap("<C-a>", "<Home>")
 imap("<C-e>", "<End>")
 
 -- [[ ui/vim behaviours ]] -----------------------------------------------------
--- map(
---   "n",
---   "<esc>",
---   function() U.deluxe_clear_ui() end,
---   { noremap = false, silent = true, desc = "EscDeluxe + Clear/Reset UI" }
--- )
+map("n", "<esc>", function()
+  U.deluxe_clear_ui()
+end, { noremap = false, silent = true, desc = "EscDeluxe + Clear/Reset UI" })
 
 --  See `:help wincmd` for a list of all window commands
 -- @see: smart-splits.nvim

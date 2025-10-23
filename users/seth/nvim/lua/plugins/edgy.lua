@@ -22,6 +22,7 @@
 
 return {
   "folke/edgy.nvim",
+  enabled = false,
   opts = {
     animate = { enabled = false },
     exit_when_last = true,

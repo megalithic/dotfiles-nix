@@ -24,7 +24,10 @@ in {
         passwordCommand = "op read op://Shared/Fastmail/apps/tui";
 
         flavor = "fastmail.com";
-        aliases = ["seth@megalithic.io"];
+        aliases = [
+          "seth@megalithic.io"
+          "noreply@megalithic.io"
+        ];
 
         signature = {
           text = ''
@@ -35,9 +38,8 @@ in {
 
           showSignature = "append";
         };
-
-        thunderbird.enable = true;
         aerc.enable = true;
+        thunderbird.enable = true;
         himalaya = {
           enable = true;
           # Don't forget to run `himalaya account sync` first!
@@ -149,7 +151,7 @@ in {
         realName = "Seth Messer";
 
         userName = "seth@nibuild.com";
-        passwordCommand = "op read op://Shared/nibuild/password";
+        passwordCommand = "op read op://Shared/xk72bkenziy7wxjmxkpxze2nsi/password";
         flavor = "plain";
         aliases = ["smesser@nibuild.com"];
 

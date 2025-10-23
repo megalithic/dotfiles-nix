@@ -14,10 +14,13 @@ yellow=$(tput setaf 3)
 grey=$(tput setaf 247)
 white=$(tput setaf 253)
 # blue=$(tput setaf 38)
-blue=$(tput setaf 4)
+blue=$(tput setaf 31)
 cyan=$(tput setaf 6)
 tan=$(tput setaf 3)
 red=$(tput setaf 1)
+dark_red=$(tput setaf 81)
+dark_blue=$(tput setaf 246)
+dark_grey=$(tput setaf 241)
 
 function e_arrow() {
   printf "➜ $1\n"

@@ -28,7 +28,7 @@ style = "yellow dimmed"
 format = '[$time]($style) '
 time_format = "%T"
 # utc_time_offset = "-5"
-# time_range = "10:00:00-14:00:00"
+# time_range = "10:00:00-14:00:00 no this nix_shell"
 
 [username]
 style_root = "red"
@@ -45,10 +45,10 @@ style = "bold fg:yellow"
 min_time = 500
 
 [character]
+# alts:  ›󰅂 
 format = "$symbol "
 success_symbol = "[›](bold green)"
 error_symbol = "[›](bold red)"
-
 # vicmd_symbol = "[](bold fg:white,bg:#614b51)"
 
 [jobs]
@@ -153,23 +153,23 @@ command = "starship module git_status"
 style = "#7c8377"
 format = '[$output](fg:$style)'
 
-# [directory]
-# truncation_length = 2
-# truncation_symbol = "…/"
-# truncate_to_repo = true
-# fish_style_pwd_dir_length = 1
-# style = "bold blue"
-
 [directory]
-format = "[$path](bold $style)[$read_only]($read_only_style) "
 truncation_length = 2
-style = "fg:blue"
-read_only_style = "fg:red"
-fish_style_pwd_dir_length = 1
-before_repo_root_style = "fg:#555555"
 truncation_symbol = "…/"
 truncate_to_repo = true
-read_only = "  "
+fish_style_pwd_dir_length = 1
+style = "bold blue"
+
+# [directory]
+# format = "[$path](bold $style)[$read_only]($read_only_style) "
+# truncation_length = 2
+# style = "fg:blue"
+# read_only_style = "fg:red"
+# fish_style_pwd_dir_length = 1
+# before_repo_root_style = "fg:#555555"
+# truncation_symbol = "…/"
+# truncate_to_repo = true
+# read_only = "  "
 
 [directory.substitutions]
 "Documents" = "󰈙 "

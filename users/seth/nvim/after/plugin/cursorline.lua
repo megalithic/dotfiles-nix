@@ -1,4 +1,6 @@
 if not Plugin_enabled() then
+  function mega.ui.blink_cursorline() end
+
   return
 end
 

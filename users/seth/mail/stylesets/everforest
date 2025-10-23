@@ -1,3 +1,5 @@
+# vim ft=dosini
+
 *.default=true
 *.normal=true
 
@@ -22,6 +24,7 @@ tab.selected.bold=true
 border.fg=#d3c6aa
 border.bold=true
 
+tab.fg=#7c7f93
 tab.fg=#7c7f93
 tab.selected.fg=#d3c6aa
 tab.selected.reverse=false

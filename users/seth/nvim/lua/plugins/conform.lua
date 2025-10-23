@@ -92,7 +92,7 @@ return {
           stop_after_first = true,
         },
         markdown = function(bufnr)
-          return { first(bufnr, "deno_fmt", "prettier"), "injected" }
+          return { first(bufnr, "prettier", "deno_fmt"), "injected" }
         end,
         ["markdown.mdx"] = { "prettier", "injected" },
         mdx = { "prettier", "injected" },

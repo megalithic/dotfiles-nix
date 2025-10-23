@@ -42,6 +42,7 @@ in {
     #   "9.9.9.9" # Quad9
     # ];
   };
+  system.defaults.smb.NetBIOSName = hostname;
 
   time.timeZone = "America/New_York";
   ids.gids.nixbld = 30000;
@@ -104,7 +105,7 @@ in {
     LC_CTYPE = "${lang}";
     LC_ALL = "${lang}";
     PAGER = "less -FirSwX";
-    EDITOR = "${pkgs.nvim-nightly}/bin/nvim -O";
+    EDITOR = "${pkgs.nvim-nightly}/bin/nvim";
     VISUAL = "$EDITOR";
     GIT_EDITOR = "$EDITOR";
     MANPAGER = "$EDITOR +Man!";
@@ -290,6 +291,30 @@ in {
   # services.karabiner-elements.enable = true;
   # services.kanata.enable = true;
   # services.kanata.configFile = "/Users/${username}/.config/kanata/megabookpro.kbd";
+
+  # launchd.user.agents.mbsync = {
+  #   script = ''
+  #     #!/bin/sh
+  #     ${pkgs.mbsync}/bin/mbsync -a
+  #     ${pkgs.notmuch}/bin/notmuch new
+  #   '';
+  #   serviceConfig = {
+  #     Label = "mbsync";
+  #     ProgramArguments = ["/bin/sh" "-c" "${config.xdg.dataHome}/aerc/launchd-mbsync.sh"];
+  #     StartInterval = 300; # Run every 5 minutes
+  #     RunAtLoad = true;
+  #   };
+  #   # Ensure the script directory exists
+  #   preStart = ''
+  #     mkdir -p ${config.xdg.dataHome}/aerc
+  #     cat > ${config.xdg.dataHome}/aerc/launchd-mbsync.sh << 'EOF'
+  #     #!/bin/sh
+  #     ${pkgs.mbsync}/bin/mbsync -a
+  #     ${pkgs.notmuch}/bin/notmuch new
+  #     EOF
+  #     chmod +x ${config.xdg.dataHome}/aerc/launchd-mbsync.sh
+  #   '';
+  # };
 
   # The platform the configuration will be used on.
   nixpkgs.hostPlatform = "${system}";
