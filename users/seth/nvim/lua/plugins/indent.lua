@@ -1,4 +1,4 @@
-local SETTINGS = require("options")
+local SETTINGS = require("config.options")
 
 return {
   { "megalithic/virt-column.nvim", opts = { char = vim.g.virt_column_char }, event = "VimEnter" },

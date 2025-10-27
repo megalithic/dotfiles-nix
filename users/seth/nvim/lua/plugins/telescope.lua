@@ -300,7 +300,7 @@ return {
         local fn = vim.api.nvim_buf_get_name(bufnr)
 
         current_fn = fn
-        -- opts.cwd = require("utils").get_root()
+        -- opts.cwd = require("config.utils").get_root()
         -- vim.notify(fmt("current project files root: %s", opts.cwd), vim.log.levels.DEBUG, { title = "telescope" })
         -- local picker = ts["find_files"]
 
@@ -328,7 +328,7 @@ return {
         local fn = vim.api.nvim_buf_get_name(bufnr)
 
         current_fn = fn
-        -- opts.cwd = require("utils").get_root()
+        -- opts.cwd = require("config.utils").get_root()
         -- vim.notify(fmt("current project files root: %s", opts.cwd), vim.log.levels.DEBUG, { title = "telescope" })
         -- local picker = ts["find_files"]
 
@@ -902,7 +902,7 @@ return {
       end, { "live grep (cursor)" })
       -- map("n", "<leader>A", function() mega.picker.grep({ theme = "ivy", default_text = vim.fn.expand("<cword>") }) end)
       map({ "v", "x", "s" }, "<leader>A", function()
-        local pattern = require("utils").get_visual_selection()
+        local pattern = require("config.utils").get_visual_selection()
         -- mega.picker.grep({ theme = "ivy", default_text = pattern })
         mega.picker.grep({
           theme = "ivy",

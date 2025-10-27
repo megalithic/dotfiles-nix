@@ -8,74 +8,32 @@ source "$HOME/bin/helpers"
 
 [ "$1" = "" ] && exit 1
 
-# Convert hex color format to ANSI escape sequence
-# Usage:
-#   color_code "[bg#395d6f]"  # Returns ANSI code
-#   echo "text [fg#395d6f]colored[reset]" | colorize  # Pipe through colorize
-# Returns: ANSI escape code for 24-bit true color
-color_code() {
-  local input="$1"
+if [[ "$1" == "--process" ]]; then
+  pid="$2"
 
-  # Extract type (fg/bg) and hex color using regex
-  if [[ "$input" =~ \[(fg|bg)#([0-9a-fA-F]{6})\] ]]; then
-    local type="${BASH_REMATCH[1]}"
-    local hex="${BASH_REMATCH[2]}"
-
-    # Convert hex to RGB decimal values
-    local r=$((16#${hex:0:2}))
-    local g=$((16#${hex:2:2}))
-    local b=$((16#${hex:4:2}))
-
-    # Generate ANSI escape code
-    # 38;2 = foreground RGB, 48;2 = background RGB
-    if [[ "$type" == "fg" ]]; then
-      printf '\033[38;2;%d;%d;%dm' "$r" "$g" "$b"
-    else
-      printf '\033[48;2;%d;%d;%dm' "$r" "$g" "$b"
-    fi
-  else
-    # Return empty if format doesn't match
-    return 1
-  fi
-}
-
-# Process string and replace all color codes with ANSI sequences
-# Usage: echo "text [fg#395d6f]colored[reset] text" | colorize
-# Or: colorize "text [fg#395d6f]colored[reset] text"
-colorize() {
-  local input
-
-  # Read from stdin if available, otherwise use argument
-  if [ -p /dev/stdin ]; then
-    input=$(cat)
-  else
-    input="$1"
+  ps -p "$pid" -o pid,ppid,user,%cpu,%mem,vsz,rss,tty,stat,start,time,command 2>/dev/null | tail -n +2 | while IFS= read -r line; do
+    echo "PID:       $(echo "$line" | awk '{print $1}')"
+    echo "PPID:      $(echo "$line" | awk '{print $2}')"
+    echo "User:      $(echo "$line" | awk '{print $3}')"
+    echo "CPU %:     $(echo "$line" | awk '{print $4}')"
+    echo "Memory %:  $(echo "$line" | awk '{print $5}')"
+    echo "VSZ:       $(echo "$line" | awk '{print $6}') KB"
+    echo "RSS:       $(echo "$line" | awk '{print $7}') KB"
+    echo "TTY:       $(echo "$line" | awk '{print $8}')"
+    echo "Stat:      $(echo "$line" | awk '{print $9}')"
+    echo "Start:     $(echo "$line" | awk '{print $10}')"
+    echo "Time:      $(echo "$line" | awk '{print $11}')"
+    echo "Command:"
+    echo "  $(echo "$line" | awk '{for(i=12;i<=NF;i++) printf "%s ", $i; print ""}')"
+  done
+  if lsof -p "$pid" >/dev/null 2>&1; then
+    echo "═══════════════════════════════════════"
+    echo "Open Files:"
+    lsof -p "$pid" 2>/dev/null | tail -n +2 | head -20
   fi
 
-  # Replace all [fg#XXXXXX] patterns
-  while [[ "$input" =~ (\[fg#[0-9a-fA-F]{6}\]) ]]; do
-    local match="${BASH_REMATCH[1]}"
-    local code=$(color_code "$match")
-    input="${input//$match/$code}"
-  done
-
-  # Replace all [bg#XXXXXX] patterns
-  while [[ "$input" =~ (\[bg#[0-9a-fA-F]{6}\]) ]]; do
-    local match="${BASH_REMATCH[1]}"
-    local code=$(color_code "$match")
-    input="${input//$match/$code}"
-  done
-
-  # Replace [reset] with reset code
-  input="${input//\[reset\]/$(printf '\033[0m')}"
-
-  printf "%s" "$input"
-}
-
-# Helper to reset color
-reset_color() {
-  printf '\033[0m'
-}
+  exit 0
+fi
 
 handle_image() {
   case "$1" in

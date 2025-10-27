@@ -145,7 +145,6 @@ local function _apply_win(name, winid, args)
           string.format("Error setting window option %s = %s: %s", k, vim.inspect(v), err),
           vim.log.levels.ERROR
         )
-        dbg(args)
       end
     end
   end

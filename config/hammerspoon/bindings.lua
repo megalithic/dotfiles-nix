@@ -2,7 +2,7 @@ local wm = req("wm")
 local summon = req("summon")
 local chain = req("chain")
 local enum = req("hs.fnutils")
-local utils = require("utils")
+local utils = require("config.utils")
 
 local function activateModal(mods, key, timeout)
   timeout = timeout or false
@@ -155,7 +155,7 @@ req("hyper", { id = "figma" }):start():bind({ "shift" }, "f", nil, function()
   end
 end)
 
-req("hyper", { id = "utils" })
+req("hyper", { id = "config.utils" })
   :start()
   :bind({ "shift" }, "r", nil, function()
     hs.notify.new({ title = "hammerspork", subTitle = "config is reloading..." }):send()
@@ -176,7 +176,7 @@ req("hyper", { id = "utils" })
 
 -- FIXME:
 -- Maybe use this? REF: https://github.com/jackieaskins/dotfiles/blob/main/hammerspoon/config/hotkeyStore.lua
--- local utilsModality = req("modality"):start({ id = "utils", key = "r", mods = { "shift" } })
+-- local utilsModality = req("modality"):start({ id = "config.utils", key = "r", mods = { "shift" } })
 -- utilsModality
 --   :bind({}, "r", function()
 --     hs.notify.new({ title = "hammerspork", subTitle = "config is reloading..." }):send()

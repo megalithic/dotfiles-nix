@@ -55,9 +55,7 @@ function MiniConf.smart_picker()
   local oldfiles = {}
   for _, file in ipairs(vim.v.oldfiles) do
     local abs_path = vim.fn.fnamemodify(file, ":p")
-    if vim.startswith(abs_path, cwd) then
-      table.insert(oldfiles, vim.fn.fnamemodify(file, ":."))
-    end
+    if vim.startswith(abs_path, cwd) then table.insert(oldfiles, vim.fn.fnamemodify(file, ":.")) end
   end
 
   MiniPick.builtin.files(nil, {
@@ -68,13 +66,9 @@ function MiniConf.smart_picker()
 
         -- If ignorecase is on and there are no uppercase letters in prompt,
         -- convert paths to lowercase for matching purposes
-        local convert_path = function(str)
-          return str
-        end
+        local convert_path = function(str) return str end
         if vim.o.ignorecase and string.find(prompt, "%u") == nil then
-          convert_path = function(str)
-            return string.lower(str)
-          end
+          convert_path = function(str) return string.lower(str) end
         end
 
         local current_file_cased = convert_path(current_file)
@@ -126,13 +120,9 @@ function MiniConf.smart_picker()
           end
         end
 
-        table.sort(result, function(a, b)
-          return a.score < b.score
-        end)
+        table.sort(result, function(a, b) return a.score < b.score end)
 
-        return vim.tbl_map(function(val)
-          return val.index
-        end, result)
+        return vim.tbl_map(function(val) return val.index end, result)
       end,
     },
   })
@@ -140,6 +130,7 @@ end
 
 return {
   "nvim-mini/mini.pick",
+  cond = false,
   opts = {
     delay = {
       busy = 30,
@@ -242,9 +233,7 @@ return {
         show(...)
 
         local cur_item = MiniPick.get_picker_matches().current
-        if cur_item == nil then
-          return
-        end
+        if cur_item == nil then return end
 
         preview(preview_buf_id, cur_item)
       end
@@ -260,21 +249,15 @@ return {
 
       -- Set up buffer cleanup
       local cleanup = function(args)
-        if needs_init_buf_restore then
-          vim.api.nvim_win_set_buf(win_target, init_target_buf)
-        end
-        if vim.api.nvim_buf_is_valid(preview_buf_id) then
-          vim.api.nvim_buf_delete(preview_buf_id, { force = true })
-        end
+        if needs_init_buf_restore then vim.api.nvim_win_set_buf(win_target, init_target_buf) end
+        if vim.api.nvim_buf_is_valid(preview_buf_id) then vim.api.nvim_buf_delete(preview_buf_id, { force = true }) end
       end
 
       vim.api.nvim_create_autocmd("User", { pattern = "MiniPickStop", once = true, callback = cleanup })
     end
     -- vim.api.nvim_create_autocmd("User", { pattern = "MiniPickStart", callback = setup_target_win_preview })
 
-    local preview = function(buf_id, item)
-      return MiniPick.default_preview(buf_id, item, { line_position = "center" })
-    end
+    local preview = function(buf_id, item) return MiniPick.default_preview(buf_id, item, { line_position = "center" }) end
 
     opts = vim.tbl_deep_extend("force", opts, { source = { preview = preview } })
     require("mini.pick").setup(opts)
@@ -311,16 +294,12 @@ return {
       local buf_width = vim.api.nvim_win_get_width(win_id)
       local char_count = vim.fn.strchars(path)
       -- Do not shorten the path if it is not needed
-      if char_count < buf_width then
-        return path
-      end
+      if char_count < buf_width then return path end
 
       local shortened_path = path:gsub(parent_dir_pattern, shorten_dirname)
       char_count = vim.fn.strchars(shortened_path)
       -- Return only the filename when the shorten path still overflows
-      if char_count >= buf_width then
-        return shortened_path:match(parent_dir_pattern)
-      end
+      if char_count >= buf_width then return shortened_path:match(parent_dir_pattern) end
 
       return shortened_path
     end
@@ -354,9 +333,7 @@ return {
     -- See https://github.com/echasnovski/mini.nvim/discussions/988#discussioncomment-10398788
     local ns_digit_prefix = vim.api.nvim_create_namespace("cur-buf-pick-show")
     local show_cur_buf_lines = function(buf_id, items, query, opts)
-      if items == nil or #items == 0 then
-        return
-      end
+      if items == nil or #items == 0 then return end
 
       -- Show as usual
       MiniPick.default_show(buf_id, items, query, opts)
@@ -381,9 +358,7 @@ return {
       local ft = vim.bo[items[1].bufnr].filetype
       local has_lang, lang = pcall(vim.treesitter.language.get_lang, ft)
       local has_ts, _ = pcall(vim.treesitter.start, buf_id, has_lang and lang or ft)
-      if not has_ts and ft then
-        vim.bo[buf_id].syntax = ft
-      end
+      if not has_ts and ft then vim.bo[buf_id].syntax = ft end
     end
 
     MiniPick.registry.buf_lines = function()
@@ -397,16 +372,12 @@ return {
     ---@param autojump boolean? If there is only one result it will jump to it.
     MiniPick.registry.LspPicker = function(scope, autojump)
       ---@return string
-      local function get_symbol_query()
-        return vim.fn.input("Symbol: ")
-      end
+      local function get_symbol_query() return vim.fn.input("Symbol: ") end
 
       if not autojump then
         local opts = { scope = scope }
 
-        if scope == "workspace_symbol" then
-          opts.symbol_query = get_symbol_query()
-        end
+        if scope == "workspace_symbol" then opts.symbol_query = get_symbol_query() end
 
         MiniExtra.pickers.lsp(opts)
         return
@@ -560,9 +531,7 @@ return {
       -- Start picker
       local name = "FFFiles"
       local using_different_cwd = local_opts.cwd ~= default_opts.cwd
-      if using_different_cwd then
-        name = name .. string.format(" (%s)", local_opts.cwd)
-      end
+      if using_different_cwd then name = name .. string.format(" (%s)", local_opts.cwd) end
       MiniPick.start({
         source = {
           name = name,
@@ -633,7 +602,7 @@ return {
 
     local ns = vim.api.nvim_create_namespace("DVT MiniPickRanges")
     vim.keymap.set({ "s", "v", "x" }, "<leader><space>", function()
-      D(require("utils").get_selected_text())
+      D(require("config.utils").get_selected_text())
       -- local show = function(buf_id, items, query)
       --   local hl_groups = {}
       --   items = vim.tbl_map(function(item)
@@ -709,18 +678,21 @@ return {
       -- })
     end, { desc = "[S]earch [G]rep" })
 
-    vim.keymap.set("n", "<leader>a", function()
-      MiniPick.builtin.grep_live({}, {
-        source = { show = show_align_on_null },
-      })
-    end, { desc = "grep live" })
+    vim.keymap.set(
+      "n",
+      "<leader>a",
+      function()
+        MiniPick.builtin.grep_live({}, {
+          source = { show = show_align_on_null },
+        })
+      end,
+      { desc = "grep live" }
+    )
 
     vim.keymap.set({ "n" }, "<leader>A", function()
       local pattern = vim.fn.expand("<cword>")
       --
-      vim.defer_fn(function()
-        MiniPick.set_picker_query({ pattern })
-      end, 25)
+      vim.defer_fn(function() MiniPick.set_picker_query({ pattern }) end, 25)
 
       MiniPick.builtin.grep_live({}, {
         source = { show = show_align_on_null },
@@ -729,11 +701,9 @@ return {
     end, { desc = "grep cursor" })
 
     vim.keymap.set({ "x", "s", "v" }, "<leader>A", function()
-      local pattern = require("utils").get_visual_selection()
+      local pattern = require("config.utils").get_visual_selection()
 
-      vim.defer_fn(function()
-        MiniPick.set_picker_query({ pattern })
-      end, 25)
+      vim.defer_fn(function() MiniPick.set_picker_query({ pattern }) end, 25)
 
       MiniPick.builtin.grep_live({}, {
         source = { show = show_align_on_null },
@@ -749,33 +719,39 @@ return {
     --   end
     -- end, { desc = "find files" }) -- See https://github.com/echasnovski/mini.nvim/discussions/1873
 
-    vim.keymap.set("n", "<leader>fh", function()
-      MiniPick.builtin.help({ default_split = "vertical" })
-    end, { desc = "[S]earch [H]elp" })
+    vim.keymap.set(
+      "n",
+      "<leader>fh",
+      function() MiniPick.builtin.help({ default_split = "vertical" }) end,
+      { desc = "[S]earch [H]elp" }
+    )
 
-    vim.keymap.set("n", "<leader>lsd", function()
-      MiniExtra.pickers.lsp({ scope = "document_symbol" })
-    end, { desc = "[S]earch [S]ymbols" })
+    vim.keymap.set(
+      "n",
+      "<leader>lsd",
+      function() MiniExtra.pickers.lsp({ scope = "document_symbol" }) end,
+      { desc = "[S]earch [S]ymbols" }
+    )
 
-    vim.keymap.set("n", "<leader>lsw", function()
-      MiniExtra.pickers.lsp({ scope = "workspace_symbol" })
-    end, { desc = "[S]earch [S]ymbols" })
+    vim.keymap.set(
+      "n",
+      "<leader>lsw",
+      function() MiniExtra.pickers.lsp({ scope = "workspace_symbol" }) end,
+      { desc = "[S]earch [S]ymbols" }
+    )
 
-    vim.keymap.set("n", "gr", function()
-      MiniExtra.pickers.lsp({ scope = "references" })
-    end, { desc = "[S]earch [R]eferences" })
+    vim.keymap.set(
+      "n",
+      "gr",
+      function() MiniExtra.pickers.lsp({ scope = "references" }) end,
+      { desc = "[S]earch [R]eferences" }
+    )
 
-    vim.keymap.set("n", "<leader>sH", function()
-      MiniExtra.pickers.history()
-    end, { desc = "[S]earch [H]istory" })
+    vim.keymap.set("n", "<leader>sH", function() MiniExtra.pickers.history() end, { desc = "[S]earch [H]istory" })
 
-    vim.keymap.set("n", "<leader>sd", function()
-      MiniExtra.pickers.diagnostic()
-    end, { desc = "[S]earch [D]iagnostic" })
+    vim.keymap.set("n", "<leader>sd", function() MiniExtra.pickers.diagnostic() end, { desc = "[S]earch [D]iagnostic" })
 
-    vim.keymap.set("n", "<leader><leader>", function()
-      MiniPick.builtin.buffers()
-    end, { desc = "[S]earch [B]uffers" })
+    vim.keymap.set("n", "<leader><leader>", function() MiniPick.builtin.buffers() end, { desc = "[S]earch [B]uffers" })
 
     -- vim.keymap.set("n", "<leader>n", function()
     --   vim.cmd.tabnew()

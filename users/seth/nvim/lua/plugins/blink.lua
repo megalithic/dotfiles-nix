@@ -1,4 +1,4 @@
-local U = require("utils")
+local U = require("config.utils")
 
 local in_jsx = U.in_jsx_tags
 local keep_text_entries = { "emmet_language_server", "marksman", "obsidian-ls" }

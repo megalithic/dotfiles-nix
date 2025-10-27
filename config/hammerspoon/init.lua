@@ -10,6 +10,7 @@ if _G.tracingEnabled == true then
 end
 
 _G["hypers"] = {}
+_G.DefaultFont = { name = "JetBrainsMono Nerd Font Mono", size = 16 }
 
 --- @diagnostic disable-next-line: lowercase-global
 function req(mod, ...)
@@ -83,7 +84,7 @@ hs.alert.defaultStyle["textColor"] = {
   blue = 240 / 255,
   alpha = 1,
 }
-hs.alert.defaultStyle["textFont"] = "JetBrainsMono Nerd Font"
+hs.alert.defaultStyle["textFont"] = "JetBrainsMono Nerd Font Mono"
 
 HYPER = "F19"
 
@@ -479,9 +480,10 @@ local utils = require("utils")
 hs.loadSpoon("EmmyLua")
 hs.loadSpoon("HyperModal")
 hs.loadSpoon("Hyper")
+hs.loadSpoon("PTT")
 
 Hyper = spoon.Hyper
-Hyper:bindHotKeys({ hyperKey = { {}, HYPER } })
+Hyper:bindHotkeys({ hyperKey = { {}, HYPER } })
 
 hs.fnutils.each(Bindings, function(bindingTable)
   local bundleID, globalBind, localBinds = table.unpack(bindingTable)
@@ -752,6 +754,9 @@ Hyper
 -- hs.shutdownCallback = function()
 --   req("watchers"):stop(watchers)
 -- end
+
+-- PTT = spoon.PTT
+-- PTT:bindHotkeys({ push = { { "cmd", "alt" }, nil }, toggle = { { "cmd", "alt" }, "p" } })
 
 hs.timer.doAfter(0.2, function()
   hs.notify.withdrawAll()

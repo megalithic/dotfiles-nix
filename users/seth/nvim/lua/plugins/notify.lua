@@ -7,8 +7,8 @@ return {
     config = function()
       local notify = require("notify")
       local base = require("notify.render.base")
-      local U = require("utils")
-      local SETTINGS = require("options")
+      local U = require("config.utils")
+      local SETTINGS = require("config.options")
       local icons = Icons
 
       -- local stages_util = require("notify.stages.util")

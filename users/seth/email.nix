@@ -86,8 +86,8 @@ in {
 
         "`" = { "`" = "markAllAsRead:"; };
 
-        "^\U000A" = "send:"; // ^+return
-        "^\U000D" = "send:"; // ^+enter
+        "@\U000A" = "send:"; // ⌘+return
+        "@\U000D" = "send:"; // ⌘+enter
 
         "c"     = "newMessage:";
         "/"     = "searchAllMessages:";
@@ -99,7 +99,7 @@ in {
         "r"     = "reply:";
         "a"     = "replyAll:";
         "f"     = "forwardMessage:";
-        "d"     = "deleteMessage:";
+        "x"     = "deleteMessage:";
     }
   '';
 

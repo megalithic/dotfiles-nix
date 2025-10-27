@@ -1,103 +1,16 @@
-local function get_window_relative_flow_config()
-  local win = vim.api.nvim_get_current_win()
-  local win_config = vim.api.nvim_win_get_config(win)
-  local win_pos = vim.api.nvim_win_get_position(win)
-  local win_width = vim.api.nvim_win_get_width(win)
-  local win_height = vim.api.nvim_win_get_height(win)
-
-  -- Get editor dimensions
-  local editor_width = vim.o.columns
-  local editor_height = vim.o.lines
-
-  -- Calculate window position in editor coordinates
-  local win_col = win_pos[2]
-  local win_row = win_pos[1]
-
-  -- If it's a floating window, use its absolute position
-  if win_config.relative and win_config.relative ~= "" then
-    win_col = win_config.col or win_col
-    win_row = win_config.row or win_row
-  end
-
-  -- Calculate picker dimensions relative to current window
-  local picker_width = math.min(win_width - 4, math.floor(editor_width * 0.4)) -- Use window width but cap it
-  local picker_height = math.floor(win_height * 0.3) -- 30% of window height for bottom third
-
-  -- Position picker centered horizontally within the current window, in the bottom third
-  local target_col = win_col + math.floor((win_width - picker_width) / 2)
-  local target_row = win_row + math.floor(win_height * 0.67) -- Start at 67% down the window
-
-  -- Ensure picker doesn't go off screen
-  if target_col < 0 then
-    target_col = 0
-  end
-  if target_col + picker_width > editor_width then
-    target_col = editor_width - picker_width
-  end
-  if target_row < 0 then
-    target_row = 0
-  end
-  if target_row + picker_height > editor_height then
-    target_row = editor_height - picker_height
-  end
-
-  -- Return the proper layout structure that Snacks expects
-  return {
-    -- preview = "main",
-    -- layout = {
-    --   backdrop = false,
-    --   col = target_col,
-    --   width = picker_width,
-    --   min_width = 50,
-    --   row = target_row,
-    --   height = picker_height,
-    --   min_height = 10,
-    --   box = "vertical",
-    --   border = "solid",
-    --   title = "{title} {live} {flags}",
-    --   title_pos = "center",
-    --   { win = "preview", title = "{preview}", width = 0.6, border = "left" },
-    --   { win = "input", height = 1, border = "solid" },
-    --   { win = "list", border = "none" },
-    -- },
-
-    preview = "main",
-    layout = {
-      width = 0.5,
-      min_width = 0.35,
-      height = 0.35,
-      min_height = 0.35,
-      row = 0.5,
-      col = 10,
-      border = "solid",
-      box = "vertical",
-      title = "{title} {live} {flags}",
-      title_pos = "center",
-      { win = "preview", title = "{preview}", width = 0.6, border = "left" },
-      { win = "input", height = 1, border = "solid" },
-      { win = "list", border = "none" },
-    },
-  }
-end
-
 return {
-  enabled = false,
-  "jakubbortlik/snacks.nvim", -- use patched fork for https://github.com/folke/snacks.nvim/pull/2012
+  "folke/snacks.nvim", -- use patched fork for https://github.com/folke/snacks.nvim/pull/2012
   ---@module 'snacks'
   ---@type snacks.Config
-  dependencies = {
-    {
-      "madmaxieee/fff.nvim",
-      lazy = false, -- lazy loaded by design
-      build = "cargo build --release",
-    },
-  },
   opts = {
     picker = {
       enabled = true,
       ui_select = true,
       formatters = {
         file = { filename_first = true },
+      },
+      layout = {
+        preset = "ivy",
       },
       previewers = {
         file = {
@@ -107,12 +20,31 @@ return {
       win = {
         preview = {
           wo = {
-            number = false,
-            relativenumber = false,
             wrap = false,
           },
         },
         input = {
+          b = {
+            number = false,
+            relativenumber = false,
+          },
+          wo = {
+            cursorcolumn = false,
+            cursorline = false,
+            cursorlineopt = "both",
+            colorcolumn = "",
+            fillchars = "eob: ,lastline:…",
+            list = false,
+            listchars = "extends:…,tab:  ",
+            number = false,
+            relativenumber = false,
+            signcolumn = "no",
+            spell = false,
+            winbar = "",
+            statuscolumn = "",
+            wrap = false,
+            sidescrolloff = 0,
+          },
           keys = {
             ["<c-t>"] = { "edit_tab", mode = { "i", "n" } },
             ["<c-u>"] = { "preview_scroll_up", mode = { "i", "n" } },
@@ -153,123 +85,61 @@ return {
           end
           picker:action("vsplit")
         end,
-      },
-      layouts = {
-        default = {
-          layout = {
-            box = "vertical",
-            width = 0.9,
-            min_width = 120,
-            height = 0.8,
-            {
-              box = "vertical",
-              border = "solid",
-              title = "{title} {live} {flags}",
-              { win = "input", height = 1, border = "bottom" },
-              { win = "list", border = "none" },
-            },
-            { win = "preview", title = "{preview}", border = "solid" },
-          },
-        },
-        ivy = {
-          layout = {
-            box = "vertical",
-            backdrop = false,
-            row = -1,
-            width = 0,
-            height = 0.4,
-            border = "solid",
-            title = " {title} {live} {flags}",
-            title_pos = "left",
-            { win = "input", height = 1, border = "bottom" },
-            {
-              box = "horizontal",
-              { win = "list", border = "none" },
-              { win = "preview", title = "{preview}", width = 0.6, border = "left" },
-            },
-          },
-        },
-        float = {
-          preview = "main",
-          layout = {
-            position = "float",
-            width = 60,
-            col = 0.15,
-            min_width = 60,
-            height = 0.85,
-            min_height = 25,
-            box = "vertical",
-            border = "solid",
-            title = "{title} {live} {flags}",
-            title_pos = "center",
-            { win = "input", height = 1, border = "bottom" },
-            { win = "list", border = "none" },
-            { win = "preview", title = "{preview}", width = 0.6, border = "left" },
-          },
-        },
-        flow = {
-          preview = "main",
-          layout = {
-            backdrop = false,
-            col = 5,
-            width = 0.35,
-            min_width = 50,
-            row = 0.65,
-            height = 0.30,
-            min_height = 10,
-            box = "vertical",
-            border = "solid",
-            title = "{title} {live} {flags}",
-            title_pos = "center",
-            { win = "preview", title = "{preview}", width = 0.6, border = "left" },
-            { win = "input", height = 1, border = "solid" },
-            { win = "list", border = "none" },
-          },
-        },
-        left_bottom_corner = {
-          preview = "main",
-          layout = {
-            width = 0.5,
-            min_width = 0.35,
-            height = 0.35,
-            min_height = 0.35,
-            row = 0.5,
-            col = 10,
-            border = "solid",
-            box = "vertical",
-            title = "{title} {live} {flags}",
-            title_pos = "center",
-            { win = "preview", title = "{preview}", width = 0.6, border = "left" },
-            { win = "input", height = 1, border = "solid" },
-            { win = "list", border = "none" },
-          },
-        },
-        sidebar_right = {
-          preview = "main",
-          layout = {
-            backdrop = false,
-            width = 40,
-            min_width = 40,
-            height = 0,
-            position = "right",
-            border = "none",
-            box = "vertical",
-            {
-              win = "input",
-              height = 1,
-              border = "rounded",
-              title = "{title} {live} {flags}",
-              title_pos = "center",
-            },
-            { win = "list", border = "none" },
-            { win = "preview", title = "{preview}", height = 0.4, border = "top" },
-          },
-        },
+        cycle_preview = function(picker)
+          local layout_config = vim.deepcopy(picker.resolved_layout)
+
+          if layout_config.preview == "main" or not picker.preview.win:valid() then return end
+
+          local function find_preview(root) ---@param root snacks.layout.Box|snacks.layout.Win
+            if root.win == "preview" then return root end
+            if #root then
+              for _, w in ipairs(root) do
+                local preview = find_preview(w)
+                if preview then return preview end
+              end
+            end
+            return nil
+          end
+
+          local preview = find_preview(layout_config.layout)
+
+          if not preview then return end
+
+          local eval = function(s) return type(s) == "function" and s(preview.win) or s end
+          --- @type number?, number?
+          local width, height = eval(preview.width), eval(preview.height)
+
+          if not width and not height then return end
+
+          local cycle_sizes = { 0.1, 0.9 }
+          local size_prop, size
+
+          if height then
+            size_prop, size = "height", height
+          else
+            size_prop, size = "width", width
+          end
+
+          picker.init_size = picker.init_size or size ---@diagnostic disable-line: inject-field
+          table.insert(cycle_sizes, picker.init_size)
+          table.sort(cycle_sizes)
+
+          for i, s in ipairs(cycle_sizes) do
+            if size == s then
+              local smaller = cycle_sizes[i - 1] or cycle_sizes[#cycle_sizes]
+              preview[size_prop] = smaller
+              break
+            end
+          end
+
+          for i, h in ipairs(layout_config.hidden) do
+            if h == "preview" then table.remove(layout_config.hidden, i) end
+          end
+
+          picker:set_layout(layout_config)
+        end,
       },
       sources = {
-        select = {
-          layout = { preset = "flow" },
-        },
         explorer = {
           replace_netrw = true,
           git_status = true,
@@ -278,13 +148,6 @@ return {
           },
           hidden = true,
           ignored = true,
-          layout = {
-            preset = "float",
-            preview = {
-              main = true,
-              enabled = false,
-            },
-          },
           win = {
             list = {
               keys = {
@@ -307,39 +170,11 @@ return {
         },
         files = {
           hidden = true,
-          layout = {
-            preset = "flow",
-            border = "solid",
-          },
         },
-        ---@type snacks.picker.smart.Config
-        smart = {
-          layout = function()
-            return get_window_relative_flow_config()
-          end,
-        },
-        fff = {
-          layout = function()
-            return get_window_relative_flow_config()
-          end,
-        },
-        ---TODO: filter out empty file
-        ---@type snacks.picker.recent.Config
-        recent = {
-          layout = function()
-            return get_window_relative_flow_config()
-          end,
-        },
-        lines = {
-          layout = function()
-            return get_window_relative_flow_config()
-          end,
-        },
+        recent = {},
+        lines = {},
         lsp_references = {
           pattern = "!import !default", -- Exclude Imports and Default Exports
-          layout = function()
-            return get_window_relative_flow_config()
-          end,
         },
         lsp_symbols = {
           finder = "lsp_symbols",
@@ -350,63 +185,31 @@ return {
             markdown = true,
             help = true,
           },
-          layout = function()
-            return get_window_relative_flow_config()
-          end,
         },
-        lsp_workspace_symbols = {
-          layout = function()
-            return get_window_relative_flow_config()
-          end,
-        },
-        diagnostics = {
-          layout = function()
-            return get_window_relative_flow_config()
-          end,
-        },
-        diagnostics_buffer = {
-          layout = function()
-            return get_window_relative_flow_config()
-          end,
-        },
+        lsp_workspace_symbols = {},
+        diagnostics = {},
+        diagnostics_buffer = {},
         git_status = {
           preview = "git_status",
-          layout = function()
-            return get_window_relative_flow_config()
-          end,
         },
-        git_diff = {
-          layout = function()
-            return get_window_relative_flow_config()
-          end,
-        },
+        git_diff = {},
       },
     },
   },
 
   keys = {
     {
-      "<leader>ff",
-      "<cmd>FFFSnacks<cr>",
-      desc = "FFF",
-    },
-
-    {
       "<leader>a",
       mode = "n",
-      function()
-        require("plugins.snacks-multi-grep").multi_grep()
-      end,
-      desc = "Live grep",
+      function() require("plugins.snacks-multi-grep").multi_grep() end,
+      desc = "live grep",
     },
 
     {
       "<leader>A",
-      mode = { "n", "x" },
-      function()
-        require("snacks").picker.grep_word()
-      end,
-      desc = "Grep string",
+      mode = { "n", "x", "v" },
+      function() require("snacks").picker.grep_word() end,
+      desc = "grep cursor/selection",
     },
 
     -- {
@@ -435,14 +238,12 @@ return {
           },
         })
       end,
-      desc = "Find all files",
+      desc = "[f]ind [a]ll files",
     },
 
     {
       "<leader><leader>",
-      function()
-        require("snacks").picker.buffers()
-      end,
+      function() require("snacks").picker.buffers() end,
       desc = "Find buffers",
     },
 
@@ -456,9 +257,7 @@ return {
 
     {
       "<leader>fh",
-      function()
-        require("snacks").picker.help()
-      end,
+      function() require("snacks").picker.help() end,
       desc = "Find help",
     },
 
@@ -528,9 +327,7 @@ return {
 
     {
       "<leader>fu",
-      function()
-        require("snacks").picker.undo()
-      end,
+      function() require("snacks").picker.undo() end,
       desc = "Find undo history",
     },
   },

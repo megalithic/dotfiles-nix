@@ -138,7 +138,7 @@ function M.P(...)
   return ...
 end
 
-M.icons = require("icons")
+M.icons = require("config.icons")
 
 function M.with_module(module_name, func)
   local ok, module = pcall(require, module_name)

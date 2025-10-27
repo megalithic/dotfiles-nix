@@ -1,4 +1,4 @@
-local U = require("utils")
+local U = require("config.utils")
 
 local M = {}
 local map = vim.keymap.set

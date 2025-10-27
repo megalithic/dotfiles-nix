@@ -10,9 +10,9 @@ local enabled_plugins = {
   "gotroot",
   "undo",
   "windows",
-  -- "cursorline",
-  -- "windows",
-  -- "filetypes",
+  "term",
+  "filetypes",
+  "cursorline",
   -- "fakecolumn",
   -- "term",
   -- "abbreviations",
@@ -89,7 +89,7 @@ end
 M.g = {
   mapleader = ",",
   maplocalleader = " ",
-
+  lsp_semantic_enabled = 1,
   netrw_liststyle = 1,
   netrw_sort_by = "size",
   open_command = is_macos and "open" or "xdg-open",
@@ -204,9 +204,7 @@ M.g = {
   disabled_lsp_formatters = { "tailwindcss", "html", "ts_ls", "ls_emmet", "zk", "sumneko_lua" },
   enabled_elixir_ls = (function()
     local ls = "elixirls"
-    if vim.env.ELIXIR_LS ~= nil then
-      ls = vim.env.ELIXIR_LS
-    end
+    if vim.env.ELIXIR_LS ~= nil then ls = vim.env.ELIXIR_LS end
     return { ls, "", "", "" } --- opts: {"expert", "elixirls", "nextls", "lexical"}
   end)(),
   completion_exclusions = {},
@@ -232,7 +230,7 @@ M.g = {
 
 M.opt = {
   cmdwinheight = 4,
-  cmdheight = 1,
+  cmdheight = 0,
   diffopt = {
     "vertical",
     "iwhite",
@@ -337,7 +335,7 @@ M.opt = {
   winborder = BORDER_STYLE,
   conceallevel = 0, -- Don't hide markup
   concealcursor = "", -- Don't hide cursor line markup
-  lazyredraw = true, -- Don't redraw during macros
+  -- lazyredraw = true, -- Don't redraw during macros
   synmaxcol = 300, -- Syntax highlighting limit
 
   -- File handling
@@ -464,9 +462,7 @@ local pattern = string.format("%s/.*", base)
 vim.filetype.add({
   extension = {
     sql = function(path, _)
-      if path:match(pattern) then
-        return "sql.dbee"
-      end
+      if path:match(pattern) then return "sql.dbee" end
 
       return "sql"
     end,

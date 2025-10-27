@@ -3,7 +3,7 @@ local map = vim.keymap.set
 local unmap = vim.keymap.del
 local remap_opts = { noremap = false, silent = true }
 local noremap_opts = { noremap = true, silent = true }
-local U = require("utils")
+local U = require("config.utils")
 
 -- -- Map a key in the given mode. Defaults to non-recursive and silent.
 local function keymap(modes, from, to, opts)
@@ -222,7 +222,7 @@ map("n", "<C-k>", "<C-w><C-k>", { desc = "Move focus to the upper window" })
 map("n", "<leader>w", function(_args)
   vim.api.nvim_command("silent! write")
 end, { desc = "write buffer" })
-map("n", "<leader>W", require("utils").sudo_write, { desc = "sudo write buffer" })
+map("n", "<leader>W", require("config.utils").sudo_write, { desc = "sudo write buffer" })
 map("n", "<leader>q", "<cmd>q<cr>", { desc = "quit" })
 map("n", "<leader>Q", "<cmd>q!<cr>", { desc = "really quit" })
 
@@ -571,7 +571,7 @@ local editFileMappings = {
   r = { vim.cmd.restart, "[e]dit -> restart" },
   R = {
     function()
-      require("utils").lsp.rename_file()
+      require("config.utils").lsp.rename_file()
     end,
     "[e]dit file -> lsp rename as <input>",
   },

@@ -465,6 +465,12 @@ addSearchAlias(
 );
 
 addSearchAlias(
+  "!flakes",
+  "nix community flakes search",
+  "https://community.flake.parts/",
+);
+
+addSearchAlias(
   "d",
   "duckduckgo",
   "https://duckduckgo.com/?q=",

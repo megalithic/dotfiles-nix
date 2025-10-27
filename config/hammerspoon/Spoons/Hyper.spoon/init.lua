@@ -23,9 +23,13 @@ m.homepage = "https://github.com/evantravers/Hyper.spoon"
 ---
 --- Returns:
 ---  * self
-function m:bindHotKeys(mapping)
+function m:bindHotkeys(mapping)
   local mods, key = table.unpack(mapping["hyperKey"])
-  hs.hotkey.bind(mods, key, function() m:enter() end, function() m:exit() end)
+  hs.hotkey.bind(mods, key, function()
+    m:enter()
+  end, function()
+    m:exit()
+  end)
 
   return self
 end
@@ -40,17 +44,14 @@ end
 function m:bindPassThrough(key, app)
   m:bind({}, key, nil, function()
     if hs.application.get(app) then
-      hs.eventtap.keyStroke({'cmd','alt','shift','ctrl'}, key)
+      hs.eventtap.keyStroke({ "cmd", "alt", "shift", "ctrl" }, key)
     else
       hs.application.launchOrFocusByBundleID(app)
-      hs.timer.waitWhile(
-        function()
-          return not hs.application.get(app):isFrontmost()
-        end,
-        function()
-          hs.eventtap.keyStroke({'cmd','alt','shift','ctrl'}, key)
-        end
-      )
+      hs.timer.waitWhile(function()
+        return not hs.application.get(app):isFrontmost()
+      end, function()
+        hs.eventtap.keyStroke({ "cmd", "alt", "shift", "ctrl" }, key)
+      end)
     end
   end)
 

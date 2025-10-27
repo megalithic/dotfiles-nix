@@ -1,4 +1,4 @@
-local utils = require("utils")
+local utils = require("config.utils")
 
 -- foundation_remapping
 -- https://github.com/hetima/hammerspoon-foundation_remapping

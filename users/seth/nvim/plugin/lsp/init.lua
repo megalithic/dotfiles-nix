@@ -1,6 +1,4 @@
-if not Plugin_enabled("lsp") then
-  return
-end
+if not Plugin_enabled("lsp") then return end
 
 local M = {}
 
@@ -23,9 +21,7 @@ local function lsp_method(client, method)
     -- vim.notify(not_supported_msg, L.WARN)
     -- Echom(not_supported_msg, "Question")
 
-    return function(...)
-      return false
-    end
+    return function(...) return false end
   end
 
   return function(cb_fn)
@@ -46,9 +42,7 @@ local function fix_current_action()
 
   local actions_per_client, err = vim.lsp.buf_request_sync(0, "textDocument/codeAction", params, 900)
 
-  if err then
-    return
-  end
+  if err then return end
 
   if actions_per_client == nil or vim.tbl_isempty(actions_per_client) or #actions_per_client == 0 then
     vim.notify("no quickfixes available")
@@ -82,9 +76,7 @@ local function fix_current_action()
 
   -- If we failed to find a non-null-ls action, use the first one.
   local first_action = nil
-  if #actions > 0 then
-    first_action = actions[1]
-  end
+  if #actions > 0 then first_action = actions[1] end
 
   local top_action = preferred_action or first_action
 
@@ -154,13 +146,12 @@ end
 ---@param results lsp.LocationLink[]
 ---@return lsp.LocationLink[]
 local function filter_out_libraries_from_lsp_items(results)
-  local without_node_modules = vim.tbl_filter(function(item)
-    return item.targetUri and not string.match(item.targetUri, "node_modules")
-  end, results)
+  local without_node_modules = vim.tbl_filter(
+    function(item) return item.targetUri and not string.match(item.targetUri, "node_modules") end,
+    results
+  )
 
-  if #without_node_modules > 0 then
-    return without_node_modules
-  end
+  if #without_node_modules > 0 then return without_node_modules end
 
   return results
 end
@@ -201,9 +192,7 @@ local function list_or_jump(action, title, opts)
     local flattened_results = {}
     if result then
       -- textDocument/definition can return Location or Location[]
-      if not vim.islist(result) then
-        flattened_results = { result }
-      end
+      if not vim.islist(result) then flattened_results = { result } end
 
       vim.list_extend(flattened_results, result)
     end
@@ -226,9 +215,7 @@ local function list_or_jump(action, title, opts)
           vim.cmd.vnew()
         elseif opts.jump_type == "tab drop" then
           local file_uri = flattened_results[1].uri
-          if file_uri == nil then
-            file_uri = flattened_results[1].targetUri
-          end
+          if file_uri == nil then file_uri = flattened_results[1].targetUri end
           local file_path = vim.uri_to_fname(file_uri)
           vim.cmd("tab drop " .. file_path)
         end
@@ -254,9 +241,7 @@ local function list_or_jump(action, title, opts)
   end)
 end
 
-local function definitions(opts)
-  return list_or_jump("textDocument/definition", "LSP Definitions", opts)
-end
+local function definitions(opts) return list_or_jump("textDocument/definition", "LSP Definitions", opts) end
 
 -- local hover_handler = vim.lsp.buf.hover
 -- local signature_handler = vim.lsp.buf.signature_help
@@ -272,14 +257,12 @@ end
 
 -- LSP initialization callback
 local function on_init(client, result)
-  lsp_method(client, "textDocument/signatureHelp")(function()
-    client.server_capabilities.signatureHelpProvider.triggerCharacters = {}
-  end)
+  lsp_method(client, "textDocument/signatureHelp")(
+    function() client.server_capabilities.signatureHelpProvider.triggerCharacters = {} end
+  )
 
   -- Handle off-spec "offsetEncoding" server capability
-  if result.offsetEncoding then
-    client.offset_encoding = result.offsetEncoding
-  end
+  if result.offsetEncoding then client.offset_encoding = result.offsetEncoding end
 end
 
 function M.capabilitites()
@@ -342,44 +325,38 @@ end
 local function make_commands(client, bufnr)
   -- Function to enable LSP
   local function enable()
-    if not vim.g.lsp then
-      vim.g.lsp = {}
-    end
+    if not vim.g.lsp then vim.g.lsp = {} end
     vim.g.lsp.autostart = true
     vim.cmd("doautoall <nomodeline> FileType")
   end
 
   -- Function to disable LSP
   local function disable()
-    if not vim.g.lsp then
-      vim.g.lsp = {}
-    end
+    if not vim.g.lsp then vim.g.lsp = {} end
     vim.g.lsp.autostart = false
     vim.lsp.stop_client(vim.lsp.get_clients())
   end
 
-  Command("LspInfo", function()
-    vim.cmd.checkhealth("lsp")
-  end, { desc = "View LSP info" })
-  Command("LspLog", function()
-    vim.cmd.tabnew(vim.lsp.log.get_filename())
-  end, { desc = "Opens LSP log file in new tab." })
-  Command("LspLogDelete", function()
-    vim.fn.system("rm " .. vim.lsp.get_log_path())
-  end, { desc = "Deletes the LSP log file. Useful for when it gets too big" })
+  Command("LspInfo", function() vim.cmd.checkhealth("lsp") end, { desc = "View LSP info" })
+  Command(
+    "LspLog",
+    function() vim.cmd.tabnew(vim.lsp.log.get_filename()) end,
+    { desc = "Opens LSP log file in new tab." }
+  )
+  Command(
+    "LspLogDelete",
+    function() vim.fn.system("rm " .. vim.lsp.get_log_path()) end,
+    { desc = "Deletes the LSP log file. Useful for when it gets too big" }
+  )
 
   Command("LspRestart", function(cmd)
     local parts = vim.split(vim.trim(cmd.args), "%s+")
-    if cmd.args == "" then
-      parts = {}
-    end
+    if cmd.args == "" then parts = {} end
 
     local clients = vim.lsp.get_clients({ bufnr = bufnr })
 
     if #parts > 0 then
-      clients = vim.tbl_filter(function(client)
-        return vim.tbl_contains(parts, client.name)
-      end, clients)
+      clients = vim.tbl_filter(function(client) return vim.tbl_contains(parts, client.name) end, clients)
     end
 
     vim.lsp.stop_client(clients)
@@ -397,9 +374,7 @@ local function make_keymaps(client, bufnr)
   -- local ok_snacks = pcall(require, "snacks")
 
   local desc = function(str)
-    if str == nil then
-      return ""
-    end
+    if str == nil then return "" end
     return "[+lsp] " .. str
   end
 
@@ -407,15 +382,9 @@ local function make_keymaps(client, bufnr)
     opts = vim.tbl_deep_extend("keep", { buffer = bufnr, desc = desc(d) }, opts or {})
     vim.keymap.set(modes, keys, func, opts)
   end
-  local nmap = function(keys, func, d)
-    map("n", keys, func, d, { noremap = false })
-  end
-  local imap = function(keys, func, d)
-    map("i", keys, func, d, { noremap = false })
-  end
-  local vnmap = function(keys, func, d, opts)
-    map({ "v", "n" }, keys, func, d, opts)
-  end
+  local nmap = function(keys, func, d) map("n", keys, func, d, { noremap = false }) end
+  local imap = function(keys, func, d) map("i", keys, func, d, { noremap = false }) end
+  local vnmap = function(keys, func, d, opts) map({ "v", "n" }, keys, func, d, opts) end
 
   nmap("<leader>lic", [[<cmd>LspInfo<CR>]], "connected client info")
   nmap("<leader>lim", [[<cmd>Mason<CR>]], "mason info")
@@ -429,30 +398,32 @@ local function make_keymaps(client, bufnr)
   -- nmap("gD", vim.lsp.buf.declaration, "[g]oto [d]eclaration")
   vnmap("ga", vim.lsp.buf.code_action, "run code actions")
   vnmap("gl", vim.lsp.codelens.run, "run code lens")
-  vnmap("g==", function()
-    fix_current_action()
-  end, "[g]o run nearest/current code action")
+  vnmap("g==", function() fix_current_action() end, "[g]o run nearest/current code action")
 
-  nmap("[e", function()
-    diagnostics_mod.goto_diagnostic_hl("prev", { severity = L.ERROR })
-  end, "Go to previous [e]rror diagnostic message")
-  nmap("]e", function()
-    diagnostics_mod.goto_diagnostic_hl("next", { severity = L.ERROR })
-  end, "Go to next [e]rror diagnostic message")
+  nmap(
+    "[e",
+    function() diagnostics_mod.goto_diagnostic_hl("prev", { severity = L.ERROR }) end,
+    "Go to previous [e]rror diagnostic message"
+  )
+  nmap(
+    "]e",
+    function() diagnostics_mod.goto_diagnostic_hl("next", { severity = L.ERROR }) end,
+    "Go to next [e]rror diagnostic message"
+  )
 
-  nmap("[d", function()
-    diagnostics_mod.goto_diagnostic_hl("prev")
-  end, "[g]oto previous [d]iagnostic message")
-  nmap("]d", function()
-    diagnostics_mod.goto_diagnostic_hl("next")
-  end, "[g]oto next [d]iagnostic message")
+  nmap("[d", function() diagnostics_mod.goto_diagnostic_hl("prev") end, "[g]oto previous [d]iagnostic message")
+  nmap("]d", function() diagnostics_mod.goto_diagnostic_hl("next") end, "[g]oto next [d]iagnostic message")
 
-  nmap("gq", function()
-    vim.cmd("Trouble diagnostics toggle focus=true filter.buf=0")
-  end, "[g]oto [q]uickfixlist buffer diagnostics (trouble)")
-  nmap("gQ", function()
-    vim.cmd("Trouble diagnostics toggle focus=true")
-  end, "[g]oto [q]uickfixlist global diagnostics (trouble)")
+  nmap(
+    "gq",
+    function() vim.cmd("Trouble diagnostics toggle focus=true filter.buf=0") end,
+    "[g]oto [q]uickfixlist buffer diagnostics (trouble)"
+  )
+  nmap(
+    "gQ",
+    function() vim.cmd("Trouble diagnostics toggle focus=true") end,
+    "[g]oto [q]uickfixlist global diagnostics (trouble)"
+  )
 
   -- "<leader>ss", function() Snacks.picker.lsp_symbols() end, desc = "LSP Symbols" },
   --    { "<leader>sS", function() Snacks.picker.lsp_workspace_symbols() end, desc = "LSP Workspace Symbols" },
@@ -540,9 +511,7 @@ local function make_keymaps(client, bufnr)
 
       local new_name = vim.fn.input({ prompt = "New name: " })
       vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
-      if #new_name == 0 then
-        return
-      end
+      if #new_name == 0 then return end
       if is_valid_client then
         vim.lsp.buf.rename(new_name)
       else
@@ -578,9 +547,7 @@ local function make_keymaps(client, bufnr)
       -- if LPS couldn't trigger rename on the symbol, clear the autocmd
       vim.defer_fn(function()
         -- the cmdId is not nil only if the LSP failed to rename
-        if cmdId then
-          vim.api.nvim_del_autocmd(cmdId)
-        end
+        if cmdId then vim.api.nvim_del_autocmd(cmdId) end
       end, 500)
     end
   end, "rename symbol/references")
@@ -615,21 +582,21 @@ local function make_keymaps(client, bufnr)
     --   vim.cmd.Pick('lsp scope="definitions"')
     --   -- MiniPick.registry.LspPicker("definition", true)
     -- end, "[g]oto [d]efinition")
-    -- nmap(
-    --   "gd",
-    --   function()
-    --     Snacks.picker.lsp_definitions({
-    --       include_declaration = false,
-    --       include_current = false,
-    --       auto_confirm = true,
-    --       jump = { tagstack = true, reuse_win = true },
-    --     })
-    --   end,
-    --   "[g]oto [d]efinition"
-    -- )
+    nmap(
+      "gd",
+      function()
+        Snacks.picker.lsp_definitions({
+          include_declaration = false,
+          include_current = false,
+          auto_confirm = true,
+          jump = { tagstack = true, reuse_win = true },
+        })
+      end,
+      "[g]oto [d]efinition"
+    )
     -- nmap("gD", function() require("fzf-lua").lsp_definitions({ jump1 = false }) end, "Peek definition")
-    nmap("gD", "<CMD>Glance definitions<CR>", "[g]lance [d]efinition")
-    -- nmap("gd", "<cmd>vsplit | lua vim.lsp.buf.definition()<cr>", "Goto Definition in Vertical Split")
+    -- nmap("gD", "<CMD>Glance definitions<CR>", "[g]lance [d]efinition")
+    nmap("gD", "<cmd>vsplit | lua vim.lsp.buf.definition()<cr>", "Goto Definition in Vertical Split")
     nmap("<C-]>", definitions, "goto definition")
   end)
 
@@ -638,9 +605,7 @@ local function make_keymaps(client, bufnr)
       local ok_blink, blink = pcall(require, "blink.cmp")
       if ok_blink then
         local blink_window = require("blink.cmp.completion.windows.menu")
-        if blink_window.win:is_open() then
-          blink.hide()
-        end
+        if blink_window.win:is_open() then blink.hide() end
       end
 
       vim.lsp.buf.signature_help()
@@ -666,13 +631,9 @@ end
 ---@param args vim.api.keyset.create_autocmd.callback_args
 function M.on_detach(args)
   local client = vim.lsp.get_client_by_id(args.data.client_id)
-  if not client or not client.attached_buffers then
-    return
-  end
+  if not client or not client.attached_buffers then return end
   for buf_id in pairs(client.attached_buffers) do
-    if buf_id ~= args.buf then
-      return
-    end
+    if buf_id ~= args.buf then return end
   end
   client:stop()
 end
@@ -686,9 +647,7 @@ function M.on_attach(client, bufnr, _client_id)
 
   -- load diagnostics config
   local ok_diagnostics, setup_diagnostics = pcall(dofile, vim.fn.stdpath("config") .. "/plugin/lsp/diagnostics.lua")
-  if ok_diagnostics then
-    diagnostics_mod = setup_diagnostics(client, bufnr)
-  end
+  if ok_diagnostics then diagnostics_mod = setup_diagnostics(client, bufnr) end
 
   make_commands(client, bufnr)
   make_keymaps(client, bufnr)
@@ -737,21 +696,15 @@ function M.on_attach(client, bufnr, _client_id)
   end)
 
   lsp_method(client, methods.textDocument_semanticTokens_full)(function()
-    if vim.g.disabled_semantic_tokens[filetype] then
-      client.server_capabilities.semanticTokensProvider = vim.NIL
-    end
+    if vim.g.disabled_semantic_tokens[filetype] then client.server_capabilities.semanticTokensProvider = vim.NIL end
   end)
 
   lsp_method(client, methods.textDocument_inlayHint)(function()
-    if vim.g.enabled_inlay_hints[filetype] then
-      vim.lsp.inlay_hint.enable(true)
-    end
+    if vim.g.enabled_inlay_hints[filetype] then vim.lsp.inlay_hint.enable(true) end
   end)
 
   lsp_method(client, methods.textDocument_documentSymbol)(function()
-    if pcall(require, "nvim-navic") then
-      require("nvim-navic").attach(client, bufnr)
-    end
+    if pcall(require, "nvim-navic") then require("nvim-navic").attach(client, bufnr) end
   end)
 
   -- Document highlighting
@@ -760,16 +713,12 @@ function M.on_attach(client, bufnr, _client_id)
       {
         event = { "CursorHold", "InsertLeave" },
         -- buffer = bufnr,
-        command = function()
-          vim.lsp.buf.document_highlight()
-        end,
+        command = function() vim.lsp.buf.document_highlight() end,
       },
       {
         event = { "CursorMoved", "InsertEnter" },
         -- buffer = bufnr,
-        command = function()
-          vim.lsp.buf.clear_references()
-        end,
+        command = function() vim.lsp.buf.clear_references() end,
       },
     })
   end)
@@ -806,9 +755,7 @@ function M.on_attach(client, bufnr, _client_id)
         command = function(args)
           local node = vim.treesitter.get_node()
           if node and (node:type() == "arguments" or (node:parent() and node:parent():type() == "arguments")) then
-            vim.defer_fn(function()
-              vim.lsp.buf.signature_help(preview_opts)
-            end, 500)
+            vim.defer_fn(function() vim.lsp.buf.signature_help(preview_opts) end, 500)
           end
         end,
       },
@@ -837,9 +784,7 @@ Augroup(lsp_group, {
       local bufnr = args.buf
 
       local client = assert(vim.lsp.get_client_by_id(args.data.client_id), "must have valid language server client")
-      if client == nil then
-        return
-      end
+      if client == nil then return end
 
       local client_config = vim.lsp.config[client.name]
       if client_config ~= nil then
@@ -905,12 +850,8 @@ end
 local enabled_servers = {}
 
 vim.iter(servers):each(function(name, config)
-  if type(config) == "function" then
-    config = config()
-  end
-  if type(config) == "boolean" then
-    config = {}
-  end
+  if type(config) == "function" then config = config() end
+  if type(config) == "boolean" then config = {} end
 
   if config ~= nil and config and (config.enabled == nil or config.enabled == true) then
     table.insert(enabled_servers, name)

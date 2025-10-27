@@ -24,7 +24,7 @@ function obj:start(opts)
       local zoom = hs.application.get("zoom.us")
 
       hs.timer.waitUntil(function() return zoom:getWindow("Zoom Meeting") end, function()
-        require("utils").dnd(true, "zoom")
+        require("config.utils").dnd(true, "zoom")
         hs.spotify.pause()
         require("ptt").setMode("push-to-talk")
         require("browser").killTabsByDomain("zoom.us")
@@ -63,7 +63,7 @@ function obj:stop(opts)
     _appObj:kill()
   elseif event == hs.application.watcher.terminated then
     require("ptt").setMode("push-to-talk")
-    require("utils").dnd(false, "back")
+    require("config.utils").dnd(false, "back")
 
     do
       if hs.application.get(BROWSER) ~= nil then

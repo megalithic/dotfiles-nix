@@ -53,7 +53,7 @@ windowMT.setFrame = withAxHotfix(windowMT.setFrame, 1, "setFrame")
 
 -- _G["modalities"] = {}
 _G["hypers"] = {}
-_G.DefaultFont = { name = "JetBrainsMono Nerd Font", size = 18 }
+_G.DefaultFont = { name = "JetBrainsMono Nerd Font", size = 16 }
 _G.fmt = string.format
 _G.ts = function(date)
   date = date or hs.timer.secondsSinceEpoch()

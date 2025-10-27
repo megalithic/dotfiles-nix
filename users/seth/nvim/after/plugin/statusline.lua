@@ -19,8 +19,8 @@ local get_opt = api.nvim_get_option_value
 
 -- local mini_icons = require("mini.icons")
 
-local U = require("utils")
-local SETTINGS = require("options")
+local U = require("config.utils")
+local SETTINGS = require("config.options")
 
 vim.g.is_saving = false
 vim.g.lsp_progress_messages = ""

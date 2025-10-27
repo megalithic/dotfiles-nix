@@ -2,7 +2,7 @@
 -- https://github.com/jfpedroza/neotest-elixir
 -- https://github.com/jfpedroza/neotest-elixir/pull/23
 
-local SETTINGS = require("options")
+local SETTINGS = require("config.options")
 local icons = Icons
 local keys = {}
 local fmt = string.format

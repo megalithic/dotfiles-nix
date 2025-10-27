@@ -335,7 +335,7 @@ return {
           vim.cmd("normal! y")
 
           local copiedContent = vim.fn.getreg("+")
-          local values = vim.split(require("utils").strim(copiedContent), "%s+")
+          local values = vim.split(require("config.utils").strim(copiedContent), "%s+")
           local csv_values = vim.iter(values):filter(function(v) return v ~= "" and v ~= nil end)
           csv_values = table.concat(values, ",")
 
@@ -344,7 +344,7 @@ return {
 
         -- map({ "n" }, "ypc", function()
         --   local copiedContent = vim.fn.getreg("+")
-        --   local values = vim.split(require("utils").strim(copiedContent), "%s+")
+        --   local values = vim.split(require("config.utils").strim(copiedContent), "%s+")
         --   local csv_values = vim.iter(values):filter(function(v) return v ~= "" and v ~= nil end)
         --   csv_values = table.concat(values, ",")
 

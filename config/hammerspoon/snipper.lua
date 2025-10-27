@@ -61,7 +61,7 @@ function obj.sendToCanonize(url, title, quote, tags, env)
         local response = hs.json.decode(body)
         success(response)
       else
-        error(string.format("[%s] %s\r\n%s", obj.name, status, require("utils").truncate(body, 100)))
+        error(string.format("[%s] %s\r\n%s", obj.name, status, require("config.utils").truncate(body, 100)))
       end
 
       hs.pasteboard.clearContents()

@@ -180,7 +180,19 @@ in {
                         --preview="$ps_cmd -o '$ps_preview_fmt' -p {1} || echo 'Cannot preview {1} because it exited.'" \
                         --preview-window="right:60%:wrap" \
                         # --preview-window="top:4:wrap" \
-                        --bind="ctrl-x:execute(kill {})+change-prompt(⚡ )+reload($ps_cmd -A -opid,command)"
+                        --bind="ctrl-x:execute(kill {1})+change-prompt(⚡ )+reload($ps_cmd -A -opid,command)" \
+                        --bind="ctrl-x:execute-silent(
+                          for line in {+}; do
+                            pid=\$(echo \"\$line\" | awk '{print \$2}')
+                            cmd=\$(echo \"\$line\" | awk '{for(i=11;i<=NF;i++) printf \$i\" \"}' | cut -c1-60)
+                            kill $pid
+                            if kill \$pid 2>/dev/null; then
+                              echo \"\$pid|\$cmd\" >> $killed_pids_file
+                            else
+                              osascript -e \"display notification 'Failed to kill PID: '\$pid' ('\$cmd')' with title 'Kill Failed' sound name 'Basso'\"
+                            fi
+                          done
+                        )+reload(ps aux | grep -vE \"(ps aux|fzf)\")"
         )
 
         if test $status -eq 0
@@ -189,63 +201,12 @@ in {
             end
 
             # string join to replace the newlines outputted by string split with spaces
-            commandline --current-token --replace -- (string join ' ' $pids_selected)
+            commandline --current-token --replace -- (string join '; ' $pids_selected)
         end
 
         commandline --function repaint
       '';
 
-      die = ''
-        # Accept optional argument to pre-populate fzf query
-
-          # --preview="ps -p {2} -o pid,ppid,user,%cpu,%mem,etime,command || echo 'Cannot preview {2} because it has exited.'" \
-        set -l query ""
-        if test (count $argv) -gt 0
-          set query $argv[1]
-        end
-
-        # Create temp file to track killed processes
-        set -l killed_pids_file (mktemp)
-        set -f ps_preview_fmt (string join ',' 'pid' 'ppid=PARENT' 'user' '%cpu' 'rss=RSS_IN_KB' 'start=START_TIME' 'command')
-
-        ps aux | grep -vE "(ps aux|fzf)" | \
-        ${pkgs.fzf}/bin/fzf --multi \
-          --query="$query" \
-          --prompt="search processes » " \
-          --header=" $(tput sitm)$(tput setaf 5)processes: $(tput sgr 0)[ $(tput setaf 255)ctrl-x$(tput sgr 0): $(tput setaf 245)kill process(es) $(tput sgr 0)| $(tput setaf 255)ctrl-y$(tput sgr 0): $(tput setaf 245)copy pid(s) $(tput sgr 0)]" \
-          --header-lines=1 \
-          --bind="enter:execute-silent(
-            for line in {+}; do
-              pid=\$(echo \"\$line\" | awk '{print \$2}')
-              cmd=\$(echo \"\$line\" | awk '{for(i=11;i<=NF;i++) printf \$i\" \"}' | cut -c1-60)
-              if kill \$pid 2>/dev/null; then
-                echo \"\$pid|\$cmd\" >> $killed_pids_file
-              else
-                osascript -e \"display notification 'Failed to kill PID: '\$pid' ('\$cmd')' with title 'Kill Failed' sound name 'Basso'\"
-              fi
-            done
-          )+reload(ps aux | grep -vE \"(ps aux|fzf)\")" \
-          --bind='ctrl-y:execute-silent(echo -n {+2} | tr "\n" "," | pbcopy && osascript -e "display notification \"PIDs copied to clipboard\" with title \"Process Manager\" sound name \"Glass\"")' \
-          --preview="ps -o '$ps_preview_fmt' -p {+2}  || echo 'Cannot preview {2} because it has exited.'" \
-          --preview-window="right:60%:wrap"
-
-        # Display successfully killed processes
-        if test -s $killed_pids_file
-          echo ""
-          echo "$(tput setaf 2)✓ Successfully killed processes:$(tput sgr0)"
-          while read -l line
-            set -l parts (string split "|" $line)
-            echo "  $(tput setaf 6)PID $parts[1]:$(tput sgr0) $parts[2]"
-          end < $killed_pids_file
-          echo ""
-
-
-          # Clean up temp file
-          rm -f $killed_pids_file && echo "$(tput setaf 2)✓ cleaned up temp files for chk$(tput sgr0)"
-        end
-
-        commandline --function repaint
-      '';
       fzf-jj-bookmarks = ''
         set -l selected_bookmark (jj bookmark list | fzf --height 40%)
         if test -n "$selected_bookmark"
@@ -255,6 +216,7 @@ in {
         end
         commandline -f repaint
       '';
+
       _fzf_preview_file = ''
         # because there's no way to guarantee that _fzf_search_directory passes the path to _fzf_preview_file
         # as one argument, we collect all the arguments into one single variable and treat that as the path
@@ -284,7 +246,7 @@ in {
                 # -A list hidden files as well, except for . and ..
                 # -F helps classify files by appending symbols after the file name
                 # command ls -A -F "$file_path"
-                command eza -ahFT -L=1 --color=always --icons=always --sort=size --group-directories-first "$file_path" ;;
+                command eza -ahFT -L=1 --color=always --icons=always --sort=size --group-directories-first "$file_path"
             end
         else if test -c "$file_path"
             _fzf_report_file_type "$file_path" "character device file"
@@ -299,6 +261,7 @@ in {
             # echo "$file_path doesn't exist." >&2
         end
       '';
+
       fzf-dir-widget = ''
         # Directly use fd binary to avoid output buffering delay caused by a fd alias, if any.
         # Debian-based distros install fd as fdfind and the fd package is something else, so

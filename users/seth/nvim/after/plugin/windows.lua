@@ -424,9 +424,6 @@ function mega.resize_windows(bufnr)
   -- necessary to avoid split widths from going tooo small
   vim.o.cmdheight = cmdheight
   -- vim.o.cmdwinheight = 4
-
-  vim.o.winminwidth = 0
-  vim.o.winminheight = 0
   vim.opt.winfixheight = true
   vim.opt.winfixwidth = true
 
@@ -451,15 +448,20 @@ function mega.resize_windows(bufnr)
 
   if current_width < golden_width then
     vim.api.nvim_win_set_width(0, golden_width)
+    -- vim.print(golden_width, vim.o.winwidth, vim.o.winminwidth, math.min(golden_width, vim.api.nvim_win_get_width(0)))
+    vim.o.winminwidth = vim.o.winwidth
+    -- vim.o.winwidth = math.min(golden_width, 50)
   end
   if current_height < golden_height then
     vim.api.nvim_win_set_height(0, golden_height)
+    vim.o.winminheight = vim.o.winheight
+    -- vim.o.winminheight = 10
   end
 end
 
 Augroup("mega.plugin.windows", {
   {
-    event = { "VimEnter", "WinEnter" },
+    event = { "VimEnter", "WinEnter", "WinLeave" },
     command = function(args)
       mega.resize_windows(args.buf)
     end,

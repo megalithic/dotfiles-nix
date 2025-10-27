@@ -12,7 +12,7 @@ mega.ui.statuscolumn = {}
 ---@alias ExtmarkSign {[1]: number, [2]: number, [3]: number, [4]: {sign_text: string, sign_hl_group: string}}
 
 local fn, v, api, opt = vim.fn, vim.v, vim.api, vim.opt
-local U = require("utils")
+local U = require("config.utils")
 local sep = Icons.separators
 local strwidth = vim.api.nvim_strwidth
 local fmt = string.format

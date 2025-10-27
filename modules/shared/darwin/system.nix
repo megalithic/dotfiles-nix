@@ -25,7 +25,7 @@
     restartAfterFreeze = true;
     # restartAfterPowerFailure = true;
     sleep = {
-      display = "never";
+      display = 10;
       computer = "never";
       harddisk = "never";
       allowSleepByPowerButton = false;

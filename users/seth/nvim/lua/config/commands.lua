@@ -1,6 +1,6 @@
 local fmt = string.format
 local Methods = vim.lsp.protocol.Methods
-local U = require("utils")
+local U = require("config.utils")
 
 local M = {}
 
@@ -107,7 +107,7 @@ command("Delete", function()
     vim.notify(table.concat({ fp, err }, "\n"), vim.log.levels.ERROR, { title = ":Delete failed" })
     vim.cmd.bwipeout()
   else
-    require("utils").buf_close()
+    require("config.utils").buf_close()
     vim.notify(fp, vim.log.levels.INFO, { title = ":Delete succeeded" })
   end
 end, { desc = "Delete current file" })

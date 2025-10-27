@@ -4,7 +4,7 @@ if not Plugin_enabled() then
   return
 end
 
-local U = require("utils")
+local U = require("config.utils")
 local C = mega.ui.colors
 local M = {
   blink_delay = 150,

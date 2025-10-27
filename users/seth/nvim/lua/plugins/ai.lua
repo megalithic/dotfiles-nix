@@ -262,7 +262,7 @@ return {
         function()
           vim.cmd.NeoCodeium("toggle")
           -- local on = require("neocodeium.options").options.enabled
-          -- require("utils").notify("NeoCodeium", on and "enabled" or "disabled", "info")
+          -- require("config.utils").notify("NeoCodeium", on and "enabled" or "disabled", "info")
         end,
         desc = "󰚩 NeoCodeium Suggestions",
       },

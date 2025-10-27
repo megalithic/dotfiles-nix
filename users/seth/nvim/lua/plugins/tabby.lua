@@ -7,7 +7,7 @@ return {
   dependencies = { "rktjmp/lush.nvim" },
   cond = not vim.g.started_by_firenvim and not vim.env.TMUX_POPUP,
   config = function()
-    local SETTINGS = require("options")
+    local SETTINGS = require("config.options")
     local icons = Icons
     local fmt = string.format
 

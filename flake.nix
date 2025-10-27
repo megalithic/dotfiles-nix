@@ -69,14 +69,10 @@
       url = "github:nix-community/nur";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # emmylua-analyzer-rust = {
-    #   url = "github:EmmyLuaLs/emmylua-analyzer-rust";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
-    # mac-app-util = {
-    #   url = "github:hraban/mac-app-util";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
+    fenix = {
+      url = "github:nix-community/fenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
@@ -85,6 +81,7 @@
     nixpkgs-unstable,
     nix-darwin,
     home-manager,
+    fenix,
     ...
   } @ inputs: let
     # NOTE: currently just supports one host/user
@@ -115,6 +112,7 @@
       # inputs.jujutsu.overlays.default
       inputs.yazi.overlays.default
       inputs.nur.overlays.default
+      inputs.fenix.overlays.default
 
       # This overlay makes unstable packages available through pkgs.unstable
       (final: prev: rec {
@@ -171,6 +169,8 @@
       system = "${arch}";
       script = builtins.readFile scripts/${arch}_bootstrap.sh;
     };
+
+    packages.${arch}.default = fenix.packages.${arch}.minimal.toolchain;
 
     # Build darwin flake using:
     # darwin-rebuild switch --flake ~/nix

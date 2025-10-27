@@ -1,14 +1,10 @@
-if not Plugin_enabled() then
-  return
-end
+if not Plugin_enabled() then return end
 
 ---@param text string
 ---@param replace string
-local function abbr(text, replace, bufnr)
-  vim.keymap.set("ia", text, replace, { buffer = bufnr or true })
-end
+local function abbr(text, replace, bufnr) vim.keymap.set("ia", text, replace, { buffer = bufnr or true }) end
 
-require("ftplugin").extend_all({
+require("config.ftplugin").extend_all({
   -- dbee = {
   --   keys = {
   --     { "n", "H", "^" },
@@ -25,6 +21,17 @@ require("ftplugin").extend_all({
       relativenumber = false,
     },
   },
+--  [{ "cmd", "msg", "pager", "dialog" }] = {
+--
+--    opt = {
+--      signcolumn = false,
+--      number = false,
+--      relativenumber = false,
+--    },
+--    callback = function(bufnr, args)
+--      vim.api.nvim_set_option_value("winhl", "Normal:PanelBackground,FloatBorder:PanelBorder", {})
+--    end,
+--  },
   [{ "elixir", "eelixir" }] = {
     opt = {
       syntax = "OFF",
@@ -68,12 +75,8 @@ require("ftplugin").extend_all({
       --   )
       -- end)
 
-      local nmap = function(lhs, rhs, desc)
-        vim.keymap.set("n", lhs, rhs, { buffer = 0, desc = "ex: " .. desc })
-      end
-      local xmap = function(lhs, rhs, desc)
-        vim.keymap.set("x", lhs, rhs, { buffer = 0, desc = "ex: " .. desc })
-      end
+      local nmap = function(lhs, rhs, desc) vim.keymap.set("n", lhs, rhs, { buffer = 0, desc = "ex: " .. desc }) end
+      local xmap = function(lhs, rhs, desc) vim.keymap.set("x", lhs, rhs, { buffer = 0, desc = "ex: " .. desc }) end
       nmap("<localleader>ep", [[o|><ESC>a]], "pipe (new line)")
       nmap("<localleader>ed", [[o|> dbg()<ESC>a]], "dbg (new line)")
       nmap("<localleader>ei", [[o|> IO.inspect()<ESC>i]], "inspect (new line)")
@@ -424,9 +427,12 @@ require("ftplugin").extend_all({
   },
   gitrebase = {
     callback = function(bufnr, args)
-      vim.keymap.set("n", "q", function()
-        vim.cmd("cq!", { bang = true })
-      end, { buffer = bufnr, nowait = true, desc = "abort" })
+      vim.keymap.set(
+        "n",
+        "q",
+        function() vim.cmd("cq!", { bang = true }) end,
+        { buffer = bufnr, nowait = true, desc = "abort" }
+      )
     end,
   },
   [{ "gitcommit", "NeogitCommitMessage" }] = {
@@ -446,13 +452,14 @@ require("ftplugin").extend_all({
       concealcursor = "nc",
     },
     callback = function()
-      vim.keymap.set("n", "q", function()
-        vim.cmd("cq!", { bang = true })
-      end, { buffer = true, nowait = true, desc = "Abort" })
+      vim.keymap.set(
+        "n",
+        "q",
+        function() vim.cmd("cq!", { bang = true }) end,
+        { buffer = true, nowait = true, desc = "Abort" }
+      )
       vim.fn.matchaddpos("DiagnosticVirtualTextError", { { 1, 50, 10000 } })
-      if vim.api.nvim_get_current_line() == "" then
-        vim.cmd.startinsert()
-      end
+      if vim.api.nvim_get_current_line() == "" then vim.cmd.startinsert() end
     end,
   },
   fugitiveblame = {
@@ -515,15 +522,11 @@ require("ftplugin").extend_all({
       signcolumn = "no",
     },
     callback = function()
-      local map = function(keys, func, desc)
-        vim.keymap.set("n", keys, func, { buffer = 0, desc = "oil: " .. desc })
-      end
+      local map = function(keys, func, desc) vim.keymap.set("n", keys, func, { buffer = 0, desc = "oil: " .. desc }) end
 
       map("q", "<cmd>q<cr>", "quit")
       map("<leader>ed", "<cmd>q<cr>", "quit")
-      map("<BS>", function()
-        require("oil").open()
-      end, "goto parent dir")
+      map("<BS>", function() require("oil").open() end, "goto parent dir")
     end,
   },
   [{ "javascript", "typescript" }] = {
@@ -838,9 +841,7 @@ require("ftplugin").extend_all({
   },
   query = {
     callback = function(bufnr)
-      if vim.bo[bufnr].buftype == "nofile" then
-        return
-      end
+      if vim.bo[bufnr].buftype == "nofile" then return end
       -- vim.lsp.start({
       --   name = "ts_query_ls",
       --   cmd = {
@@ -878,4 +879,4 @@ require("ftplugin").extend_all({
   },
 })
 
-require("ftplugin").setup()
+require("config.ftplugin").setup()

@@ -62,6 +62,7 @@ in {
     ripgrep
     sqlite
     # terminal-notifier FIXME: not working with nixpkgs (arch not supported?)
+    switchaudio-osx
     tmux
     unstable.devenv
     w3m
@@ -82,8 +83,6 @@ in {
     yaml-language-server
     tailwindcss-language-server
     statix
-    # emmylua_ls
-    # emmylua_check
     tree-sitter # required for treesitter "auto-install" option to work
     nixd # nix lsp
     actionlint
@@ -93,6 +92,7 @@ in {
     lua51Packages.luarocks
     typos
     typos-lsp
+    typst
     copilot-language-server
     pngpaste # For Obsidian paste_img command
     stylelint-lsp
@@ -149,7 +149,6 @@ in {
     # tfsec
     # trivy
     # atlas
-    # typst
 
     # fonts ---------------------------------------------------------------------------------------
     atkinson-hyperlegible
@@ -207,7 +206,6 @@ in {
       # /Applications/.Nix-Karabiner/.Karabiner-VirtualHIDDevice-Manager.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager deactivate
       # then restarting and re-allowing Karabiner when prompted.
       source = ./karabiner/karabiner.json;
-      # onChange = "${pkgs.goku}/bin/goku";
     };
     ".config/eza/theme.yml".text = ''
       colourful: true
@@ -333,109 +331,6 @@ in {
       control_char: { foreground: "#83c092" }
       broken_symlink: { foreground: "#e67e80" }
       broken_path_overlay: { foreground: "#859289" }
-
-      # colourful: true
-      #
-      # filekinds:
-      #   normal: { foreground: "#d3c6aa" }
-      #   directory: { foreground: "#e69875" }
-      #   symlink: { foreground: "#859289" }
-      #   pipe: { foreground: "#727e85" }
-      #   block_device: { foreground: "#e67e80" }
-      #   char_device: { foreground: "#dbbc7f" }
-      #   socket: { foreground: "#343f44" }
-      #   special: { foreground: "#d699b6" }
-      #   executable: { foreground: "#a7c080" }
-      #   mount_point: { foreground: "#727e85" }
-      #
-      # perms:
-      #   user_read: { foreground: "#859289" }
-      #   user_write: { foreground: "#727e85" }
-      #   user_execute_file: { foreground: "#a7c080" }
-      #   user_execute_other: { foreground: "#a7c080" }
-      #   group_read: { foreground: "#859289" }
-      #   group_write: { foreground: "#727e85" }
-      #   group_execute: { foreground: "#a7c080" }
-      #   other_read: { foreground: "#859289" }
-      #   other_write: { foreground: "#727e85" }
-      #   other_execute: { foreground: "#a7c080" }
-      #   special_user_file: { foreground: "#d699b6" }
-      #   special_other: { foreground: "#727e85" }
-      #   attribute: { foreground: "#859289" }
-      #
-      # size:
-      #   major: { foreground: "#859289" }
-      #   minor: { foreground: "#e69875" }
-      #   number_byte: { foreground: "#859289" }
-      #   number_kilo: { foreground: "#859289" }
-      #   number_mega: { foreground: "#83c092" }
-      #   number_giga: { foreground: "#d699b6" }
-      #   number_huge: { foreground: "#d699b6" }
-      #   unit_byte: { foreground: "#859289" }
-      #   unit_kilo: { foreground: "#83c092" }
-      #   unit_mega: { foreground: "#d699b6" }
-      #   unit_giga: { foreground: "#d699b6" }
-      #   unit_huge: { foreground: "#e69875" }
-      #
-      # users:
-      #   user_you: { foreground: "#dbbc7f" }
-      #   user_root: { foreground: "#e67e80" }
-      #   user_other: { foreground: "#d699b6" }
-      #   group_yours: { foreground: "#859289" }
-      #   group_other: { foreground: "#727e85" }
-      #   group_root: { foreground: "#e67e80" }
-      #
-      # links:
-      #   normal: { foreground: "#e69875" }
-      #   multi_link_file: { foreground: "#83c092" }
-      #
-      # git:
-      #   new: { foreground: "#a7c080" }
-      #   modified: { foreground: "#dbbc7f" }
-      #   deleted: { foreground: "#e67e80" }
-      #   renamed: { foreground: "#83c092" }
-      #   typechange: { foreground: "#d699b6" }
-      #   ignored: { foreground: "#727e85" }
-      #   conflicted: { foreground: "#e67e80" }
-      #
-      # git_repo:
-      #   branch_main: { foreground: "#859289" }
-      #   branch_other: { foreground: "#d699b6" }
-      #   git_clean: { foreground: "#a7c080" }
-      #   git_dirty: { foreground: "#e67e80" }
-      #
-      # security_context:
-      #   colon: { foreground: "#859289" }
-      #   user: { foreground: "#e69875" }
-      #   role: { foreground: "#d699b6" }
-      #   typ: { foreground: "#727e85" }
-      #   range: { foreground: "#d699b6" }
-      #
-      # file_type:
-      #   image: { foreground: "#dbbc7f" }
-      #   video: { foreground: "#e67e80" }
-      #   music: { foreground: "#e69875" }
-      #   lossless: { foreground: "#727e85" }
-      #   crypto: { foreground: "#343f44" }
-      #   document: { foreground: "#859289" }
-      #   compressed: { foreground: "#d699b6" }
-      #   temp: { foreground: "#e67e80" }
-      #   compiled: { foreground: "#83c092" }
-      #   build: { foreground: "#727e85" }
-      #   source: { foreground: "#a7c080" }
-      #
-      # punctuation: { foreground: "#859289" }
-      # date: { foreground: "#83c092" }
-      # inode: { foreground: "#859289" }
-      # blocks: { foreground: "#859289" }
-      # header: { foreground: "#859289" }
-      # octal: { foreground: "#e69875" }
-      # flags: { foreground: "#d699b6" }
-      #
-      # symlink_path: { foreground: "#e69875" }
-      # control_char: { foreground: "#83c092" }
-      # broken_symlink: { foreground: "#e67e80" }
-      # broken_path_overlay: { foreground: "#859289" }
     '';
   };
 
@@ -505,8 +400,7 @@ in {
   programs = {
     home-manager.enable = true;
 
-    # speed up rebuilds
-    # HT: @tmiller
+    # speed up rebuilds // HT: @tmiller
     man.generateCaches = false;
 
     # neovim = {
@@ -592,32 +486,13 @@ in {
     git = {
       enable = true;
       package = pkgs.gitAndTools.gitFull;
-      userName = "Seth Messer";
-      userEmail = "seth@megalithic.io";
       includes = [
         {path = "~/.gitconfig";}
       ];
-      # extraConfig = {
-      #   gpg.format = "ssh";
-      #   "gpg \"ssh\"".program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
-      #   commit.gpgSign = true;
-      #   # user.signingKey = builtins.readFile /Users/${username}/.ssh/${username}-${hostname}.pub;
-      #   # user.signingKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPqAEvgo0iyCrzXC2i03sTHQIAgSbzwPp9U44fIOGXMu";
-      # };
-      # extraConfig.gpg.ssh.program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
-      # extraConfig.gpg.format = "ssh";
-      # extraConfig.commit.gpgSign = true;
+      extraConfig."gpg \"ssh\"".program = "${lib.getBin pkgs._1password-gui}/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+      extraConfig.gpg.format = "ssh";
+      extraConfig.commit.gpgSign = true;
     };
-
-    #   // lib.optionalAttrs isDarwin {
-    #   extraConfig = {
-    #     gpg.format = "ssh";
-    #     "gpg \"ssh\"".program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
-    #     commit.gpgSign = true;
-    #     # user.signingKey = builtins.readFile /Users/${username}/.ssh/${username}-${hostname}.pub;
-    #     # user.signingKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPqAEvgo0iyCrzXC2i03sTHQIAgSbzwPp9U44fIOGXMu";
-    #   };
-    # };
 
     direnv = {
       enable = true;
@@ -642,6 +517,7 @@ in {
     };
 
     yazi = import ./yazi/default.nix {inherit config pkgs lib;};
+
     htop = {
       enable = true;
       settings = {
@@ -649,6 +525,7 @@ in {
         sort_key = "PERCENT_CPU";
       };
     };
+
     zoxide = {
       enable = true;
       enableFishIntegration = true;
@@ -668,6 +545,7 @@ in {
         experimental = true;
         verbose = false;
       };
+
       # globalConfig = {
       #   tools = {
       #     elixir = "1.18.4-otp-27"; # alts: 1.18.4-otp-28
@@ -712,9 +590,11 @@ in {
         };
       };
     };
+
     ripgrep = {
       enable = true;
     };
+
     fd = {
       enable = true;
       ignores = [
@@ -726,11 +606,14 @@ in {
         ".Trash"
       ];
     };
+
     television = {
       enable = false;
       enableFishIntegration = false;
     };
+
     k9s.enable = true;
+
     jq.enable = true;
   };
 }

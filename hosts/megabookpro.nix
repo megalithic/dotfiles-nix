@@ -51,6 +51,15 @@ in {
   environment.systemPath = ["/opt/homebrew/bin"];
   environment.pathsToLink = ["/Applications"];
   environment.systemPackages = with pkgs; [
+    (fenix.complete.withComponents [
+      "cargo"
+      "clippy"
+      "rust-src"
+      "rustc"
+      "rustfmt"
+    ])
+    rust-analyzer-nightly
+
     bat
     curl
     coreutils
