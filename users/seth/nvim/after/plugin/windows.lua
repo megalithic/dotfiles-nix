@@ -1,6 +1,4 @@
-if not Plugin_enabled() then
-  return
-end
+if not Plugin_enabled() then return end
 --
 -- local config = {
 --   enable = true, -- Enable module
@@ -279,6 +277,7 @@ local ft_ignores = {
   "cmd",
   "pager",
   "dialog",
+  "oil",
 }
 
 local bt_ignores = {
@@ -307,11 +306,11 @@ local bt_ignores = {
   "DiffviewFilePanel",
   "edgy",
   "edgy://",
+  "oil",
+  "oil://",
 }
 
-local function is_floating_win()
-  return vim.fn.win_gettype() == "popup"
-end
+local function is_floating_win() return vim.fn.win_gettype() == "popup" end
 
 local function is_disabled()
   return vim.g.resize_disable == true or vim.w.resize_disable == true or vim.b.resize_disable == true
@@ -346,18 +345,14 @@ local golden_ratio_width = function()
   return math.floor(maxwidth / golden_ratio)
 end
 
-local golden_ratio_minwidth = function()
-  return math.floor(golden_ratio_width() / (3 * golden_ratio))
-end
+local golden_ratio_minwidth = function() return math.floor(golden_ratio_width() / (3 * golden_ratio)) end
 
 local golden_ratio_height = function()
   local maxheight = vim.o.lines
   return math.floor(maxheight / golden_ratio)
 end
 
-local golden_ratio_minheight = function()
-  return math.floor(golden_ratio_height() / (3 * golden_ratio))
-end
+local golden_ratio_minheight = function() return math.floor(golden_ratio_height() / (3 * golden_ratio)) end
 
 local function save_fixed_win_dims()
   local fixed_dims = {}
@@ -393,9 +388,7 @@ local function resize(bufnr)
   -- elseif width < golden_ratio_minwidth() then
   --   width = golden_ratio_minwidth()
   -- end
-  if width < golden_ratio_minwidth() then
-    width = golden_ratio_minwidth()
-  end
+  if width < golden_ratio_minwidth() then width = golden_ratio_minwidth() end
 
   local height = golden_ratio_height()
   -- if config.autoresize.minheight > 0 then
@@ -403,9 +396,7 @@ local function resize(bufnr)
   -- elseif height < golden_ratio_minheight() then
   --   height = golden_ratio_minheight()
   -- end
-  if height < golden_ratio_minheight() then
-    height = golden_ratio_minheight()
-  end
+  if height < golden_ratio_minheight() then height = golden_ratio_minheight() end
 
   -- save cmdheight to ensure it is not changed by nvim_win_set_height
   -- cmdheight = vim.o.cmdheight
@@ -462,9 +453,7 @@ end
 Augroup("mega.plugin.windows", {
   {
     event = { "VimEnter", "WinEnter", "WinLeave" },
-    command = function(args)
-      mega.resize_windows(args.buf)
-    end,
+    command = function(args) mega.resize_windows(args.buf) end,
     desc = "Auto-resize window with golden ratio",
   },
   {

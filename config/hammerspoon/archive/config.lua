@@ -1,5 +1,5 @@
-_G.DefaultFont = { name = "JetBrainsMono Nerd Font Mono", size = 16 }
---
+local window = require("hs.window")
+
 -- Trace all Lua code
 function lineTraceHook(event, data)
   lineInfo = debug.getinfo(2, "Snl")
@@ -7,28 +7,9 @@ function lineTraceHook(event, data)
 end
 
 -- Uncomment the following line to enable tracing
-if _G.tracingEnabled == true then
-  debug.sethook(lineTraceHook, "l")
-end
+-- debug.sethook(lineTraceHook, "l")
 
---- @diagnostic disable-next-line: lowercase-global
-function req(mod, ...)
-  local ok, reqmod = pcall(require, mod)
-  if not ok then
-    error(reqmod)
-  else
-    -- if there is an init function; invoke it first.
-    if type(reqmod) == "table" and reqmod.init ~= nil and type(reqmod.init) == "function" then
-      -- if initializedModules[reqmod.name] ~= nil then
-      reqmod:init(...)
-      -- initializedModules[reqmod.name] = reqmod
-      -- end
-    end
-
-    -- always return the module.. we typically end up immediately invoking it.
-    return reqmod
-  end
-end
+-- [ HAMMERSPOON SETTINGS ] ----------------------------------------------------
 
 hs.allowAppleScript(true)
 hs.application.enableSpotlightForNameSearches(false)
@@ -41,9 +22,9 @@ hs.logger.defaultLogLevel = "error"
 hs.hotkey.setLogLevel("error")
 hs.keycodes.log.setLogLevel("error")
 
-hs.window.animationDuration = 0.0
-hs.window.highlight.ui.overlay = false
-hs.window.setShadows(false)
+window.animationDuration = 0.0
+window.highlight.ui.overlay = false
+window.setShadows(false)
 
 hs.grid.setGrid("60x20")
 hs.grid.setMargins("0x0")
@@ -83,7 +64,9 @@ hs.alert.defaultStyle["textColor"] = {
   blue = 240 / 255,
   alpha = 1,
 }
-hs.alert.defaultStyle["textFont"] = DefaultFont.name
+hs.alert.defaultStyle["textFont"] = "JetBrainsMono Nerd Font"
+
+-- [ CONSTANTS (used all over) ] -----------------------------------------------
 
 HYPER = "F19"
 
@@ -133,6 +116,32 @@ POSITIONS = {
     left = "0,0 50x20",
     right = "10,0 50x20",
   },
+}
+
+-- bundleID, global, { local }, focusOnly
+LAUNCHERS = {
+  { "com.brave.Browser.nightly", "j", nil, false },
+  { "com.mitchellh.ghostty", "k", { "`" }, false },
+  -- { "net.kovidgoyal.kitty", "k", nil, false },
+  { "com.apple.MobileSMS", "m", nil, false }, -- NOOP for now.. TODO: implement a binding feature that let's us require n-presses before we execute
+  { "com.apple.finder", "f", nil, false },
+  { "com.spotify.client", "p", nil, false },
+  -- { "com.apple.Mail", "e", nil, false },
+  { "org.nixos.thunderbird", "e", nil, false },
+  -- { "com.freron.MailMate", "e", nil, false },
+  { "com.flexibits.fantastical2.mac", "y", { "'" }, false },
+  { "com.raycast.macos", "space", { "c" }, false },
+  { "com.superultra.Homerow", nil, { ";" }, false },
+  { "com.tinyspeck.slackmacgap", "s", nil, false },
+  { "com.microsoft.teams2", "t", nil, false },
+  { "org.hammerspoon.Hammerspoon", "r", nil, false },
+  { "com.apple.dt.Xcode", "x", nil, true },
+  { "com.google.android.studio", "x", nil, true },
+  { "com.obsproject.obs-studio", "o", nil, true },
+  { "com.microsoft.VSCode", "v", nil, false },
+  -- { "com.kapeli.dashdoc", { { "shift" }, "d" }, { "d" }, false },
+  { "com.electron.postbird", { { "shift" }, "p" }, nil, false },
+  { "com.1password.1password", "1", nil, false },
 }
 
 LAYOUTS = {
@@ -381,77 +390,31 @@ LOLLYGAGGERS = {
   ["com.spotify.client"] = { 1, nil },
 }
 
-LAUNCHERS = {
-  { "com.brave.Browser.nightly", "j", nil, false },
-  { "com.mitchellh.ghostty", "k", { "`" }, false },
-  -- { "net.kovidgoyal.kitty", "k", nil, false },
-  { "com.apple.MobileSMS", "m", nil, false }, -- NOOP for now.. TODO: implement a binding feature that let's us require n-presses before we execute
-  { "com.apple.finder", "f", nil, false },
-  { "com.spotify.client", "p", nil, false },
-  { "com.freron.MailMate", "e", nil, false },
-  { "com.flexibits.fantastical2.mac", "y", { "'" }, false },
-  { "com.raycast.macos", "space", { "c" }, false },
-  { "com.superultra.Homerow", nil, { ";" }, false },
-  { "com.tinyspeck.slackmacgap", "s", nil, false },
-  { "com.microsoft.teams2", "t", nil, false },
-  { "org.hammerspoon.Hammerspoon", "r", nil, false },
-  { "com.apple.dt.Xcode", "x", nil, true },
-  { "com.google.android.studio", "x", nil, true },
-  { "com.obsproject.obs-studio", "o", nil, true },
-  { "com.microsoft.VSCode", "v", nil, false },
-  -- { "com.kapeli.dashdoc", { { "shift" }, "d" }, { "d" }, false },
-  { "com.electron.postbird", { { "shift" }, "p" }, nil, false },
-  { "com.1password.1password", "1", nil, false },
+DOCK = {
+  target = {
+    productID = 39536,
+    productName = "LG UltraFine Display Controls",
+    vendorID = 1086,
+    vendorName = "LG Electronics Inc.",
+  },
+  keyboard = {
+    connected = "leeloo",
+    disconnected = "internal",
+    productID = 24926,
+    productName = "Leeloo",
+    vendorID = 7504,
+    vendorName = "ZMK Project",
+  },
+  docked = {
+    wifi = "off",
+    input = "Samson GoMic",
+    output = "bose",
+  },
+  undocked = {
+    wifi = "on",
+    input = "bose",
+    output = "bose",
+  },
 }
 
-if not hs.ipc.cliStatus() then
-  hs.ipc.cliInstall()
-end
-require("hs.ipc")
-
-pcall(require, "nix_path")
-NIX_PATH = NIX_PATH or nil
-if NIX_PATH then
-  PATH = table.concat({ NIX_PATH, "/opt/homebrew/bin", os.getenv("PATH") }, ":")
-else
-  PATH = table.concat({ "/opt/homebrew/bin", os.getenv("PATH") }, ":")
-end
-
---- Created by muescha.
---- DateTime: 15.10.24
---- See: https://github.com/Hammerspoon/hammerspoon/issues/3224#issuecomment-2155567633
---- https://github.com/Hammerspoon/hammerspoon/issues/3277
-local function axHotfix(win, infoText)
-  if not win then
-    win = hs.window.frontmostWindow()
-  end
-  if not infoText then
-    infoText = "?"
-  end
-
-  local axApp = hs.axuielement.applicationElement(win:application())
-  local wasEnhanced = axApp.AXEnhancedUserInterface
-  axApp.AXEnhancedUserInterface = false
-  -- print(" enable hotfix: " .. infoText)
-
-  return function()
-    hs.timer.doAfter(hs.window.animationDuration * 2, function()
-      -- print("disable hotfix: " .. infoText)
-      axApp.AXEnhancedUserInterface = wasEnhanced
-    end)
-  end
-end
-
-local function withAxHotfix(fn, position, infoText)
-  if not position then
-    position = 1
-  end
-  return function(...)
-    local revert = axHotfix(select(position, ...), infoText)
-    fn(...)
-    revert()
-  end
-end
-
-local windowMT = hs.getObjectMetatable("hs.window")
-windowMT.setFrame = withAxHotfix(windowMT.setFrame, 1, "setFrame")
+info(fmt("[START] %s", "config"))

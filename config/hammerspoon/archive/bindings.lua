@@ -1,13 +1,62 @@
-hs.loadSpoon("HyperModal")
-
-_G.Hypers = {}
-
-local fmt = string.format
 local wm = req("wm")
 local summon = req("summon")
 local chain = req("chain")
 local enum = req("hs.fnutils")
-local utils = require("utils")
+local utils = require("config.utils")
+
+local function activateModal(mods, key, timeout)
+  timeout = timeout or false
+  local modal = hs.hotkey.modal.new(mods, key)
+  local timer = hs.timer.new(1, function()
+    modal:exit()
+  end)
+  modal:bind("", "escape", nil, function()
+    modal:exit()
+  end)
+  modal:bind("ctrl", "c", nil, function()
+    modal:exit()
+  end)
+  function modal:entered()
+    if timeout then
+      timer:start()
+    end
+    print("modal entered")
+  end
+  function modal:exited()
+    if timeout then
+      timer:stop()
+    end
+    print("modal exited")
+  end
+  return modal
+end
+
+local function modalBind(modal, key, fn, exitAfter)
+  exitAfter = exitAfter or false
+  modal:bind("", key, nil, function()
+    fn()
+    if exitAfter then
+      modal:exit()
+    end
+  end)
+end
+
+local function registerModalBindings(mods, key, bindings, exitAfter)
+  exitAfter = exitAfter or false
+  local timeout = exitAfter == true
+  local modal = activateModal(mods, key, timeout)
+
+  if bindings ~= nil then
+    if utils.tlen(bindings) == 1 then
+      modalBind(modal, bindings[1], bindings[2], exitAfter)
+    else
+      for modalKey, binding in pairs(bindings) do
+        modalBind(modal, modalKey, binding, exitAfter)
+      end
+    end
+  end
+  return modal
+end
 
 -- [ APP LAUNCHERS ] -----------------------------------------------------------
 
@@ -87,7 +136,7 @@ req("hyper", { id = "meeting" }):start():bind({}, "z", nil, function()
   elseif req("browser").hasTab("meet.google.com|hangouts.google.com.call|www.valant.io|telehealth.px.athena.io") then
     req("browser").jump("meet.google.com|hangouts.google.com.call|www.valant.io|telehealth.px.athena.io")
   else
-    print(fmt("%s: no meeting targets to focus", "bindings.hyper.meeting"))
+    info(fmt("%s: no meeting targets to focus", "bindings.hyper.meeting"))
 
     focusedApp:activate()
   end
@@ -100,7 +149,7 @@ req("hyper", { id = "figma" }):start():bind({ "shift" }, "f", nil, function()
   elseif req("browser").hasTab("figma.com") then
     req("browser").jump("figma.com")
   else
-    print(fmt("%s: neither figma.app, nor figma web are opened", "bindings.hyper.figma"))
+    info(fmt("%s: neither figma.app, nor figma web are opened", "bindings.hyper.figma"))
 
     focusedApp:activate()
   end
@@ -523,7 +572,7 @@ req("hyper", { id = "wm" })
 ]]
 --
 
--- req("snipper")
--- req("clipper")
+req("snipper")
+req("clipper")
 
-print(fmt("[START] %s", "bindings"))
+info(fmt("[START] %s", "bindings"))

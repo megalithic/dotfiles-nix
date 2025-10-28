@@ -1,5 +1,3 @@
-_G.DefaultFont = { name = "JetBrainsMono Nerd Font Mono", size = 16 }
---
 -- Trace all Lua code
 function lineTraceHook(event, data)
   lineInfo = debug.getinfo(2, "Snl")
@@ -10,6 +8,9 @@ end
 if _G.tracingEnabled == true then
   debug.sethook(lineTraceHook, "l")
 end
+
+_G["hypers"] = {}
+_G.DefaultFont = { name = "JetBrainsMono Nerd Font Mono", size = 16 }
 
 --- @diagnostic disable-next-line: lowercase-global
 function req(mod, ...)
@@ -83,7 +84,7 @@ hs.alert.defaultStyle["textColor"] = {
   blue = 240 / 255,
   alpha = 1,
 }
-hs.alert.defaultStyle["textFont"] = DefaultFont.name
+hs.alert.defaultStyle["textFont"] = "JetBrainsMono Nerd Font Mono"
 
 HYPER = "F19"
 
@@ -381,27 +382,44 @@ LOLLYGAGGERS = {
   ["com.spotify.client"] = { 1, nil },
 }
 
-LAUNCHERS = {
-  { "com.brave.Browser.nightly", "j", nil, false },
-  { "com.mitchellh.ghostty", "k", { "`" }, false },
-  -- { "net.kovidgoyal.kitty", "k", nil, false },
-  { "com.apple.MobileSMS", "m", nil, false }, -- NOOP for now.. TODO: implement a binding feature that let's us require n-presses before we execute
-  { "com.apple.finder", "f", nil, false },
-  { "com.spotify.client", "p", nil, false },
-  { "com.freron.MailMate", "e", nil, false },
-  { "com.flexibits.fantastical2.mac", "y", { "'" }, false },
-  { "com.raycast.macos", "space", { "c" }, false },
-  { "com.superultra.Homerow", nil, { ";" }, false },
-  { "com.tinyspeck.slackmacgap", "s", nil, false },
-  { "com.microsoft.teams2", "t", nil, false },
-  { "org.hammerspoon.Hammerspoon", "r", nil, false },
-  { "com.apple.dt.Xcode", "x", nil, true },
-  { "com.google.android.studio", "x", nil, true },
-  { "com.obsproject.obs-studio", "o", nil, true },
-  { "com.microsoft.VSCode", "v", nil, false },
-  -- { "com.kapeli.dashdoc", { { "shift" }, "d" }, { "d" }, false },
-  { "com.electron.postbird", { { "shift" }, "p" }, nil, false },
-  { "com.1password.1password", "1", nil, false },
+-- bundleID, global, local
+Bindings = {
+  -- -- {'com.agiletortoise.Drafts-OSX', 'd', {'x', 'n'}},
+  -- {'com.apple.MobileSMS', 'q', nil},
+  -- {'com.apple.finder', 'f', nil},
+  -- {'com.apple.mail', 'e', nil},
+  -- {'com.flexibits.cardhop.mac', nil, {'u'}},
+  -- {'com.flexibits.fantastical2.mac', 'y', {'/'}},
+  -- {'com.mitchellh.ghostty', 'j', nil},
+  -- {'com.toggl.daneel', 'r', nil},
+  -- {'com.raycast.macos', nil, {'c', 'n', 'space', ';'}},
+  -- {'com.superultra.Homerow', nil, {'return', 'tab'}},
+  -- {'com.surteesstudios.Bartender', nil, {'b'}},
+  -- {'md.obsidian', 'g', nil},
+  -- {'notion.id', 'w', nil}
+
+  { "com.brave.Browser.nightly", "j", nil },
+  { "com.mitchellh.ghostty", "k", { "`" } },
+  -- { "net.kovidgoyal.kitty", "k", nil },
+  { "com.apple.MobileSMS", "m", nil }, -- NOOP for now.. TODO: implement a binding feature that let's us require n-presses before we execute
+  { "com.apple.finder", "f", nil },
+  { "com.spotify.client", "p", nil },
+  -- { "com.apple.Mail", "e", nil },
+  -- { "org.nixos.thunderbird", "e", nil },
+  { "com.freron.MailMate", "e", nil },
+  { "com.flexibits.fantastical2.mac", "y", { "'" } },
+  { "com.raycast.macos", "space", { "c" } },
+  { "com.superultra.Homerow", nil, { ";" } },
+  { "com.tinyspeck.slackmacgap", "s", nil },
+  { "com.microsoft.teams2", "t", nil },
+  { "org.hammerspoon.Hammerspoon", "r", nil },
+  { "com.apple.dt.Xcode", "x", nil },
+  { "com.google.android.studio", "x", nil },
+  { "com.obsproject.obs-studio", "o", nil },
+  { "com.microsoft.VSCode", "v", nil },
+  -- { "com.kapeli.dashdoc", { { "shift" }, "d" }, { "d" } },
+  { "com.electron.postbird", { { "shift" }, "p" }, nil },
+  { "com.1password.1password", "1", nil },
 }
 
 if not hs.ipc.cliStatus() then
@@ -417,10 +435,14 @@ else
   PATH = table.concat({ "/opt/homebrew/bin", os.getenv("PATH") }, ":")
 end
 
+-- hs.settings.set("secrets", hs.json.read(".secrets.json"))
+
 --- Created by muescha.
 --- DateTime: 15.10.24
+---
 --- See: https://github.com/Hammerspoon/hammerspoon/issues/3224#issuecomment-2155567633
 --- https://github.com/Hammerspoon/hammerspoon/issues/3277
+
 local function axHotfix(win, infoText)
   if not win then
     win = hs.window.frontmostWindow()
@@ -455,3 +477,296 @@ end
 
 local windowMT = hs.getObjectMetatable("hs.window")
 windowMT.setFrame = withAxHotfix(windowMT.setFrame, 1, "setFrame")
+
+local wm = req("wm")
+local summon = req("summon")
+local chain = req("chain")
+local enum = req("hs.fnutils")
+local utils = require("utils")
+
+-- hs.loadSpoon("SpoonInstall")
+hs.loadSpoon("EmmyLua")
+hs.loadSpoon("HyperModal")
+hs.loadSpoon("Hyper")
+hs.loadSpoon("PTT")
+
+Hyper = spoon.Hyper
+Hyper:bindHotkeys({ hyperKey = { {}, HYPER } })
+
+hs.fnutils.each(Bindings, function(bindingTable)
+  local bundleID, globalBind, localBinds = table.unpack(bindingTable)
+  if globalBind then
+    local mod = {}
+    local key = globalBind
+    if type(globalBind) == "table" then
+      mod, key = table.unpack(globalBind)
+    end
+
+    Hyper:bind(mod, key, function()
+      hs.application.launchOrFocusByBundleID(bundleID)
+    end)
+  end
+  if localBinds then
+    hs.fnutils.each(localBinds, function(key)
+      Hyper:bindPassThrough(key, bundleID)
+    end)
+  end
+end)
+
+local wmModality = spoon.HyperModal
+wmModality
+  :start()
+  :bind({}, "r", req("wm").placeAllApps, function()
+    wmModality:exit(0.1)
+  end)
+  :bind({}, "escape", function()
+    wmModality:exit()
+  end)
+  -- :bind({}, "space", function() wm.place(POSITIONS.preview) end, function() wmModality:exit(0.1) end)
+  :bind(
+    {},
+    "space",
+    chain({
+      POSITIONS.full,
+      POSITIONS.center.large,
+      POSITIONS.center.medium,
+      POSITIONS.center.small,
+      POSITIONS.center.tiny,
+      POSITIONS.center.mini,
+      POSITIONS.preview,
+    }, wmModality, 1.0)
+  )
+  :bind({}, "return", function()
+    wm.place(POSITIONS.full)
+  end, function()
+    wmModality:exit(0.1)
+  end)
+  :bind({ "shift" }, "return", function()
+    wm.toNextScreen()
+    wm.place(POSITIONS.full)
+  end, function()
+    wmModality:exit()
+  end)
+  :bind(
+    {},
+    "h",
+    chain(
+      enum.map({ "halves", "thirds", "twoThirds", "fiveSixths", "sixths" }, function(size)
+        if type(POSITIONS[size]) == "string" then
+          return POSITIONS[size]
+        end
+        return POSITIONS[size]["left"]
+      end),
+      wmModality,
+      1.0
+    )
+  )
+  :bind(
+    {},
+    "l",
+    chain(
+      enum.map({ "halves", "thirds", "twoThirds", "fiveSixths", "sixths" }, function(size)
+        if type(POSITIONS[size]) == "string" then
+          return POSITIONS[size]
+        end
+        return POSITIONS[size]["right"]
+      end),
+      wmModality,
+      1.0
+    )
+  )
+  :bind({ "shift" }, "h", function()
+    wm.toPrevScreen()
+    chain(
+      enum.map({ "halves", "thirds", "twoThirds", "fiveSixths", "sixths" }, function(size)
+        if type(POSITIONS[size]) == "string" then
+          return POSITIONS[size]
+        end
+        return POSITIONS[size]["left"]
+      end),
+      wmModality,
+      1.0
+    )
+  end)
+  :bind({ "shift" }, "l", function()
+    wm.toNextScreen()
+    chain(
+      enum.map({ "halves", "thirds", "twoThirds", "fiveSixths", "sixths" }, function(size)
+        if type(POSITIONS[size]) == "string" then
+          return POSITIONS[size]
+        end
+        return POSITIONS[size]["right"]
+      end),
+      wmModality,
+      1.0
+    )
+  end)
+  -- :bind({}, "j", function() wm.toNextScreen() end, function() wmModality:delayedExit(0.1) end)
+  :bind(
+    {},
+    "j",
+    function()
+      wm.place(POSITIONS.center.large)
+    end,
+    -- chain({
+    --   POSITIONS.center.mini,
+    --   POSITIONS.center.tiny,
+    --   POSITIONS.center.small,
+    --   POSITIONS.center.medium,
+    --   POSITIONS.center.large,
+    -- }, wmModality, 1.0)
+    function()
+      wmModality:exit()
+    end
+  )
+  :bind(
+    {},
+    "k",
+    function()
+      wm.place(POSITIONS.center.medium)
+    end,
+    -- chain({
+    --   POSITIONS.center.large,
+    --   POSITIONS.center.medium,
+    --   POSITIONS.center.small,
+    --   POSITIONS.center.tiny,
+    --   POSITIONS.center.mini,
+    -- }, wmModality, 1.0)
+    function()
+      wmModality:exit()
+    end
+  )
+  :bind({}, "v", function()
+    require("wm").tile()
+    wmModality:exit()
+  end)
+  :bind({}, "s", function()
+    req("browser"):splitTab()
+    wmModality:exit()
+  end)
+  :bind({ "shift" }, "s", function()
+    req("browser"):splitTab(true)
+    wmModality:exit()
+  end)
+  :bind({}, "m", function()
+    local app = hs.application.frontmostApplication()
+    local menuItemTable = { "Window", "Merge All Windows" }
+    if app:findMenuItem(menuItemTable) then
+      app:selectMenuItem(menuItemTable)
+    else
+      warn("Merge All Windows is unsupported for " .. app:bundleID())
+    end
+
+    wmModality:exit()
+  end)
+  :bind({}, "f", function()
+    local focused = hs.window.focusedWindow()
+    enum.map(focused:otherWindowsAllScreens(), function(win)
+      win:application():hide()
+    end)
+    wmModality:exit()
+  end)
+  :bind({}, "c", function()
+    local win = hs.window.focusedWindow()
+    local screenWidth = win:screen():frame().w
+    hs.window.focusedWindow():move(hs.geometry.rect(screenWidth / 2 - 300, 0, 600, 400))
+    -- resizes to a small console window at the top middle
+
+    wmModality:exit()
+  end)
+  :bind({}, "b", function()
+    local wip = require("wip")
+    wip.bowser()
+  end)
+-- :bind({}, "b", function()
+--   hs.timer.doAfter(5, function()
+--     local focusedWindow = hs.window.focusedWindow()
+
+--     if focusedWindow then
+--       local axWindow = hs.axuielement.windowElement(focusedWindow)
+
+--       function printAXElements(element, indent)
+--         indent = indent or ""
+
+--         print(indent .. "Element: " .. tostring(element))
+
+--         local attributes = element:attributeNames()
+--         for _, attr in ipairs(attributes) do
+--           local value = element:attributeValue(attr)
+--           print(indent .. "  " .. attr .. ": " .. tostring(value))
+--         end
+
+--         local children = element:childElements()
+--         if children then
+--           for _, child in ipairs(children) do
+--             printAXElements(child, indent .. "  ")
+--           end
+--         end
+--       end
+
+--       print("AX Elements for Focused Window:")
+--       printAXElements(axWindow)
+--     else
+--       print("No focused window found.")
+--     end
+--   end)
+-- end)
+
+Hyper:bind({}, "l", function()
+  wmModality:toggle()
+end)
+
+Hyper
+  :bind({ "shift" }, "r", nil, function()
+    hs.notify.new({ title = "hammerspork", subTitle = "config is reloading..." }):send()
+    hs.reload()
+  end)
+  -- :bind({ "shift", "ctrl" }, "l", nil, req("wm").placeAllApps)
+  -- focus daily notes; splitting it 30/70 with currently focused app window
+  :bind(
+    { "shift" },
+    "o",
+    nil,
+    function()
+      utils.tmux.focusDailyNote(true)
+    end
+  )
+  -- focus daily note; window layout untouched
+  :bind({ "ctrl" }, "o", nil, function()
+    utils.tmux.focusDailyNote()
+  end)
+  :bind({ "ctrl" }, "d", nil, function()
+    utils.dnd()
+  end)
+
+-- -- Our listing of *.watcher based modules; the core of the automation that takes place.
+-- -- NOTE: `app` contains the app layout and app context logic.
+-- local watchers = {
+--   "bluetooth",
+--   "usb",
+--   "dock",
+--   "app",
+--   "url",
+--   "files",
+-- }
+--
+-- req("config")
+-- req("libs")
+-- req("bindings")
+-- -- req("spotify"):start()
+-- req("browser"):start()
+-- req("ptt"):start({ mode = "push-to-talk" })
+-- req("quitter"):start({ mode = "double" })
+
+-- req("watchers"):start(watchers)
+-- hs.shutdownCallback = function()
+--   req("watchers"):stop(watchers)
+-- end
+
+-- PTT = spoon.PTT
+-- PTT:bindHotkeys({ push = { { "cmd", "alt" }, nil }, toggle = { { "cmd", "alt" }, "p" } })
+
+hs.timer.doAfter(0.2, function()
+  hs.notify.withdrawAll()
+  hs.notify.new({ title = "hammerspork", subTitle = "config is loaded." }):send()
+end)

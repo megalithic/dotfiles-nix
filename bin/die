@@ -5,7 +5,7 @@ set -euo pipefail
 query="${1:-}"
 
 while true; do
-  selected=$(ps -eo pid,ppid,user,%cpu,%mem,command |
+  result=$(ps -eo pid,ppid,user,%cpu,%mem,command |
     tail -n +2 |
     grep -v "fzf" |
     grep -v "$$" |
@@ -20,9 +20,11 @@ while true; do
       --query="$query" \
       --preview="preview --process {1}" \
       --preview-window="right:50%:wrap" \
-      --bind="esc:abort")
+      --bind="esc:abort" \
+      --print-query)
 
-  query=""
+  query=$(echo "$result" | head -n 1)
+  selected=$(echo "$result" | tail -n +2)
 
   if [[ -z "$selected" ]]; then
     exit 0

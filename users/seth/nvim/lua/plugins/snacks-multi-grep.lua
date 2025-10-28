@@ -47,14 +47,10 @@ local function get_cmd(opts, filter)
   end
 
   -- ignored
-  if opts.ignored then
-    args[#args + 1] = "--no-ignore"
-  end
+  if opts.ignored then args[#args + 1] = "--no-ignore" end
 
   -- follow
-  if opts.follow then
-    args[#args + 1] = "-L"
-  end
+  if opts.follow then args[#args + 1] = "-L" end
 
   local types = type(opts.ft) == "table" and opts.ft or { opts.ft }
   ---@cast types string[]
@@ -63,9 +59,7 @@ local function get_cmd(opts, filter)
     args[#args + 1] = t
   end
 
-  if opts.regex == false then
-    args[#args + 1] = "--fixed-strings"
-  end
+  if opts.regex == false then args[#args + 1] = "--fixed-strings" end
 
   local glob = type(opts.glob) == "table" and opts.glob or { opts.glob }
   ---@cast glob string[]
@@ -98,15 +92,11 @@ local function get_cmd(opts, filter)
   if opts.buffers then
     for _, buf in ipairs(vim.api.nvim_list_bufs()) do
       local name = vim.api.nvim_buf_get_name(buf)
-      if name ~= "" and vim.bo[buf].buflisted and uv.fs_stat(name) then
-        paths[#paths + 1] = name
-      end
+      if name ~= "" and vim.bo[buf].buflisted and uv.fs_stat(name) then paths[#paths + 1] = name end
     end
   end
   vim.list_extend(paths, opts.dirs or {})
-  if opts.rtp then
-    vim.list_extend(paths, Snacks.picker.util.rtp())
-  end
+  if opts.rtp then vim.list_extend(paths, Snacks.picker.util.rtp()) end
 
   -- dirs
   if #paths > 0 then
@@ -126,9 +116,7 @@ local function finder(opts, ctx)
   local absolute = (opts.dirs and #opts.dirs > 0) or opts.buffers or opts.rtp
   local cwd = not absolute and svim.fs.normalize(opts and opts.cwd or uv.cwd() or ".") or nil
   local cmd, args = get_cmd(opts, ctx.filter)
-  if opts.debug.grep then
-    Snacks.notify.info("grep: " .. cmd .. " " .. table.concat(args, " "))
-  end
+  if opts.debug.grep then Snacks.notify.info("grep: " .. cmd .. " " .. table.concat(args, " ")) end
   return require("snacks.picker.source.proc").proc({
     opts,
     {
@@ -140,9 +128,7 @@ local function finder(opts, ctx)
         item.cwd = cwd
         local file, line, col, text = item.text:match("^(.+):(%d+):(%d+):(.*)$")
         if not file then
-          if not item.text:match("WARNING") then
-            Snacks.notify.error("invalid grep output:\n" .. item.text)
-          end
+          if not item.text:match("WARNING") then Snacks.notify.error("invalid grep output:\n" .. item.text) end
           return false
         else
           item.line = text

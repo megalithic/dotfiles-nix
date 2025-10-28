@@ -24,7 +24,7 @@ local shade = sep.light_shade_block
 local CLICK_END = "%X"
 local padding = " "
 
-local excluded_bts = { "terminal", "nofile" }
+local excluded_bts = { "terminal", "nofile", "input", "prompt" }
 local excluded_fts = {
   "NeogitCommitMessage",
   "NeogitCommitView",
@@ -46,6 +46,7 @@ local excluded_fts = {
   "man",
   "megaterm",
   "neo-tree",
+  "prompt",
   "neotest-summary",
   "oil",
   "org",
@@ -63,6 +64,7 @@ local excluded_fts = {
   "undotree",
   "vim-plug",
   "vimwiki",
+  "snacks",
 }
 
 local should_hide_numbers = function(filetype, buftype)
@@ -70,9 +72,7 @@ local should_hide_numbers = function(filetype, buftype)
 end
 
 ---@return StringComponent
-local function separator()
-  return { component = "%=", length = 0, priority = 0 }
-end
+local function separator() return { component = "%=", length = 0, priority = 0 } end
 
 ---@param func_name string
 ---@param id string
@@ -97,9 +97,7 @@ local function spacer(size, opts)
   opts = opts or {}
   local filler = opts.filler or " "
   local priority = opts.priority or 0
-  if not size or size < 1 then
-    return
-  end
+  if not size or size < 1 then return end
   local spc = string.rep(filler, size)
   return { { { spc } }, priority = priority, before = "", after = "" }
 end
@@ -109,9 +107,7 @@ end
 --- @param max_size integer
 --- @return string
 local function truncate_str(str, max_size)
-  if not max_size or strwidth(str) < max_size then
-    return str
-  end
+  if not max_size or strwidth(str) < max_size then return str end
   local match, count = str:gsub("(['\"]).*%1", "%1…%1")
   return count > 0 and match or str:sub(1, max_size - 1) .. "…"
 end
@@ -121,18 +117,12 @@ end
 ---@param chunks Chunks
 ---@return string
 local function chunks_to_string(chunks)
-  if not chunks or not vim.islist(chunks) then
-    return ""
-  end
+  if not chunks or not vim.islist(chunks) then return "" end
   local strings = U.fold(function(acc, item)
     local text, hl = unpack(item)
     if not U.falsy(text) then
-      if type(text) ~= "string" then
-        text = tostring(text)
-      end
-      if item.max_size then
-        text = truncate_str(text, item.max_size)
-      end
+      if type(text) ~= "string" then text = tostring(text) end
+      if item.max_size then text = truncate_str(text, item.max_size) end
       text = text:gsub("%%", "%%%1")
       table.insert(acc, not U.falsy(hl) and ("%%#%s#%s%%*"):format(hl, text) or text)
     end
@@ -156,24 +146,16 @@ end
 --- @return StringComponent?
 local function component(opts)
   assert(opts, "component options are required")
-  if opts.cond ~= nil and U.falsy(opts.cond) then
-    return
-  end
+  if opts.cond ~= nil and U.falsy(opts.cond) then return end
 
   local item = opts[1]
-  if not vim.islist(item) then
-    error(fmt("component options are required but got %s instead", vim.inspect(item)))
-  end
+  if not vim.islist(item) then error(fmt("component options are required but got %s instead", vim.inspect(item))) end
 
-  if not opts.priority then
-    opts.priority = 10
-  end
+  if not opts.priority then opts.priority = 10 end
   local before, after = opts.before or "", opts.after or padding
 
   local item_str = chunks_to_string(item)
-  if strwidth(item_str) == 0 then
-    return
-  end
+  if strwidth(item_str) == 0 then return end
 
   local click_start = opts.click and get_click_start(opts.click, tostring(opts.id)) or ""
   local click_end = opts.click and CLICK_END or ""
@@ -186,24 +168,16 @@ local function component(opts)
 end
 
 local function sum_lengths(list)
-  return U.fold(function(acc, item)
-    return acc + (item.length or 0)
-  end, list, 0)
+  return U.fold(function(acc, item) return acc + (item.length or 0) end, list, 0)
 end
 
 local function is_lowest(item, lowest)
   -- if there hasn't been a lowest selected so far, then the item is the lowest
-  if not lowest or not lowest.length then
-    return true
-  end
+  if not lowest or not lowest.length then return true end
   -- if the item doesn't have a priority or a length, it is likely a special character so should never be the lowest
-  if not item.priority or not item.length then
-    return false
-  end
+  if not item.priority or not item.length then return false end
   -- if the item has the same priority as the lowest, then if the item has a greater length it should become the lowest
-  if item.priority == lowest.priority then
-    return item.length > lowest.length
-  end
+  if item.priority == lowest.priority then return item.length > lowest.length end
   return item.priority > lowest.priority
 end
 
@@ -216,9 +190,7 @@ end
 --- @param length number
 local function prioritize(statusline, spc, length)
   length = length or sum_lengths(statusline)
-  if length <= spc then
-    return statusline
-  end
+  if length <= spc then return statusline end
   local lowest, index_to_remove
   for idx, c in ipairs(statusline) do
     if is_lowest(c, lowest) then
@@ -239,25 +211,17 @@ local function display(sections, available_space)
       return acc
     end
     U.foreach(function(args, index)
-      if not args then
-        return
-      end
+      if not args then return end
       local ok, str = U.pcall("Error creating component", component, args)
-      if not ok then
-        return
-      end
+      if not ok then return end
       table.insert(acc, str)
-      if #section == index and count ~= #sections then
-        table.insert(acc, separator())
-      end
+      if #section == index and count ~= #sections then table.insert(acc, separator()) end
     end, section)
     return acc
   end, sections)
 
   local items = available_space and prioritize(components, available_space) or components
-  local str = vim.tbl_map(function(item)
-    return item.component
-  end, items)
+  local str = vim.tbl_map(function(item) return item.component end, items)
   return table.concat(str)
 end
 
@@ -287,9 +251,7 @@ function section:new(...)
 end
 
 local function fdm(lnum)
-  if fn.foldlevel(lnum) <= fn.foldlevel(lnum - 1) then
-    return space
-  end
+  if fn.foldlevel(lnum) <= fn.foldlevel(lnum - 1) then return space end
   return fn.foldclosed(lnum) == -1 and fcs.foldopen or fcs.foldclose
 end
 
@@ -337,9 +299,7 @@ local function draw_wrap_symbols(winnr, virtnum, col_width)
   if normalized_mode == "v" then
     local pos_list = vim.fn.getregionpos(vim.fn.getpos("v"), vim.fn.getpos("."), { type = mode, eol = true })
     local s_row, e_row = pos_list[1][1][2], pos_list[#pos_list][2][2]
-    if vim.v.lnum >= s_row and vim.v.lnum <= e_row then
-      return line, "CursorLineNr"
-    end
+    if vim.v.lnum >= s_row and vim.v.lnum <= e_row then return line, "CursorLineNr" end
   end
 
   if vim.fn.line(".") == vim.v.lnum then
@@ -371,9 +331,7 @@ local function nr(win, lnum, relnum, virtnum, line_count)
   end
 
   local num = vim.wo[win].relativenumber and not U.falsy(relnum) and relnum or lnum
-  if line_count > 999 then
-    col_width = col_width + 1
-  end
+  if line_count > 999 then col_width = col_width + 1 end
   local ln = tostring(num):reverse():gsub("(%d%d%d)", "%1,"):reverse():gsub("^,", "")
   local num_width = col_width - api.nvim_strwidth(ln)
   return string.rep(space, num_width) .. ln
@@ -384,13 +342,9 @@ end
 ---@param k string the key to format
 ---@return T?
 local function format_text(t, k)
-  if t == nil then
-    return
-  end
+  if t == nil then return end
   local txt = (t and t[k]) and t[k]:gsub("%s", "") or ""
-  if #txt < 1 then
-    return
-  end
+  if #txt < 1 then return end
   t[k] = txt
   return t
 end
@@ -403,9 +357,7 @@ local function extmark_signs(curbuf, lnum)
   local signs = api.nvim_buf_get_extmarks(curbuf, -1, { lnum, 0 }, { lnum, -1 }, { details = true, type = "sign" })
   local sns = U.fold(function(acc, item)
     item = format_text(item[4], "sign_text")
-    if not item then
-      return acc
-    end
+    if not item then return acc end
 
     local txt, hl = item.sign_text, item.sign_hl_group
     -- if txt ~= "" and txt ~= " " then print(txt) end
@@ -417,15 +369,11 @@ local function extmark_signs(curbuf, lnum)
 
     local target = is_git and acc.git or acc.other
     -- table.insert(target, { { { txt, hl } }, after = "" })
-    if not is_lint then
-      table.insert(target, { { { txt, hl } }, after = "" })
-    end
+    if not is_lint then table.insert(target, { { { txt, hl } }, after = "" }) end
 
     return acc
   end, signs, { git = {}, other = {} })
-  if #sns.git == 0 then
-    sns.git = { spacer(1) }
-  end
+  if #sns.git == 0 then sns.git = { spacer(1) } end
   return sns.git, sns.other
 end
 
@@ -508,14 +456,10 @@ Augroup("mega_mvim.ui.statuscolumn", {
   {
     -- event = { "BufEnter", "BufReadPost", "FileType", "FocusGained", "BufWinEnter", "TermLeave", "WinNew", "TermOpen" },
     event = { "BufEnter", "BufReadPost", "FileType", "FocusGained", "WinEnter", "TermLeave" },
-    command = function(args)
-      mega.ui.statuscolumn.set(args.buf, true)
-    end,
+    command = function(args) mega.ui.statuscolumn.set(args.buf, true) end,
   },
   {
     event = { "BufLeave", "WinLeave", "FocusLost" },
-    command = function(args)
-      mega.ui.statuscolumn.set(args.buf, false)
-    end,
+    command = function(args) mega.ui.statuscolumn.set(args.buf, false) end,
   },
 })

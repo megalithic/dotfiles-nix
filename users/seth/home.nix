@@ -100,6 +100,8 @@ in {
     # [ai] ----------------------------------------------------------------------------------------
     ai-tools.opencode
     ai-tools.claude-code
+    ai-tools.claude-code-acp
+
     # [langs] --------------------------------------------------------------------------------------
     cargo
     harper
@@ -615,5 +617,27 @@ in {
     k9s.enable = true;
 
     jq.enable = true;
+
+    tiny = {
+      enable = true;
+      settings = {
+        servers = [
+          {
+            addr = "irc.libera.chat";
+            port = 6697;
+            tls = true;
+            realname = "Seth";
+            nicks = ["replicant"];
+            join = ["#nethack" "#nixos" "#neovim"];
+          }
+        ];
+        defaults = {
+          nicks = ["replicant"];
+          realname = "Seth";
+          join = [];
+          tls = true;
+        };
+      };
+    };
   };
 }
