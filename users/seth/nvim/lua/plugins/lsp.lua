@@ -1,4 +1,16 @@
 return {
+  {
+    -- NOTE: using this until it's fixed in blink
+    -- BUG https://github.com/Saghen/blink.cmp/issues/1670
+    "ray-x/lsp_signature.nvim",
+    event = "InsertEnter",
+    opts = {
+      hint_prefix = "󰏪 ",
+      hint_scheme = "Todo",
+      floating_window = false,
+      always_trigger = true,
+    },
+  },
   { "b0o/schemastore.nvim" },
   {
     "WhoIsSethDaniel/mason-tool-installer.nvim",
@@ -437,9 +449,7 @@ return {
         end,
       },
     },
-    config = function(_, opts)
-      require("tiny-inline-diagnostic").setup(opts)
-    end,
+    config = function(_, opts) require("tiny-inline-diagnostic").setup(opts) end,
   },
   {
     "rachartier/tiny-code-action.nvim",

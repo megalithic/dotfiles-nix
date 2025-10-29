@@ -9,6 +9,31 @@ local text = vim.lsp.protocol.CompletionItemKind.Text
 -- ---@diagnostic disable: missing-fields -- pending https://github.com/Saghen/blink.cmp/issues/427
 -- --------------------------------------------------------------------------------
 
+--- REF: https://github.com/chrisgrieser/.config/blob/main/nvim/lua/plugin-specs/blink-cmp.lua
+---PENDING https://github.com/Saghen/blink.cmp/issues/743
+---Choice snippets[^1] work with blink, but leave you with a completion via
+---vim's popupmenu, for which blink does not provide mappings, thus requiring
+---this function
+---[^1]: https://code.visualstudio.com/docs/editing/userdefinedsnippets#_choice
+---@param action "next"|"prev"|"select"|"select_and_snippet_forward"
+---@return boolean success (popupmenu was open)
+local function vimPopupmenu(action)
+  if vim.fn.pumvisible() == 0 then return false end -- `false` -> attempt next command in blink.cmp
+
+  -- https://neovim.io/doc/user/insert.html#_insert-completion-popup-menu
+  local key
+  if action == "next" then key = "<C-n>" end
+  if action == "prev" then key = "<C-p>" end
+  if action:find("select") then key = "<C-y>" end
+  -- `feedkey` needed to send keys from insert mode
+  local feedkey = vim.api.nvim_replace_termcodes(key, true, false, true)
+  vim.api.nvim_feedkeys(feedkey, "n", false)
+
+  if action:find("snippet_forward") then vim.schedule(function() vim.snippet.jump(1) end) end
+
+  return true -- `true` -> do not attempt next command in blink.cmp
+end
+
 return {
   {
     "saghen/blink.cmp",
@@ -50,7 +75,27 @@ return {
           ["<C-c>"] = { "cancel" },
           ["<C-y>"] = { "select_and_accept", "fallback" },
           -- ["<CR>"] = { "accept", "fallback" },
-          ["<CR>"] = { "accept", "fallback" },
+          -- ["<CR>"] = { "accept", "fallback" },
+          --preset = "none",
+          ["<CR>"] = {
+            function() return vimPopupmenu("select_and_snippet_forward") end,
+            "select_and_accept",
+            "fallback",
+          },
+          -- ["<Tab>"] = { "snippet_forward", "select_next", "fallback" },
+          ["<Tab>"] = {
+            function() return vimPopupmenu("next") end,
+            "snippet_forward",
+            "select_next",
+            "fallback",
+          },
+          -- ["<S-Tab>"] = { "snippet_backward", "select_prev", "fallback" },
+          ["<S-Tab>"] = {
+            function() return vimPopupmenu("prev") end,
+            "snippet_backward",
+            "select_prev",
+            "fallback",
+          },
           ["<S-CR>"] = { "hide" },
           ["<C-n>"] = { "select_next", "fallback" },
           ["<C-p>"] = { "select_prev", "fallback" },
@@ -60,100 +105,96 @@ return {
           ["<C-d>"] = { "scroll_documentation_down", "fallback" },
           ["<C-Up>"] = { "scroll_documentation_up", "fallback" },
           ["<C-Down>"] = { "scroll_documentation_down", "fallback" },
-          ["<Tab>"] = { "snippet_forward", "select_next", "fallback" },
-          ["<S-Tab>"] = { "snippet_backward", "select_prev", "fallback" },
         },
-        signature = { enabled = true },
+        signature = {
+          -- BUG https://github.com/Saghen/blink.cmp/issues/1670
+          -- signature disabled and using `lsp-signature` in the meantime
+          enabled = false,
+          trigger = {
+            show_on_insert = true,
+            show_on_insert_on_trigger_character = true,
+            show_on_accept = true,
+            show_on_accept_on_trigger_character = true,
+          },
+          window = {
+            max_width = 60,
+            max_height = 4,
+            direction_priority = { "s", "n" }, -- south first, to not block existing code
+            show_documentation = false, -- show larger documentation regular signature help
+            winhighlight = "Normal:ColorColumn", -- usually darker, so more contrast
+            border = "none", -- should be small since it appears so often
+          },
+        },
         appearance = {
           use_nvim_cmp_as_default = true,
           nerd_font_variant = "mono",
-          -- kind_icons = {
-          --   Text = "󰦨", -- `buffer`
-          --   Snippet = "󰞘", -- `snippets`
-          --   File = "", -- `path`
-          --   Folder = "󰉋",
-          --   Method = "󰊕",
-          --   Function = "󰡱",
-          --   Constructor = "",
-          --   Field = "󰇽",
-          --   Variable = "󰀫",
-          --   Class = "󰜁",
-          --   Interface = "",
-          --   Module = "",
-          --   Property = "󰜢",
-          --   Unit = "",
-          --   Value = "󰎠",
-          --   Enum = "",
-          --   Keyword = "󰌋",
-          --   Color = "󰏘",
-          --   Reference = "",
-          --   EnumMember = "",
-          --   Constant = "󰏿",
-          --   Struct = "󰙅",
-          --   Event = "",
-          --   Operator = "󰆕",
-          --   TypeParameter = "󰅲",
-          -- },
-        },
-        cmdline = {
-          -- completion = {
-          --   list = { selection = { preselect = false } },
-          --   menu = { auto_show = true },
-          -- },
-
-          completion = {
-            list = {
-              selection = {
-                preselect = false,
-                auto_insert = false,
-              },
-            },
-            menu = {
-              auto_show = function(_ctx)
-                return vim.fn.getcmdtype() == ":"
-                -- enable for inputs as well, with:
-                -- or vim.fn.getcmdtype() == '@'
-              end,
-            },
-          },
-          keymap = {
-            preset = "none",
-            ["<CR>"] = { "fallback" },
-            ["<Tab>"] = { "show_and_insert_or_accept_single", "select_next" },
-            ["<S-Tab>"] = { "show_and_insert_or_accept_single", "select_prev" },
-            ["<C-n>"] = { "select_next", "fallback" },
-            ["<C-p>"] = { "select_prev", "fallback" },
-            ["<C-y>"] = { "select_and_accept", "fallback" },
-            ["<C-e>"] = { "cancel" },
-            --
-            -- ["<CR>"] = { "fallback" },
-            -- -- Move
-            -- -- ["<Down>"] = { { "hide", next = true }, "fallback" },
-            -- -- ["<Up>"] = { { "hide", next = true }, "fallback" },
-            -- ["<C-Down>"] = { "show_and_insert", "select_next" },
-            -- -- ["<C-Up>"] = { "show_and_insert", "select_prev" },
-            -- -- ["<Tab>"] = { "show_and_insert", "select_next" },
-            -- -- ["<S-Tab>"] = { "show_and_insert", "select_prev" },
-            -- -- ["<C-j>"] = { "show_and_insert", "select_next" },
-            -- -- ["<C-k>"] = { "show_and_insert", "select_prev" },
-            -- ["<C-n>"] = { "show_and_insert", "insert_next" },
-            -- ["<C-p>"] = { "show_and_insert", "insert_prev" },
-            -- -- Accept
-            -- ["<C-y>"] = { "show_and_insert_or_accept_single" },
-            -- -- Show
-            -- ["<Tab>"] = { "show" },
-            -- -- ["<C-Space>"] = { "show" },
-            -- -- Hide
-            -- ["<C-c>"] = { nil }, -- No need to bind
-            -- ["<C-e>"] = { "cancel" },
-            -- ["<Esc>"] = {
-            --   function()
-            --     local key = vim.api.nvim_replace_termcodes("<C-c>", true, false, true)
-            --     vim.api.nvim_feedkeys(key, "n", false)
-            --   end,
-            -- },
+          -- make lsp icons different from the corresponding similar blink sources
+          kind_icons = {
+            Text = "󰉿", -- `buffer`
+            Snippet = "󰞘", -- `snippets`
+            File = "", -- `path`
+            Module = "", -- prettier braces
           },
         },
+        -- cmdline = {
+        --   -- completion = {
+        --   --   list = { selection = { preselect = false } },
+        --   --   menu = { auto_show = true },
+        --   -- },
+        --
+        --   completion = {
+        --     list = {
+        --       selection = {
+        --         preselect = false,
+        --         auto_insert = false,
+        --       },
+        --     },
+        --     menu = {
+        --       auto_show = function(_ctx)
+        --         return vim.fn.getcmdtype() == ":"
+        --         -- enable for inputs as well, with:
+        --         -- or vim.fn.getcmdtype() == '@'
+        --       end,
+        --     },
+        --   },
+        --   keymap = {
+        --     preset = "none",
+        --     ["<CR>"] = { "fallback" },
+        --     ["<Tab>"] = { "show_and_insert_or_accept_single", "select_next" },
+        --     ["<S-Tab>"] = { "show_and_insert_or_accept_single", "select_prev" },
+        --     ["<C-n>"] = { "select_next", "fallback" },
+        --     ["<C-p>"] = { "select_prev", "fallback" },
+        --     ["<C-y>"] = { "select_and_accept", "fallback" },
+        --     ["<C-e>"] = { "cancel" },
+        --     --
+        --     -- ["<CR>"] = { "fallback" },
+        --     -- -- Move
+        --     -- -- ["<Down>"] = { { "hide", next = true }, "fallback" },
+        --     -- -- ["<Up>"] = { { "hide", next = true }, "fallback" },
+        --     -- ["<C-Down>"] = { "show_and_insert", "select_next" },
+        --     -- -- ["<C-Up>"] = { "show_and_insert", "select_prev" },
+        --     -- -- ["<Tab>"] = { "show_and_insert", "select_next" },
+        --     -- -- ["<S-Tab>"] = { "show_and_insert", "select_prev" },
+        --     -- -- ["<C-j>"] = { "show_and_insert", "select_next" },
+        --     -- -- ["<C-k>"] = { "show_and_insert", "select_prev" },
+        --     -- ["<C-n>"] = { "show_and_insert", "insert_next" },
+        --     -- ["<C-p>"] = { "show_and_insert", "insert_prev" },
+        --     -- -- Accept
+        --     -- ["<C-y>"] = { "show_and_insert_or_accept_single" },
+        --     -- -- Show
+        --     -- ["<Tab>"] = { "show" },
+        --     -- -- ["<C-Space>"] = { "show" },
+        --     -- -- Hide
+        --     -- ["<C-c>"] = { nil }, -- No need to bind
+        --     -- ["<C-e>"] = { "cancel" },
+        --     -- ["<Esc>"] = {
+        --     --   function()
+        --     --     local key = vim.api.nvim_replace_termcodes("<C-c>", true, false, true)
+        --     --     vim.api.nvim_feedkeys(key, "n", false)
+        --     --   end,
+        --     -- },
+        --   },
+        -- },
         fuzzy = {
           implementation = "prefer_rust_with_warning",
           -- prebuilt_binaries = { force_version = true },
@@ -214,8 +255,8 @@ return {
             },
             snippets = {
               name = "[snip]",
+              score_offset = 3,
               min_keyword_length = 1,
-              score_offset = -1,
               opts = {
                 clipboard_register = "+", -- register to use for `$CLIPBOARD`
                 show_autosnippets = false,
@@ -240,9 +281,7 @@ return {
                       local nonSpecial = vim.bo[buf.bufnr].buftype == ""
                       return recentlyUsed and nonSpecial
                     end)
-                    :map(function(buf)
-                      return buf.bufnr
-                    end)
+                    :map(function(buf) return buf.bufnr end)
                     :totable()
                   return recentBufs
                 end,
@@ -253,9 +292,7 @@ return {
               async = true,
               fallbacks = {}, -- do not use `buffer` as fallback
               enabled = function()
-                if vim.bo.ft ~= "lua" then
-                  return true
-                end
+                if vim.bo.ft ~= "lua" then return true end
 
                 -- prevent useless suggestions when typing `--` in lua, but
                 -- keep the useful `---@param;@return` suggestion
@@ -295,7 +332,9 @@ return {
               auto_insert = true,
             },
           },
-          trigger = { show_in_snippet = false },
+          trigger = {
+            show_in_snippet = false, -- since we overload `<Tab>` with jumping & selection
+          },
           accept = {
             create_undo_point = true,
             auto_brackets = {
@@ -323,20 +362,24 @@ return {
             auto_show = true,
             auto_show_delay_ms = 250,
             window = {
-              -- max_width = 100,
+              max_width = 50,
               max_height = 30,
             },
           },
           menu = {
             border = vim.g.borders.blink_empty,
+            max_height = 12,
             draw = {
               align_to = "none", -- keep in place
               treesitter = { "lsp" },
+              -- columns = {
+              --   { "label", gap = 1 },
+              --   -- { "label", "label_description", gap = 1 },
+              --   { "kind_icon", "kind", gap = 1 },
+              --   { "source_name" },
+              -- },
               columns = {
-                { "label", gap = 1 },
-                -- { "label", "label_description", gap = 1 },
-                { "kind_icon", "kind", gap = 1 },
-                { "source_name" },
+                { "label", "label_description", "kind_icon", "source_name", gap = 1 },
               },
               components = {
                 label = {
@@ -354,9 +397,7 @@ return {
                   highlight = function(ctx)
                     local highlights = {}
                     local highlights_info = require("colorful-menu").blink_highlights(ctx)
-                    if highlights_info ~= nil then
-                      highlights = highlights_info.highlights
-                    end
+                    if highlights_info ~= nil then highlights = highlights_info.highlights end
                     for _, idx in ipairs(ctx.label_matched_indices) do
                       table.insert(highlights, { idx, idx + 1, group = "BlinkCmpLabelMatch" })
                     end
@@ -364,29 +405,35 @@ return {
                     return highlights
                   end,
                 },
-                label_description = { width = { max = 50, fill = true } },
+                label_description = { width = { max = 15, fill = true } },
                 kind_icon = {
                   text = function(ctx)
-                    -- detect emmet-ls
-                    local source, client = ctx.item.source_id, ctx.item.client_id
-                    local lspName = client and vim.lsp.get_client_by_id(client).name
-                    if lspName == "emmet_language_server" then
-                      source = "emmet"
-                    end
+                    -- -- detect emmet-ls
+                    -- local source, client = ctx.item.source_id, ctx.item.client_id
+                    -- local lspName = client and vim.lsp.get_client_by_id(client).name
+                    -- if lspName == "emmet_language_server" then source = "emmet" end
+                    --
+                    -- -- use source-specific icons, and `kind_icon` only for items from LSPs
+                    -- local sourceIcons = { snippets = "󰩫", buffer = "󰦨", emmet = "", path = "" }
+                    -- return sourceIcons[source] or ctx.kind_icon
+                    local source, client = ctx.item.source_id, vim.lsp.get_client_by_id(ctx.item.client_id)
+                    local clientName = client and client.name
 
-                    -- use source-specific icons, and `kind_icon` only for items from LSPs
-                    local sourceIcons = { snippets = "󰩫", buffer = "󰦨", emmet = "", path = "" }
-                    return sourceIcons[source] or ctx.kind_icon
+                    if source == "cmdline" then return "" end
+                    if source == "snippets" then return "󰩫" end
+                    if source == "buffer" then return "﬘" end
+                    if source == "path" then return "" end
+                    if clientName == "emmet_language_server" or clientName == "emmet_ls" then return "" end
+                    return ctx.kind_icon
                   end,
                 },
+
                 source_name = {
                   width = { max = 30, fill = true },
                   text = function(ctx)
                     if ctx.item.source_id == "lsp" then
                       local client = vim.lsp.get_client_by_id(ctx.item.client_id)
-                      if client ~= nil then
-                        return string.format("[%s]", client.name)
-                      end
+                      if client ~= nil then return string.format("[%s]", client.name) end
                       return ctx.source_name
                     end
 

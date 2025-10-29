@@ -1,19 +1,20 @@
 ```bash
-┌┬┐┌─┐┌─┐┌─┐┬  ┬┌┬┐┬ ┬┬┌─┐
-│││├┤ │ ┬├─┤│  │ │ ├─┤││   (nix'd)
+┌┬┐┌─┐┌─┐┌─┐┬ ┬┌┬┐┬ ┬┬┌─┐
+│││├┤ │ ┬├─┤│ │ │ ├─┤││
 ┴ ┴└─┘└─┘┴ ┴┴─┘┴ ┴ ┴ ┴┴└─┘
 @megalithic 🗿
 ```
 
 <p align="center">
 
-![alt text](https://raw.githubusercontent.com/megalithic/dotfiles/main/screenshot.png "screenshot")
+![alt text](https://raw.githubusercontent.com/megalithic/dotfiles/main/screenshot.png 'screenshot')
 
 </p>
 
 ## 🚀 Installation
 
-1. Install [Determinate `nix`](https://github.com/DeterminateSystems/nix-installer).
+1. Install
+   [Determinate `nix`](https://github.com/DeterminateSystems/nix-installer).
 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
@@ -23,7 +24,6 @@ curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix 
 
 ```bash
 source "/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh"
-
 ```
 
 3. Run the installer (_NOTE:_ this clones a bare repo to ~/.dotfiles-nix)
@@ -39,17 +39,16 @@ You can see the current tasks by running `just --list`
 ```bash
 $ just --list
 Available recipes:
-    default
-    fix-shell-files # fix shell files. this happens sometimes with nix-darwin
-    hm              # run home-manager switch
-    news
-    rebuild         # rebuild nix darwin
-    uninstall       # uninstalls the nix determinate installer
-    update          # updates brew, flake, and runs home-manager
-    update-brew     # update and upgrade homebrew packages
-    update-flake    # update your flake.lock
-    upgrade-nix     # upgrades nix
-
+default
+fix-shell-files # fix shell files. this happens sometimes with nix-darwin
+hm              # run home-manager switch
+news
+rebuild      # rebuild nix darwin
+uninstall    # uninstalls the nix determinate installer
+update       # updates brew, flake, and runs home-manager
+update-brew  # update and upgrade homebrew packages
+update-flake # update your flake.lock
+upgrade-nix  # upgrades nix
 ```
 
 > **_NOTE_**: this nix setup is super unstable at the moment.
@@ -74,7 +73,8 @@ with my config!
 
 A few of the _must-have_ tools I roll with:
 
-- [nix](https://search.nixos.org/packages) ([home-manager](https://home-manager-options.extranix.com/)/[nix-darwin](https://nix-darwin.github.io/nix-darwin/manual/index.html))
+- [nix](https://search.nixos.org/packages)
+  ([home-manager](https://home-manager-options.extranix.com/)/[nix-darwin](https://nix-darwin.github.io/nix-darwin/manual/index.html))
 - [ghostty](https://github.com/ghostty-org/ghostty)
 - [homebrew](https://brew.sh/)
 - [mise](https://github.com/jdx/mise)

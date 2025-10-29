@@ -524,7 +524,7 @@ Hints.style(
 // set visual-mode style
 Visual.style(
   "marks",
-  "background-color: #A3BE8C; border: 1px solid #3B4252 !important; text-decoration: underline;",
+  "background-color: #d9bb80; border: 1px solid #3b4252 !important; text-decoration: underline;",
 );
 Visual.style(
   "cursor",
@@ -887,7 +887,7 @@ background: #2D353B !important;
 `,
   "text",
 );
-api.Visual.style("marks", "background-color: #83C09299;");
+api.Visual.style("marks", "background-color: #EBCB8B99;");
 api.Visual.style("cursor", "background-color: #D3C6AA;");
 
 /* set theme */

@@ -262,8 +262,17 @@ if true then
           },
         },
         indent = { enabled = false },
-        input = { enabled = true },
-        notifier = { enabled = false },
+        input = {
+          icon = "",
+          win = {
+            relative = "editor",
+            backdrop = 60,
+            title_pos = "left",
+            width = 50,
+            row = math.ceil(vim.o.lines / 2) - 3,
+          },
+        },
+        notifier = { enabled = true },
         quickfile = { enabled = true },
         scroll = { enabled = false },
         statuscolumn = { enabled = false },
@@ -276,6 +285,13 @@ if true then
           zen = {
             relative = "editor",
             backdrop = { transparent = false },
+          },
+          blame_line = {
+            relative = "editor",
+            width = 0.65,
+            height = 0.8,
+            border = vim.o.winborder --[[@as "rounded"|"single"|"double"|"solid"]],
+            title = " 󰆽 Git blame ",
           },
         },
       },
@@ -431,6 +447,26 @@ if true then
 
         _G.dd = function(...) require("snacks").debug.inspect(...) end
         _G.bt = function() require("snacks").debug.backtrace() end
+
+        -- modify certain notifications
+        vim.notify = function(msg, lvl, nOpts) ---@diagnostic disable-line: duplicate-set-field intentional overwrite
+          nOpts = nOpts or {}
+
+          local ignore = (msg == "No code actions available" and vim.bo.ft == "typescript")
+            or msg:find("^Client marksman quit with exit code 1 and signal 0.") -- https://github.com/artempyanykh/marksman/issues/348
+            or msg:find("^Error executing vim.schedule.*/_folding_range.lua:311")
+          if ignore then return end
+
+          if msg:find("Hunk %d+ of %d+") then -- gitsigns.nvim
+            nOpts.style = "minimal"
+            msg = msg .. "  "
+            nOpts.icon = "󰊢 "
+            nOpts.id = "gitsigns"
+          elseif msg:find("^%[nvim%-treesitter") then -- treesitter parser update
+            nOpts.id = "treesitter-parser-update"
+          end
+          require("snacks").notifier(msg, lvl, nOpts)
+        end
       end,
     },
   }

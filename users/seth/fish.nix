@@ -15,12 +15,15 @@ in {
       set -g fish_prompt_pwd_dir_length 20
     '';
     interactiveShellInit = ''
-      # fish_add_path /opt/homebrew/bin
-      # fish_default_key_bindings
+      # I like to keep the prompt at the bottom rather than the top
+      # of the terminal window so that running `clear` doesn't make
+      # me move my eyes from the bottom back to the top of the screen;
+      # keep the prompt consistently at the bottom
+      # _prompt_move_to_bottom # call function manually to load it since event handlers don't get autoloaded
 
       set fish_cursor_default     block      blink
       set fish_cursor_insert      line       blink
-      set fish_cursor_replace_one underscore
+      set fish_cursor_replace_one underscore blink
       set fish_cursor_visual      underscore blink
 
       # quickly open text file
@@ -39,10 +42,6 @@ in {
       bind -M normal ctrl-y accept-autosuggestion
       bind -M default ctrl-y accept-autosuggestion
 
-      # NOTE: using fzf for this:
-      # bind -M insert ctrl-r history-pager
-      # bind ctrl-r history-pager
-
       # edit command in $EDITOR
       bind -M insert ctrl-v edit_command_buffer
       bind ctrl-v edit_command_buffer
@@ -54,12 +53,6 @@ in {
       # the new default behavior is stupid and bad, it just clears the current prompt
       # https://github.com/fish-shell/fish-shell/issues/11327
       bind -M insert -m insert ctrl-c cancel-commandline
-
-      # I like to keep the prompt at the bottom rather than the top
-      # of the terminal window so that running `clear` doesn't make
-      # me move my eyes from the bottom back to the top of the screen;
-      # keep the prompt consistently at the bottom
-      # _prompt_move_to_bottom # call function manually to load it since event handlers don't get autoloaded
 
       bind -M insert ctrl-d fzf-dir-widget
       bind -M normal ctrl-d fzf-dir-widget
@@ -355,7 +348,6 @@ in {
         then "pbpaste"
         else "xlip -o -selection clipboard";
       cat = "bat";
-      "!!" = "eval \\$history[1]";
       clear = "clear && _prompt_move_to_bottom";
       # inspect $PATH
       pinspect = ''echo "$PATH" | tr ":" "\n"'';
@@ -368,6 +360,7 @@ in {
       vim = "nvim -O";
       j = "just";
       ju = "just";
+      "!!" = "eval \\$history[1]";
     };
 
     plugins = [

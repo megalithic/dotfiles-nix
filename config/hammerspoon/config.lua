@@ -382,26 +382,27 @@ LOLLYGAGGERS = {
 }
 
 LAUNCHERS = {
-  { "com.brave.Browser.nightly", "j", nil, false },
-  { "com.mitchellh.ghostty", "k", { "`" }, false },
-  -- { "net.kovidgoyal.kitty", "k", nil, false },
-  { "com.apple.MobileSMS", "m", nil, false }, -- NOOP for now.. TODO: implement a binding feature that let's us require n-presses before we execute
-  { "com.apple.finder", "f", nil, false },
-  { "com.spotify.client", "p", nil, false },
-  { "com.freron.MailMate", "e", nil, false },
-  { "com.flexibits.fantastical2.mac", "y", { "'" }, false },
-  { "com.raycast.macos", "space", { "c" }, false },
-  { "com.superultra.Homerow", nil, { ";" }, false },
-  { "com.tinyspeck.slackmacgap", "s", nil, false },
-  { "com.microsoft.teams2", "t", nil, false },
-  { "org.hammerspoon.Hammerspoon", "r", nil, false },
-  { "com.apple.dt.Xcode", "x", nil, true },
+  { "com.brave.Browser.nightly", "j", nil },
+  { "com.mitchellh.ghostty", "k", { "`" } },
+  -- { "net.kovidgoyal.kitty", "k", nil },
+  { "com.apple.MobileSMS", "m", nil }, -- NOOP for now.. TODO: implement a binding feature that let's us require n-presses before we execute
+  { "com.apple.finder", "f", nil },
+  { "com.spotify.client", "p", nil },
+  { "com.freron.MailMate", "e", nil },
+  { "com.flexibits.fantastical2.mac", "y", { "'" } },
+  { "com.raycast.macos", "space", { "c" } },
+  { "com.superultra.Homerow", nil, { ";" } },
+  { "com.tinyspeck.slackmacgap", "s", nil },
+  { "com.microsoft.teams2", "t", nil },
+  { "org.hammerspoon.Hammerspoon", "r", nil },
+  { "com.apple.dt.Xcode", "x", nil },
+  -- { "com.kapeli.dashdoc", { { "shift" }, "d" }, { "d" } },
+  { "com.electron.postbird", { { "shift" }, "p" }, nil },
+  { "com.1password.1password", "1", nil },
+
   { "com.google.android.studio", "x", nil, true },
   { "com.obsproject.obs-studio", "o", nil, true },
-  { "com.microsoft.VSCode", "v", nil, false },
-  -- { "com.kapeli.dashdoc", { { "shift" }, "d" }, { "d" }, false },
-  { "com.electron.postbird", { { "shift" }, "p" }, nil, false },
-  { "com.1password.1password", "1", nil, false },
+  { "com.microsoft.VSCode", "v", nil, true },
 }
 
 if not hs.ipc.cliStatus() then
