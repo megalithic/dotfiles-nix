@@ -32,7 +32,7 @@ window-decoration = false
 window-colorspace = display-p3
 window-vsync = true
 window-padding-x = 0,10
-window-padding-y = 10,5
+window-padding-y = 10,0
 # window-padding-y = 0
 # window-padding-x = 0
 # window-padding-x = 10
@@ -51,7 +51,7 @@ shell-integration-features = true
 
 # custom-shader = shaders/cursor_blaze_no_trail.glsl
 # custom-shader = shaders/cursor_smear.glsl
-custom-shader = shaders/cursor.glsl
+custom-shader = shaders/cursor_ripple.glsl
 cursor-style = block
 cursor-style-blink = true
 # selection-invert-fg-bg = true
@@ -69,6 +69,23 @@ mouse-hide-while-typing = true
 mouse-shift-capture = true
 
 quick-terminal-position = left
+
+
+# Look and Feel
+adjust-cursor-thickness           = 3
+adjust-underline-position         = 3
+bold-is-bright                    = true
+link-url                          = true
+mouse-hide-while-typing           = true
+window-vsync                      = true
+window-inherit-working-directory  = true
+unfocused-split-opacity           = 1
+
+window-inherit-working-directory = true
+window-inherit-font-size = true
+window-theme = system
+clipboard-trim-trailing-spaces = true
+mouse-hide-while-typing = true
 
 # font-family = ""
 font-family = Symbols Nerd Font Mono
@@ -94,6 +111,8 @@ font-size = 15
 # Leading
 # adjust-cell-height = 5%
 # adjust-cell-width = -5%
+#
+adjust-cell-width = "2%"
 # adjust-cell-height = 10%
 adjust-underline-position = 5
 # adjust-underline-thickness = 100%

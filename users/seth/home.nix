@@ -43,6 +43,7 @@ in {
     aws-sam-cli
     awscli2
     bash # macOS ships with a very old version of bash for whatever reason
+    blueutil
     cachix
     curlie
     delta

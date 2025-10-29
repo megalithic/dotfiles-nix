@@ -328,6 +328,81 @@ return {
   --   },
   -- },
   {
+    "chrisgrieser/nvim-spider",
+    keys = function()
+      local spider = require("spider")
+
+      local motion = function(key)
+        return function() spider.motion(key) end
+      end
+
+      local mappings = {
+        { "w", motion("w"), "Word forward", mode = { "n", "o", "x" } },
+        { "e", motion("e"), "End of word", mode = { "n", "o", "x" } },
+        { "b", motion("b"), "Word backward", mode = { "n", "o", "x" } },
+        { "ge", motion("ge"), "Backward to end of word", mode = { "n", "o", "x" } },
+      }
+
+      return vim.fn.get_lazy_keys_conf(mappings, "Spider Motions")
+    end,
+
+    lazy = true,
+  },
+  {
+    "folke/flash.nvim",
+    event = "VeryLazy",
+    keys = {
+      {
+        "s",
+        mode = { "n", "x", "o" },
+        function() require("flash").jump() end,
+      },
+    },
+    opts = {
+      highlight = {
+        backdrop = false,
+      },
+      jump = {
+        autojump = true,
+        nohlsearch = true,
+      },
+      labels = "asdfqwerzxcv", -- Limit labels to left side of the keyboard
+      modes = {
+        char = {
+          char_actions = function()
+            return {
+              [";"] = "next",
+              ["F"] = "left",
+              ["f"] = "right",
+            }
+          end,
+          enabled = true,
+          keys = { "f", "F", "t", "T", ";" },
+          highlight = {
+            backdrop = false,
+          },
+          jump_labels = false,
+          multi_line = true,
+        },
+        search = {
+          enabled = true,
+          highlight = {
+            backdrop = false,
+          },
+          jump = {
+            autojump = false,
+          },
+        },
+      },
+      prompt = {
+        win_config = { border = "none" },
+      },
+      search = {
+        wrap = true,
+      },
+    },
+  },
+  {
     "nacro90/numb.nvim",
     event = "CmdlineEnter",
     opts = {},
@@ -394,41 +469,69 @@ return {
   --   end,
   -- },
   { "lambdalisue/suda.vim", event = { "VeryLazy" } },
-  -- {
-  --   "OXY2DEV/helpview.nvim",
-  --   lazy = false,
-  --   dependencies = {
-  --     "nvim-treesitter/nvim-treesitter",
-  --   },
-  -- },
+  {
+    "OXY2DEV/helpview.nvim",
+    ft = "help",
+    dependencies = {
+      "nvim-treesitter/nvim-treesitter",
+    },
+  },
   {
     "MagicDuck/grug-far.nvim",
-    config = function(_, opts) require("grug-far").setup(opts) end,
-    cmd = {
-      "GrugFar",
+    ---@type grug.far.Options
+    ---@diagnostic disable-next-line: missing-fields
+    opts = {
+      windowCreationCommand = "topleft 75vsplit",
+      engines = {
+        ripgrep = {
+          placeholders = {
+            search = "ex: foo    foo([a-z0-9]*)    fun\\(",
+            replacement = "ex: bar    ${1}_foo    $$MY_ENV_VAR ",
+            filesFilter = "ex: *.lua     *.{css,js}    **/docs/*.md",
+            flags = "ex: --help, Ignore Case (-i), Match Whole World (-w), --replace= (empty replace) --multiline (-U)",
+            paths = "ex: /foo/bar   ../   ./hello\\ world/   ./src/foo.lua",
+          },
+        },
+      },
+
+      openTargetWindow = {
+        preferredLocation = "right",
+      },
+
+      keymaps = {
+        replace = { n = "<localleader>r" },
+        qflist = { n = "<localleader>q" },
+        syncLocations = { n = "<localleader>a" },
+        syncLine = { n = "<localleader>l" },
+        close = { n = "<localleader>c" },
+        historyOpen = { n = "<localleader>h" },
+        historyAdd = { n = "<localleader>H" },
+        refresh = { n = "<localleader>R" },
+        openLocation = { n = "<localleader>o" },
+        openNextLocation = { n = "<down>" },
+        openPrevLocation = { n = "<up>" },
+        gotoLocation = { n = "<enter>" },
+        pickHistoryEntry = { n = "<enter>" },
+        abort = { n = "<localleader>b" },
+        help = { n = "g?" },
+        toggleShowCommand = { n = "<localleader>p" },
+        swapEngine = { n = "<localleader>e" },
+        previewLocation = { n = "<localleader>i" },
+        swapReplacementInterpreter = { n = "<localleader>x" },
+      },
     },
     keys = {
       {
-        "<leader>sr",
-        [[<Cmd>GrugFar<CR>]],
-        desc = "[grugfar] find and replace",
+        "<leader>fR",
+        mode = { "n", "x" },
+        function() require("grug-far").open({ prefills = { paths = vim.fn.expand("%") } }) end,
+        desc = "[F]ind",
       },
       {
-        "<leader>sR",
-        function() require("grug-far").open({ prefills = { search = vim.fn.expand("<cword>") } }) end,
-        desc = "[grugfar] find and replace current word",
-      },
-      {
-        "<C-r>",
-        [[:<C-U>lua require('grug-far').with_visual_selection({ prefills = { paths = vim.fn.expand("%") } })<CR>]],
-        mode = { "v", "x" },
-        desc = "[grugfar] find and replace visual selection",
-      },
-      {
-        "<leader>sr",
-        [[:<C-U>lua require('grug-far').with_visual_selection({ prefills = { paths = vim.fn.expand("%") } })<CR>]],
-        mode = { "v", "x" },
-        desc = "[grugfar] find and replace visual selection",
+        "<leader>fr",
+        mode = { "n", "x" },
+        function() require("grug-far").open() end,
+        desc = "[F]ind",
       },
     },
   },
@@ -667,6 +770,7 @@ return {
   -- UI for commands and search
   {
     -- enabled = os.getenv('NVIM_DEV') == nil,
+    enabled = false,
     "folke/noice.nvim",
     dependencies = "MunifTanjim/nui.nvim",
     opts = function()
@@ -717,7 +821,7 @@ return {
         notify = { enabled = false },
         -- you can enable a preset for easier configuration
         presets = {
-          bottom_search = true, -- use a classic bottom cmdline for search
+          bottom_search = false, -- use a classic bottom cmdline for search
           command_palette = false, -- position the cmdline and popupmenu together
           long_message_to_split = true, -- long messages will be sent to a split
           inc_rename = false, -- enables an input dialog for inc-rename.nvim
@@ -726,6 +830,13 @@ return {
         views = {
           split = { enter = true },
           mini = { win_options = { winblend = 100 } },
+          -- This sets the position for the search popup that shows up with / or with :
+          cmdline_popup = {
+            position = {
+              row = "80%",
+              col = "50%",
+            },
+          },
           confirm = {
             backend = "popup",
             relative = "editor",

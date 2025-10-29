@@ -673,8 +673,6 @@ function M.on_attach(client, bufnr, _client_id)
             local client_name = type(client) == "table" and client.name or client
             exclusions = exclusions or disabled_lsp_formatting
 
-            P(client_name, exclusions)
-
             return not exclusions or not vim.tbl_contains(exclusions, client_name)
           end,
         })

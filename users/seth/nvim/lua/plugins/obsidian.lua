@@ -59,9 +59,8 @@ return {
       return suffix
     end,
     picker = {
-      -- REF: https://github.com/insanum/dotfiles/blob/master/config/nvim/lua/plugins/obsidian.lua
-      -- name = "telescope.nvim", -- alts: telescope.nvim
-      name = "mini.pick", -- alts: telescope.nvim
+      -- REF: https://github.com/obsidian-nvim/obsidian.nvim/blob/main/lua/obsidian/config/init.lua#L36
+      name = "snacks",
     },
     checkbox = {},
     ui = {

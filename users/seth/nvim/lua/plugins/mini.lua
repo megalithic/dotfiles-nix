@@ -23,9 +23,7 @@ return {
         },
         draw = {
           delay = 0,
-          animation = function()
-            return 0
-          end,
+          animation = function() return 0 end,
         },
         options = { try_as_border = true, border = "both", indent_at_cursor = true },
       })
@@ -63,9 +61,7 @@ return {
               "DirBuf",
               "markdown",
             },
-            command = function()
-              vim.b.miniindentscope_disable = true
-            end,
+            command = function() vim.b.miniindentscope_disable = true end,
           },
         })
       end
@@ -105,9 +101,7 @@ return {
       --   -- },
       -- },
     },
-    init = function()
-      require("plugins.mini-pick")
-    end,
+    init = function() require("plugins.mini-pick") end,
   },
   {
     "nvim-mini/mini.surround",
@@ -133,9 +127,7 @@ return {
             input = { "<(%w-)%f[^<%w][^<>]->.-</%1>", "^<()%w+().*</()%w+()>$" },
             output = function()
               local tag_name = require("mini.surround").user_input("Tag name (excluding attributes)")
-              if tag_name == nil then
-                return nil
-              end
+              if tag_name == nil then return nil end
               return { left = tag_name, right = tag_name }
             end,
           },
@@ -204,9 +196,7 @@ return {
         },
       }
     end,
-    config = function(_, opts)
-      require("mini.hipatterns").setup(opts)
-    end,
+    config = function(_, opts) require("mini.hipatterns").setup(opts) end,
   },
   {
     "nvim-mini/mini.ai",
@@ -221,21 +211,43 @@ return {
         n_lines = 500,
         search_method = "cover_or_next",
         custom_textobjects = {
-          o = gen_spec.treesitter({
+          ["?"] = false,
+          ["/"] = ai.gen_spec.user_prompt(),
+          ["%"] = function() -- Entire file
+            local from = { line = 1, col = 1 }
+            local to = {
+              line = vim.fn.line("$"),
+              col = math.max(vim.fn.getline("$"):len(), 1),
+            }
+            return { from = from, to = to }
+          end,
+          a = ai.gen_spec.treesitter({ a = "@parameter.outer", i = "@parameter.inner" }),
+          c = ai.gen_spec.treesitter({ a = "@comment.outer", i = "@comment.inner" }),
+          f = ai.gen_spec.treesitter({ a = "@function.outer", i = "@function.inner" }),
+          w = { -- Single words in different cases (camelCase, snake_case, etc.)
+            {
+              "%u[%l%d]+%f[^%l%d]",
+              "%f[^%s%p][%l%d]+%f[^%l%d]",
+              "^[%l%d]+%f[^%l%d]",
+              "%f[^%s%p][%a%d]+%f[^%a%d]",
+              "^[%a%d]+%f[^%a%d]",
+            },
+            "^().*()$",
+          },
+          o = ai.gen_spec.treesitter({
             a = { "@block.outer", "@conditional.outer", "@loop.outer" },
             i = { "@block.inner", "@conditional.inner", "@loop.inner" },
           }, {}),
-          f = gen_spec.treesitter({ a = "@function.outer", i = "@function.inner" }, {}),
-          c = gen_spec.treesitter({ a = "@class.outer", i = "@class.inner" }, {}),
+          -- c = ai.gen_spec.treesitter({ a = "@class.outer", i = "@class.inner" }, {}),
           -- t = { "<(%w-)%f[^<%w][^<>]->.-</%1>", "^<.->%s*().*()%s*</[^/]->$" }, -- deal with selection without the carriage return
           t = { "<([%p%w]-)%f[^<%p%w][^<>]->.-</%1>", "^<.->().*()</[^/]->$" },
 
           -- scope
-          s = gen_spec.treesitter({
+          s = ai.gen_spec.treesitter({
             a = { "@function.outer", "@class.outer", "@testitem.outer" },
             i = { "@function.inner", "@class.inner", "@testitem.inner" },
           }),
-          S = gen_spec.treesitter({
+          S = ai.gen_spec.treesitter({
             a = { "@function.name", "@class.name", "@testitem.name" },
             i = { "@function.name", "@class.name", "@testitem.name" },
           }),
@@ -279,9 +291,7 @@ return {
     event = "VeryLazy",
     opts = function()
       local ok, clue = pcall(require, "mini.clue")
-      if not ok then
-        return
-      end
+      if not ok then return end
       -- REF: https://github.com/ahmedelgabri/dotfiles/blob/main/config/nvim/lua/plugins/mini.lua#L314
       -- Clues for a-z/A-Z marks.
       local function mark_clues()
@@ -295,9 +305,7 @@ return {
             local key = mark.mark:sub(2, 2)
 
             -- Just look at letter marks.
-            if not string.match(key, "^%a") then
-              return nil
-            end
+            if not string.match(key, "^%a") then return nil end
 
             -- For global marks, use the file as a description.
             -- For local marks, use the line number and content.
@@ -307,9 +315,7 @@ return {
             elseif mark.pos[1] and mark.pos[1] ~= 0 then
               local line_num = mark.pos[2]
               local lines = vim.fn.getbufline(mark.pos[1], line_num)
-              if lines and lines[1] then
-                desc = string.format("%d: %s", line_num, lines[1]:gsub("^%s*", ""))
-              end
+              if lines and lines[1] then desc = string.format("%d: %s", line_num, lines[1]:gsub("^%s*", "")) end
             end
 
             if desc then

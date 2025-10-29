@@ -1,4 +1,5 @@
 local M = {}
+M.cmd = ""
 
 local shortcuts = {
   ["c"] = "*.{h,hpp,c,cc,cpp}",
@@ -116,6 +117,7 @@ local function finder(opts, ctx)
   local absolute = (opts.dirs and #opts.dirs > 0) or opts.buffers or opts.rtp
   local cwd = not absolute and svim.fs.normalize(opts and opts.cwd or uv.cwd() or ".") or nil
   local cmd, args = get_cmd(opts, ctx.filter)
+  opts.cmd = cmd
   if opts.debug.grep then Snacks.notify.info("grep: " .. cmd .. " " .. table.concat(args, " ")) end
   return require("snacks.picker.source.proc").proc({
     opts,
@@ -141,16 +143,16 @@ local function finder(opts, ctx)
 end
 
 function M.multi_grep()
-  local picker = require("snacks.picker")
   ---@type snacks.picker.Config
-  picker.pick({
-    title = "Multi Grep",
+  require("snacks.picker").pick({
+    title = "multi-grep",
     source = "grep",
     finder = finder,
   })
 end
 
 return {
-  "jakubbortlik/snacks.nvim", -- use patched fork for https://github.com/folke/snacks.nvim/pull/2012
+  "folke/snacks.nvim",
+  -- use patched fork for https://github.com/folke/snacks.nvim/pull/2012
   multi_grep = M.multi_grep,
 }

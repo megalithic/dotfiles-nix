@@ -25,23 +25,21 @@ function M.augroup(name, commands)
   local function validate_autocmd(name, cmd)
     local keys = { "event", "buffer", "pattern", "desc", "callback", "command", "group", "once", "nested", "enabled" }
     local incorrect = U.fold(function(accum, _, key)
-      if not vim.tbl_contains(keys, key) then
-        table.insert(accum, key)
-      end
+      if not vim.tbl_contains(keys, key) then table.insert(accum, key) end
       return accum
     end, cmd, {})
-    if #incorrect == 0 then
-      return
-    end
+    if #incorrect == 0 then return end
     -- local debug_info = debug.getinfo(2)
     -- local mod_name = vim.fn.fnamemodify(debug_info.short_src, ":t:r")
     -- local mod_line = debug_info.currentline
 
-    vim.schedule(function()
-      vim.notify("Incorrect keys: " .. table.concat(incorrect, ", "), vim.log.levels.ERROR, {
-        title = string.format("Autocmd: %s", name),
-      })
-    end)
+    vim.schedule(
+      function()
+        vim.notify("Incorrect keys: " .. table.concat(incorrect, ", "), vim.log.levels.ERROR, {
+          title = string.format("Autocmd: %s", name),
+        })
+      end
+    )
   end
 
   assert(name ~= "User", "The name of an augroup CANNOT be User")
@@ -183,14 +181,10 @@ M.augroup("Writing", {
     once = false,
     command = function()
       local function auto_mkdir(dir, force)
-        if not dir or string.len(dir) == 0 then
-          return
-        end
+        if not dir or string.len(dir) == 0 then return end
         local stats = vim.uv.fs_stat(dir)
         local is_directory = (stats and stats.type == "directory") or false
-        if string.match(dir, "^%w%+://") or is_directory or string.match(dir, "^suda:") then
-          return
-        end
+        if string.match(dir, "^%w%+://") or is_directory or string.match(dir, "^suda:") then return end
         if not force then
           vim.fn.inputsave()
           local result = vim.fn.input(string.format('"%s" does not exist. Create? [y/N]', dir), "")
@@ -204,9 +198,7 @@ M.augroup("Writing", {
       end
 
       -- Skip for Oil buffers or unnamed buffers
-      if vim.bo.filetype == "oil" or vim.api.nvim_buf_get_name(0) == "" then
-        return
-      end
+      if vim.bo.filetype == "oil" or vim.api.nvim_buf_get_name(0) == "" then return end
 
       auto_mkdir(vim.fn.expand("<afile>:p:h"), vim.v.cmdbang)
     end,
@@ -245,22 +237,14 @@ M.augroup("Editing", {
       local bufnr = ctx.buf
       local bo = vim.bo[bufnr]
       local b = vim.b[bufnr]
-      if bo.buftype ~= "" or bo.ft == "gitcommit" or bo.readonly then
-        return
-      end
-      if b.saveQueued and not saveInstantly then
-        return
-      end
+      if bo.buftype ~= "" or bo.ft == "gitcommit" or bo.readonly then return end
+      if b.saveQueued and not saveInstantly then return end
 
       b.saveQueued = true
       vim.defer_fn(function()
-        if not vim.api.nvim_buf_is_valid(bufnr) then
-          return
-        end
+        if not vim.api.nvim_buf_is_valid(bufnr) then return end
         -- `noautocmd` prevents weird cursor movement
-        vim.api.nvim_buf_call(bufnr, function()
-          vim.cmd("silent! noautocmd lockmarks update!")
-        end)
+        vim.api.nvim_buf_call(bufnr, function() vim.cmd("silent! noautocmd lockmarks update!") end)
         b.saveQueued = false
       end, saveInstantly and 0 or 2000)
     end,
@@ -279,9 +263,7 @@ M.augroup("Entering", {
     command = function(args)
       local ignore_buftype = { "quickfix", "nofile", "help", "prompt" }
       local ignore_filetype = { "gitcommit", "gitrebase", "svn", "hgcommit" }
-      if vim.tbl_contains(ignore_buftype, vim.bo.buftype) then
-        return
-      end
+      if vim.tbl_contains(ignore_buftype, vim.bo.buftype) then return end
 
       if vim.tbl_contains(ignore_filetype, vim.bo.filetype) then
         -- reset cursor to first line
@@ -291,9 +273,7 @@ M.augroup("Entering", {
 
       -- If a line has already been specified on the command line, we are done
       --   nvim file +num
-      if vim.api.nvim_win_get_cursor(0)[1] > 1 then
-        return
-      end
+      if vim.api.nvim_win_get_cursor(0)[1] > 1 then return end
 
       local last_line = vim.fn.line([['"]])
       local buff_last_line = vim.api.nvim_buf_line_count(0)
@@ -333,9 +313,7 @@ M.augroup("Resizing", {
     command = function(args)
       vim.cmd.tabdo("wincmd =")
 
-      vim.schedule(function()
-        pcall(mega.resize_windows, args.buf)
-      end)
+      vim.schedule(function() pcall(mega.resize_windows, args.buf) end)
     end,
   },
 })
@@ -347,9 +325,7 @@ M.augroup("EnterLeaveBehaviours", {
     command = function(evt)
       vim.defer_fn(function()
         local ibl_ok, ibl = pcall(require, "ibl")
-        if ibl_ok then
-          ibl.setup_buffer(evt.buf, { indent = { char = vim.g.indent_char } })
-        end
+        if ibl_ok then ibl.setup_buffer(evt.buf, { indent = { char = vim.g.indent_char } }) end
       end, 1)
       vim.wo.cursorline = true
       -- if not vim.g.started_by_firenvim then require("colorizer").attach_to_buffer(evt.buf) end
@@ -361,9 +337,7 @@ M.augroup("EnterLeaveBehaviours", {
     command = function(evt)
       vim.defer_fn(function()
         local ibl_ok, ibl = pcall(require, "ibl")
-        if ibl_ok then
-          ibl.setup_buffer(evt.buf, { indent = { char = "" } })
-        end
+        if ibl_ok then ibl.setup_buffer(evt.buf, { indent = { char = "" } }) end
       end, 1)
       vim.wo.cursorline = false
       -- if not vim.g.started_by_firenvim then require("colorizer").detach_from_buffer(evt.buf) end
@@ -376,17 +350,13 @@ M.augroup("InsertBehaviours", {
     enabled = not vim.g.started_by_firenvim,
     desc = "OnInsertEnter",
     event = { "InsertEnter" },
-    command = function(_evt)
-      vim.diagnostic.enable(not vim.diagnostic.is_enabled())
-    end,
+    command = function(_evt) vim.diagnostic.enable(not vim.diagnostic.is_enabled()) end,
   },
   {
     enabled = not vim.g.started_by_firenvim,
     desc = "OnInsertLeave",
     event = { "InsertLeave" },
-    command = function(_evt)
-      vim.diagnostic.enable(true)
-    end,
+    command = function(_evt) vim.diagnostic.enable(true) end,
   },
   {
     event = "InsertLeave",
@@ -400,9 +370,7 @@ M.augroup("Utilities", {
     event = "BufWritePost",
     pattern = ".envrc",
     command = function()
-      if vim.fn.executable("direnv") then
-        vim.cmd([[silent !direnv allow %]])
-      end
+      if vim.fn.executable("direnv") then vim.cmd([[silent !direnv allow %]]) end
     end,
   },
   {
@@ -412,8 +380,7 @@ M.augroup("Utilities", {
   },
   {
     event = { "BufEnter", "BufRead", "BufNewFile" },
-    buffer = 0,
-    desc = "Extreeeeme `gf` open behaviour",
+    desc = "Extreme `gf` open behaviour",
     command = function(args)
       map("n", "gf", function()
         local target = vim.fn.expand("<cfile>")
@@ -478,14 +445,10 @@ M.augroup("Utilities", {
         end
 
         -- go to web address
-        if target:match("https://") then
-          return vim.cmd("norm gx")
-        end
+        if target:match("https://") then return vim.cmd("norm gx") end
 
         -- a normal file, so do the normal go-to-file thing
-        if not target or #vim.split(target, "/") ~= 2 then
-          return vim.cmd("norm! gf")
-        end
+        if not target or #vim.split(target, "/") ~= 2 then return vim.cmd("norm! gf") end
 
         -- maybe it's a github repo? try it and see..
         local url = string.format("https://github.com/%s", target)
@@ -497,9 +460,7 @@ M.augroup("Utilities", {
   {
     event = { "BufRead", "BufNewFile" },
     pattern = "*/doc/*.txt",
-    command = function(args)
-      vim.bo.filetype = "help"
-    end,
+    command = function(args) vim.bo.filetype = "help" end,
   },
   {
     event = { "BufRead", "BufNewFile" },

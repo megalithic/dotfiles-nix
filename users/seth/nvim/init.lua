@@ -11,6 +11,13 @@ require("vim._extui").enable({
   -- },
 })
 
+-- vim.api.nvim_create_autocmd("FileType", {
+--   pattern = { "cmd", "msg", "pager", "dialog" },
+--   callback = function(_evt)
+--     vim.api.nvim_set_option_value("winhl", "Normal:PanelBackground,FloatBorder:PanelBorder", {})
+--   end,
+-- })
+
 --- @diagnostic disable-next-line: duplicate-set-field
 vim.deprecate = function() end -- no-op deprecation messages
 local ok, mod_or_err = pcall(require, "config.globals")

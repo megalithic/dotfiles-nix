@@ -23,7 +23,7 @@ tmux -2 send-keys -t "$SESSION":1 C-z "tmux link-window -s mega:comms -t 0 && ex
 # MANUAL CODE MODE WITH DEBUG
 tmux -2 new-window -c "$CWD" -t "$SESSION":2 -n code
 # Main pane - Neovim with DAP ready
-tmux -2 send-keys -t "$SESSION":2.1 "cd ~/code/work/cspire/launchdeck/launchdeck_portal_api" C-m
+tmux -2 send-keys -t "$SESSION":2.1 "cd ~/code/work/cspire/launchdeck" C-m
 # tmux -2 send-keys -t "$SESSION":2.1 "# Set breakpoints with <localleader>db, then <localleader>dd to attach" C-m
 # tmux -2 send-keys -t "$SESSION":2.1 "nvim" C-m
 

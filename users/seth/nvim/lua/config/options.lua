@@ -230,7 +230,7 @@ M.g = {
 
 M.opt = {
   cmdwinheight = 4,
-  cmdheight = 0,
+  cmdheight = 1,
   diffopt = {
     "vertical",
     "iwhite",

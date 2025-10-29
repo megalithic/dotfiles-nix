@@ -1,5 +1,4 @@
 if true then
-  if false then return {} end
   local M = {}
 
   local repeatable = require("config.repeatable")
@@ -57,7 +56,7 @@ if true then
     local win_width = vim.api.nvim_win_get_width(win)
     local win_height = vim.api.nvim_win_get_height(win)
 
-    local picker_height = math.floor(0.25 * win_height)
+    local picker_height = math.floor(0.45 * win_height)
     local row = win_pos[1] + win_height - picker_height - 1
 
     if win_width >= 165 then
@@ -79,6 +78,8 @@ if true then
       build = "cargo build --release",
       lazy = false, -- make fff initialize on startup
       opts = {
+        max_results = 400,
+        max_threads = 8,
         debug = {
           enabled = true, -- we expect your collaboration at least during the beta
           show_scores = true, -- to help us optimize the scoring system, feel free to share your scores!
@@ -106,6 +107,15 @@ if true then
       opts = {
         layout = function() return M.smart_layout() end,
         title = "smart fffiles",
+        git_icons = {
+          added = " ",
+          modified = " ",
+          untracked = "󰎔 ",
+          deleted = " ",
+          ignored = " ",
+          renamed = " ",
+          clean = "  ",
+        },
       },
     },
 
@@ -117,20 +127,7 @@ if true then
         bigfile = { enabled = true },
         dashboard = { enabled = false },
         explorer = { enabled = false },
-        image = {
-          enabled = true,
-          math = {
-            typst = {
-              -- change font size
-              tpl = [[
-        #set page(width: auto, height: auto, margin: (x: 2pt, y: 2pt))
-        #show math.equation.where(block: false): set text(top-edge: "bounds", bottom-edge: "bounds")
-        #set text(size: 18pt, fill: rgb("${color}"))
-        ${header}
-        ${content}]],
-            },
-          },
-        },
+        image = { enabled = true },
         picker = {
           enabled = true,
           ui_select = true,
@@ -159,6 +156,61 @@ if true then
             cwd_bonus = true, -- give bonus for matching files in the cwd
             frecency = true, -- frecency bonus
             history_bonus = true,
+          },
+          sources = {
+            explorer = {
+              replace_netrw = true,
+              git_status = true,
+              jump = {
+                close = true,
+              },
+              hidden = true,
+              ignored = true,
+              win = {
+                list = {
+                  keys = {
+                    ["]c"] = "explorer_git_next",
+                    ["[c"] = "explorer_git_prev",
+                    ["<c-t>"] = { "tab", mode = { "n", "i" } },
+                  },
+                },
+              },
+              icons = {
+                tree = {
+                  vertical = "  ",
+                  middle = "  ",
+                  last = "  ",
+                },
+              },
+            },
+            buffers = {
+              current = false,
+            },
+            files = {
+              hidden = true,
+            },
+            recent = {},
+            lines = {},
+            lsp_references = {
+              pattern = "!import !default", -- Exclude Imports and Default Exports
+            },
+            lsp_symbols = {
+              finder = "lsp_symbols",
+              format = "lsp_symbol",
+              hierarchy = true,
+              filter = {
+                default = true,
+                markdown = true,
+                help = true,
+              },
+            },
+            lsp_workspace_symbols = {},
+            diagnostics = {},
+            diagnostics_buffer = {},
+            git_status = {
+              preview = "git_status",
+            },
+            git_diff = {},
           },
           win = {
             preview = {
@@ -229,6 +281,125 @@ if true then
       },
       keys = {
         {
+          "<leader>a",
+          mode = "n",
+          function() require("snacks").picker.grep() end,
+          -- function() require("plugins.snacks-multi-grep").multi_grep() end,
+          desc = "live grep",
+          -- desc = "live grep (multi)",
+        },
+        {
+          "<leader>A",
+          mode = { "n", "x", "v" },
+          function() require("snacks").picker.grep_word() end,
+          desc = "grep cursor/selection",
+        },
+        -- {
+        --   "<leader>fg",
+        --   function()
+        --     require("snacks").picker.git_status()
+        --   end,
+        --   desc = "Git status",
+        -- },
+        {
+          "<leader>fa",
+          function()
+            require("snacks").picker.files({
+              cmd = "fd",
+              args = {
+                "--color=never",
+                "--hidden",
+                "--type",
+                "f",
+                "--type",
+                "l",
+                "--no-ignore",
+                "--exclude",
+                ".git",
+              },
+            })
+          end,
+          desc = "[f]ind [a]ll files",
+        },
+        {
+          "<leader><leader>",
+          function() require("snacks").picker.buffers() end,
+          desc = "Find buffers",
+        },
+        -- {
+        --   "<leader>fj",
+        --   function()
+        --     require("snacks").picker.jumps()
+        --   end,
+        --   desc = "Find jumps",
+        -- },
+        {
+          "<leader>fh",
+          function() require("snacks").picker.help() end,
+          desc = "Find help",
+        },
+        -- {
+        --   "<leader>fz",
+        --   function()
+        --     require("snacks").picker.lines()
+        --   end,
+        --   desc = "Find lines",
+        -- },
+        -- {
+        --   "<leader>fr",
+        --   function()
+        --     require("snacks").picker.resume()
+        --   end,
+        --   desc = "Find recent files",
+        -- },
+        -- {
+        --   "<leader>cm",
+        --   function()
+        --     require("snacks").picker.git_log()
+        --   end,
+        --   desc = "Git commits",
+        -- },
+        -- {
+        --   "<leader>gg",
+        --   function()
+        --     require("snacks").picker.git_files()
+        --   end,
+        --   desc = "Find git files",
+        -- },
+        -- {
+        --   "<leader>fd",
+        --   function()
+        --     require("snacks").picker.diagnostics()
+        --   end,
+        --   desc = "Find diagnostics",
+        -- },
+        -- {
+        --   "<leader>fs",
+        --   function()
+        --     require("snacks").picker.lsp_symbols()
+        --   end,
+        --   desc = "Find document symbols",
+        -- },
+        -- {
+        --   "<leader>ws",
+        --   function()
+        --     require("snacks").picker.lsp_workspace_symbols()
+        --   end,
+        --   desc = "Find workspace symbols",
+        -- },
+        -- {
+        --   "<leader>fc",
+        --   function()
+        --     require("snacks").picker.command_history()
+        --   end,
+        --   desc = "Find commands",
+        -- },
+        {
+          "<leader>fu",
+          function() require("snacks").picker.undo() end,
+          desc = "Find undo history",
+        },
+        {
           "]]",
           next_ref_repeat,
           desc = "Next Reference",
@@ -258,12 +429,8 @@ if true then
         })
         vim.cmd.cabbrev("P", "Pick")
 
-        vim.api.nvim_set_hl(0, "SnacksImageMath", { link = "Normal" })
-
         _G.dd = function(...) require("snacks").debug.inspect(...) end
         _G.bt = function() require("snacks").debug.backtrace() end
-
-        require("plugins.snacks-picker")
       end,
     },
   }

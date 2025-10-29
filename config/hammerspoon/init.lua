@@ -7,6 +7,7 @@ if not ok then
 end
 
 req("bindings")
+req("watchers", { watchers = { "audio" } })
 
 -- local config = mod_or_err
 -- local wm = req("wm")
@@ -16,7 +17,7 @@ req("bindings")
 -- local utils = req("utils")
 
 -- hs.loadSpoon("SpoonInstall")
-hs.loadSpoon("PTT")
+-- hs.loadSpoon("PTT")
 --
 -- Hyper = spoon.Hyper
 -- Hyper:bindHotkeys({ hyperKey = { {}, HYPER } })
@@ -292,7 +293,7 @@ hs.loadSpoon("PTT")
 -- -- PTT:bindHotkeys({ push = { { "cmd", "alt" }, nil }, toggle = { { "cmd", "alt" }, "p" } })
 
 hs.shutdownCallback = function()
-  require("watchers"):stop(watchers)
+  -- require("watchers"):stop(watchers)
   require("hyper"):stop()
 end
 
