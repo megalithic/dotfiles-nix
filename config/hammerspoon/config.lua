@@ -1,35 +1,3 @@
-_G.DefaultFont = { name = "JetBrainsMono Nerd Font Mono", size = 16 }
---
--- Trace all Lua code
-function lineTraceHook(event, data)
-  lineInfo = debug.getinfo(2, "Snl")
-  print("TRACE: " .. (lineInfo["short_src"] or "<unknown source>") .. ":" .. (lineInfo["linedefined"] or "<??>"))
-end
-
--- Uncomment the following line to enable tracing
-if _G.tracingEnabled == true then
-  debug.sethook(lineTraceHook, "l")
-end
-
---- @diagnostic disable-next-line: lowercase-global
-function req(mod, ...)
-  local ok, reqmod = pcall(require, mod)
-  if not ok then
-    error(reqmod)
-  else
-    -- if there is an init function; invoke it first.
-    if type(reqmod) == "table" and reqmod.init ~= nil and type(reqmod.init) == "function" then
-      -- if initializedModules[reqmod.name] ~= nil then
-      reqmod:init(...)
-      -- initializedModules[reqmod.name] = reqmod
-      -- end
-    end
-
-    -- always return the module.. we typically end up immediately invoking it.
-    return reqmod
-  end
-end
-
 hs.allowAppleScript(true)
 hs.application.enableSpotlightForNameSearches(false)
 hs.autoLaunch(true)
@@ -47,21 +15,6 @@ hs.window.setShadows(false)
 
 hs.grid.setGrid("60x20")
 hs.grid.setMargins("0x0")
-
--- [ CONSOLE SETTINGS ] --------------------------------------------------------
-
-local con = require("hs.console")
-con.darkMode(true)
-con.consoleFont(DefaultFont)
-con.alpha(0.985)
-local darkGrayColor = { red = 26 / 255, green = 28 / 255, blue = 39 / 255, alpha = 1.0 }
-local whiteColor = { white = 1.0, alpha = 1.0 }
-local lightGrayColor = { white = 1.0, alpha = 0.9 }
-local grayColor = { red = 24 * 4 / 255, green = 24 * 4 / 255, blue = 24 * 4 / 255, alpha = 1.0 }
-con.outputBackgroundColor(darkGrayColor)
-con.consoleCommandColor(whiteColor)
-con.consoleResultColor(lightGrayColor)
-con.consolePrintColor(grayColor)
 
 -- [ ALERT SETTINGS ] ----------------------------------------------------------
 

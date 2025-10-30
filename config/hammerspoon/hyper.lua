@@ -29,12 +29,12 @@ function M:init(opts)
 
   if not opts.id then
     _G.tracingEnabled = true
-    error(fmt("[ERROR] %s -> unable to start this hyper; missing id", self.name))
+    U.log.e(fmt("[ERROR] %s -> unable to start this hyper; missing id", self.name))
     return
   end
 
   if _G.Hypers[opts.id] ~= nil then
-    warn(fmt("[%s] %s%s (existing)", "INIT", self.name, opts.id))
+    U.log.w(fmt("[%s] %s.%s (existing)", "INIT", self.name, opts.id))
 
     return _G["Hypers"][opts.id]
   end
@@ -49,7 +49,7 @@ function M:init(opts)
 
   _G.Hypers[opts.id] = self
 
-  print(fmt("[%s] %s%s", "INIT", _G.Hypers[opts.id].name, _G.Hypers[opts.id].id))
+  U.log.i(fmt("[%s] %s.%s", "INIT", _G.Hypers[opts.id].name, _G.Hypers[opts.id].id))
 
   return self
 end

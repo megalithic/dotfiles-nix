@@ -60,7 +60,7 @@ return {
     end,
     picker = {
       -- REF: https://github.com/obsidian-nvim/obsidian.nvim/blob/main/lua/obsidian/config/init.lua#L36
-      name = "snacks",
+      name = "snacks.pick",
     },
     checkbox = {},
     ui = {

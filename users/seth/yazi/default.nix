@@ -1,5 +1,4 @@
-{ pkgs, ... }:
-{
+{pkgs, ...}: {
   enable = true;
   enableFishIntegration = true;
   enableZshIntegration = true;
@@ -52,7 +51,7 @@
       prepend_keymap = [
         # https://yazi-rs.github.io/docs/tips#close-input-by-esc
         {
-          on = [ "<Esc>" ];
+          on = ["<Esc>"];
           run = "close";
           desc = "Cancel input";
         }
@@ -62,7 +61,7 @@
       prepend_keymap = [
         # https://yazi-rs.github.io/docs/tips#dropping-to-shell
         {
-          on = [ "<C-s>" ];
+          on = ["<C-s>"];
           run = "shell ${pkgs.fish} --block --confirm";
           desc = "Open default shell here";
         }
@@ -70,7 +69,7 @@
         # https://yazi-rs.github.io/docs/tips#smart-enter
         # also needs smart-enter plugin, below
         {
-          on = [ "<Enter>" ];
+          on = ["<Enter>"];
           run = "plugin --sync smart-enter";
           desc = "Enter the child directory, or open the file";
         }

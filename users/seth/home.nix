@@ -82,7 +82,7 @@ in {
     bash-language-server
     vtsls # js/ts LSP
     yaml-language-server
-    tailwindcss-language-server
+    (tailwindcss-language-server.override { nodejs_latest = nodejs_22; })
     statix
     tree-sitter # required for treesitter "auto-install" option to work
     nixd # nix lsp
@@ -197,149 +197,9 @@ in {
     ".ignore".source = git/tool_ignore;
     ".gitignore".source = git/gitignore;
     ".gitconfig".source = git/gitconfig;
-    ".config/1Password/ssh/agent.toml".text = ''
-      [[ssh-keys]]
-      vault = "Shared"
-      item = "megaenv"
-    '';
-    ".config/surfingkeys/config.js".text = builtins.readFile surfingkeys/config.js;
-    ".config/starship.toml".text = builtins.readFile starship/starship.toml;
-    ".config/karabiner/karabiner.json" = {
-      # NOTE: If karabiner ever stops working and restarts don't fix the problem, try:
-      # /Applications/.Nix-Karabiner/.Karabiner-VirtualHIDDevice-Manager.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager deactivate
-      # then restarting and re-allowing Karabiner when prompted.
-      source = ./karabiner/karabiner.json;
-    };
-    ".config/eza/theme.yml".text = ''
-      colourful: true
-
-      # Everforest Medium Palette
-      # Background: #2d353b
-      # Foreground: #d3c6aa
-      # Black: #343f44
-      # Red: #e67e80
-      # Green: #a7c080
-      # Yellow: #dbbc7f
-      # Blue: #7fbbb3
-      # Magenta: #d699b6
-      # Cyan: #83c092
-      # White: #d3c6aa
-      # Gray: #859289
-      # Bright Black: #475258
-      # Bright Red: #e67e80
-      # Bright Green: #a7c080
-      # Bright Yellow: #dbbc7f
-      # Bright Blue: #7fbbb3
-      # Bright Magenta: #d699b6
-      # Bright Cyan: #83c092
-      # Bright White: #d3c6aa
-
-      filekinds:
-        normal: { foreground: "#d3c6aa" }
-        directory: { foreground: "#e69875" }
-        symlink: { foreground: "#859289" }
-        pipe: { foreground: "#475258" }
-        block_device: { foreground: "#e67e80" }
-        char_device: { foreground: "#dbbc7f" }
-        socket: { foreground: "#343f44" }
-        special: { foreground: "#d699b6" }
-        executable: { foreground: "#a7c080" }
-        mount_point: { foreground: "#475258" }
-
-      perms:
-        user_read: { foreground: "#859289" }
-        user_write: { foreground: "#475258" }
-        user_execute_file: { foreground: "#a7c080" }
-        user_execute_other: { foreground: "#a7c080" }
-        group_read: { foreground: "#859289" }
-        group_write: { foreground: "#475258" }
-        group_execute: { foreground: "#a7c080" }
-        other_read: { foreground: "#859289" }
-        other_write: { foreground: "#475258" }
-        other_execute: { foreground: "#a7c080" }
-        special_user_file: { foreground: "#d699b6" }
-        special_other: { foreground: "#475258" }
-        attribute: { foreground: "#859289" }
-
-      size:
-        major: { foreground: "#859289" }
-        minor: { foreground: "#e69875" }
-        number_byte: { foreground: "#859289" }
-        number_kilo: { foreground: "#859289" }
-        number_mega: { foreground: "#83c092" }
-        number_giga: { foreground: "#d699b6" }
-        number_huge: { foreground: "#d699b6" }
-        unit_byte: { foreground: "#859289" }
-        unit_kilo: { foreground: "#83c092" }
-        unit_mega: { foreground: "#d699b6" }
-        unit_giga: { foreground: "#d699b6" }
-        unit_huge: { foreground: "#e69875" }
-
-      users:
-        user_you: { foreground: "#dbbc7f" }
-        user_root: { foreground: "#e67e80" }
-        user_other: { foreground: "#d699b6" }
-        group_yours: { foreground: "#859289" }
-        group_other: { foreground: "#475258" }
-        group_root: { foreground: "#e67e80" }
-
-      links:
-        normal: { foreground: "#e69875" }
-        multi_link_file: { foreground: "#83c092" }
-
-      git:
-        new: { foreground: "#a7c080" }
-        modified: { foreground: "#dbbc7f" }
-        deleted: { foreground: "#e67e80" }
-        renamed: { foreground: "#83c092" }
-        typechange: { foreground: "#d699b6" }
-        ignored: { foreground: "#475258" }
-        conflicted: { foreground: "#e67e80" }
-
-      git_repo:
-        branch_main: { foreground: "#859289" }
-        branch_other: { foreground: "#d699b6" }
-        git_clean: { foreground: "#a7c080" }
-        git_dirty: { foreground: "#e67e80" }
-
-      security_context:
-        colon: { foreground: "#859289" }
-        user: { foreground: "#e69875" }
-        role: { foreground: "#d699b6" }
-        typ: { foreground: "#475258" }
-        range: { foreground: "#d699b6" }
-
-      file_type:
-        image: { foreground: "#dbbc7f" }
-        video: { foreground: "#e67e80" }
-        music: { foreground: "#e69875" }
-        lossless: { foreground: "#475258" }
-        crypto: { foreground: "#343f44" }
-        document: { foreground: "#859289" }
-        compressed: { foreground: "#d699b6" }
-        temp: { foreground: "#e67e80" }
-        compiled: { foreground: "#83c092" }
-        build: { foreground: "#475258" }
-        source: { foreground: "#a7c080" }
-
-      punctuation: { foreground: "#859289" }
-      date: { foreground: "#83c092" }
-      inode: { foreground: "#859289" }
-      blocks: { foreground: "#859289" }
-      header: { foreground: "#859289" }
-      octal: { foreground: "#e69875" }
-      flags: { foreground: "#d699b6" }
-
-      symlink_path: { foreground: "#e69875" }
-      control_char: { foreground: "#83c092" }
-      broken_symlink: { foreground: "#e67e80" }
-      broken_path_overlay: { foreground: "#859289" }
-    '';
   };
 
-  xdg.enable = true;
   home.preferXdgDirectories = true;
-
   home.activation.symlinkAdditionalConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
     command cat << EOF
 
@@ -387,6 +247,8 @@ in {
       echo "░ ✓ symlinked espanso to /Users/${username}/Library/Application\ Support/espanso" ||
       echo "░ x failed to symlink espanso to /Users/${username}/Library/Application\ Support/espanso"
   '';
+
+  xdg.enable = true;
   xdg.configFile."ghostty".source = ./ghostty;
   xdg.configFile."ghostty".recursive = true;
   xdg.configFile."zsh".source = ./zsh;
@@ -394,10 +256,180 @@ in {
   xdg.configFile."opencode/opencode.json".text = ''
     {
       "$schema": "https://opencode.ai/config.json",
-      "theme": "system",
+      "instructions": [
+        "CLAUDE.md"
+      ],
+      "theme": "everforest",
       "model": "anthropic/claude-sonnet-4.5",
-      "small_model": "anthropic/claude-3-5-haiku-20241022"
+      "autoshare": false,
+      "autoupdate": true,
+      "keybinds": {
+        "leader": "ctrl+,",
+        "session_new": "ctrl+n",
+        "session_list": "ctrl+g",
+        "messages_half_page_up": "ctrl+u",
+        "messages_half_page_down": "ctrl+d"
+      },
+      "lsp": {
+        "php": {
+          "command": [
+            "intelephense",
+            "--stdio"
+          ],
+          "extensions": [
+            ".php"
+          ]
+        },
+        "python": {
+          "command": [
+            "basedpyright",
+            "--stdio"
+          ],
+          "extensions": [
+            ".py"
+          ]
+        }
+      }
     }
+  '';
+
+  xdg.configFile."1Password/ssh/agent.toml".text = ''
+    [[ssh-keys]]
+    vault = "Shared"
+    item = "megaenv"
+  '';
+  xdg.configFile."surfingkeys/config.js".text = builtins.readFile surfingkeys/config.js;
+  xdg.configFile."starship.toml".text = builtins.readFile starship/starship.toml;
+  xdg.configFile."karabiner/karabiner.json" = {
+    # NOTE: If karabiner ever stops working and restarts don't fix the problem, try:
+    # /Applications/.Nix-Karabiner/.Karabiner-VirtualHIDDevice-Manager.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager deactivate
+    # then restarting and re-allowing Karabiner when prompted.
+    source = ./karabiner/karabiner.json;
+  };
+  xdg.configFile."eza/theme.yml".text = ''
+    colourful: true
+
+    # Everforest Medium Palette
+    # Background: #2d353b
+    # Foreground: #d3c6aa
+    # Black: #343f44
+    # Red: #e67e80
+    # Green: #a7c080
+    # Yellow: #dbbc7f
+    # Blue: #7fbbb3
+    # Magenta: #d699b6
+    # Cyan: #83c092
+    # White: #d3c6aa
+    # Gray: #859289
+    # Bright Black: #475258
+    # Bright Red: #e67e80
+    # Bright Green: #a7c080
+    # Bright Yellow: #dbbc7f
+    # Bright Blue: #7fbbb3
+    # Bright Magenta: #d699b6
+    # Bright Cyan: #83c092
+    # Bright White: #d3c6aa
+
+    filekinds:
+      normal: { foreground: "#d3c6aa" }
+      directory: { foreground: "#e69875" }
+      symlink: { foreground: "#859289" }
+      pipe: { foreground: "#475258" }
+      block_device: { foreground: "#e67e80" }
+      char_device: { foreground: "#dbbc7f" }
+      socket: { foreground: "#343f44" }
+      special: { foreground: "#d699b6" }
+      executable: { foreground: "#a7c080" }
+      mount_point: { foreground: "#475258" }
+
+    perms:
+      user_read: { foreground: "#859289" }
+      user_write: { foreground: "#475258" }
+      user_execute_file: { foreground: "#a7c080" }
+      user_execute_other: { foreground: "#a7c080" }
+      group_read: { foreground: "#859289" }
+      group_write: { foreground: "#475258" }
+      group_execute: { foreground: "#a7c080" }
+      other_read: { foreground: "#859289" }
+      other_write: { foreground: "#475258" }
+      other_execute: { foreground: "#a7c080" }
+      special_user_file: { foreground: "#d699b6" }
+      special_other: { foreground: "#475258" }
+      attribute: { foreground: "#859289" }
+
+    size:
+      major: { foreground: "#859289" }
+      minor: { foreground: "#e69875" }
+      number_byte: { foreground: "#859289" }
+      number_kilo: { foreground: "#859289" }
+      number_mega: { foreground: "#83c092" }
+      number_giga: { foreground: "#d699b6" }
+      number_huge: { foreground: "#d699b6" }
+      unit_byte: { foreground: "#859289" }
+      unit_kilo: { foreground: "#83c092" }
+      unit_mega: { foreground: "#d699b6" }
+      unit_giga: { foreground: "#d699b6" }
+      unit_huge: { foreground: "#e69875" }
+
+    users:
+      user_you: { foreground: "#dbbc7f" }
+      user_root: { foreground: "#e67e80" }
+      user_other: { foreground: "#d699b6" }
+      group_yours: { foreground: "#859289" }
+      group_other: { foreground: "#475258" }
+      group_root: { foreground: "#e67e80" }
+
+    links:
+      normal: { foreground: "#e69875" }
+      multi_link_file: { foreground: "#83c092" }
+
+    git:
+      new: { foreground: "#a7c080" }
+      modified: { foreground: "#dbbc7f" }
+      deleted: { foreground: "#e67e80" }
+      renamed: { foreground: "#83c092" }
+      typechange: { foreground: "#d699b6" }
+      ignored: { foreground: "#475258" }
+      conflicted: { foreground: "#e67e80" }
+
+    git_repo:
+      branch_main: { foreground: "#859289" }
+      branch_other: { foreground: "#d699b6" }
+      git_clean: { foreground: "#a7c080" }
+      git_dirty: { foreground: "#e67e80" }
+
+    security_context:
+      colon: { foreground: "#859289" }
+      user: { foreground: "#e69875" }
+      role: { foreground: "#d699b6" }
+      typ: { foreground: "#475258" }
+      range: { foreground: "#d699b6" }
+
+    file_type:
+      image: { foreground: "#dbbc7f" }
+      video: { foreground: "#e67e80" }
+      music: { foreground: "#e69875" }
+      lossless: { foreground: "#475258" }
+      crypto: { foreground: "#343f44" }
+      document: { foreground: "#859289" }
+      compressed: { foreground: "#d699b6" }
+      temp: { foreground: "#e67e80" }
+      compiled: { foreground: "#83c092" }
+      build: { foreground: "#475258" }
+      source: { foreground: "#a7c080" }
+
+    punctuation: { foreground: "#859289" }
+    date: { foreground: "#83c092" }
+    inode: { foreground: "#859289" }
+    blocks: { foreground: "#859289" }
+    header: { foreground: "#859289" }
+    octal: { foreground: "#e69875" }
+    flags: { foreground: "#d699b6" }
+
+    symlink_path: { foreground: "#e69875" }
+    control_char: { foreground: "#83c092" }
+    broken_symlink: { foreground: "#e67e80" }
+    broken_path_overlay: { foreground: "#859289" }
   '';
 
   programs = {
@@ -492,8 +524,10 @@ in {
       includes = [
         {path = "~/.gitconfig";}
       ];
-      extraConfig."gpg \"ssh\"".program = "${lib.getBin pkgs._1password-gui}/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+
+      extraConfig.gpg.ssh.program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
       extraConfig.gpg.format = "ssh";
+      extraConfig.user.signingkey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICyxphJ0fZhJP6OQeYMsGNQ6E5ZMVc/CQdoYrWYGPDrh";
       extraConfig.commit.gpgSign = true;
     };
 
@@ -519,7 +553,7 @@ in {
       flake = ../../.;
     };
 
-    yazi = import ./yazi/default.nix {inherit config pkgs lib;};
+    # yazi = import ./yazi/default.nix {inherit config pkgs lib;};
 
     htop = {
       enable = true;

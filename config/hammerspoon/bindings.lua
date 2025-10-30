@@ -526,4 +526,4 @@ req("hyper", { id = "wm" })
 -- req("snipper")
 -- req("clipper")
 
-print(fmt("[START] %s", "bindings"))
+U.log.o(fmt("[START] %s", "bindings"))

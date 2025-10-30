@@ -56,71 +56,74 @@ matches:
   - {trigger: ":shrug", replace: "¯\\_(ツ)_/¯"}
   - trigger: ':wave'
     replace: 👋
-    word: false
+
   - trigger: ':heart'
     replace: ❤️
-    word: false
+
   - trigger: ':up'
     replace: 👍
-    word: false
+
   - trigger: ':thumb'
     replace: 👍
-    word: false
+
   - trigger: ':+1'
     replace: 👍
-    word: false
+
   - trigger: ':thumbsup'
     replace: 👍
-    word: false
+
   - trigger: ':-1'
     replace: 👎
-    word: false
+
   - trigger: ':thumbsdown'
     replace: 👎
-    word: false
+
   - trigger: ':flex'
     replace: 💪
-    word: false
+
   - trigger: ':pray'
     replace: 🙏
-    word: false
+
   - trigger: ':rock'
     replace: 🤘
-    word: false
+
   - trigger: ':rofl'
     replace: 🤣
-    word: false
+
+  - trigger: ':lol'
+    replace: 😂
+
   - trigger: ':poop'
     replace: 💩
-    word: false
+
   - trigger: ':100'
     replace: 💯
-    word: false
+
   - trigger: ':eyes'
     replace: 👀
-    word: false
+
   - trigger: ':facepalm'
     replace: 🤦
-    word: false
+
   - trigger: ':hands'
     replace: 🙌🏼
-    word: false
+
 
   - trigger: ":smile"
     replace: "😃"
-    word: false
+
   - trigger: ":cry"
     replace: "😢"
-    word: false
+
   - trigger: ":hmm"
     replace: "🤔"
-    word: false
+
   - trigger: ":think"
     replace: "🤔"
-    word: false
+
   - trigger: ":yay"
     replace: "🎉"
-    word: false
+
 
   - trigger: "Rene "
     replace: "René"
@@ -132,10 +135,9 @@ matches:
   #   replace: "https://whereby.com/sethmesser"
   - trigger: ":pop"
     replace: "https://pop.com/j/953-644-320"
-    word: false
+
   - trigger: ":meet"
     replace: "https://meet.google.com/kry-nbrg-rmy"
-    word: false
+
   - trigger: ":tm"
     replace: "™"
-    word: false

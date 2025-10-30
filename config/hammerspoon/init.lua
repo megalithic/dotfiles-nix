@@ -1,4 +1,42 @@
-hs.loadSpoon("EmmyLua")
+_G.DefaultFont = { name = "JetBrainsMono Nerd Font Mono", size = 18 }
+hs.console.darkMode(true)
+hs.console.consoleFont(DefaultFont)
+hs.console.alpha(0.985)
+local darkGrayColor = { red = 26 / 255, green = 28 / 255, blue = 39 / 255, alpha = 1.0 }
+local whiteColor = { white = 1.0, alpha = 1.0 }
+local lightGrayColor = { white = 1.0, alpha = 0.9 }
+local grayColor = { red = 24 * 4 / 255, green = 24 * 4 / 255, blue = 24 * 4 / 255, alpha = 1.0 }
+hs.console.outputBackgroundColor(darkGrayColor)
+hs.console.consoleCommandColor(whiteColor)
+hs.console.consoleResultColor(lightGrayColor)
+hs.console.consolePrintColor(grayColor)
+
+--- @diagnostic disable-next-line: lowercase-global
+function _G.req(mod, ...)
+  local function lineTraceHook(event, data)
+    local lineInfo = debug.getinfo(2, "Snl")
+    print("TRACE: " .. (lineInfo["short_src"] or "<unknown source>") .. ":" .. (lineInfo["linedefined"] or "<??>"))
+  end
+
+  local ok, reqmod = pcall(require, mod)
+  if not ok then
+    debug.sethook(lineTraceHook, "l")
+    error(reqmod)
+
+    return false
+  else
+    -- if there is an init function; invoke it first.
+    if type(reqmod) == "table" and reqmod.init ~= nil and type(reqmod.init) == "function" then
+      -- if initializedModules[reqmod.name] ~= nil then
+      reqmod:init(...)
+      -- initializedModules[reqmod.name] = reqmod
+      -- end
+    end
+
+    -- always return the module.. we typically end up immediately invoking it.
+    return reqmod
+  end
+end
 
 local ok, mod_or_err = pcall(require, "config")
 if not ok then
@@ -6,298 +44,42 @@ if not ok then
   return
 end
 
-req("bindings")
-req("watchers", { watchers = { "audio" } })
+_G.U = require("utils")
 
--- local config = mod_or_err
--- local wm = req("wm")
--- local summon = req("summon")
--- local chain = req("chain")
--- local enum = req("hs.fnutils")
--- local utils = req("utils")
+function _G.P(...)
+  if ... == nil then
+    hs.console.printStyledtext(U.ts() .. " => " .. "")
+    -- TODO: add line debugging so we can see where blank P statements are
 
--- hs.loadSpoon("SpoonInstall")
--- hs.loadSpoon("PTT")
---
--- Hyper = spoon.Hyper
--- Hyper:bindHotkeys({ hyperKey = { {}, HYPER } })
---
--- hs.fnutils.each(Bindings, function(bindingTable)
---   local bundleID, globalBind, localBinds = table.unpack(bindingTable)
---   if globalBind then
---     local mod = {}
---     local key = globalBind
---     if type(globalBind) == "table" then
---       mod, key = table.unpack(globalBind)
---     end
---
---     Hyper:bind(mod, key, function()
---       hs.application.launchOrFocusByBundleID(bundleID)
---     end)
---   end
---   if localBinds then
---     hs.fnutils.each(localBinds, function(key)
---       Hyper:bindPassThrough(key, bundleID)
---     end)
---   end
--- end)
---
--- local wmModality = spoon.HyperModal
--- wmModality
---   :start()
---   :bind({}, "r", req("wm").placeAllApps, function()
---     wmModality:exit(0.1)
---   end)
---   :bind({}, "escape", function()
---     wmModality:exit()
---   end)
---   -- :bind({}, "space", function() wm.place(POSITIONS.preview) end, function() wmModality:exit(0.1) end)
---   :bind(
---     {},
---     "space",
---     chain({
---       POSITIONS.full,
---       POSITIONS.center.large,
---       POSITIONS.center.medium,
---       POSITIONS.center.small,
---       POSITIONS.center.tiny,
---       POSITIONS.center.mini,
---       POSITIONS.preview,
---     }, wmModality, 1.0)
---   )
---   :bind({}, "return", function()
---     wm.place(POSITIONS.full)
---   end, function()
---     wmModality:exit(0.1)
---   end)
---   :bind({ "shift" }, "return", function()
---     wm.toNextScreen()
---     wm.place(POSITIONS.full)
---   end, function()
---     wmModality:exit()
---   end)
---   :bind(
---     {},
---     "h",
---     chain(
---       enum.map({ "halves", "thirds", "twoThirds", "fiveSixths", "sixths" }, function(size)
---         if type(POSITIONS[size]) == "string" then
---           return POSITIONS[size]
---         end
---         return POSITIONS[size]["left"]
---       end),
---       wmModality,
---       1.0
---     )
---   )
---   :bind(
---     {},
---     "l",
---     chain(
---       enum.map({ "halves", "thirds", "twoThirds", "fiveSixths", "sixths" }, function(size)
---         if type(POSITIONS[size]) == "string" then
---           return POSITIONS[size]
---         end
---         return POSITIONS[size]["right"]
---       end),
---       wmModality,
---       1.0
---     )
---   )
---   :bind({ "shift" }, "h", function()
---     wm.toPrevScreen()
---     chain(
---       enum.map({ "halves", "thirds", "twoThirds", "fiveSixths", "sixths" }, function(size)
---         if type(POSITIONS[size]) == "string" then
---           return POSITIONS[size]
---         end
---         return POSITIONS[size]["left"]
---       end),
---       wmModality,
---       1.0
---     )
---   end)
---   :bind({ "shift" }, "l", function()
---     wm.toNextScreen()
---     chain(
---       enum.map({ "halves", "thirds", "twoThirds", "fiveSixths", "sixths" }, function(size)
---         if type(POSITIONS[size]) == "string" then
---           return POSITIONS[size]
---         end
---         return POSITIONS[size]["right"]
---       end),
---       wmModality,
---       1.0
---     )
---   end)
---   -- :bind({}, "j", function() wm.toNextScreen() end, function() wmModality:delayedExit(0.1) end)
---   :bind(
---     {},
---     "j",
---     function()
---       wm.place(POSITIONS.center.large)
---     end,
---     -- chain({
---     --   POSITIONS.center.mini,
---     --   POSITIONS.center.tiny,
---     --   POSITIONS.center.small,
---     --   POSITIONS.center.medium,
---     --   POSITIONS.center.large,
---     -- }, wmModality, 1.0)
---     function()
---       wmModality:exit()
---     end
---   )
---   :bind(
---     {},
---     "k",
---     function()
---       wm.place(POSITIONS.center.medium)
---     end,
---     -- chain({
---     --   POSITIONS.center.large,
---     --   POSITIONS.center.medium,
---     --   POSITIONS.center.small,
---     --   POSITIONS.center.tiny,
---     --   POSITIONS.center.mini,
---     -- }, wmModality, 1.0)
---     function()
---       wmModality:exit()
---     end
---   )
---   :bind({}, "v", function()
---     require("wm").tile()
---     wmModality:exit()
---   end)
---   :bind({}, "s", function()
---     req("browser"):splitTab()
---     wmModality:exit()
---   end)
---   :bind({ "shift" }, "s", function()
---     req("browser"):splitTab(true)
---     wmModality:exit()
---   end)
---   :bind({}, "m", function()
---     local app = hs.application.frontmostApplication()
---     local menuItemTable = { "Window", "Merge All Windows" }
---     if app:findMenuItem(menuItemTable) then
---       app:selectMenuItem(menuItemTable)
---     else
---       warn("Merge All Windows is unsupported for " .. app:bundleID())
---     end
---
---     wmModality:exit()
---   end)
---   :bind({}, "f", function()
---     local focused = hs.window.focusedWindow()
---     enum.map(focused:otherWindowsAllScreens(), function(win)
---       win:application():hide()
---     end)
---     wmModality:exit()
---   end)
---   :bind({}, "c", function()
---     local win = hs.window.focusedWindow()
---     local screenWidth = win:screen():frame().w
---     hs.window.focusedWindow():move(hs.geometry.rect(screenWidth / 2 - 300, 0, 600, 400))
---     -- resizes to a small console window at the top middle
---
---     wmModality:exit()
---   end)
---   :bind({}, "b", function()
---     local wip = require("wip")
---     wip.bowser()
---   end)
--- -- :bind({}, "b", function()
--- --   hs.timer.doAfter(5, function()
--- --     local focusedWindow = hs.window.focusedWindow()
---
--- --     if focusedWindow then
--- --       local axWindow = hs.axuielement.windowElement(focusedWindow)
---
--- --       function printAXElements(element, indent)
--- --         indent = indent or ""
---
--- --         print(indent .. "Element: " .. tostring(element))
---
--- --         local attributes = element:attributeNames()
--- --         for _, attr in ipairs(attributes) do
--- --           local value = element:attributeValue(attr)
--- --           print(indent .. "  " .. attr .. ": " .. tostring(value))
--- --         end
---
--- --         local children = element:childElements()
--- --         if children then
--- --           for _, child in ipairs(children) do
--- --             printAXElements(child, indent .. "  ")
--- --           end
--- --         end
--- --       end
---
--- --       print("AX Elements for Focused Window:")
--- --       printAXElements(axWindow)
--- --     else
--- --       print("No focused window found.")
--- --     end
--- --   end)
--- -- end)
---
--- Hyper:bind({}, "l", function()
---   wmModality:toggle()
--- end)
---
--- Hyper
---   :bind({ "shift" }, "r", nil, function()
---     hs.notify.new({ title = "hammerspork", subTitle = "config is reloading..." }):send()
---     hs.reload()
---   end)
---   -- :bind({ "shift", "ctrl" }, "l", nil, req("wm").placeAllApps)
---   -- focus daily notes; splitting it 30/70 with currently focused app window
---   :bind(
---     { "shift" },
---     "o",
---     nil,
---     function()
---       utils.tmux.focusDailyNote(true)
---     end
---   )
---   -- focus daily note; window layout untouched
---   :bind({ "ctrl" }, "o", nil, function()
---     utils.tmux.focusDailyNote()
---   end)
---   :bind({ "ctrl" }, "d", nil, function()
---     utils.dnd()
---   end)
---
--- -- -- Our listing of *.watcher based modules; the core of the automation that takes place.
--- -- -- NOTE: `app` contains the app layout and app context logic.
--- -- local watchers = {
--- --   "bluetooth",
--- --   "usb",
--- --   "dock",
--- --   "app",
--- --   "url",
--- --   "files",
--- -- }
--- --
--- -- req("config")
--- -- req("libs")
--- -- req("bindings")
--- -- -- req("spotify"):start()
--- -- req("browser"):start()
--- -- req("ptt"):start({ mode = "push-to-talk" })
--- -- req("quitter"):start({ mode = "double" })
---
--- -- req("watchers"):start(watchers)
---
--- -- PTT = spoon.PTT
--- -- PTT:bindHotkeys({ push = { { "cmd", "alt" }, nil }, toggle = { { "cmd", "alt" }, "p" } })
+    return
+  end
 
-hs.shutdownCallback = function()
-  -- require("watchers"):stop(watchers)
-  require("hyper"):stop()
+  local contents = ...
+
+  if type(...) == "table" then
+    contents = hs.inspect(...)
+  else
+    contents = string.format(...)
+  end
+
+  -- hs.rawprint(...)
+  hs.console.printStyledtext(U.ts() .. " => " .. contents)
 end
 
-hs.timer.doAfter(0.2, function()
-  hs.notify.withdrawAll()
-  hs.notify.new({ title = "hammerspork", subTitle = "config is loaded." }):send()
+local watchers = { "audio", "camera" }
+
+hs.timer.doAfter(1, function()
+  hs.loadSpoon("EmmyLua")
+  req("bindings")
+  req("watchers", { watchers = watchers })
+
+  hs.shutdownCallback = function()
+    require("watchers"):stop({ watchers = watchers })
+    -- require("hyper"):stop()
+  end
+
+  hs.timer.doAfter(0.2, function()
+    hs.notify.withdrawAll()
+    hs.notify.new({ title = "hammerspork", subTitle = "config is loaded.", alwaysPresent = true }):send()
+  end)
 end)

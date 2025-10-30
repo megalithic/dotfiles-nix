@@ -3,6 +3,7 @@
 title = "Ghostty 👻"
 
 auto-update = download
+auto-update-channel = tip
 
 # background-opacity = 0.95
 # background-blur-radius = 20

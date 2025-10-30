@@ -60,11 +60,11 @@
     # jujutsu.url = "github:martinvonz/jj";
     agenix.url = "github:ryantm/agenix";
     nix-ai-tools.url = "github:numtide/nix-ai-tools";
-    yazi.url = "github:sxyazi/yazi";
-    yazi-plugins = {
-      url = "github:yazi-rs/plugins";
-      flake = false;
-    };
+    # yazi.url = "github:sxyazi/yazi";
+    # yazi-plugins = {
+    #   url = "github:yazi-rs/plugins";
+    #   flake = false;
+    # };
     nur = {
       url = "github:nix-community/nur";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -110,7 +110,7 @@
     # pkgs = nixpkgs.legacyPackages.${system};
     overlays = [
       # inputs.jujutsu.overlays.default
-      inputs.yazi.overlays.default
+      # inputs.yazi.overlays.default
       inputs.nur.overlays.default
       inputs.fenix.overlays.default
 
