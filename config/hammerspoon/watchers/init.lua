@@ -7,7 +7,7 @@ function M:init(opts)
     local ok, mod = pcall(require, string.format("watchers.%s", watcher))
     if ok then
       mod({ kill = false })
-      U.log.o(string.format("[watcher] %s started", watcher))
+      U.log.i(string.format("[watcher] %s started", watcher))
     else
       U.log.e(string.format("[watcher] %s failed to start", watcher))
       U.log.e(string.format("[watcher] %s %s", watcher, mod))
@@ -22,7 +22,7 @@ function M:stop(opts)
     local ok, mod = pcall(require, string.format("watchers.%s", watcher))
     if ok then
       mod({ kill = true })
-      U.log.o(string.format("[watcher] %s stopped", watcher))
+      U.log.i(string.format("[watcher] %s stopped", watcher))
     else
       U.log.e(string.format("[watcher] %s failed to stop", watcher))
       U.log.e(string.format("[watcher] %s %s", watcher, mod))

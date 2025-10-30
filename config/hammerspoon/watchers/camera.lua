@@ -30,23 +30,22 @@ return function(opts)
   local function cameraPropertyCallback(camera, property)
     -- TODO: Think about logging which application has started to use the camera with something like:
     -- https://www.howtogeek.com/289352/how-to-tell-which-application-is-using-your-macs-webcam/
-    U.log.n("Camera " .. camera:name() .. " in use status changed.")
+    -- U.log.n("Camera " .. camera:name() .. " in use status changed.")
 
     -- Weirdly, "gone" is used as the property  if the camera's use changes: https://www.hammerspoon.org/docs/hs.camera.html#setPropertyWatcherCallback
     if property == "gone" then
       if camera:isInUse() then
-        U.log.o("Camera " .. camera:name() .. " active.")
-        U.log.o(fmt("%s active", camera:name()))
+        U.log.of("[camera] %s active", camera:name())
         -- cameraInUse()
       else
-        U.log.o(fmt("%s inactive", camera:name()))
+        U.log.of("[camera] %s inactive", camera:name())
         -- cameraStopped()
       end
     end
   end
 
   local function cameraWatcherCallback(camera, status)
-    U.log.n(fmt("New camera detected: %s (%s)", camera:name(), status))
+    U.log.i(fmt("[camera] new camera detected: %s (%s)", camera:name(), status))
     if status == "Added" then
       camera:setPropertyWatcherCallback(cameraPropertyCallback)
       camera:startPropertyWatcher()
@@ -55,7 +54,7 @@ return function(opts)
 
   local function addCameraOnInit()
     for _, camera in ipairs(hs.camera.allCameras()) do
-      U.log.n(fmt("Initial camera detection: %s", camera:name()))
+      U.log.n(fmt("[camera] initial detection: %s", camera:name()))
       camera:setPropertyWatcherCallback(cameraPropertyCallback)
       camera:startPropertyWatcher()
     end

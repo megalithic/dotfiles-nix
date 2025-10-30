@@ -34,6 +34,9 @@ M.log = {
   w = function(m)
     M.logger(m, "WARN")
   end,
+  wf = function(...)
+    M.logger(string.format(...), "WARN")
+  end,
   e = function(m)
     M.logger(m, "ERROR")
   end,
@@ -42,6 +45,9 @@ M.log = {
   end,
   o = function(m)
     M.logger(m, "OK")
+  end,
+  of = function(...)
+    M.logger(string.format(...), "OK")
   end,
 }
 

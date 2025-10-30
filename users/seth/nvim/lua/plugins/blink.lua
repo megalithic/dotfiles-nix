@@ -372,15 +372,15 @@ return {
             draw = {
               align_to = "none", -- keep in place
               treesitter = { "lsp" },
-              -- columns = {
-              --   { "label", gap = 1 },
-              --   -- { "label", "label_description", gap = 1 },
-              --   { "kind_icon", "kind", gap = 1 },
-              --   { "source_name" },
-              -- },
               columns = {
-                { "label", "label_description", "kind_icon", "source_name", gap = 1 },
+                { "label", gap = 1 },
+                -- { "label", "label_description", gap = 1 },
+                { "kind_icon", "kind", gap = 1 },
+                { "source_name" },
               },
+              -- columns = {
+              --   { "label", "label_description", "kind_icon", "source_name", gap = 1 },
+              -- },
               components = {
                 label = {
                   width = { max = 50, fill = true },
