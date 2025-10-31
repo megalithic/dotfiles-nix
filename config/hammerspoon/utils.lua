@@ -28,8 +28,14 @@ M.log = {
   n = function(m)
     M.logger(m, "NOTE")
   end,
+  nf = function(...)
+    M.logger(string.format(...), "NOTE")
+  end,
   i = function(m)
     M.logger(m, "INFO")
+  end,
+  ["if"] = function(...)
+    M.logger(string.format(...), "INFO")
   end,
   w = function(m)
     M.logger(m, "WARN")
@@ -40,8 +46,14 @@ M.log = {
   e = function(m)
     M.logger(m, "ERROR")
   end,
+  ef = function(...)
+    M.logger(string.format(...), "ERROR")
+  end,
   d = function(m)
     M.logger(m, "DEBUG")
+  end,
+  df = function(...)
+    M.logger(string.format(...), "DEBUG")
   end,
   o = function(m)
     M.logger(m, "OK")

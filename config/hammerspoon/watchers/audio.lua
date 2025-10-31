@@ -15,8 +15,10 @@ return function(opts)
 
     if found and device then
       device:setDefaultOutputDevice()
-      hs.execute(fmt('SwitchAudioSource -t output -s "%s"', device:name()))
-      U.log.o("[audio] output device set to " .. device:name())
+      local status = hs.execute(fmt("SwitchAudioSource -t output -s '%s' &", device:name()), true)
+      U.log.of("[audio] %s", status)
+      device = nil
+
       return 0
     end
 
@@ -35,8 +37,10 @@ return function(opts)
 
     if found and device then
       device:setDefaultInputDevice()
-      hs.execute(fmt('SwitchAudioSource -t input -s "%s"', device:name()))
-      U.log.o("[audio] input device set to " .. device:name())
+      local status = hs.execute(fmt("SwitchAudioSource -t input -s '%s' &", device:name()), true)
+      U.log.of("[audio] %s", status)
+      device = nil
+
       return 0
     end
 
@@ -61,7 +65,7 @@ return function(opts)
   hs.audiodevice.watcher.setCallback(audioDeviceChanged)
   if not opts.kill then
     hs.audiodevice.watcher.start()
-    audioDeviceChanged("dev#")
+    -- audioDeviceChanged("dev#")
   else
     hs.audiodevice.watcher.stop()
   end

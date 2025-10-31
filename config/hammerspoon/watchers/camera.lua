@@ -3,29 +3,32 @@
 local fmt = string.format
 return function(opts)
   opts = opts or { kill = false }
-  local kill = opts.kill or false
 
-  -- local function cameraInUse()
-  --   hs.shortcuts.run("Meeting Start")
+  local function cameraActive()
+    U.dnd(true, "meeting")
+    hs.spotify.pause()
+    -- hs.shortcuts.run("Meeting Start")
+    --
+    -- if hs.application.find("Stretchly") ~= nil then
+    --   U.log.n("Pausing stretchly")
+    --   run.cmd("/Applications/Stretchly.app/Contents/MacOS/Stretchly", { "pause" })
+    -- end
+    --
+    -- Elgato.cameraStart()
+  end
   --
-  --   if hs.application.find("Stretchly") ~= nil then
-  --     U.log.n("Pausing stretchly")
-  --     run.cmd("/Applications/Stretchly.app/Contents/MacOS/Stretchly", { "pause" })
-  --   end
-  --
-  --   Elgato.cameraStart()
-  -- end
-  --
-  -- local function cameraStopped()
-  --   hs.shortcuts.run("Meeting End")
-  --
-  --   if hs.application.find("Stretchly") ~= nil then
-  --     U.log.n("Resuming stretchly")
-  --     run.cmd("/Applications/Stretchly.app/Contents/MacOS/Stretchly", { "resume" })
-  --   end
-  --
-  --   Elgato.cameraEnd()
-  -- end
+  local function cameraInactive()
+    U.dnd(false)
+
+    -- hs.shortcuts.run("Meeting End")
+    --
+    -- if hs.application.find("Stretchly") ~= nil then
+    --   U.log.n("Resuming stretchly")
+    --   run.cmd("/Applications/Stretchly.app/Contents/MacOS/Stretchly", { "resume" })
+    -- end
+    --
+    -- Elgato.cameraEnd()
+  end
 
   local function cameraPropertyCallback(camera, property)
     -- TODO: Think about logging which application has started to use the camera with something like:
@@ -35,11 +38,11 @@ return function(opts)
     -- Weirdly, "gone" is used as the property  if the camera's use changes: https://www.hammerspoon.org/docs/hs.camera.html#setPropertyWatcherCallback
     if property == "gone" then
       if camera:isInUse() then
+        cameraActive()
         U.log.of("[camera] %s active", camera:name())
-        -- cameraInUse()
       else
+        cameraInactive()
         U.log.of("[camera] %s inactive", camera:name())
-        -- cameraStopped()
       end
     end
   end
@@ -53,7 +56,7 @@ return function(opts)
   end
 
   local function addCameraOnInit()
-    for _, camera in ipairs(hs.camera.allCameras()) do
+    for _, camera in ipairs(hs.camera.allCameras() or {}) do
       U.log.n(fmt("[camera] initial detection: %s", camera:name()))
       camera:setPropertyWatcherCallback(cameraPropertyCallback)
       camera:startPropertyWatcher()

@@ -10,15 +10,15 @@ obj.mode = "ptt" -- or "ptm"
 obj.pushed = false
 obj.volume = 60
 obj.icons = {
-  ["hot"] = require("hs.styledtext").new("◉", {
+  ["hot"] = hs.styledtext.new("◉", {
     color = { hex = "#c43e1f" },
     font = { name = "Symbols Nerd Font Mono", size = 13 },
   }),
-  ["ptm"] = require("hs.styledtext").new("", {
+  ["ptm"] = hs.styledtext.new("", {
     color = { hex = "#c43e1f" },
     font = { name = "Symbols Nerd Font Mono", size = 16 },
   }),
-  ["ptt"] = require("hs.styledtext").new(" ", {
+  ["ptt"] = hs.styledtext.new(" ", {
     color = { hex = "#aaaaaa" },
     font = { name = "Symbols Nerd Font Mono", size = 14 },
   }),

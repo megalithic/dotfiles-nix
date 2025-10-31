@@ -7,47 +7,31 @@ return function(opts)
 
   local M = {}
   M.is_docked = nil
+  M.wifi_device = nil
+
+  local function setWiFi(state)
+    hs.execute(fmt("networksetup -setairportpower %s %s", M.wifi_device, state), true)
+  end
 
   local function docked()
-    U.log.n(string.format("Docked is: %s", M.is_docked))
-    if M.is_docked == true then
+    if M.is_docked ~= nil and M.is_docked == true then
       U.log.w("[dock] already docked; skipping setup.")
       return
     end
 
     M.is_docked = true
-    U.log.i("[dock] docked; running setup.")
+    U.log.i("[dock] running docked setup..")
+    M.wifi_device = hs.execute("network-status -d wifi &", true)
 
-    -- networking.disableWifiSlowly()
-    -- networking.networkReconnect(secrets.networking.homeDNS)
-    -- run.brewcmd("blueutil", { "--connect", secrets.dock.mouseID })
-
-    -- local lan = networking.checkForLAN()
-    -- ethernetMenubar:returnToMenuBar()
-    -- if lan == "lan" then
-    --   ethernetMenubar:setTitle(hs.styledtext.new("", menubarLargeStyle))
-    -- elseif lan == "none" then
-    --   ethernetMenubar:setTitle(hs.styledtext.new("", menubarLargeStyle))
-    -- end
-    --
-    -- for _, app in ipairs(secrets.dock.dockedApps) do
-    --   run.startApp(app, true)
-    -- end
+    if M.wifi_device ~= nil then
+      setWiFi(DOCK.docked.wifi)
+    end
   end
 
   local function undocked()
-    U.log.n("Undocked")
     M.is_docked = false
-    hs.wifi.setPower(true)
-
-    U.log.i("[dock] undocked; running setup.")
-    -- run.brewcmd("blueutil", { "--disconnect", secrets.dock.mouseID })
-    --
-    -- ethernetMenubar:removeFromMenuBar()
-
-    -- for _, app in ipairs(secrets.dock.dockedApps) do
-    --   run.closeApp(app)
-    -- end
+    U.log.i("[dock] running undocked setup..")
+    setWiFi(DOCK.undocked.wifi)
   end
 
   local function dockChangedState(state)
@@ -60,17 +44,46 @@ return function(opts)
     end
   end
 
+  local function keyboardChangedState(state)
+    if state == "removed" then
+      local status = hs.execute(
+        fmt(
+          [[/Library/Application Support/org.pqrs/Karabiner-Elements/bin/karabiner_cli --select-profile %s &]],
+          DOCK.keyboard.disconnected
+        ),
+        true
+      )
+
+      U.log.of("[dock] %s keyboard profile activated", status)
+      -- warn(fmt("[%s.keyboard] leeloo disconnected (%s)", obj.name, DOCK.keyboard.disconnected))
+    elseif state == "added" then
+      local status = hs.execute(
+        fmt(
+          [[/Library/Application Support/org.pqrs/Karabiner-Elements/bin/karabiner_cli --select-profile %s &]],
+          DOCK.keyboard.connected
+        ),
+        true
+      )
+      U.log.of("[dock] %s keyboard profile activated", status)
+    else
+      U.log.wf("[dock] unknown keyboard state: ", state)
+    end
+  end
+
   local function usbWatcherCallback(data)
-    -- CalDigit 4 Pro Thunderbolt Dock
-    if data.vendorName == "CalDigit, Inc" then
+    if data.vendorID == DOCK.target_alt.vendorID then
       dockChangedState(data.eventType)
+    end
+
+    if data.vendorID == DOCK.keyboard.vendorID then
+      keyboardChangedState(data.eventType)
     end
   end
 
   function M.isDocked()
     local usbDevices = hs.usb.attachedDevices()
     for _, device in pairs(usbDevices or {}) do
-      if device.vendorName == "CalDigit, Inc" then
+      if device.vendorID == DOCK.target_alt.vendorID then
         return true
       end
     end

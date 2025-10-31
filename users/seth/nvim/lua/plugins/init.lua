@@ -225,6 +225,27 @@ return {
     lazy = true,
   },
   {
+    "chrisgrieser/nvim-various-textobjs",
+    event = "VeryLazy",
+    opts = {
+      keymaps = {
+        useDefaults = true,
+      },
+    },
+    keys = {
+      { -- subword
+        "<Space>",
+        function()
+          -- for deletions use the outer subword, otherwise the inner
+          local scope = vim.v.operator == "d" and "outer" or "inner"
+          require("various-textobjs").subword(scope)
+        end,
+        mode = "o",
+        desc = "󰬞 subword",
+      },
+    },
+  },
+  {
     "folke/flash.nvim",
     event = "VeryLazy",
     keys = {

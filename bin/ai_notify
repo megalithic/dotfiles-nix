@@ -1,0 +1,294 @@
+#!/bin/bash
+
+# Smart Notification Helper Script for OpenCode/AI Agents
+# Provides intelligent multi-channel notifications based on user attention state
+
+# Temporary directory for tracking pending questions
+NOTIFY_STATE_DIR="${TMPDIR:-/tmp}/ai_notify_state"
+mkdir -p "$NOTIFY_STATE_DIR"
+
+# Get phone number from macOS Contacts (no authentication needed)
+get_phone_number() {
+  # Get the full name of the logged-in user
+  local full_name=$(dscl . -read /Users/$(whoami) RealName | tail -1 | sed 's/^ //')
+
+  if [ -z "$full_name" ]; then
+    echo "[WARN] Could not retrieve full name for current user" >&2
+    return 1
+  fi
+
+  osascript -e "tell application \"Contacts\"
+        set thePerson to first person whose name is \"$full_name\"
+
+        -- Try to find iPhone labeled number first
+        repeat with aPhone in phones of thePerson
+            if (label of aPhone as text) contains \"iPhone\" then
+                return value of aPhone
+            end if
+        end repeat
+
+        -- Last resort: return first phone
+        return value of first phone of thePerson
+    end tell" 2>/dev/null
+}
+
+# Check if user is paying attention to the agents window
+# Returns: 0 if user is NOT paying attention (should notify), 1 if paying attention
+should_send_notification() {
+  local check_result=$(hs -c "
+        -- Check if Ghostty is frontmost application
+        local frontmost = hs.application.frontmostApplication()
+        if not frontmost or frontmost:name() ~= 'Ghostty' then
+            print('not_ghostty')
+            return
+        end
+
+        -- Check if display is asleep (session properties don't have good indicators for this)
+        -- We'll use a workaround: check if screen is locked
+        local sessionInfo = hs.caffeinate.sessionProperties()
+        if sessionInfo and sessionInfo['CGSSessionScreenIsLocked'] then
+            print('display_asleep')
+            return
+        end
+
+        -- If we get here, Ghostty is frontmost, check tmux window
+        print('ghostty_active')
+    " 2>/dev/null)
+
+  # If Ghostty is not frontmost or display is asleep, send notifications
+  if [[ "$check_result" == "not_ghostty" ]] || [[ "$check_result" == "display_asleep" ]]; then
+    return 0 # Should send notification
+  fi
+
+  # Check if tmux "agents" window in "launchdeck" session is active
+  local tmux_check=$(tmux list-windows -t launchdeck 2>/dev/null | grep -E '^\d+: agents.*\(active\)')
+  if [ -z "$tmux_check" ]; then
+    # agents window is not active in launchdeck session
+    return 0 # Should send notification
+  fi
+
+  # User is paying attention (Ghostty frontmost AND agents window active)
+  return 1 # Should NOT send notification
+}
+
+# Check if display is asleep
+is_display_asleep() {
+  local session_check=$(hs -c "
+        local sessionInfo = hs.caffeinate.sessionProperties()
+        if sessionInfo then
+            if sessionInfo['CGSSessionScreenIsLocked'] then
+                print('locked')
+            elseif not sessionInfo['kCGSessionOnConsoleKey'] then
+                print('not_on_console')
+            else
+                print('awake')
+            end
+        else
+            print('unknown')
+        end
+    " 2>/dev/null)
+
+  [[ "$session_check" == "locked" ]] || [[ "$session_check" == "not_on_console" ]]
+}
+
+# Send macOS Notification
+send_macos_notification() {
+  local title="$1"
+  local subtitle="$2"
+  local body="$3"
+
+  hs -c "hs.notify.show('$title', '$subtitle', '$body')" 2>/dev/null
+}
+
+# Send Hammerspoon Alert (on-screen overlay)
+send_hammerspoon_alert() {
+  local message="$1"
+  local duration="${2:-5}"
+
+  local escaped_message="${message//\'/\\\'}"
+  hs -c "hs.alert.show('$escaped_message', $duration)" 2>/dev/null
+}
+
+# Send iMessage to Phone
+send_phone_notification() {
+  local message="$1"
+  local phone_number=$(get_phone_number)
+
+  if [ -z "$phone_number" ]; then
+    echo "[WARN] Could not retrieve phone number from 1Password" >&2
+    return 1
+  fi
+
+  local escaped_message="${message//\'/\\\'}"
+  hs -c "hs.messages.iMessage('$phone_number', '$escaped_message')" 2>/dev/null
+}
+
+# Main notification function with smart detection
+notify_user() {
+  local title="$1"
+  local message="$2"
+  local send_to_phone="${3:-false}"
+  local urgency="${4:-normal}"
+  local is_question="${5:-false}" # New: mark if this is a question
+
+  # Determine alert duration based on urgency
+  local duration=5
+  case "$urgency" in
+  high) duration=10 ;;
+  critical) duration=15 ;;
+  esac
+
+  # Check if display is asleep - if so, ALWAYS send phone notification
+  if is_display_asleep; then
+    echo "[NOTIFY] Display asleep - sending phone notification"
+    send_phone_notification "🤖 OpenCode - $title: $message"
+    return
+  fi
+
+  # Check if we should send notifications based on user attention
+  local should_notify=0
+  if should_send_notification; then
+    should_notify=1
+  fi
+
+  # Log notification decision
+  if [ $should_notify -eq 1 ]; then
+    echo "[NOTIFY] User not paying attention - sending notification: $title"
+  else
+    echo "[NOTIFY] User paying attention - notification suppressed: $title"
+  fi
+
+  # If this is a question, track it for retry logic
+  if [ "$is_question" = "true" ]; then
+    local question_id=$(echo -n "$title$message" | md5 -q)
+    local question_file="$NOTIFY_STATE_DIR/question_${question_id}"
+    echo "$(date +%s)|$title|$message|$send_to_phone|$urgency" >"$question_file"
+  fi
+
+  # Send notifications based on attention state
+  if [ $should_notify -eq 1 ] || [ "$urgency" = "critical" ]; then
+    # 1. macOS Notification Center
+    send_macos_notification "$title" "" "$message"
+
+    # 2. Hammerspoon Alert (on-screen overlay)
+    send_hammerspoon_alert "🤖 $title: $message" "$duration"
+
+    # 3. Phone notification (for important events or if requested)
+    if [ "$send_to_phone" = "true" ] || [ "$urgency" = "critical" ]; then
+      send_phone_notification "🤖 OpenCode - $title: $message"
+    fi
+  else
+    # User is paying attention - only send subtle notification
+    send_macos_notification "$title" "" "$message"
+  fi
+}
+
+# Answer a question (mark it as answered to stop retries)
+answer_question() {
+  local title="$1"
+  local message="$2"
+  local question_id=$(echo -n "$title$message" | md5 -q)
+  local question_file="$NOTIFY_STATE_DIR/question_${question_id}"
+
+  if [ -f "$question_file" ]; then
+    rm "$question_file"
+    echo "[NOTIFY] Question answered and removed from retry queue"
+  fi
+}
+
+# Check for unanswered questions and retry after 5 minutes
+retry_unanswered_questions() {
+  local current_time=$(date +%s)
+  local retry_interval=300 # 5 minutes in seconds
+
+  for question_file in "$NOTIFY_STATE_DIR"/question_*; do
+    [ -f "$question_file" ] || continue
+
+    local question_data=$(cat "$question_file")
+    IFS='|' read -r timestamp title message send_to_phone urgency <<<"$question_data"
+
+    local elapsed=$((current_time - timestamp))
+
+    # If more than 5 minutes have passed, resend the question
+    if [ $elapsed -ge $retry_interval ]; then
+      echo "[NOTIFY] Retrying unanswered question ($(($elapsed / 60)) minutes old): $title"
+
+      # Always send to phone for retries, and force notification even if user is active
+      send_macos_notification "⏰ REMINDER: $title" "" "$message"
+      send_hammerspoon_alert "⏰ REMINDER: $title: $message" 15
+      send_phone_notification "⏰ REMINDER - $title: $message"
+
+      # Update timestamp for next retry
+      echo "${current_time}|$title|$message|$send_to_phone|$urgency" >"$question_file"
+    fi
+  done
+}
+
+# Background retry daemon (call this once to start monitoring)
+start_retry_daemon() {
+  (
+    while true; do
+      sleep 60 # Check every minute
+      retry_unanswered_questions
+    done
+  ) &
+
+  echo $! >"$NOTIFY_STATE_DIR/retry_daemon.pid"
+  echo "[NOTIFY] Retry daemon started (PID: $(cat $NOTIFY_STATE_DIR/retry_daemon.pid))"
+}
+
+# Stop retry daemon
+stop_retry_daemon() {
+  if [ -f "$NOTIFY_STATE_DIR/retry_daemon.pid" ]; then
+    local pid=$(cat "$NOTIFY_STATE_DIR/retry_daemon.pid")
+    kill "$pid" 2>/dev/null
+    rm "$NOTIFY_STATE_DIR/retry_daemon.pid"
+    echo "[NOTIFY] Retry daemon stopped"
+  fi
+}
+
+# Export functions if sourced
+if [ "${BASH_SOURCE[0]}" != "${0}" ]; then
+  export -f get_phone_number
+  export -f should_send_notification
+  export -f is_display_asleep
+  export -f send_macos_notification
+  export -f send_hammerspoon_alert
+  export -f send_phone_notification
+  export -f notify_user
+  export -f answer_question
+  export -f retry_unanswered_questions
+  export -f start_retry_daemon
+  export -f stop_retry_daemon
+fi
+
+# If executed directly, run test
+if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
+  echo "Smart Notification System Test"
+  echo "==============================="
+  echo ""
+
+  echo "Checking attention state..."
+  if should_send_notification; then
+    echo "✅ User NOT paying attention - notifications will be sent"
+  else
+    echo "⚠️  User IS paying attention - notifications suppressed"
+  fi
+  echo ""
+
+  echo "Testing notification (normal priority)..."
+  notify_user "Test Notification" "This is a test" false normal
+  sleep 2
+
+  echo ""
+  echo "Testing question with retry (high priority)..."
+  notify_user "Test Question" "Should I proceed?" true high true
+
+  echo ""
+  echo "To test retry mechanism:"
+  echo "  1. Start retry daemon: start_retry_daemon"
+  echo "  2. Wait 5+ minutes without answering"
+  echo "  3. Question will be re-sent"
+  echo "  4. Answer with: answer_question 'Test Question' 'Should I proceed?'"
+  echo ""
+fi

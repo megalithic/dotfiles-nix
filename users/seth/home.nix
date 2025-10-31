@@ -82,7 +82,7 @@ in {
     bash-language-server
     vtsls # js/ts LSP
     yaml-language-server
-    (tailwindcss-language-server.override { nodejs_latest = nodejs_22; })
+    (tailwindcss-language-server.override {nodejs_latest = nodejs_22;})
     statix
     tree-sitter # required for treesitter "auto-install" option to work
     nixd # nix lsp
@@ -267,8 +267,8 @@ in {
         "leader": "ctrl+,",
         "session_new": "ctrl+n",
         "session_list": "ctrl+g",
-        "messages_half_page_up": "ctrl+u",
-        "messages_half_page_down": "ctrl+d"
+        "messages_half_page_up": "ctrl+b",
+        "messages_half_page_down": "ctrl+f"
       },
       "lsp": {
         "php": {

@@ -1,3 +1,32 @@
+_G.DefaultFont = { name = "JetBrainsMono Nerd Font Mono", size = 18 }
+
+--- @diagnostic disable-next-line: lowercase-global
+function _G.req(mod, ...)
+  local function lineTraceHook(event, data)
+    local lineInfo = debug.getinfo(2, "Snl")
+    print("TRACE: " .. (lineInfo["short_src"] or "<unknown source>") .. ":" .. (lineInfo["linedefined"] or "<??>"))
+  end
+
+  local ok, reqmod = pcall(require, mod)
+  if not ok then
+    debug.sethook(lineTraceHook, "l")
+    error(reqmod)
+
+    return false
+  else
+    -- if there is an init function; invoke it first.
+    if type(reqmod) == "table" and reqmod.init ~= nil and type(reqmod.init) == "function" then
+      -- if initializedModules[reqmod.name] ~= nil then
+      reqmod:init(...)
+      -- initializedModules[reqmod.name] = reqmod
+      -- end
+    end
+
+    -- always return the module.. we typically end up immediately invoking it.
+    return reqmod
+  end
+end
+
 hs.allowAppleScript(true)
 hs.application.enableSpotlightForNameSearches(false)
 hs.autoLaunch(true)
@@ -16,13 +45,23 @@ hs.window.setShadows(false)
 hs.grid.setGrid("60x20")
 hs.grid.setMargins("0x0")
 
--- [ ALERT SETTINGS ] ----------------------------------------------------------
+hs.console.darkMode(true)
+hs.console.consoleFont(DefaultFont)
+hs.console.alpha(0.985)
+local darkGrayColor = { red = 26 / 255, green = 28 / 255, blue = 39 / 255, alpha = 1.0 }
+local whiteColor = { white = 1.0, alpha = 1.0 }
+local lightGrayColor = { white = 1.0, alpha = 0.9 }
+local grayColor = { red = 24 * 4 / 255, green = 24 * 4 / 255, blue = 24 * 4 / 255, alpha = 1.0 }
+hs.console.outputBackgroundColor(darkGrayColor)
+hs.console.consoleCommandColor(whiteColor)
+hs.console.consoleResultColor(lightGrayColor)
+hs.console.consolePrintColor(grayColor)
 
 hs.alert.defaultStyle["textSize"] = 24
-hs.alert.defaultStyle["radius"] = 20
+hs.alert.defaultStyle["radius"] = 10
 hs.alert.defaultStyle["strokeColor"] = {
   white = 1,
-  alpha = 0,
+  alpha = 0.3,
 }
 hs.alert.defaultStyle["fillColor"] = {
   red = 9 / 255,
@@ -358,6 +397,39 @@ LAUNCHERS = {
   { "com.microsoft.VSCode", "v", nil, true },
 }
 
+DOCK = {
+  target = {
+    productID = 39536,
+    productName = "LG UltraFine Display Controls",
+    vendorID = 1086,
+    vendorName = "LG Electronics Inc.",
+  },
+  target_alt = {
+    productID = 21760,
+    productName = "TS4 USB3.2 Gen2 HUB",
+    vendorID = 8584,
+    vendorName = "CalDigit, Inc",
+  },
+  keyboard = {
+    connected = "leeloo",
+    disconnected = "internal",
+    productID = 24926,
+    productName = "Leeloo",
+    vendorID = 7504,
+    vendorName = "ZMK Project",
+  },
+  docked = {
+    wifi = "off",
+    input = "Samson GoMic",
+    output = "megabose",
+  },
+  undocked = {
+    wifi = "on",
+    input = "megabose",
+    output = "megabose",
+  },
+}
+
 if not hs.ipc.cliStatus() then
   hs.ipc.cliInstall()
 end
@@ -375,37 +447,69 @@ end
 --- DateTime: 15.10.24
 --- See: https://github.com/Hammerspoon/hammerspoon/issues/3224#issuecomment-2155567633
 --- https://github.com/Hammerspoon/hammerspoon/issues/3277
-local function axHotfix(win, infoText)
+-- local function axHotfix(win, infoText)
+--   if not win then
+--     win = hs.window.frontmostWindow()
+--   end
+--   if not infoText then
+--     infoText = "?"
+--   end
+--
+--   local axApp = hs.axuielement.applicationElement(win:application())
+--   local wasEnhanced = axApp.AXEnhancedUserInterface
+--   axApp.AXEnhancedUserInterface = false
+--   -- print(" enable hotfix: " .. infoText)
+--
+--   return function()
+--     hs.timer.doAfter(hs.window.animationDuration * 2, function()
+--       -- print("disable hotfix: " .. infoText)
+--       axApp.AXEnhancedUserInterface = wasEnhanced
+--     end)
+--   end
+-- end
+--
+-- local function withAxHotfix(fn, position, infoText)
+--   if not position then
+--     position = 1
+--   end
+--   return function(...)
+--     local revert = axHotfix(select(position, ...), infoText)
+--     fn(...)
+--     revert()
+--   end
+-- end
+--
+-- local windowMT = hs.getObjectMetatable("hs.window")
+-- windowMT.setFrame = withAxHotfix(windowMT.setFrame, 1, "setFrame")
+
+--- REF: https://github.com/skrypka/hammerspoon_config/blob/master/init.lua#L26C1-L51C56
+local function axHotfix(win)
   if not win then
     win = hs.window.frontmostWindow()
-  end
-  if not infoText then
-    infoText = "?"
   end
 
   local axApp = hs.axuielement.applicationElement(win:application())
   local wasEnhanced = axApp.AXEnhancedUserInterface
   axApp.AXEnhancedUserInterface = false
-  -- print(" enable hotfix: " .. infoText)
 
   return function()
     hs.timer.doAfter(hs.window.animationDuration * 2, function()
-      -- print("disable hotfix: " .. infoText)
       axApp.AXEnhancedUserInterface = wasEnhanced
     end)
   end
 end
 
-local function withAxHotfix(fn, position, infoText)
+local function withAxHotfix(fn, position)
   if not position then
     position = 1
   end
   return function(...)
-    local revert = axHotfix(select(position, ...), infoText)
+    local revert = axHotfix(select(position, ...))
     fn(...)
     revert()
   end
 end
 
 local windowMT = hs.getObjectMetatable("hs.window")
-windowMT.setFrame = withAxHotfix(windowMT.setFrame, 1, "setFrame")
+windowMT.maximize = withAxHotfix(windowMT.maximize)
+windowMT.moveToUnit = withAxHotfix(windowMT.moveToUnit)
