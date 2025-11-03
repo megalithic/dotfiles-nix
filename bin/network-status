@@ -7,6 +7,10 @@
 #   network-status              # Show full report
 #   network-status -d wifi      # Get device for connected wifi
 #   network-status --device ethernet  # Get device for connected ethernet
+#   network-status -n wifi      # Get service name for connected wifi
+#   network-status --name ethernet    # Get service name for connected ethernet
+#   network-status -f wifi      # Show full report for just wifi
+#   network-status --full ethernet    # Show full report for just ethernet
 
 # Function to parse network services and their devices
 # Output format: "Service Name|Device"
@@ -93,6 +97,60 @@ find_device_by_name() {
             # Check if this service is connected
             if is_connected "$service_name" "$device"; then
                 echo "$device"
+                return 0
+            fi
+        fi
+    done <<< "$all_services"
+
+    # No matching connected service found
+    return 1
+}
+
+# Function to find service name by fuzzy/regex matching
+find_service_name() {
+    local search_term="$1"
+    local all_services=$(get_all_network_services)
+
+    # Convert search term to lowercase and remove non-alphanumeric chars for fuzzy matching
+    local search_normalized=$(echo "$search_term" | tr '[:upper:]' '[:lower:]' | tr -d -c '[:alnum:]')
+
+    # Process each network service
+    while IFS='|' read -r service_name device; do
+        # Convert service name to lowercase and remove non-alphanumeric chars
+        local service_normalized=$(echo "$service_name" | tr '[:upper:]' '[:lower:]' | tr -d -c '[:alnum:]')
+
+        # Check if search term is contained in service name (fuzzy match)
+        if [[ "$service_normalized" =~ $search_normalized ]]; then
+            # Check if this service is connected
+            if is_connected "$service_name" "$device"; then
+                echo "$service_name"
+                return 0
+            fi
+        fi
+    done <<< "$all_services"
+
+    # No matching connected service found
+    return 1
+}
+
+# Function to show full report for a single matched service
+show_service_report() {
+    local search_term="$1"
+    local all_services=$(get_all_network_services)
+
+    # Convert search term to lowercase and remove non-alphanumeric chars for fuzzy matching
+    local search_normalized=$(echo "$search_term" | tr '[:upper:]' '[:lower:]' | tr -d -c '[:alnum:]')
+
+    # Process each network service
+    while IFS='|' read -r service_name device; do
+        # Convert service name to lowercase and remove non-alphanumeric chars
+        local service_normalized=$(echo "$service_name" | tr '[:upper:]' '[:lower:]' | tr -d -c '[:alnum:]')
+
+        # Check if search term is contained in service name (fuzzy match)
+        if [[ "$service_normalized" =~ $search_normalized ]]; then
+            # Check if this service is connected
+            if is_connected "$service_name" "$device"; then
+                print_service_info "$service_name" "$device"
                 return 0
             fi
         fi
@@ -199,20 +257,71 @@ show_full_report() {
     fi
 }
 
+# Function to show help
+show_help() {
+    cat << EOF
+Network Status Script - Check network connection status and details
+
+USAGE:
+    network-status [OPTIONS]
+
+OPTIONS:
+    (no options)           Show full network status report for all interfaces
+
+    -d, --device <term>    Return only the device name (e.g., en0) for the
+                          connected service matching <term>
+
+    -n, --name <term>      Return only the service name (e.g., Wi-Fi) for the
+                          connected service matching <term>
+
+    -f, --full <term>      Show full report for only the connected service
+                          matching <term> (includes device, status, IPs)
+
+    -h, --help            Show this help message
+
+EXAMPLES:
+    network-status                    # Show full report for all services
+    network-status -d wifi            # Get device for Wi-Fi (e.g., en0)
+    network-status -n ethernet        # Get service name for ethernet
+    network-status -f thunderbolt     # Show full info for Thunderbolt Ethernet
+
+NOTES:
+    - Search terms use fuzzy matching (case-insensitive, ignores hyphens/spaces)
+    - Only connected services are returned
+    - Exit code 0 on success, 1 if no matching connected service found
+EOF
+}
+
 # Main script - Parse arguments
 device_mode=false
+name_mode=false
+full_mode=false
 search_term=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
+        -h|--help)
+            show_help
+            exit 0
+            ;;
         -d|--device)
             device_mode=true
             search_term="$2"
             shift 2
             ;;
+        -n|--name)
+            name_mode=true
+            search_term="$2"
+            shift 2
+            ;;
+        -f|--full)
+            full_mode=true
+            search_term="$2"
+            shift 2
+            ;;
         *)
             echo "Unknown option: $1" >&2
-            echo "Usage: $0 [-d|--device <search_term>]" >&2
+            echo "Usage: $0 [-d|--device <search_term>] [-n|--name <search_term>] [-f|--full <search_term>] [-h|--help]" >&2
             exit 1
             ;;
     esac
@@ -228,6 +337,31 @@ if $device_mode; then
     device=$(find_device_by_name "$search_term")
     if [[ $? -eq 0 ]]; then
         echo "$device"
+        exit 0
+    else
+        exit 1
+    fi
+elif $name_mode; then
+    if [[ -z "$search_term" ]]; then
+        echo "Error: -n|--name requires a search term" >&2
+        exit 1
+    fi
+
+    service_name=$(find_service_name "$search_term")
+    if [[ $? -eq 0 ]]; then
+        echo "$service_name"
+        exit 0
+    else
+        exit 1
+    fi
+elif $full_mode; then
+    if [[ -z "$search_term" ]]; then
+        echo "Error: -f|--full requires a search term" >&2
+        exit 1
+    fi
+
+    show_service_report "$search_term"
+    if [[ $? -eq 0 ]]; then
         exit 0
     else
         exit 1

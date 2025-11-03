@@ -66,7 +66,8 @@ req("hyper", { id = "meeting" }):start():bind({}, "z", nil, function()
     -- hs.application.launchOrFocusByBundleID("com.microsoft.teams2")
     local app = hs.application.find("com.microsoft.teams2")
     local targetWin = app:findWindow("Meeting")
-    if targetWin and targetWin:isStandard() then
+    P(targetWin)
+    if targetWin then
       targetWin:focus()
     else
       prevWin:focus()
@@ -526,4 +527,4 @@ req("hyper", { id = "wm" })
 -- req("snipper")
 -- req("clipper")
 
-U.log.o(fmt("[START] %s", "bindings"))
+U.log.i("initializing")

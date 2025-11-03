@@ -39,16 +39,16 @@ return function(opts)
     if property == "gone" then
       if camera:isInUse() then
         cameraActive()
-        U.log.of("[camera] %s active", camera:name())
+        U.log.of("%s active", camera:name())
       else
         cameraInactive()
-        U.log.of("[camera] %s inactive", camera:name())
+        U.log.of("%s inactive", camera:name())
       end
     end
   end
 
   local function cameraWatcherCallback(camera, status)
-    U.log.i(fmt("[camera] new camera detected: %s (%s)", camera:name(), status))
+    U.log.i(fmt("camera detected: %s (%s)", camera:name(), status))
     if status == "Added" then
       camera:setPropertyWatcherCallback(cameraPropertyCallback)
       camera:startPropertyWatcher()
@@ -57,7 +57,7 @@ return function(opts)
 
   local function addCameraOnInit()
     for _, camera in ipairs(hs.camera.allCameras() or {}) do
-      U.log.n(fmt("[camera] initial detection: %s", camera:name()))
+      U.log.n(fmt("initial detection: %s", camera:name()))
       camera:setPropertyWatcherCallback(cameraPropertyCallback)
       camera:startPropertyWatcher()
     end

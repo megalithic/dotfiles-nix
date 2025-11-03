@@ -127,9 +127,9 @@ function M:init(mappings)
     M.push_mappings = mappings["push"]
     M.toggle_mappings = mappings["toggle"]
 
-    U.log.i("[ptt] started")
+    U.log.i("started")
   else
-    U.log.e("[ptt] no mappings to capture")
+    U.log.e("no mappings to capture")
   end
 
   return self

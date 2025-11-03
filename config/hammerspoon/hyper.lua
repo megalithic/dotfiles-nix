@@ -28,13 +28,12 @@ function M:init(opts)
   opts = opts or {}
 
   if not opts.id then
-    _G.tracingEnabled = true
-    U.log.e(fmt("[ERROR] %s -> unable to start this hyper; missing id", self.name))
+    U.log.e("unable to start this instance; missing id")
     return
   end
 
   if _G.Hypers[opts.id] ~= nil then
-    U.log.w(fmt("[%s] %s.%s (existing)", "INIT", self.name, opts.id))
+    U.log.w(fmt("%s used", _G.Hypers[opts.id].id))
 
     return _G["Hypers"][opts.id]
   end
@@ -49,7 +48,7 @@ function M:init(opts)
 
   _G.Hypers[opts.id] = self
 
-  U.log.i(fmt("[%s] %s.%s", "INIT", _G.Hypers[opts.id].name, _G.Hypers[opts.id].id))
+  U.log.i(fmt("%s initialized", _G.Hypers[opts.id].id))
 
   return self
 end

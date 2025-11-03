@@ -204,6 +204,7 @@ return {
   --   end,
   -- },
   {
+    enabled = false,
     "chrisgrieser/nvim-spider",
     keys = function()
       local spider = require("spider")
@@ -225,6 +226,7 @@ return {
     lazy = true,
   },
   {
+    enabled = false,
     "chrisgrieser/nvim-various-textobjs",
     event = "VeryLazy",
     opts = {

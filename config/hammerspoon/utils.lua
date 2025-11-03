@@ -5,6 +5,7 @@ local M = {
   string = {},
   tmux = {},
   file = {},
+  app = {},
 }
 
 M.__index = M
@@ -13,6 +14,11 @@ M.debug = true
 
 M.dndCmd = os.getenv("HOME") .. "/.dotfiles-nix/bin/dnd"
 M.slckCmd = os.getenv("HOME") .. "/.dotfiles-nix/bin/slck"
+
+function M.run(cmd, use_env)
+  local output = hs.execute(cmd, use_env)
+  return string.gsub(output, "^%s*(.-)%s*$", "%1")
+end
 
 function M.ts(date)
   date = date or hs.timer.secondsSinceEpoch()
@@ -34,7 +40,7 @@ M.log = {
   i = function(m)
     M.logger(m, "INFO")
   end,
-  ["if"] = function(...)
+  f = function(...)
     M.logger(string.format(...), "INFO")
   end,
   w = function(m)
@@ -67,6 +73,19 @@ function M.logger(msg, level)
   level = level and level or "NOTE" --[[@as "NOTE"|"INFO"|"WARN"|"ERROR"|"OK"|"DEBUG"]]
   msg = type(msg) == "table" and hs.inspect(msg) or msg
 
+  local w = debug.getinfo(3, "S")
+  local full_path = w.short_src
+  local fname = full_path:gsub(".*/", "")
+
+  -- Remove .lua extension
+  fname = fname:sub(0, #fname - 4)
+
+  -- If filename is 'init', use the parent directory name instead
+  if fname == "init" then
+    -- Extract parent directory from full path: /path/to/dir/init.lua -> dir
+    fname = full_path:match(".*/(.+)/init%.lua$") or fname
+  end
+
   local color = {
     NOTE = { hex = "#444444", alpha = 1 },
     INFO = { hex = "#51afef", alpha = 0.65 },
@@ -84,22 +103,33 @@ function M.logger(msg, level)
   }
 
   if level == "DEBUG" then
-    hs.console.printStyledtext(stext(M.ts() .. M.getInfo(), {
-      color = { hex = "#dddddd", alpha = 1 },
-      backgroundColor = { hex = "#222222", alpha = 1 },
-      font = DefaultFont,
-    }))
-
-    hs.console.printStyledtext(stext(M.ts() .. " -> " .. tostring(msg), {
-      color = { hex = "#dddddd", alpha = 1 },
-      backgroundColor = { hex = "#222222", alpha = 1 },
-      font = DefaultFont,
-    }))
+    hs.console.printStyledtext(
+      stext(
+        M.ts()
+          .. " ("
+          .. w.short_src:gsub(".*/", "")
+          .. ":"
+          .. w.linedefined
+          .. ") => ["
+          .. fname
+          .. "]"
+          .. tostring(msg),
+        {
+          color = { hex = "#dddddd", alpha = 1 },
+          backgroundColor = { hex = "#222222", alpha = 1 },
+          font = DefaultFont,
+        }
+      )
+    )
   else
-    hs.console.printStyledtext(stext(M.ts() .. " -> " .. icon[level] .. " " .. tostring(msg), {
+    hs.console.printStyledtext(stext(M.ts() .. " -> [" .. fname .. "] " .. tostring(msg), {
       color = color[level],
       font = DefaultFont,
     }))
+    -- hs.console.printStyledtext(stext(M.ts() .. " -> [" .. fname .. "] " .. icon[level] .. " " .. tostring(msg), {
+    --   color = color[level],
+    --   font = DefaultFont,
+    -- }))
   end
 
   local lg = {
@@ -246,13 +276,13 @@ function M.dnd(status)
   if status ~= nil then
     hs.task
       .new(M.dndCmd, function(_exitCode, _stdOut, _stdErr)
-        info("[RUN] dnd/" .. status)
+        M.log.i("[RUN] dnd/" .. status)
       end, { status })
       :start()
   else
     hs.task
       .new(M.dndCmd, function(_exitCode, _stdOut, _stdErr)
-        info("[RUN] dnd/toggle")
+        M.log.i("[RUN] dnd/toggle")
       end, { "toggle" })
       :start()
   end
@@ -262,14 +292,14 @@ end
 -- https://github.com/kiooss/dotmagic/blob/master/hammerspoon/slack.lua
 ---@param status string|nil slack status to pass to the slck binary
 function M.slack(status)
-  dbg(status, true)
+  M.log.d(status, true)
   if status ~= nil and status ~= "" then
     -- local slck = hs.task.new("/opt/homebrew/bin/zsh", function(exitCode, stdOut, stdErr)
     --   dbg({ exitCode, stdOut, stdErr }, true)
     --   info("[RUN] slack/" .. slackStatus)
     -- end, { "-lc", obj.slckCmd, slackStatus })
     local slck = hs.task.new(M.slckCmd, function(_exitCode, _stdOut, _stdErr) end, function(stdTask, stdOut, stdErr)
-      dbg({ stdTask, stdOut, stdErr }, true)
+      M.log.d({ stdTask, stdOut, stdErr }, true)
       local continue = true
       -- info("[SLCK]: " .. slackStatus)
       return continue
@@ -328,7 +358,7 @@ function M.vidconvert(path, opts)
       -- dbg(fmt("sync foundStreamEnd: %s", foundStreamEnd), true)
 
       if foundStreamEnd then
-        success(fmt("[%s] vidconvert compeleted for %s at %s", M.name, path, os.date("%H:%M:%S")))
+        M.log.o(fmt("[%s] vidconvert compeleted for %s at %s", M.name, path, os.date("%H:%M:%S")))
         hs.notify.new({ title = "vidconvert", subTitle = fmt("FINISHED converting at %s", os.date("%H:%M:%S")) }):send()
       end
 
@@ -582,6 +612,186 @@ function M.download_lib(rel_file_path, url)
 
     return
   end
+end
+
+---get exact appObject, avoiding the imprecision of hs.application(appname)
+---@param appName string (literal & exact match)
+---@return hs.application? nil if not found
+---@nodiscard
+function M.app.get(appName)
+  -- FIX neovide and wezterm have differing CLI and app names
+  if appName:find("[Nn]eovide") then
+    return hs.application.find("^[Nn]eovide$")
+  elseif appName:find("[wW]ezterm") then
+    return hs.application.find("^[Ww]ezterm%-?g?u?i?$")
+  end
+
+  return hs.application.find(appName, true, true)
+end
+M.app.find = M.app.get
+
+---@param appNames string|string[] app or apps that should be checked
+---@nodiscard
+---@return boolean true when *one* of the apps is frontmost
+function M.app.isFront(appNames)
+  if appNames == nil then
+    return false
+  end
+  if type(appNames) == "string" then
+    appNames = { appNames }
+  end
+  for _, name in pairs(appNames) do
+    if M.app.get(name) and M.app.get(name):isFrontmost() then
+      return true
+    end
+  end
+  return false
+end
+
+---@param appNames string|string[] app or apps that should be running
+---@nodiscard
+---@return boolean true when all apps are running
+function M.app.isRunning(appNames)
+  if type(appNames) == "string" then
+    appNames = { appNames }
+  end
+  local allAreRunning = true
+  for _, name in pairs(appNames) do
+    if not M.app.get(name) then
+      allAreRunning = false
+    end
+  end
+  return allAreRunning
+end
+
+---@async
+---@param appName string
+---@param callbackFn function function to execute when a window of the app is available
+function M.app.whenWinAvailable(appName, callbackFn)
+  M[appName .. "WinAvailable"] = hs.timer.waitUntil(function()
+    local app = M.app.get(appName)
+    local windowAvailable = app and app:mainWindow()
+    return windowAvailable
+  end, callbackFn, 0.1)
+end
+
+---@param appNames string|string[]
+function M.app.open(appNames)
+  if type(appNames) == "string" then
+    appNames = { appNames }
+  end
+  for _, name in pairs(appNames) do
+    local runs = M.app.get(name) ~= nil
+    if not runs then
+      hs.application.open(name)
+    end
+  end
+end
+
+---@param appNames string|string[]
+function M.app.quit(appNames)
+  if type(appNames) == "string" then
+    appNames = { appNames }
+  end
+  for _, name in pairs(appNames) do
+    local appObj = M.app.get(name)
+    if appObj then
+      local forced = { "WezTerm", "wezterm-gui", "Zoom" }
+      if hs.fnutils.contains(forced, name) then
+        appObj:kill9() -- avoid confirmation
+      else
+        appObj:kill()
+      end
+    end
+  end
+end
+
+---Differentiate code to be run on reload and code to be run on startup.
+---REQUIRED dependent on the setup in `reload.lua`.
+---@return boolean
+---@nodiscard
+function M.isSystemStart()
+  local _, isReloading = hs.execute("test -f /tmp/hs-is-reloading")
+  return not isReloading
+end
+---Repeat a function multiple times, catching timers in table to avoid garbage
+---collection. To avoid accumulating too many, only a certain number are kept.
+---@param delaySecs number|number[]
+---@param callbackFn function
+function M.defer(delaySecs, callbackFn)
+  if type(delaySecs) == "number" then
+    delaySecs = { delaySecs }
+  end
+  for _, delay in pairs(delaySecs) do
+    M.defer_timer_idx = (M.defer_timer_idx or 0) + 1
+    M[M.defer_timer_idx] = hs.timer.doAfter(delay, callbackFn):start()
+    if M.defer_timer_idx > 30 then
+      M.defer_timer_idx = 0
+    end
+  end
+end
+
+---@nodiscard
+---@return boolean
+function M.screenIsUnlocked()
+  local _, success = hs.execute(
+    '[[ "$(/usr/libexec/PlistBuddy -c "print :IOConsoleUsers:0:CGSSessionScreenIsLocked" /dev/stdin 2>/dev/null <<< "$(ioreg -n Root -d1 -a)")" != "true" ]]'
+  )
+  return success == true -- convert to Boolean
+end
+
+---Send system Notification, accepting any number of arguments of any type.
+---Converts everything into strings, concatenates them, and then sends it.
+function M.notify(...)
+  local args = hs.fnutils.map({ ... }, function(arg)
+    local safeArg = (type(arg) == "table") and hs.inspect(arg) or tostring(arg)
+    return safeArg
+  end)
+  if not args then
+    return
+  end
+  local out = table.concat(args, " ")
+  hs.notify.show("Hammerspoon", "", out)
+  print("💬 " .. out)
+end
+
+function M.reload()
+  local reloadIndicator = "/tmp/hs-is-reloading"
+
+  -- URI for Justfile
+  hs.urlevent.bind("hs-reload", function()
+    hs.execute("touch " .. reloadIndicator) -- to detect whether we start or reload hammerspoon
+    M.defer(0.1, hs.reload)
+  end)
+
+  --------------------------------------------------------------------------------
+
+  if M.isSystemStart() then
+    hs.notify.show("Hammerspoon", "", "✅ Finished loading")
+  else
+    -- is reloading
+    print("\n---------------------- HAMMERSPOON RELOAD ----------------------\n")
+    os.remove(reloadIndicator)
+    -- M.defer(0.2, C.cleanupConsole)
+  end
+end
+
+---close all tabs instead of closing all windows to avoid confirmation prompt
+---"do you really want to x tabs?"
+---@param urlPart string
+function M.closeBrowserTabsWith(urlPart)
+  local browser = "Brave Browser"
+  hs.osascript.applescript(([[
+		tell application %q
+			repeat with win in (every window)
+				repeat with theTab in (every tab in win)
+					if the URL of theTab contains %q then close theTab
+				end repeat
+			end repeat
+		end tell
+	]]):format(browser, urlPart))
+
+  -- require("win-management.auto-tile").resetWinCount(browser)
 end
 
 return M

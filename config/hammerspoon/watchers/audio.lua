@@ -16,13 +16,15 @@ return function(opts)
     if found and device then
       device:setDefaultOutputDevice()
       local status = hs.execute(fmt("SwitchAudioSource -t output -s '%s' &", device:name()), true)
-      U.log.of("[audio] %s", status)
+      local icon = device:name() == "megabose" and "🎧 " or ""
+
+      U.log.of("%s%s", icon, string.gsub(status, "^%s*(.-)%s*$", "%1"))
       device = nil
 
       return 0
     end
 
-    U.log.w("[audio] unable to set a default output device.")
+    U.log.w("unable to set a default output device.")
     return 1
   end
 
@@ -38,13 +40,13 @@ return function(opts)
     if found and device then
       device:setDefaultInputDevice()
       local status = hs.execute(fmt("SwitchAudioSource -t input -s '%s' &", device:name()), true)
-      U.log.of("[audio] %s", status)
+      U.log.of("%s", string.gsub(status, "^%s*(.-)%s*$", "%1"))
       device = nil
 
       return 0
     end
 
-    U.log.w("[audio] unable to set a default input device.")
+    U.log.w("unable to set a default input device.")
     return 1
   end
 
@@ -57,15 +59,24 @@ return function(opts)
       oRetval = output()
 
       if oRetval == 1 and iRetval == 1 then
-        U.log.w("[audio] unable to set input or output devices. input: " .. iRetval .. ", output: " .. oRetval)
+        U.log.w("unable to set input or output devices. input: " .. iRetval .. ", output: " .. oRetval)
       end
     end
+  end
+
+  local function showCurrentlyConnected()
+    local i = hs.audiodevice.current(true)
+    local o = hs.audiodevice.current()
+
+    local icon = o.name == "megabose" and "🎧 " or ""
+    U.log.of("input: %s (%s)", i.name, i.muted and "muted" or "unmuted")
+    U.log.of("output: %s%s", icon, o.name)
   end
 
   hs.audiodevice.watcher.setCallback(audioDeviceChanged)
   if not opts.kill then
     hs.audiodevice.watcher.start()
-    -- audioDeviceChanged("dev#")
+    showCurrentlyConnected()
   else
     hs.audiodevice.watcher.stop()
   end
