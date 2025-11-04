@@ -452,7 +452,8 @@ end
 
 Augroup("mega.plugin.windows", {
   {
-    event = { "VimEnter", "WinEnter", "WinLeave" },
+    event = { "VimEnter", "BufEnter", "BufLeave" },
+    -- event = { "VimEnter", "WinEnter", "WinLeave", "BufEnter", "BufLeave" },
     command = function(args) mega.resize_windows(args.buf) end,
     desc = "Auto-resize window with golden ratio",
   },

@@ -211,13 +211,13 @@ function obj:start(opts)
   opts = opts or {}
   self.appObj = opts["appObj"]
   local event = opts["event"]
-
-  if enum.contains({ hs.application.watcher.activated, hs.uielement.watcher.applicationActivated }, event) then
-    -- function obj.modal:entered() dbg(I(obj.actions), true) end
-    if self.modal ~= nil then
-      self.modal:enter()
-    end
-  end
+  --
+  -- if enum.contains({ hs.application.watcher.activated, hs.uielement.watcher.applicationActivated }, event) then
+  --   -- function obj.modal:entered() dbg(I(obj.actions), true) end
+  --   if self.modal ~= nil then
+  --     self.modal:enter()
+  --   end
+  -- end
 
   return self
 end
@@ -225,10 +225,6 @@ end
 function obj:stop(opts)
   opts = opts or {}
   local event = opts["event"]
-
-  if self.modal ~= nil then
-    self.modal:exit()
-  end
 
   return self
 end

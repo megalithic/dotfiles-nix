@@ -203,50 +203,50 @@ return {
   --     end)
   --   end,
   -- },
-  {
-    enabled = false,
-    "chrisgrieser/nvim-spider",
-    keys = function()
-      local spider = require("spider")
-
-      local motion = function(key)
-        return function() spider.motion(key) end
-      end
-
-      local mappings = {
-        { "w", motion("w"), "Word forward", mode = { "n", "o", "x" } },
-        { "e", motion("e"), "󰯊 end of subword", mode = { "n", "o", "x" } },
-        { "b", motion("b"), "󰯊 beginning of subword", mode = { "n", "o", "x" } },
-        { "ge", motion("ge"), "Backward to end of word", mode = { "n", "o", "x" } },
-      }
-
-      return vim.fn.get_lazy_keys_conf(mappings, "Spider Motions")
-    end,
-
-    lazy = true,
-  },
-  {
-    enabled = false,
-    "chrisgrieser/nvim-various-textobjs",
-    event = "VeryLazy",
-    opts = {
-      keymaps = {
-        useDefaults = true,
-      },
-    },
-    keys = {
-      { -- subword
-        "<Space>",
-        function()
-          -- for deletions use the outer subword, otherwise the inner
-          local scope = vim.v.operator == "d" and "outer" or "inner"
-          require("various-textobjs").subword(scope)
-        end,
-        mode = "o",
-        desc = "󰬞 subword",
-      },
-    },
-  },
+  -- {
+  --   enabled = false,
+  --   "chrisgrieser/nvim-spider",
+  --   keys = function()
+  --     local spider = require("spider")
+  --
+  --     local motion = function(key)
+  --       return function() spider.motion(key) end
+  --     end
+  --
+  --     local mappings = {
+  --       { "w", motion("w"), "Word forward", mode = { "n", "o", "x" } },
+  --       { "e", motion("e"), "󰯊 end of subword", mode = { "n", "o", "x" } },
+  --       { "b", motion("b"), "󰯊 beginning of subword", mode = { "n", "o", "x" } },
+  --       { "ge", motion("ge"), "Backward to end of word", mode = { "n", "o", "x" } },
+  --     }
+  --
+  --     return vim.fn.get_lazy_keys_conf(mappings, "Spider Motions")
+  --   end,
+  --
+  --   lazy = true,
+  -- },
+  -- {
+  --   enabled = false,
+  --   "chrisgrieser/nvim-various-textobjs",
+  --   event = "VeryLazy",
+  --   opts = {
+  --     keymaps = {
+  --       useDefaults = true,
+  --     },
+  --   },
+  --   keys = {
+  --     { -- subword
+  --       "<Space>",
+  --       function()
+  --         -- for deletions use the outer subword, otherwise the inner
+  --         local scope = vim.v.operator == "d" and "outer" or "inner"
+  --         require("various-textobjs").subword(scope)
+  --       end,
+  --       mode = "o",
+  --       desc = "󰬞 subword",
+  --     },
+  --   },
+  -- },
   {
     "folke/flash.nvim",
     event = "VeryLazy",

@@ -394,31 +394,31 @@ M.augroup("Utilities", {
 
         -- FIXME: update tern related things to new things
 
-        -- go to linear ticket
-        if target:match("TRN-") then
-          local url = string.format("https://linear.app/ternit/issue/%s", target)
-          vim.notify(string.format("Opening linear ticket %s at %s", target, url))
+        -- go to aha ticket
+        if target:match("LD-") then
+          local url = string.format("https://c-spire1.aha.io/features/%s", target)
+          vim.notify(string.format("Opening aha ticket %s at %s", target, url))
           vim.fn.jobstart(string.format("%s %s", vim.g.open_command, url))
 
           return false
         end
 
         -- go to PR for specific repos
-        if target:match("^PR%-([DIR|BELL|RET|MOB]*)#(%d*)") then
-          local repo_abbr, pr_num = target:match("^PR%-([DIR|BELL|RET|MOB]*)#(%d*)")
-          local repos = {
-            DIR = "director",
-            BELL = "bellhop",
-            RET = "retriever",
-            MOB = "ternreturns",
-          }
-
-          local url = string.format("https://github.com/TernSystems/%s/pull/%s", repos[repo_abbr], pr_num)
-          vim.notify(string.format("Opening PR %d on %s", pr_num, repos[repo_abbr]))
-          vim.fn.jobstart(string.format("%s %s", vim.g.open_command, url))
-
-          return false
-        end
+        -- if target:match("^PR%-([DIR|BELL|RET|MOB]*)#(%d*)") then
+        --   local repo_abbr, pr_num = target:match("^PR%-([DIR|BELL|RET|MOB]*)#(%d*)")
+        --   local repos = {
+        --     DIR = "director",
+        --     BELL = "bellhop",
+        --     RET = "retriever",
+        --     MOB = "ternreturns",
+        --   }
+        --
+        --   local url = string.format("https://github.com/TernSystems/%s/pull/%s", repos[repo_abbr], pr_num)
+        --   vim.notify(string.format("Opening PR %d on %s", pr_num, repos[repo_abbr]))
+        --   vim.fn.jobstart(string.format("%s %s", vim.g.open_command, url))
+        --
+        --   return false
+        -- end
 
         -- go to hex packages
         if args.file:match("mix.exs") then

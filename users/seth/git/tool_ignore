@@ -25,15 +25,12 @@ public
 **/dotbot
 **/dotbot-plugins
 **/config/zsh/plugins
-!**/config/hs/Spoons
-**/config/hs/Spoons/URLDispatcher.spoon
-**/config/hs/Spoons/EmmyLua.spoon
-!**/config/hammerspoon/Spoons
-**/config/hammerspoon/Spoons/URLDispatcher.spoon
-**/config/hammerspoon/Spoons/EmmyLua.spoon
-**/config/hammerspoon/Spoons/SpoonInstall.spoon
-**/config/hammerspoon/Spoons/Seal.spoon
-**/config/hammerspoon/Spoons/VimMode.spoon
+!**/Spoons
+**/Spoons/URLDispatcher.spoon
+**/Spoons/EmmyLua.spoon
+**/Spoons/SpoonInstall.spoon
+**/Spoons/Seal.spoon
+**/Spoons/VimMode.spoon
 **/config/tmux/plugins
 **/config/karabiner/automatic_backups
 .DS_Store
@@ -69,5 +66,33 @@ erl_crash.dump
 .direnv
 **/.jj
 **/.direnv
+
+
+# ignores, etc from ripgrep
+# --glob=!config/hammerspoon/Spoons/*
+# --glob=!.git
+# --glob=!.elixir_ls
+# --glob=!.lexical
+# --glob=!.elixir-tools
+# --glob=!node_modules
+# --glob=!yarn.lock
+# --glob=!package-lock.json
+# --glob=!.yarn
+# --glob=!_build
+# --glob=!tags
+# --glob=!bower_components
+# --glob=!storage
+# --glob=!tmp
+# --glob=!coverage
+# --glob=!deps
+# --glob=!.hg
+# --glob=!.svn
+# --glob=!.sass-cache
+# --glob=!public
+# --glob=!*.cache
+# --glob=!.Trash
+# --glob=!.licenses
+# --glob=!config/zsh/plugins/*
+# --glob=!dotbot/*
 
 # vim:ft=gitignore:tw=0

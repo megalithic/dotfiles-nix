@@ -41,9 +41,6 @@ matches:
   - trigger: ':flip'
     replace: '(ノ°Д°）ノ︵ ┻━┻'
 
-  - trigger: ':shrug'
-    replace: "¯\\_(ツ)_/¯"
-
   - trigger: '::ip'
     replace: '{{ip}}'
     vars:

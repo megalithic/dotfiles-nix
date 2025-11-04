@@ -4,12 +4,12 @@ local M = {}
 
 function M:init(opts)
   M.watchers = opts.watchers
-  U.log.f("initializing", opts.watchers)
+  U.log.f("initializing %s", table.concat(opts.watchers, ", "))
 
   enum.each(opts.watchers or {}, function(watcher)
     local ok, mod = pcall(require, string.format("watchers.%s", watcher))
     if ok then
-      mod({ kill = false })
+      mod:start()
     else
       U.log.e(string.format("%s failed to start", watcher))
       U.log.e(string.format("%s %s", watcher, mod))
@@ -26,7 +26,7 @@ function M:stop(opts)
   enum.each(watchers or {}, function(watcher)
     local ok, mod = pcall(require, string.format("watchers.%s", watcher))
     if ok then
-      mod({ kill = true })
+      mod:stop()
     else
       U.log.e(string.format("%s failed to stop", watcher))
       U.log.e(string.format("%s %s", watcher, mod))

@@ -1,4 +1,4 @@
-hs.loadSpoon("HyperModal")
+-- hs.loadSpoon("HyperModal")
 
 _G.Hypers = {}
 
@@ -155,7 +155,8 @@ req("hyper", { id = "config.utils" })
 -- local tiler = req("hyper", { id = "apps" }):start()
 -- tiler:bind({}, "v", function() require("wm").tile() end)
 
-local wmModality = spoon.HyperModal
+-- local wmModality = spoon.HyperModal
+local wmModality = require("hypemode")
 wmModality
   :start()
   -- local wmModality = req("modality", { id = "wm", key = "l" }):start()

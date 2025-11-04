@@ -1,14 +1,14 @@
 local enum = req("hs.fnutils")
-local utils = req("utils")
-local obj = {}
+local fmt = string.format
 
-obj.__index = obj
-obj.name = "contexts"
-obj.debug = false
-obj.contextsPath = utils.resourcePath("./")
-obj.contextModals = {}
+local M = {}
 
-obj.loggableEvents = {
+M.__index = M
+M.name = "contexts"
+M.contextsPath = U.resourcePath("./")
+M.contextModals = {}
+
+M.loggableEvents = {
   -- hs.uielement.watcher.windowCreated,
   -- hs.uielement.watcher.elementDestroyed,
   -- hs.uielement.watcher.titleChanged,
@@ -20,7 +20,7 @@ obj.loggableEvents = {
   hs.application.watcher.terminated,
 }
 
-function obj:run(opts)
+function M:run(opts)
   local context = opts["context"]
   local app = opts["appObj"]
   local event = opts["event"]
@@ -29,7 +29,7 @@ function obj:run(opts)
   local contextId = opts["bundleID"] and bundleID or app:bundleID()
 
   if not context then
-    warn(fmt("[WARN] %s: No context found for %s", self.name, app:bundleID()))
+    U.log.w(fmt("[WARN] %s: No context found for %s", self.name, app:bundleID()))
     return self
   end
 
@@ -65,15 +65,15 @@ function obj:run(opts)
     })
   end
 
-  if enum.contains(obj.loggableEvents, event) then
-    note(fmt("[RUN] %s/%s (%s)", self.name, contextId, utils.eventString(event)))
+  if enum.contains(M.loggableEvents, event) then
+    U.log.n(fmt("[RUN] %s/%s (%s)", self.name, contextId, U.eventString(event)))
   end
 
   return self
 end
 
-function obj.prepareContextScripts(contextsScriptsPath)
-  contextsScriptsPath = contextsScriptsPath or obj.contextsPath
+function M.prepareContextScripts(contextsScriptsPath)
+  contextsScriptsPath = contextsScriptsPath or M.contextsPath
   local iterFn, dirObj = hs.fs.dir(contextsScriptsPath)
   if iterFn then
     for file in iterFn, dirObj do
@@ -81,7 +81,9 @@ function obj.prepareContextScripts(contextsScriptsPath)
         local basenameAndBundleID = string.sub(file, 1, -5)
         local script = dofile(contextsScriptsPath .. file)
         if basenameAndBundleID ~= "init" then
-          if script.modal then script.modal = hs.hotkey.modal.new() end
+          if script.modal then
+            script.modal = hs.hotkey.modal.new()
+          end
 
           if script.actions ~= nil then
             for _, value in pairs(script.actions) do
@@ -93,19 +95,19 @@ function obj.prepareContextScripts(contextsScriptsPath)
             end
           end
 
-          obj.contextModals[basenameAndBundleID] = script
+          M.contextModals[basenameAndBundleID] = script
         end
       end
     end
   end
 
-  return obj.contextModals
+  return M.contextModals
 end
 
-function obj:start()
-  info(fmt("[START] %s", self.name))
+function M:start()
+  U.log.i("started")
 
   return self.prepareContextScripts()
 end
 
-return obj
+return M

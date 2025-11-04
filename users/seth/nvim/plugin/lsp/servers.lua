@@ -136,9 +136,7 @@ M = {
     },
   },
   lexical = function()
-    if not U.lsp.is_enabled_elixir_ls("lexical") then
-      return false
-    end
+    if not U.lsp.is_enabled_elixir_ls("lexical") then return false end
 
     return {
       manual_install = true,
@@ -170,9 +168,7 @@ M = {
     }
   end,
   elixirls = function()
-    if not U.lsp.is_enabled_elixir_ls("elixirls") then
-      return false
-    end
+    if not U.lsp.is_enabled_elixir_ls("elixirls") then return false end
 
     return {
       manual_install = true,
@@ -207,9 +203,7 @@ M = {
     }
   end,
   expert = function()
-    if not U.lsp.is_enabled_elixir_ls("expert") then
-      return false
-    end
+    if not U.lsp.is_enabled_elixir_ls("expert") then return false end
 
     return {
       manual_install = true,
@@ -508,18 +502,14 @@ M = {
       handlers = {
         -- always go to the first definition
         ["textDocument/definition"] = function(err, result, ...)
-          if vim.islist(result) or type(result) == "table" then
-            result = result[1]
-          end
+          if vim.islist(result) or type(result) == "table" then result = result[1] end
           vim.lsp.handlers["textDocument/definition"](err, result, ...)
         end,
       },
     }
   end,
   markdown_oxide = function()
-    if vim.g.note_taker ~= "markdown_oxide" then
-      return nil
-    end
+    if vim.g.note_taker ~= "markdown_oxide" then return nil end
 
     return (vim.g.started_by_firenvim or vim.env.TMUX_POPUP) and nil
       or {
@@ -533,9 +523,7 @@ M = {
       }
   end,
   marksman = function()
-    if vim.g.note_taker ~= "marksman" then
-      return nil
-    end
+    if vim.g.note_taker ~= "marksman" then return nil end
 
     return (vim.g.started_by_firenvim or vim.env.TMUX_POPUP) and nil
       or {
@@ -577,9 +565,7 @@ M = {
       }
   end,
   nextls = function()
-    if not U.lsp.is_enabled_elixir_ls("nextls") then
-      return false
-    end
+    if not U.lsp.is_enabled_elixir_ls("nextls") then return false end
 
     local cmd = function(use_homebrew)
       local arch = {
@@ -592,9 +578,7 @@ M = {
       local os_name = string.lower(vim.uv.os_uname().sysname)
       local current_arch = arch[string.lower(vim.uv.os_uname().machine)]
       local build_bin = fmt("next_ls_%s_%s", os_name, current_arch)
-      if use_homebrew then
-        return { "nextls", "--stdio" }
-      end
+      if use_homebrew then return { "nextls", "--stdio" } end
       -- P({ fmt("%s/lsp/next-ls/burrito_out/%s", vim.env.XDG_DATA_HOME, build_bin), "--stdio" })
 
       return { fmt("%s/lsp/next-ls/burrito_out/%s", vim.env.XDG_DATA_HOME, build_bin), "--stdio" }
@@ -901,9 +885,7 @@ M = {
   sqlls = function()
     return {
       cmd = { "sql-language-server", "up", "--method", "stdio" },
-      root_dir = function(bufnr, on_dir)
-        root_pattern(bufnr, on_dir)
-      end,
+      root_dir = function(bufnr, on_dir) root_pattern(bufnr, on_dir) end,
       single_file_support = false,
       on_new_config = function(new_config, new_rootdir)
         table.insert(new_config.cmd, "-config")
@@ -1107,28 +1089,28 @@ M = {
   -- NOTE: presently enabled via typescript-tools
   tinymist = {},
 
-  ts_ls = {
-    cmd = { "typescript-language-server", "--stdio" },
-    filetypes = {
-      "javascript",
-      "javascriptreact",
-      "javascript.jsx",
-      "typescript",
-      "typescriptreact",
-      "typescript.tsx",
-      "vue",
-    },
-    -- workspace_required = true,
-    root_dir = function(_, on_dir)
-      on_dir(not vim.fs.root(0, { ".flowconfig", "deno.json", "deno.jsonc" }) and vim.fs.root(0, {
-        "tsconfig.json",
-        "jsconfig.json",
-        "package.json",
-        ".git",
-        vim.api.nvim_buf_get_name(0),
-      }))
-    end,
-  },
+  -- ts_ls = {
+  --   cmd = { "typescript-language-server", "--stdio" },
+  --   filetypes = {
+  --     "javascript",
+  --     "javascriptreact",
+  --     "javascript.jsx",
+  --     "typescript",
+  --     "typescriptreact",
+  --     "typescript.tsx",
+  --     "vue",
+  --   },
+  --   -- workspace_required = true,
+  --   root_dir = function(_, on_dir)
+  --     on_dir(not vim.fs.root(0, { ".flowconfig", "deno.json", "deno.jsonc" }) and vim.fs.root(0, {
+  --       "tsconfig.json",
+  --       "jsconfig.json",
+  --       "package.json",
+  --       ".git",
+  --       vim.api.nvim_buf_get_name(0),
+  --     }))
+  --   end,
+  -- },
   -- ts_ls = {
   --
   --   init_options = { hostInfo = "neovim" },
@@ -1213,6 +1195,31 @@ M = {
   --     end, {})
   --   end,
   -- },
+  tsgo = {
+    cmd = { "tsgo", "--lsp", "--stdio" },
+    filetypes = {
+      "javascript",
+      "javascriptreact",
+      "javascript.jsx",
+      "typescript",
+      "typescriptreact",
+      "typescript.tsx",
+    },
+    root_dir = function(bufnr, on_dir)
+      -- The project root is where the LSP can be started from
+      -- As stated in the documentation above, this LSP supports monorepos and simple projects.
+      -- We select then from the project root, which is identified by the presence of a package
+      -- manager lock file.
+      local root_markers = { "package-lock.json", "yarn.lock", "pnpm-lock.yaml", "bun.lockb", "bun.lock" }
+      -- Give the root markers equal priority by wrapping them in a table
+      root_markers = vim.fn.has("nvim-0.11.3") == 1 and { root_markers, { ".git" } }
+        or vim.list_extend(root_markers, { ".git" })
+      -- We fallback to the current working directory if no project root is found
+      local project_root = vim.fs.root(bufnr, root_markers) or vim.fn.getcwd()
+
+      on_dir(project_root)
+    end,
+  },
   -- tsgo = {
   --   cmd = { "tsgo", "lsp", "--stdio" },
   --   filetypes = { "typescript", "javascript", "vue" },

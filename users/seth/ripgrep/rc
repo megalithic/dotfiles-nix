@@ -30,31 +30,4 @@ railsmigrations:*/migrate/*
 --type-add
 rails:include:ruby,rabl,erb
 
-# ignores, etc
---glob=!config/hammerspoon/Spoons/*
---glob=!.git
---glob=!.elixir_ls
---glob=!.lexical
---glob=!.elixir-tools
---glob=!node_modules
---glob=!yarn.lock
---glob=!package-lock.json
---glob=!.yarn
---glob=!_build
---glob=!tags
---glob=!bower_components
---glob=!storage
---glob=!tmp
---glob=!coverage
---glob=!deps
---glob=!.hg
---glob=!.svn
---glob=!.sass-cache
---glob=!public
---glob=!*.cache
---glob=!.Trash
---glob=!.licenses
---glob=!config/zsh/plugins/*
---glob=!dotbot/*
-
 # vim:ft=conf

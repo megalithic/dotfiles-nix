@@ -79,7 +79,7 @@ return {
           --preset = "none",
           ["<CR>"] = {
             function() return vimPopupmenu("select_and_snippet_forward") end,
-            "select_and_accept",
+            "accept",
             "fallback",
           },
           -- ["<Tab>"] = { "snippet_forward", "select_next", "fallback" },
@@ -331,6 +331,7 @@ return {
               preselect = false,
               auto_insert = true,
             },
+            -- selection = function(ctx) return ctx.mode == "cmdline" and "auto_insert" or "preselect" end,
           },
           trigger = {
             show_in_snippet = false, -- since we overload `<Tab>` with jumping & selection
@@ -368,6 +369,9 @@ return {
           },
           menu = {
             border = vim.g.borders.blink_empty,
+            auto_show = function(ctx)
+              return ctx.mode ~= "cmdline" or not vim.tbl_contains({ "/", "?" }, vim.fn.getcmdtype())
+            end,
             max_height = 12,
             draw = {
               align_to = "none", -- keep in place
