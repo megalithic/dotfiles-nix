@@ -1,3 +1,4 @@
+local fmt = string.format
 local enum = req("hs.fnutils")
 local utils = req("utils")
 

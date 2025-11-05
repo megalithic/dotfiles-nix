@@ -19,31 +19,20 @@ function M.handleWatchedEvent(elementOrAppName, event, _watcher, app)
   if elementOrAppName ~= nil then
     -- M.runLayoutRulesForAppBundleID(elementOrAppName, event, app)
     M.runContextForAppBundleID(elementOrAppName, event, app)
-    if M.lollygagger then
-      M.lollygagger:run(elementOrAppName, event, app)
-    end
+
+    -- if M.lollygagger then
+    --   M.lollygagger:run(elementOrAppName, event, app)
+    -- end
   end
 end
 
 -- interface: (app, initializing)
 function M.watchApp(app, _)
-  if app == nil then
-    return
-  end
-  -- FIXME: do we watch by pid or bundleID?
-  if M.watchers.app[app:pid()] then
-    return
-  end
+  if app == nil then return end
+  if M.watchers.app[app:bundleID()] then return end
 
   local watcher = app:newWatcher(M.handleWatchedEvent, app)
-  M.watchers.app[app:pid()] = watcher
-  -- M.watchers.app[app:pid()] = {
-  --   watcher = watcher,
-  -- }
-
-  if watcher == nil then
-    return
-  end
+  if watcher == nil then return end
 
   watcher:start({
     hs.uielement.watcher.windowCreated,
@@ -52,14 +41,7 @@ function M.watchApp(app, _)
     hs.uielement.watcher.titleChanged,
     hs.uielement.watcher.elementDestroyed,
   })
-end
-
-function M.attachExistingApps()
-  enum.each(hs.application.runningApplications(), function(app)
-    if app:title() ~= "Hammerspoon" then
-      M.watchApp(app, true)
-    end
-  end)
+  M.watchers.app[app:bundleID()] = watcher
 end
 
 function M.runLayoutRulesForAppBundleID(elementOrAppName, event, app)
@@ -75,19 +57,16 @@ function M.runLayoutRulesForAppBundleID(elementOrAppName, event, app)
   }
 
   if app and enum.contains(layoutableEvents, event) then
-    hs.timer.waitUntil(function()
-      return #app:allWindows() > 0 and app:mainWindow() ~= nil
-    end, function()
-      req("wm").placeApp(elementOrAppName, event, app)
-    end)
+    hs.timer.waitUntil(
+      function() return #app:allWindows() > 0 and app:mainWindow() ~= nil end,
+      function() req("wm").placeApp(elementOrAppName, event, app) end
+    )
   end
 end
 
 -- NOTE: all events are context-runnable
 function M.runContextForAppBundleID(elementOrAppName, event, app, metadata)
-  if not M.watchers.context[app:bundleID()] then
-    return
-  end
+  if not M.watchers.context[app:bundleID()] then return end
 
   contexts:run({
     context = M.watchers.context[app:bundleID()],
@@ -100,20 +79,21 @@ function M.runContextForAppBundleID(elementOrAppName, event, app, metadata)
 end
 
 function M:start()
-  self.watchers.app = {}
-  self.watchers.context = contexts:start()
+  -- for watching all app events; the orchestrator, if you will
   self.watchers.global = hs.application.watcher
-    .new(function(appName, event, app)
-      M.handleWatchedEvent(appName, event, nil, app)
+    .new(function(appName, appEvent, appObj)
+      M.handleWatchedEvent(appName, appEvent, nil, appObj)
+      M.watchApp(appObj)
     end)
     :start()
 
-  -- NOTE: this slows it ALL down
-  -- self.attachExistingApps()
+  -- for watching individual apps
+  self.watchers.app = {}
+  self.watchers.context = contexts:preload()
 
-  if M.lollygagger then
-    self.lollygagger:start()
-  end
+  -- if M.lollygagger then
+  --   self.lollygagger:start()
+  -- end
 
   U.log.i(fmt("started", self.name))
 
@@ -127,11 +107,10 @@ function M:stop()
   end
 
   if self.watchers.app then
-    P(self.watchers.app)
     enum.each(self.watchers.app, function(w)
       if w and type(w["stop"]) == "function" then
+        U.log.f("stopping app/element watcher %s", w:element())
         w:stop()
-        U.log.f("stopping app watcher %s", w:bundleID())
       end
       w = nil
     end)
@@ -141,8 +120,8 @@ function M:stop()
   if self.watchers.context then
     enum.each(self.watchers.context, function(w)
       if w and type(w["stop"]) == "function" then
-        w:stop()
         U.log.f("stopping %s", w.name)
+        w:stop()
       end
       w = nil
     end)

@@ -59,27 +59,19 @@ end
 M.menutable = {
   {
     title = "push-to-talk (fn)",
-    fn = function()
-      M.setState("push-to-talk")
-    end,
+    fn = function() M.setState("push-to-talk") end,
   },
   {
     title = "push-to-mute (fn)",
-    fn = function()
-      M.setState("push-to-mute")
-    end,
+    fn = function() M.setState("push-to-mute") end,
   },
   {
     title = "unmuted",
-    fn = function()
-      M.setState("unmute")
-    end,
+    fn = function() M.setState("unmute") end,
   },
   {
     title = "muted",
-    fn = function()
-      M.setState("mute")
-    end,
+    fn = function() M.setState("mute") end,
   },
 }
 
@@ -100,9 +92,7 @@ local function eventTapWatcher(evt)
     local match = true
 
     for _, key in ipairs(push_mods) do
-      if modifiers[key] ~= true then
-        match = false
-      end
+      if modifiers[key] ~= true then match = false end
     end
 
     return match
@@ -150,14 +140,10 @@ function M:start()
     M.eventTapWatcher = hs.eventtap.new({ hs.eventtap.event.types.flagsChanged }, eventTapWatcher)
     M.eventTapWatcher:start()
   else
-    M.pushHotkey = hs.hotkey.bind(push_mods, push_key, function()
-      showState()
-    end)
+    M.pushHotkey = hs.hotkey.bind(push_mods, push_key, function() showState() end)
   end
 
-  self.toggleHotkey = hs.hotkey.bind(toggle_mods, toggle_key, function()
-    self:toggleStates()
-  end)
+  self.toggleHotkey = hs.hotkey.bind(toggle_mods, toggle_key, function() self:toggleStates() end)
 
   M.menubar = hs.menubar.new()
   M.menubar:setMenu(M.menutable)
@@ -170,21 +156,11 @@ end
 --- Method
 --- Stops PushToTalk
 function M:stop()
-  if M.appWatcher then
-    M.appWatcher:stop()
-  end
-  if M.eventTapWatcher then
-    M.eventTapWatcher:stop()
-  end
-  if M.menubar then
-    M.menubar:delete()
-  end
-  if M.pushHotkey then
-    M.pushHotkey:delete()
-  end
-  if M.toggleHotkey then
-    M.toggleHotkey:delete()
-  end
+  if M.appWatcher then M.appWatcher:stop() end
+  if M.eventTapWatcher then M.eventTapWatcher:stop() end
+  if M.menubar then M.menubar:delete() end
+  if M.pushHotkey then M.pushHotkey:delete() end
+  if M.toggleHotkey then M.toggleHotkey:delete() end
 
   return self
 end
@@ -197,16 +173,14 @@ end
 ---  * states - A array of states to toggle. For example: `{'push-to-talk', 'push-to-mute'}`
 function M:toggleStates(states)
   states = states or M.states
-  new_state = states[1]
+  local updatedState = states[1]
   for i, v in pairs(states) do
-    if v == M.state then
-      new_state = states[(i % #states) + 1]
-    end
+    if v == M.state then updatedState = states[(i % #states) + 1] end
   end
-  M.setState(new_state)
+  M.setState(updatedState)
 
   hs.alert.closeAll()
-  hs.alert.show("toggled to -> " .. new_state)
+  hs.alert.show("toggled to -> " .. updatedState)
 end
 
 return M

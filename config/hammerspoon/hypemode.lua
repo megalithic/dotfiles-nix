@@ -1,5 +1,5 @@
-local fmt = string.format
 local M = hs.hotkey.modal.new({}, nil)
+local fmt = string.format
 
 M.name = "hypemode"
 M.isOpen = false
@@ -68,18 +68,18 @@ function M:entered()
       M.toggleIndicator(win)
       M.alertUuids = hs.fnutils.map(hs.screen.allScreens(), function(screen)
         if screen == hs.screen.mainScreen() then
-          local app_title = win:application():title()
-          local image = hs.image.imageFromAppBundle(win:application():bundleID())
-          local prompt = fmt("◱ : %s", app_title)
+          local appTitle = win:application():title()
+          local appImage = hs.image.imageFromAppBundle(win:application():bundleID())
+          local text = fmt("◱ : %s", appTitle)
 
           M:delayedExit()
-          if image ~= nil then
-            prompt = fmt(": %s", app_title)
+          if appImage ~= nil then
+            text = fmt(": %s", appTitle)
 
-            return hs.alert.showWithImage(prompt, image, nil, screen)
+            return hs.alert.showWithImage(text, appImage, nil, screen)
           end
 
-          return hs.alert.show(prompt, hs.alert.defaultStyle, screen, true)
+          return hs.alert.show(text, hs.alert.defaultStyle, screen, true)
         end
       end)
     else

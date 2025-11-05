@@ -5,7 +5,6 @@ local M = {}
 
 M.__index = M
 M.name = "contexts"
-M.contextsPath = U.resourcePath("./")
 M.contextModals = {}
 
 M.loggableEvents = {
@@ -72,8 +71,11 @@ function M:run(opts)
   return self
 end
 
-function M.prepareContextScripts(contextsScriptsPath)
-  contextsScriptsPath = contextsScriptsPath or M.contextsPath
+function M.preload()
+  U.log.i("preloading")
+
+  local contextsScriptsPath = U.resourcePath("./")
+
   local iterFn, dirObj = hs.fs.dir(contextsScriptsPath)
   if iterFn then
     for file in iterFn, dirObj do
@@ -81,11 +83,8 @@ function M.prepareContextScripts(contextsScriptsPath)
         local basenameAndBundleID = string.sub(file, 1, -5)
         local script = dofile(contextsScriptsPath .. file)
         if basenameAndBundleID ~= "init" then
-          if script.modal then
-            script.modal = hs.hotkey.modal.new()
-          end
-
           if script.actions ~= nil then
+            script.modal = hs.hotkey.modal.new()
             for _, value in pairs(script.actions) do
               local hotkey = value.hotkey
               if hotkey then
@@ -102,12 +101,6 @@ function M.prepareContextScripts(contextsScriptsPath)
   end
 
   return M.contextModals
-end
-
-function M:start()
-  U.log.i("started")
-
-  return self.prepareContextScripts()
 end
 
 return M

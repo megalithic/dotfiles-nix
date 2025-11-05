@@ -1,6 +1,7 @@
 local con = hs.console
 local wf = hs.window.filter
 local aw = hs.application.watcher
+local fmt = string.format
 
 local M = {}
 -- local u = require("utils")
@@ -31,21 +32,13 @@ function Red(isDark)
   return { red = 0.7, green = 0, blue = 0 }
 end
 function Yellow(isDark)
-  if isDark then
-    return { red = 1, green = 1, blue = 0 }
-  end
+  if isDark then return { red = 1, green = 1, blue = 0 } end
   return { red = 0.7, green = 0.5, blue = 0 }
 end
-function Orange(isDark)
-  return { hex = "#ef9672", alpha = 1 }
-end
-function Green(isDark)
-  return { hex = "#a7c080", alpha = 1 }
-end
+function Orange(isDark) return { hex = "#ef9672", alpha = 1 } end
+function Green(isDark) return { hex = "#a7c080", alpha = 1 } end
 function Base(isDark)
-  if isDark then
-    return { white = 0.6 }
-  end
+  if isDark then return { white = 0.6 } end
   return { white = 0.1 }
 end
 function Grey(isDark)
@@ -85,9 +78,7 @@ function M.cleanupConsole()
   local consoleOutput = tostring(col.getConsole())
   col.clearConsole()
   local lines = hs.fnutils.split(consoleOutput, "\n+")
-  if not lines then
-    return
-  end
+  if not lines then return end
 
   local isDark = true --U.isDarkMode()
 
@@ -104,9 +95,7 @@ function M.cleanupConsole()
     -- colorize timestamp & error levels
     if not ignore then
       local timestamp, msg = line:match("(%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d: )(.*)")
-      if not msg then
-        msg = line
-      end -- msg without timestamp
+      if not msg then msg = line end -- msg without timestamp
       msg = msg
         :gsub("^%s-%d%d:%d%d:%d%d:? ", "") -- remove duplicate timestamp
         :gsub("^%s*", "")
@@ -528,9 +517,7 @@ DOCK = {
   },
 }
 
-if not hs.ipc.cliStatus() then
-  hs.ipc.cliInstall()
-end
+if not hs.ipc.cliStatus() then hs.ipc.cliInstall() end
 require("hs.ipc")
 
 pcall(require, "nix_path")
@@ -582,25 +569,19 @@ end
 
 --- REF: https://github.com/skrypka/hammerspoon_config/blob/master/init.lua#L26C1-L51C56
 local function axHotfix(win)
-  if not win then
-    win = hs.window.frontmostWindow()
-  end
+  if not win then win = hs.window.frontmostWindow() end
 
   local axApp = hs.axuielement.applicationElement(win:application())
   local wasEnhanced = axApp.AXEnhancedUserInterface
   axApp.AXEnhancedUserInterface = false
 
   return function()
-    hs.timer.doAfter(hs.window.animationDuration * 2, function()
-      axApp.AXEnhancedUserInterface = wasEnhanced
-    end)
+    hs.timer.doAfter(hs.window.animationDuration * 2, function() axApp.AXEnhancedUserInterface = wasEnhanced end)
   end
 end
 
 local function withAxHotfix(fn, position)
-  if not position then
-    position = 1
-  end
+  if not position then position = 1 end
   return function(...)
     local revert = axHotfix(select(position, ...))
     fn(...)
@@ -611,5 +592,37 @@ end
 local windowMT = hs.getObjectMetatable("hs.window")
 windowMT.maximize = withAxHotfix(windowMT.maximize)
 windowMT.moveToUnit = withAxHotfix(windowMT.moveToUnit)
+
+function Windows(appString)
+  local app
+  if appString ~= nil and type(appString) == "string" then app = hs.application.find(appString) end
+
+  local windows = app == nil and hs.window.allWindows() or app:allWindows()
+
+  hs.fnutils.each(windows, function(win)
+    U.log.i(fmt("[WIN] %s (%s)", win:title(), win:application():bundleID()))
+    U.log.n(I({
+      id = win:id(),
+      title = win:title(),
+      app = win:application():name(),
+      bundleID = win:application():bundleID(),
+      role = win:role(),
+      subrole = win:subrole(),
+      frame = win:frame(),
+      isFullScreen = win:isFullScreen(),
+      isStandard = win:isStandard(),
+      isMinimized = win:isMinimized(),
+      -- buttonZoom       = axuiWindowElement(win):attributeValue('AXZoomButton'),
+      -- buttonFullScreen = axuiWindowElement(win):attributeValue('AXFullScreenButton'),
+      -- isResizable      = axuiWindowElement(win):isAttributeSettable('AXSize')
+    }))
+
+    return win
+  end)
+
+  if app then return app end
+
+  return windows
+end
 
 return M

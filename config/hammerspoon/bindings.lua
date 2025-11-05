@@ -1,4 +1,4 @@
--- hs.loadSpoon("HyperModal")
+local M = {}
 
 _G.Hypers = {}
 
@@ -9,9 +9,7 @@ local chain = req("chain")
 local enum = req("hs.fnutils")
 local utils = require("utils")
 
--- [ APP LAUNCHERS ] -----------------------------------------------------------
-
-do
+function M.loadApps()
   local hyper = req("hyper", { id = "apps" }):start()
   enum.each(LAUNCHERS, function(bindingTable)
     local bundleID, globalBind, localBinds, focusOnly = table.unpack(bindingTable)
@@ -37,43 +35,37 @@ do
       end
     end
 
-    if localBinds then
-      enum.each(localBinds, function(key)
-        hyper:bindPassThrough(key, bundleID)
-      end)
-    end
+    if localBinds then enum.each(localBinds, function(key) hyper:bindPassThrough(key, bundleID) end) end
   end)
 end
 
--- [ OTHER LAUNCHERS ] -----------------------------------------------------------
-
-req("hyper", { id = "meeting" }):start():bind({}, "z", nil, function()
-  local focusedApp = hs.application.frontmostApplication()
-  if hs.application.find("us.zoom.xos") then
-    local prevWin = hs.window.focusedWindow()
-    -- hs.application.launchOrFocusByBundleID("us.zoom.xos")
-    local app = hs.application.find("us.zoom.xos")
-    local targetWin = app:findWindow("Zoom Meeting")
-    if targetWin and targetWin:isStandard() then
-      targetWin:focus()
-    else
-      prevWin:focus()
-    end
-  -- elseif hs.application.find("com.brave.Browser.nightly.app.kjgfgldnnfoeklkmfkjfagphfepbbdan") then
-  --   hs.application.launchOrFocusByBundleID("com.brave.Browser.nightly.app.kjgfgldnnfoeklkmfkjfagphfepbbdan")
-  elseif hs.application.find("com.microsoft.teams2") then
-    local prevWin = hs.window.focusedWindow()
-    -- hs.application.launchOrFocusByBundleID("com.microsoft.teams2")
-    local app = hs.application.find("com.microsoft.teams2")
-    local targetWin = app:findWindow("Meeting")
-    P(targetWin)
-    if targetWin then
-      targetWin:focus()
-    else
-      prevWin:focus()
-    end
-  elseif hs.application.find("com.pop.pop.app") then
-    wm.focusMainWindow("com.pop.pop.app")
+function M.loadMeeting()
+  req("hyper", { id = "meeting" }):start():bind({}, "z", nil, function()
+    local focusedApp = hs.application.frontmostApplication()
+    if hs.application.find("us.zoom.xos") then
+      local prevWin = hs.window.focusedWindow()
+      -- hs.application.launchOrFocusByBundleID("us.zoom.xos")
+      local app = hs.application.find("us.zoom.xos")
+      local targetWin = app:findWindow("Zoom Meeting")
+      if targetWin and targetWin:isStandard() then
+        targetWin:focus()
+      else
+        prevWin:focus()
+      end
+    -- elseif hs.application.find("com.brave.Browser.nightly.app.kjgfgldnnfoeklkmfkjfagphfepbbdan") then
+    --   hs.application.launchOrFocusByBundleID("com.brave.Browser.nightly.app.kjgfgldnnfoeklkmfkjfagphfepbbdan")
+    elseif hs.application.find("com.microsoft.teams2") then
+      local prevWin = hs.window.focusedWindow()
+      -- hs.application.launchOrFocusByBundleID("com.microsoft.teams2")
+      local app = hs.application.find("com.microsoft.teams2")
+      local targetWin = app:findWindow("Meeting|Launch Deck Standup")
+      if targetWin then
+        targetWin:focus()
+      else
+        prevWin:focus()
+      end
+    elseif hs.application.find("com.pop.pop.app") then
+      wm.focusMainWindow("com.pop.pop.app")
 
     -- hs.application.launchOrFocusByBundleID("com.pop.pop.app")
     -- local app = hs.application.find("com.pop.pop.app")
@@ -85,288 +77,268 @@ req("hyper", { id = "meeting" }):start():bind({}, "z", nil, function()
     -- )
 
     -- if targetWin ~= nil then targetWin:focus() end
-  elseif req("browser").hasTab("meet.google.com|hangouts.google.com.call|www.valant.io|telehealth.px.athena.io") then
-    req("browser").jump("meet.google.com|hangouts.google.com.call|www.valant.io|telehealth.px.athena.io")
-  else
-    print(fmt("%s: no meeting targets to focus", "bindings.hyper.meeting"))
-
-    focusedApp:activate()
-  end
-end)
-
-req("hyper", { id = "figma" }):start():bind({ "shift" }, "f", nil, function()
-  local focusedApp = hs.application.frontmostApplication()
-  if hs.application.find("com.figma.Desktop") then
-    hs.application.launchOrFocusByBundleID("com.figma.Desktop")
-  elseif req("browser").hasTab("figma.com") then
-    req("browser").jump("figma.com")
-  else
-    print(fmt("%s: neither figma.app, nor figma web are opened", "bindings.hyper.figma"))
-
-    focusedApp:activate()
-  end
-end)
-
-req("hyper", { id = "config.utils" })
-  :start()
-  :bind({ "shift" }, "r", nil, function()
-    hs.notify.new({ title = "hammerspork", subTitle = "config is reloading..." }):send()
-    hs.reload()
-  end)
-  :bind({ "shift", "ctrl" }, "l", nil, req("wm").placeAllApps)
-  -- focus daily notes; splitting it 30/70 with currently focused app window
-  :bind({ "shift" }, "o", nil, function()
-    utils.tmux.focusDailyNote(true)
-  end)
-  -- focus daily note; window layout untouched
-  :bind({ "ctrl" }, "o", nil, function()
-    utils.tmux.focusDailyNote()
-  end)
-  :bind({ "ctrl" }, "d", nil, function()
-    utils.dnd()
-  end)
-
--- FIXME:
--- Maybe use this? REF: https://github.com/jackieaskins/dotfiles/blob/main/hammerspoon/config/hotkeyStore.lua
--- local utilsModality = req("modality"):start({ id = "config.utils", key = "r", mods = { "shift" } })
--- utilsModality
---   :bind({}, "r", function()
---     hs.notify.new({ title = "hammerspork", subTitle = "config is reloading..." }):send()
---     hs.reload()
---   end, function() utilsModality:delayedExit(0.1) end)
---   :bind({}, "l", req("wm").placeAllApps, function() utilsModality:delayedExit(0.1) end)
---   -- WIP
---   :bind({}, "b", function()
---     local currentApp = hs.axuielement.applicationElement(hs.application.frontmostApplication())
---     if currentApp == lastApp then
---       axbrowse.browse() -- try to continue from where we left off
---     else
---       lastApp = currentApp
---       axbrowse.browse(currentApp) -- new app, so start over
---     end
---   end, function() utilsModality:delayedExit(0.1) end)
---   -- WIP
---   :bind({}, "h", utils.showAvailableHotkeys, function() utilsModality:delayedExit(0.1) end)
-
--- [ MODAL LAUNCHERS ] ---------------------------------------------------------
-
--- # wm/window management ---------------------------------------------------------
-
--- local tiler = req("hyper", { id = "apps" }):start()
--- tiler:bind({}, "v", function() require("wm").tile() end)
-
--- local wmModality = spoon.HyperModal
-local wmModality = require("hypemode")
-wmModality
-  :start()
-  -- local wmModality = req("modality", { id = "wm", key = "l" }):start()
-  -- wmModality
-  :bind(
-    {},
-    "r",
-    req("wm").placeAllApps,
-    function()
-      wmModality:exit(0.1)
-    end
-  )
-  :bind({}, "escape", function()
-    wmModality:exit()
-  end)
-  -- :bind({}, "space", function() wm.place(POSITIONS.preview) end, function() wmModality:exit(0.1) end)
-  :bind(
-    {},
-    "space",
-    chain({
-      POSITIONS.full,
-      POSITIONS.center.large,
-      POSITIONS.center.medium,
-      POSITIONS.center.small,
-      POSITIONS.center.tiny,
-      POSITIONS.center.mini,
-      POSITIONS.preview,
-    }, wmModality, 1.0)
-  )
-  :bind({}, "return", function()
-    wm.place(POSITIONS.full)
-  end, function()
-    wmModality:exit(0.1)
-  end)
-  :bind({ "shift" }, "return", function()
-    wm.toNextScreen()
-    wm.place(POSITIONS.full)
-  end, function()
-    wmModality:exit()
-  end)
-  :bind(
-    {},
-    "h",
-    chain(
-      enum.map({ "halves", "thirds", "twoThirds", "fiveSixths", "sixths" }, function(size)
-        if type(POSITIONS[size]) == "string" then
-          return POSITIONS[size]
-        end
-        return POSITIONS[size]["left"]
-      end),
-      wmModality,
-      1.0
-    )
-  )
-  :bind(
-    {},
-    "l",
-    chain(
-      enum.map({ "halves", "thirds", "twoThirds", "fiveSixths", "sixths" }, function(size)
-        if type(POSITIONS[size]) == "string" then
-          return POSITIONS[size]
-        end
-        return POSITIONS[size]["right"]
-      end),
-      wmModality,
-      1.0
-    )
-  )
-  :bind({ "shift" }, "h", function()
-    wm.toPrevScreen()
-    chain(
-      enum.map({ "halves", "thirds", "twoThirds", "fiveSixths", "sixths" }, function(size)
-        if type(POSITIONS[size]) == "string" then
-          return POSITIONS[size]
-        end
-        return POSITIONS[size]["left"]
-      end),
-      wmModality,
-      1.0
-    )
-  end)
-  :bind({ "shift" }, "l", function()
-    wm.toNextScreen()
-    chain(
-      enum.map({ "halves", "thirds", "twoThirds", "fiveSixths", "sixths" }, function(size)
-        if type(POSITIONS[size]) == "string" then
-          return POSITIONS[size]
-        end
-        return POSITIONS[size]["right"]
-      end),
-      wmModality,
-      1.0
-    )
-  end)
-  -- :bind({}, "j", function() wm.toNextScreen() end, function() wmModality:delayedExit(0.1) end)
-  :bind(
-    {},
-    "j",
-    function()
-      wm.place(POSITIONS.center.large)
-    end,
-    -- chain({
-    --   POSITIONS.center.mini,
-    --   POSITIONS.center.tiny,
-    --   POSITIONS.center.small,
-    --   POSITIONS.center.medium,
-    --   POSITIONS.center.large,
-    -- }, wmModality, 1.0)
-    function()
-      wmModality:exit()
-    end
-  )
-  :bind(
-    {},
-    "k",
-    function()
-      wm.place(POSITIONS.center.medium)
-    end,
-    -- chain({
-    --   POSITIONS.center.large,
-    --   POSITIONS.center.medium,
-    --   POSITIONS.center.small,
-    --   POSITIONS.center.tiny,
-    --   POSITIONS.center.mini,
-    -- }, wmModality, 1.0)
-    function()
-      wmModality:exit()
-    end
-  )
-  :bind({}, "v", function()
-    require("wm").tile()
-    wmModality:exit()
-  end)
-  :bind({}, "s", function()
-    req("browser"):splitTab()
-    wmModality:exit()
-  end)
-  :bind({ "shift" }, "s", function()
-    req("browser"):splitTab(true)
-    wmModality:exit()
-  end)
-  :bind({}, "m", function()
-    local app = hs.application.frontmostApplication()
-    local menuItemTable = { "Window", "Merge All Windows" }
-    if app:findMenuItem(menuItemTable) then
-      app:selectMenuItem(menuItemTable)
+    elseif req("browser").hasTab("meet.google.com|hangouts.google.com.call|www.valant.io|telehealth.px.athena.io") then
+      req("browser").jump("meet.google.com|hangouts.google.com.call|www.valant.io|telehealth.px.athena.io")
     else
-      warn("Merge All Windows is unsupported for " .. app:bundleID())
+      print(fmt("%s: no meeting targets to focus", "bindings.hyper.meeting"))
+
+      focusedApp:activate()
     end
-
-    wmModality:exit()
   end)
-  :bind({}, "f", function()
-    local focused = hs.window.focusedWindow()
-    enum.map(focused:otherWindowsAllScreens(), function(win)
-      win:application():hide()
+end
+
+function M.loadFigma()
+  req("hyper", { id = "figma" }):start():bind({ "shift" }, "f", nil, function()
+    local focusedApp = hs.application.frontmostApplication()
+    if hs.application.find("com.figma.Desktop") then
+      hs.application.launchOrFocusByBundleID("com.figma.Desktop")
+    elseif req("browser").hasTab("figma.com") then
+      req("browser").jump("figma.com")
+    else
+      print(fmt("%s: neither figma.app, nor figma web are opened", "bindings.hyper.figma"))
+
+      focusedApp:activate()
+    end
+  end)
+end
+
+function M.loadUtils()
+  -- FIXME:
+  -- Maybe use this? REF: https://github.com/jackieaskins/dotfiles/blob/main/hammerspoon/config/hotkeyStore.lua
+  -- local utilsModality = req("modality"):start({ id = "config.utils", key = "r", mods = { "shift" } })
+  -- utilsModality
+  --   :bind({}, "r", function()
+  --     hs.notify.new({ title = "hammerspork", subTitle = "config is reloading..." }):send()
+  --     hs.reload()
+  --   end, function() utilsModality:delayedExit(0.1) end)
+  --   :bind({}, "l", req("wm").placeAllApps, function() utilsModality:delayedExit(0.1) end)
+  --   -- WIP
+  --   :bind({}, "b", function()
+  --     local currentApp = hs.axuielement.applicationElement(hs.application.frontmostApplication())
+  --     if currentApp == lastApp then
+  --       axbrowse.browse() -- try to continue from where we left off
+  --     else
+  --       lastApp = currentApp
+  --       axbrowse.browse(currentApp) -- new app, so start over
+  --     end
+  --   end, function() utilsModality:delayedExit(0.1) end)
+  --   -- WIP
+  --   :bind({}, "h", utils.showAvailableHotkeys, function() utilsModality:delayedExit(0.1) end)
+
+  req("hyper", { id = "config.utils" })
+    :start()
+    :bind({ "shift" }, "r", nil, function()
+      hs.notify.new({ title = "hammerspork", subTitle = "config is reloading..." }):send()
+      hs.reload()
     end)
-    wmModality:exit()
-  end)
-  :bind({}, "c", function()
-    local win = hs.window.focusedWindow()
-    local screenWidth = win:screen():frame().w
-    hs.window.focusedWindow():move(hs.geometry.rect(screenWidth / 2 - 300, 0, 600, 400))
-    -- resizes to a small console window at the top middle
+    :bind({ "shift", "ctrl" }, "l", nil, req("wm").placeAllApps)
+    -- focus daily notes; splitting it 30/70 with currently focused app window
+    :bind(
+      { "shift" },
+      "o",
+      nil,
+      function() utils.tmux.focusDailyNote(true) end
+    )
+    -- focus daily note; window layout untouched
+    :bind(
+      { "ctrl" },
+      "o",
+      nil,
+      function() utils.tmux.focusDailyNote() end
+    )
+    :bind({ "ctrl" }, "d", nil, function() utils.dnd() end)
+end
 
-    wmModality:exit()
-  end)
-  :bind({}, "b", function()
-    local wip = require("wip")
-    wip.bowser()
-  end)
--- :bind({}, "b", function()
---   hs.timer.doAfter(5, function()
---     local focusedWindow = hs.window.focusedWindow()
+function M.loadWm()
+  -- [ MODAL LAUNCHERS ] ---------------------------------------------------------
 
---     if focusedWindow then
---       local axWindow = hs.axuielement.windowElement(focusedWindow)
+  -- # wm/window management ---------------------------------------------------------
 
---       function printAXElements(element, indent)
---         indent = indent or ""
+  -- local tiler = req("hyper", { id = "apps" }):start()
+  -- tiler:bind({}, "v", function() require("wm").tile() end)
 
---         print(indent .. "Element: " .. tostring(element))
+  -- local wmModality = spoon.HyperModal
+  local wmModality = require("hypemode")
+  wmModality
+    :start()
+    -- local wmModality = req("modality", { id = "wm", key = "l" }):start()
+    -- wmModality
+    :bind(
+      {},
+      "r",
+      req("wm").placeAllApps,
+      function() wmModality:exit(0.1) end
+    )
+    :bind({}, "escape", function() wmModality:exit() end)
+    -- :bind({}, "space", function() wm.place(POSITIONS.preview) end, function() wmModality:exit(0.1) end)
+    :bind(
+      {},
+      "space",
+      chain({
+        POSITIONS.full,
+        POSITIONS.center.large,
+        POSITIONS.center.medium,
+        POSITIONS.center.small,
+        POSITIONS.center.tiny,
+        POSITIONS.center.mini,
+        POSITIONS.preview,
+      }, wmModality, 1.0)
+    )
+    :bind({}, "return", function() wm.place(POSITIONS.full) end, function() wmModality:exit(0.1) end)
+    :bind({ "shift" }, "return", function()
+      wm.toNextScreen()
+      wm.place(POSITIONS.full)
+    end, function() wmModality:exit() end)
+    :bind(
+      {},
+      "h",
+      chain(
+        enum.map({ "halves", "thirds", "twoThirds", "fiveSixths", "sixths" }, function(size)
+          if type(POSITIONS[size]) == "string" then return POSITIONS[size] end
+          return POSITIONS[size]["left"]
+        end),
+        wmModality,
+        1.0
+      )
+    )
+    :bind(
+      {},
+      "l",
+      chain(
+        enum.map({ "halves", "thirds", "twoThirds", "fiveSixths", "sixths" }, function(size)
+          if type(POSITIONS[size]) == "string" then return POSITIONS[size] end
+          return POSITIONS[size]["right"]
+        end),
+        wmModality,
+        1.0
+      )
+    )
+    :bind({ "shift" }, "h", function()
+      wm.toPrevScreen()
+      chain(
+        enum.map({ "halves", "thirds", "twoThirds", "fiveSixths", "sixths" }, function(size)
+          if type(POSITIONS[size]) == "string" then return POSITIONS[size] end
+          return POSITIONS[size]["left"]
+        end),
+        wmModality,
+        1.0
+      )
+    end)
+    :bind({ "shift" }, "l", function()
+      wm.toNextScreen()
+      chain(
+        enum.map({ "halves", "thirds", "twoThirds", "fiveSixths", "sixths" }, function(size)
+          if type(POSITIONS[size]) == "string" then return POSITIONS[size] end
+          return POSITIONS[size]["right"]
+        end),
+        wmModality,
+        1.0
+      )
+    end)
+    -- :bind({}, "j", function() wm.toNextScreen() end, function() wmModality:delayedExit(0.1) end)
+    :bind(
+      {},
+      "j",
+      function() wm.place(POSITIONS.center.large) end,
+      -- chain({
+      --   POSITIONS.center.mini,
+      --   POSITIONS.center.tiny,
+      --   POSITIONS.center.small,
+      --   POSITIONS.center.medium,
+      --   POSITIONS.center.large,
+      -- }, wmModality, 1.0)
+      function() wmModality:exit() end
+    )
+    :bind(
+      {},
+      "k",
+      function() wm.place(POSITIONS.center.medium) end,
+      -- chain({
+      --   POSITIONS.center.large,
+      --   POSITIONS.center.medium,
+      --   POSITIONS.center.small,
+      --   POSITIONS.center.tiny,
+      --   POSITIONS.center.mini,
+      -- }, wmModality, 1.0)
+      function() wmModality:exit() end
+    )
+    :bind({}, "v", function()
+      require("wm").tile()
+      wmModality:exit()
+    end)
+    :bind({}, "s", function()
+      req("browser"):splitTab()
+      wmModality:exit()
+    end)
+    :bind({ "shift" }, "s", function()
+      req("browser"):splitTab(true)
+      wmModality:exit()
+    end)
+    :bind({}, "m", function()
+      local app = hs.application.frontmostApplication()
+      local menuItemTable = { "Window", "Merge All Windows" }
+      if app:findMenuItem(menuItemTable) then
+        app:selectMenuItem(menuItemTable)
+      else
+        warn("Merge All Windows is unsupported for " .. app:bundleID())
+      end
 
---         local attributes = element:attributeNames()
---         for _, attr in ipairs(attributes) do
---           local value = element:attributeValue(attr)
---           print(indent .. "  " .. attr .. ": " .. tostring(value))
---         end
+      wmModality:exit()
+    end)
+    :bind({}, "f", function()
+      local focused = hs.window.focusedWindow()
+      enum.map(focused:otherWindowsAllScreens(), function(win) win:application():hide() end)
+      wmModality:exit()
+    end)
+    :bind({}, "c", function()
+      local win = hs.window.focusedWindow()
+      local screenWidth = win:screen():frame().w
+      hs.window.focusedWindow():move(hs.geometry.rect(screenWidth / 2 - 300, 0, 600, 400))
+      -- resizes to a small console window at the top middle
 
---         local children = element:childElements()
---         if children then
---           for _, child in ipairs(children) do
---             printAXElements(child, indent .. "  ")
---           end
---         end
---       end
+      wmModality:exit()
+    end)
+    :bind({}, "b", function()
+      local wip = require("wip")
+      wip.bowser()
+    end)
+  -- :bind({}, "b", function()
+  --   hs.timer.doAfter(5, function()
+  --     local focusedWindow = hs.window.focusedWindow()
 
---       print("AX Elements for Focused Window:")
---       printAXElements(axWindow)
---     else
---       print("No focused window found.")
---     end
---   end)
--- end)
+  --     if focusedWindow then
+  --       local axWindow = hs.axuielement.windowElement(focusedWindow)
 
-req("hyper", { id = "wm" }):bind({}, "l", function()
-  wmModality:toggle()
-end)
+  --       function printAXElements(element, indent)
+  --         indent = indent or ""
 
---[[]
+  --         print(indent .. "Element: " .. tostring(element))
+
+  --         local attributes = element:attributeNames()
+  --         for _, attr in ipairs(attributes) do
+  --           local value = element:attributeValue(attr)
+  --           print(indent .. "  " .. attr .. ": " .. tostring(value))
+  --         end
+
+  --         local children = element:childElements()
+  --         if children then
+  --           for _, child in ipairs(children) do
+  --             printAXElements(child, indent .. "  ")
+  --           end
+  --         end
+  --       end
+
+  --       print("AX Elements for Focused Window:")
+  --       printAXElements(axWindow)
+  --     else
+  --       print("No focused window found.")
+  --     end
+  --   end)
+  -- end)
+
+  req("hyper", { id = "wm" }):bind({}, "l", function() wmModality:toggle() end)
+
+  --[[]
 req("hyper", { id = "wm" })
   :bind({ "ctrl", "shift" }, "r", req("wm").placeAllApps)
   -- :bind({}, "escape", function() wmModality:exit() end)
@@ -523,9 +495,19 @@ req("hyper", { id = "wm" })
 --   wmModality:exit()
 -- end)
 ]]
---
+  --
+end
 
--- req("snipper")
--- req("clipper")
+function M:init()
+  M.loadApps()
+  M.loadMeeting()
+  M.loadFigma()
+  M.loadUtils()
+  M.loadWm()
 
-U.log.i("initializing")
+  -- req("snipper")
+  -- req("clipper")
+  U.log.i("initialized")
+end
+
+return M
