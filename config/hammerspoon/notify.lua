@@ -92,15 +92,19 @@ function M.getCurrentFocusMode()
   end
 
   -- Fetch fresh focus mode status
-  -- Note: Requires a Shortcut named "Get Current Focus" that returns focus mode name
-  local output, status = hs.execute("shortcuts run 'Get Current Focus' 2>/dev/null")
+  -- Uses fast JXA script: bin/get-focus-mode
+  local output, status = hs.execute(os.getenv("HOME") .. "/.dotfiles-nix/bin/get-focus-mode 2>/dev/null")
 
   if status then
     local mode = output and output:match("^%s*(.-)%s*$") or nil
-    -- Normalize empty string or "None" to nil
-    focusModeCache.mode = (mode == "" or mode == "None") and nil or mode
+    -- Normalize "No focus" or empty string to nil
+    if mode == "" or mode == "No focus" then
+      focusModeCache.mode = nil
+    else
+      focusModeCache.mode = mode
+    end
   else
-    -- If shortcut doesn't exist or fails, cache nil
+    -- If script fails, cache nil
     focusModeCache.mode = nil
   end
 
