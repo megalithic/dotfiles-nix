@@ -38,6 +38,9 @@ local function handleNotification(element)
   -- Get the stacking identifier to determine which app sent the notification
   local stackingID = element.AXStackingIdentifier or "unknown"
 
+  -- Extract bundle ID (everything before first semicolon or space)
+  local bundleID = stackingID:match("^([^;%s]+)") or stackingID
+
   -- Extract notification text elements
   local staticTexts = hs.fnutils.imap(
     hs.fnutils.ifilter(element, function(value)
@@ -90,9 +93,9 @@ local function handleNotification(element)
       ruleMatched = true
       U.log.w(fmt("📍 Routing notification: %s", rule.name))
 
-      -- Execute rule action
+      -- Execute rule action with bundle ID
       local ok, err = pcall(function()
-        rule.action(title, subtitle, message, stackingID)
+        rule.action(title, subtitle, message, stackingID, bundleID)
       end)
 
       if not ok then

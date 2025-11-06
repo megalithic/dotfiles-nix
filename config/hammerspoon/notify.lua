@@ -392,6 +392,29 @@ function M.sendCanvasNotification(title, message, duration, options)
     frame = {x = 0, y = 0, h = height, w = width}
   })
 
+  -- App icon (if bundle ID provided)
+  local iconSize = 36
+  local iconPadding = 15
+  local textLeftMargin = iconPadding  -- Default if no icon
+
+  if options.appBundleID then
+    local appIcon = hs.image.imageFromAppBundle(options.appBundleID)
+    if appIcon then
+      canvas:appendElements({
+        type = 'image',
+        image = appIcon,
+        frame = {x = iconPadding, y = 12, h = iconSize, w = iconSize},
+        imageScaling = 'scaleProportionally',
+        imageAlignment = 'center',
+        id = 'appIcon',
+        trackMouseDown = true,
+        trackMouseEnterExit = true
+      })
+      -- Adjust text position to make room for icon
+      textLeftMargin = iconPadding + iconSize + 12  -- icon + spacing
+    end
+  end
+
   -- Title text
   canvas:appendElements({
     type = 'text',
@@ -399,7 +422,7 @@ function M.sendCanvasNotification(title, message, duration, options)
     textColor = {red = 0.1, green = 0.1, blue = 0.1, alpha = 1.0},
     textSize = 17,
     textFont = '.AppleSystemUIFontBold',
-    frame = {x = 15, y = 10, h = 25, w = 350},
+    frame = {x = textLeftMargin, y = 10, h = 25, w = 420 - textLeftMargin - 70},
     textAlignment = 'left'
   })
 
@@ -410,7 +433,7 @@ function M.sendCanvasNotification(title, message, duration, options)
     textColor = {red = 0.3, green = 0.3, blue = 0.3, alpha = 1.0},
     textSize = 15,
     textFont = '.AppleSystemUIFont',
-    frame = {x = 15, y = 45, h = height - 60, w = 350},
+    frame = {x = textLeftMargin, y = 45, h = height - 60, w = 420 - textLeftMargin - 70},
     textAlignment = 'left'
   })
 
@@ -452,9 +475,15 @@ function M.sendCanvasNotification(title, message, duration, options)
     textAlignment = 'right'
   })
 
-  -- Handle mouse events for close button
+  -- Handle mouse events for close button and app icon
   canvas:mouseCallback(function(obj, message, id, x, y)
-    if message == 'mouseDown' and (id == 'closeButton' or id == 'closeButtonBg') then
+    if message == 'mouseDown' and id == 'appIcon' then
+      -- Click on app icon - activate/focus the app
+      if options.appBundleID then
+        hs.application.launchOrFocusByBundleID(options.appBundleID)
+      end
+      return true
+    elseif message == 'mouseDown' and (id == 'closeButton' or id == 'closeButtonBg') then
       obj:delete(0.3)
       _G.activeNotificationCanvas = nil
       if _G.activeNotificationTimer then
@@ -471,6 +500,13 @@ function M.sendCanvasNotification(title, message, duration, options)
           M.hideOverlay()
         end)
       end
+      return true
+    elseif message == 'mouseEnter' and id == 'appIcon' then
+      -- Visual feedback on hover (slightly brighter)
+      -- Note: Canvas image elements don't support alpha modification, but we can track state
+      return true
+    elseif message == 'mouseExit' and id == 'appIcon' then
+      -- Remove hover effect
       return true
     elseif message == 'mouseEnter' and (id == 'closeButton' or id == 'closeButtonBg') then
       obj[7].fillColor = {red = 0.8, green = 0.8, blue = 0.8, alpha = 1.0}

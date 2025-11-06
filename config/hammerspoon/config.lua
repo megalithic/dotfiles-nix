@@ -225,7 +225,7 @@ NOTIFY_RULES = {
     -- If current focus mode is not in this list, notification will be blocked
     allowedFocusModes = {nil, "Personal"},  -- nil = no focus, "Personal" = personal focus
     -- Action to take when rule matches
-    action = function(title, subtitle, message, stackingID)
+    action = function(title, subtitle, message, stackingID, bundleID)
       local notify = require('notify')
       local timestamp = os.time()
 
@@ -254,6 +254,7 @@ NOTIFY_RULES = {
             dimBackground = true,
             dimAlpha = 0.6,  -- 60% opacity overlay
             includeProgram = false,
+            appBundleID = bundleID,  -- Pass bundle ID for app icon
           }
         )
 
@@ -293,7 +294,7 @@ NOTIFY_RULES = {
     name = "Messages - General",
     app = "com.apple.MobileSMS",
     checkFocus = false,  -- Always show, no focus check
-    action = function(title, subtitle, message, stackingID)
+    action = function(title, subtitle, message, stackingID, bundleID)
       -- Default behavior: let macOS show the notification
       -- We just log it to the database for tracking
       NotifyDB.log({
