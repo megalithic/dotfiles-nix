@@ -58,15 +58,6 @@ local function handleNotification(element)
     title, subtitle, message = table.unpack(staticTexts)
   end
 
-  -- Log the notification for debugging
-  U.log.i("━━━ Notification Intercepted ━━━")
-  U.log.i(fmt("App ID: %s", stackingID))
-  U.log.i(fmt("Subrole: %s", element.AXSubrole or "unknown"))
-  if title then U.log.i(fmt("Title: %s", title)) end
-  if subtitle then U.log.i(fmt("Subtitle: %s", subtitle)) end
-  if message then U.log.i(fmt("Message: %s", message)) end
-  U.log.i("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-
   -- Process routing rules
   local rules = NOTIFY_RULES or {}
   local ruleMatched = false
@@ -91,7 +82,7 @@ local function handleNotification(element)
 
       -- Rule matched!
       ruleMatched = true
-      U.log.w(fmt("📍 Routing notification: %s", rule.name))
+      U.log.d(fmt("→ %s: %s", rule.name, title or bundleID))
 
       -- Execute rule action with bundle ID
       local ok, err = pcall(function()
@@ -108,29 +99,15 @@ local function handleNotification(element)
 
     ::continue::
   end
-
-  -- No rule matched - log for debugging
-  if not ruleMatched then
-    U.log.d(fmt("No routing rule matched for: %s", stackingID))
-  end
 end
 
 function M:start()
-  U.log.i("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-  U.log.i("🔍 Starting Notification Watcher (Accessibility API)")
-  U.log.i("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-  U.log.i("")
-  U.log.i("Watching macOS Notification Center for notifications.")
-  U.log.i("To test: Send yourself an iMessage or set a timer.")
-  U.log.i("")
-
   -- Get Notification Center UI element
   local notificationCenterBundleID = "com.apple.notificationcenterui"
   local notificationCenter = hs.axuielement.applicationElement(notificationCenterBundleID)
 
   if not notificationCenter then
-    U.log.e("❌ Unable to find Notification Center AX element")
-    U.log.e("   Make sure Hammerspoon has Accessibility permissions")
+    U.log.e("Notification watcher: Unable to find Notification Center AX element")
     return
   end
 
@@ -150,19 +127,14 @@ function M:start()
     end
 
     if count > MAX_PROCESSED_IDS then
-      U.log.d(fmt("Pruning notification ID cache (%d entries)", count))
       M.processedNotificationIDs = {}
     end
   end)
 
-  U.log.i("✅ Notification watcher started")
-  U.log.i("📝 Check console for intercepted notifications")
-  U.log.i("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+  U.log.i("Notification watcher started")
 end
 
 function M:stop()
-  U.log.i("Stopping notification watcher...")
-
   if M.observer then
     pcall(function() M.observer:stop() end)
     M.observer = nil
@@ -174,7 +146,7 @@ function M:stop()
   end
 
   M.processedNotificationIDs = {}
-  U.log.i("✅ Notification watcher stopped")
+  U.log.i("Notification watcher stopped")
 end
 
 return M

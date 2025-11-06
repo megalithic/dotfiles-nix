@@ -2,10 +2,16 @@ local M = {}
 M.__index = M
 M.name = "notify"
 
+-- Local shorthand
+local fmt = string.format
+
 -- Global references to active notification canvas and timer
 _G.activeNotificationCanvas = nil
 _G.activeNotificationTimer = nil
+_G.activeNotificationAnimTimer = nil
 _G.notificationOverlay = nil  -- Reusable dimming overlay
+_G.activeNotificationBundleID = nil  -- Track source app for auto-dismiss
+_G.notificationAppWatcher = nil  -- Application watcher for auto-dismiss
 
 -- Focus mode cache (to avoid repeated subprocess calls)
 local focusModeCache = {
@@ -81,6 +87,49 @@ function M.calculateOffset(options)
   return options.verticalOffset or config.minOffset or 100
 end
 
+-- Check if source app is currently focused
+-- Returns: true if app is frontmost, false otherwise
+function M.isAppFocused(bundleID)
+  if not bundleID then return false end
+
+  local frontmost = hs.application.frontmostApplication()
+  if not frontmost then return false end
+
+  return frontmost:bundleID() == bundleID
+end
+
+-- Check if user is in terminal (Ghostty)
+-- Returns: true if Ghostty is frontmost
+function M.isInTerminal()
+  local frontmost = hs.application.frontmostApplication()
+  if not frontmost then return false end
+
+  return frontmost:bundleID() == TERMINAL or frontmost:name() == 'Ghostty'
+end
+
+-- Determine if high priority notification should be shown
+-- Based on app focus state and terminal exception
+-- Returns: {shouldShow: boolean, reason: string}
+function M.shouldShowHighPriority(bundleID, options)
+  options = options or {}
+  local alwaysShowInTerminal = options.alwaysShowInTerminal ~= false  -- default true
+  local showWhenAppFocused = options.showWhenAppFocused or false  -- default false
+
+  -- Check if we're in terminal (always show high priority in terminal)
+  if alwaysShowInTerminal and M.isInTerminal() then
+    return {shouldShow = true, reason = "in_terminal"}
+  end
+
+  -- Check if source app is focused
+  local appIsFocused = M.isAppFocused(bundleID)
+
+  if appIsFocused and not showWhenAppFocused then
+    return {shouldShow = false, reason = "app_already_focused"}
+  end
+
+  return {shouldShow = true, reason = "app_not_focused"}
+end
+
 -- Get current Focus Mode (with 5-second cache)
 -- Returns: focus mode name (string) or nil if no focus active
 function M.getCurrentFocusMode()
@@ -145,6 +194,58 @@ function M.hideOverlay()
     _G.notificationOverlay:hide()
   end
 end
+
+-- Dismiss active notification (helper function)
+function M.dismissNotification(fadeTime)
+  fadeTime = fadeTime or 0.3
+
+  if _G.activeNotificationCanvas then
+    _G.activeNotificationCanvas:delete(fadeTime)
+    _G.activeNotificationCanvas = nil
+  end
+
+  if _G.activeNotificationTimer then
+    _G.activeNotificationTimer:stop()
+    _G.activeNotificationTimer = nil
+  end
+
+  if _G.activeNotificationAnimTimer then
+    _G.activeNotificationAnimTimer:stop()
+    _G.activeNotificationAnimTimer = nil
+  end
+
+  if _G.notificationOverlay then
+    hs.timer.doAfter(fadeTime, function()
+      M.hideOverlay()
+    end)
+  end
+
+  _G.activeNotificationBundleID = nil
+end
+
+-- Set up application watcher for auto-dismiss
+-- Called once when module is loaded
+function M.setupAppWatcher()
+  if _G.notificationAppWatcher then return end  -- Already set up
+
+  _G.notificationAppWatcher = hs.application.watcher.new(function(appName, eventType, app)
+    -- Only care about app activation events
+    if eventType ~= hs.application.watcher.activated then return end
+
+    -- Check if there's an active notification
+    if not _G.activeNotificationCanvas or not _G.activeNotificationBundleID then return end
+
+    -- Check if the activated app matches the notification source
+    if app and app:bundleID() == _G.activeNotificationBundleID then
+      M.dismissNotification(0.2)  -- Quick fade
+    end
+  end)
+
+  _G.notificationAppWatcher:start()
+end
+
+-- Initialize app watcher on module load
+M.setupAppWatcher()
 
 -- Calculate notification position based on mode
 -- Returns: {x, y} table with pixel coordinates
@@ -257,16 +358,7 @@ function M.sendCanvasNotification(title, message, duration, options)
 
   -- Close any existing notification before showing new one
   if _G.activeNotificationCanvas then
-    _G.activeNotificationCanvas:delete()
-    _G.activeNotificationCanvas = nil
-  end
-  if _G.activeNotificationTimer then
-    _G.activeNotificationTimer:stop()
-    _G.activeNotificationTimer = nil
-  end
-  if _G.activeNotificationAnimTimer then
-    _G.activeNotificationAnimTimer:stop()
-    _G.activeNotificationAnimTimer = nil
+    M.dismissNotification(0)  -- Instant dismiss
   end
 
   -- Show dimming overlay if requested
@@ -274,17 +366,17 @@ function M.sendCanvasNotification(title, message, duration, options)
     M.showOverlay(options.dimAlpha or 0.6)
   end
 
-  -- Limit message to 5 lines, truncate with ellipsis if longer
+  -- Limit message to 3 lines, truncate with ellipsis if longer
   local lines = {}
   for line in message:gmatch("[^\n]+") do
     table.insert(lines, line)
   end
   local lineCount = #lines
-  if lineCount > 5 then
-    lines = {table.unpack(lines, 1, 5)}
-    lines[5] = lines[5] .. "..."
+  if lineCount > 3 then
+    lines = {table.unpack(lines, 1, 3)}
+    lines[3] = lines[3] .. "..."
     message = table.concat(lines, "\n")
-    lineCount = 5
+    lineCount = 3
   end
 
   local screen = hs.screen.primaryScreen()
@@ -379,7 +471,9 @@ function M.sendCanvasNotification(title, message, duration, options)
     action = 'fill',
     fillColor = {red = 0.98, green = 0.98, blue = 0.98, alpha = 0.92},
     roundedRectRadii = {xRadius = 12, yRadius = 12},
-    frame = {x = '0%', y = '0%', h = '100%', w = '100%'}
+    frame = {x = '0%', y = '0%', h = '100%', w = '100%'},
+    id = 'background',
+    trackMouseDown = true
   })
 
   -- Subtle border
@@ -392,18 +486,26 @@ function M.sendCanvasNotification(title, message, duration, options)
     frame = {x = 0, y = 0, h = height, w = width}
   })
 
-  -- App icon (if bundle ID provided)
-  local iconSize = 36
-  local iconPadding = 15
-  local textLeftMargin = iconPadding  -- Default if no icon
+  -- Layout constants for consistent spacing
+  local iconSize = 42
+  local leftPadding = 15
+  local iconSpacing = 12
+  local topPadding = 15
+  local rightPadding = 15
+  local titleHeight = 22
+  local titleToMessageSpacing = 6
 
+  local textLeftMargin = leftPadding  -- Default if no icon
+  local iconYOffset = topPadding
+
+  -- App icon (if bundle ID provided)
   if options.appBundleID then
     local appIcon = hs.image.imageFromAppBundle(options.appBundleID)
     if appIcon then
       canvas:appendElements({
         type = 'image',
         image = appIcon,
-        frame = {x = iconPadding, y = 12, h = iconSize, w = iconSize},
+        frame = {x = leftPadding, y = iconYOffset, h = iconSize, w = iconSize},
         imageScaling = 'scaleProportionally',
         imageAlignment = 'center',
         id = 'appIcon',
@@ -411,7 +513,7 @@ function M.sendCanvasNotification(title, message, duration, options)
         trackMouseEnterExit = true
       })
       -- Adjust text position to make room for icon
-      textLeftMargin = iconPadding + iconSize + 12  -- icon + spacing
+      textLeftMargin = leftPadding + iconSize + iconSpacing
     end
   end
 
@@ -420,102 +522,64 @@ function M.sendCanvasNotification(title, message, duration, options)
     type = 'text',
     text = title,
     textColor = {red = 0.1, green = 0.1, blue = 0.1, alpha = 1.0},
-    textSize = 17,
+    textSize = 16,
     textFont = '.AppleSystemUIFontBold',
-    frame = {x = textLeftMargin, y = 10, h = 25, w = 420 - textLeftMargin - 70},
-    textAlignment = 'left'
+    frame = {x = textLeftMargin, y = topPadding, h = titleHeight, w = width - textLeftMargin - rightPadding - 50},
+    textAlignment = 'left',
+    textLineBreak = 'truncateTail',
+    id = 'title',
+    trackMouseDown = true
   })
 
   -- Message text
+  local messageY = topPadding + titleHeight + titleToMessageSpacing
   canvas:appendElements({
     type = 'text',
     text = message,
     textColor = {red = 0.3, green = 0.3, blue = 0.3, alpha = 1.0},
-    textSize = 15,
+    textSize = 14,
     textFont = '.AppleSystemUIFont',
-    frame = {x = textLeftMargin, y = 45, h = height - 60, w = 420 - textLeftMargin - 70},
-    textAlignment = 'left'
-  })
-
-  -- Close button circle background
-  canvas:appendElements({
-    type = 'circle',
-    action = 'strokeAndFill',
-    fillColor = {red = 0.9, green = 0.9, blue = 0.9, alpha = 0.8},
-    strokeColor = {red = 0.75, green = 0.75, blue = 0.75, alpha = 0.3},
-    strokeWidth = 0.5,
-    center = {x = 400, y = 18},
-    radius = 12,
-    id = 'closeButtonBg',
-    trackMouseEnterExit = true,
+    frame = {x = textLeftMargin, y = messageY, h = height - messageY - 30, w = width - textLeftMargin - rightPadding},
+    textAlignment = 'left',
+    textLineBreak = 'wordWrap',
+    id = 'message',
     trackMouseDown = true
   })
 
-  -- Close button X icon
-  canvas:appendElements({
-    type = 'text',
-    text = '×',
-    textColor = {red = 0.4, green = 0.4, blue = 0.4, alpha = 1.0},
-    textSize = 22,
-    textFont = '.AppleSystemUIFont',
-    frame = {x = 388, y = 6, h = 24, w = 24},
-    textAlignment = 'center',
-    id = 'closeButton'
-  })
-
   -- Timestamp (bottom-right corner, subtle)
-  local timestamp = os.date("%I:%M %p")  -- e.g., "02:30 PM"
+  local timestamp = os.date("%b %d, %I:%M %p")  -- e.g., "Nov 06, 02:30 PM"
+  local timestampWidth = 120
   canvas:appendElements({
     type = 'text',
     text = timestamp,
     textColor = {red = 0.6, green = 0.6, blue = 0.6, alpha = 0.7},
     textSize = 11,
     textFont = '.AppleSystemUIFont',
-    frame = {x = width - 75, y = height - 25, h = 20, w = 70},
-    textAlignment = 'right'
+    frame = {x = width - timestampWidth - rightPadding, y = height - 22, h = 20, w = timestampWidth},
+    textAlignment = 'right',
+    id = 'timestamp',
+    trackMouseDown = true
   })
 
-  -- Handle mouse events for close button and app icon
+  -- Handle mouse events - dismiss on any click except app icon
   canvas:mouseCallback(function(obj, message, id, x, y)
-    if message == 'mouseDown' and id == 'appIcon' then
-      -- Click on app icon - activate/focus the app
-      if options.appBundleID then
-        hs.application.launchOrFocusByBundleID(options.appBundleID)
+    if message == 'mouseDown' then
+      if id == 'appIcon' then
+        -- Click on app icon - activate/focus the app
+        if options.appBundleID then
+          hs.application.launchOrFocusByBundleID(options.appBundleID)
+        end
+        return true
+      else
+        -- Click anywhere else - dismiss notification
+        M.dismissNotification(0.3)
+        return true
       end
-      return true
-    elseif message == 'mouseDown' and (id == 'closeButton' or id == 'closeButtonBg') then
-      obj:delete(0.3)
-      _G.activeNotificationCanvas = nil
-      if _G.activeNotificationTimer then
-        _G.activeNotificationTimer:stop()
-        _G.activeNotificationTimer = nil
-      end
-      if _G.activeNotificationAnimTimer then
-        _G.activeNotificationAnimTimer:stop()
-        _G.activeNotificationAnimTimer = nil
-      end
-      -- Hide overlay if it was shown
-      if options.dimBackground then
-        hs.timer.doAfter(0.3, function()
-          M.hideOverlay()
-        end)
-      end
-      return true
-    elseif message == 'mouseEnter' and id == 'appIcon' then
-      -- Visual feedback on hover (slightly brighter)
-      -- Note: Canvas image elements don't support alpha modification, but we can track state
-      return true
-    elseif message == 'mouseExit' and id == 'appIcon' then
-      -- Remove hover effect
-      return true
-    elseif message == 'mouseEnter' and (id == 'closeButton' or id == 'closeButtonBg') then
-      obj[7].fillColor = {red = 0.8, green = 0.8, blue = 0.8, alpha = 1.0}
-      return true
-    elseif message == 'mouseExit' and (id == 'closeButton' or id == 'closeButtonBg') then
-      obj[7].fillColor = {red = 0.9, green = 0.9, blue = 0.9, alpha = 0.8}
-      return true
     end
   end)
+
+  -- Enable mouse events on entire canvas (including areas not covered by elements)
+  canvas:canvasMouseEvents(true, false, false, false)
 
   -- Show canvas with higher level
   canvas:level('overlay')
@@ -523,6 +587,9 @@ function M.sendCanvasNotification(title, message, duration, options)
 
   -- Store canvas reference globally
   _G.activeNotificationCanvas = canvas
+
+  -- Store source app bundle ID for auto-dismiss
+  _G.activeNotificationBundleID = options.appBundleID or nil
 
   -- Animate slide-up if enabled
   if animEnabled then

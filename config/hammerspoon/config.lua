@@ -219,44 +219,136 @@ NOTIFY_RULES = {
     app = "com.apple.MobileSMS",
     -- Match specific senders (exact match, case-sensitive)
     senders = {"Abby Messer"},
-    -- Check focus mode before showing (nil = don't check, always show)
+    -- Priority: "high", "normal", "low"
+    priority = "normal",  -- Default priority for regular messages
+    -- Critical patterns: Lua patterns to match in message content
+    -- Uses same pattern matching as hs.application:findWindow()
+    criticalPatterns = {
+      "%?",        -- Question mark
+      "👋",        -- Wave emoji
+      "❓",        -- Question mark emoji
+      "‼️",        -- Double exclamation
+      "⚠️",        -- Warning sign
+      "urgent",    -- Literal text (case-sensitive)
+      "asap",
+      "emergency",
+      "!+$",       -- Multiple exclamation marks at end
+      "%?+$",      -- Multiple question marks at end
+    },
+    -- High priority settings (applied when critical pattern matches)
+    alwaysShowInTerminal = true,  -- Always show in Ghostty, even if Messages focused
+    showWhenAppFocused = false,   -- Don't show if Messages is already focused (except terminal)
+    -- Check focus mode before showing
     checkFocus = true,
     -- Only show if in these focus modes (nil = no focus active)
-    -- If current focus mode is not in this list, notification will be blocked
-    allowedFocusModes = {nil, "Personal"},  -- nil = no focus, "Personal" = personal focus
+    allowedFocusModes = {nil, "Personal"},
     -- Action to take when rule matches
     action = function(title, subtitle, message, stackingID, bundleID)
       local notify = require('notify')
       local timestamp = os.time()
 
-      -- Check focus mode to decide whether to show or block
-      local currentFocus = notify.getCurrentFocusMode and notify.getCurrentFocusMode() or nil
-      local shouldShow = true
-
-      if checkFocus and allowedFocusModes then
-        shouldShow = false
-        for _, allowed in ipairs(allowedFocusModes) do
-          if allowed == currentFocus then
-            shouldShow = true
+      -- Check if message contains critical patterns (using Lua patterns)
+      local isCritical = false
+      if criticalPatterns and message then
+        for _, pattern in ipairs(criticalPatterns) do
+          -- Use Lua pattern matching (same as hs.application:findWindow)
+          if message:find(pattern) then
+            isCritical = true
+            U.log.w(string.format("Critical pattern matched: '%s' in message from %s", pattern, title))
             break
           end
         end
       end
 
-      if shouldShow then
-        -- Show notification centered in active window with dimmed background
-        notify.sendCanvasNotification(
-          title,    -- "Abby Messer"
-          message,  -- The message text
-          15,       -- Duration: 15 seconds for important messages
-          {
-            positionMode = "center-window",
-            dimBackground = true,
-            dimAlpha = 0.6,  -- 60% opacity overlay
-            includeProgram = false,
-            appBundleID = bundleID,  -- Pass bundle ID for app icon
-          }
-        )
+      -- Determine effective priority
+      local effectivePriority = isCritical and "high" or (priority or "normal")
+
+      -- Check focus mode
+      local currentFocus = notify.getCurrentFocusMode and notify.getCurrentFocusMode() or nil
+      local focusAllowed = true
+
+      if checkFocus and allowedFocusModes then
+        focusAllowed = false
+        for _, allowed in ipairs(allowedFocusModes) do
+          if allowed == currentFocus then
+            focusAllowed = true
+            break
+          end
+        end
+      end
+
+      if not focusAllowed then
+        -- Blocked by focus mode
+        NotifyDB.log({
+          timestamp = timestamp,
+          rule_name = "Important Messages - Abby",
+          app_id = stackingID,
+          sender = title,
+          subtitle = subtitle,
+          message = message,
+          action_taken = "blocked_by_focus",
+          focus_mode = currentFocus,
+          shown = false,
+        })
+        U.log.i("Blocked notification from Abby (focus mode: " .. (currentFocus or "none") .. ")")
+        return
+      end
+
+      -- Check priority-based app focus rules (only for high priority)
+      if effectivePriority == "high" then
+        local priorityCheck = notify.shouldShowHighPriority(bundleID, {
+          alwaysShowInTerminal = alwaysShowInTerminal,
+          showWhenAppFocused = showWhenAppFocused,
+        })
+
+        if not priorityCheck.shouldShow then
+          -- Don't show - app already focused
+          NotifyDB.log({
+            timestamp = timestamp,
+            rule_name = "Important Messages - Abby",
+            app_id = stackingID,
+            sender = title,
+            subtitle = subtitle,
+            message = message,
+            action_taken = "blocked_" .. priorityCheck.reason,
+            focus_mode = currentFocus,
+            shown = false,
+          })
+          U.log.i(string.format("Skipped high priority notification: %s", priorityCheck.reason))
+          return
+        end
+      end
+
+      -- Determine notification style based on priority
+      local notifConfig = {}
+      if effectivePriority == "high" then
+        -- High priority: centered with dimming
+        notifConfig = {
+          positionMode = "center-window",
+          dimBackground = true,
+          dimAlpha = 0.6,
+          includeProgram = false,
+          appBundleID = bundleID,
+          priority = "high",
+        }
+      else
+        -- Normal priority: bottom-left, no dimming
+        notifConfig = {
+          positionMode = "auto",
+          dimBackground = false,
+          includeProgram = false,
+          appBundleID = bundleID,
+          priority = "normal",
+        }
+      end
+
+      -- Show notification
+      notify.sendCanvasNotification(
+        title,
+        message,
+        15,  -- Duration
+        notifConfig
+      )
 
         -- Log to database
         NotifyDB.log({
@@ -270,22 +362,6 @@ NOTIFY_RULES = {
           focus_mode = currentFocus,
           shown = true,
         })
-      else
-        -- Blocked by focus mode - still log it
-        NotifyDB.log({
-          timestamp = timestamp,
-          rule_name = "Important Messages - Abby",
-          app_id = stackingID,
-          sender = title,
-          subtitle = subtitle,
-          message = message,
-          action_taken = "blocked_by_focus",
-          focus_mode = currentFocus,
-          shown = false,
-        })
-
-        U.log.i("Blocked notification from Abby (focus mode: " .. (currentFocus or "none") .. ")")
-      end
     end
   },
 
@@ -305,6 +381,46 @@ NOTIFY_RULES = {
         subtitle = subtitle,
         message = message,
         action_taken = "macos_default",
+        focus_mode = nil,
+        shown = true,
+      })
+    end
+  },
+
+  -- Example: Low priority notifications (like Claude finishing tasks)
+  -- These use the original bottom-left positioning, no interruption
+  -- NOTE: This is a template - Claude doesn't actually send system notifications
+  --       This would apply to any app that sends completion notifications
+  {
+    name = "Task Completions - Low Priority",
+    app = "com.example.taskapp",  -- Replace with actual app bundle ID
+    priority = "low",
+    checkFocus = false,
+    action = function(title, subtitle, message, stackingID, bundleID)
+      local notify = require('notify')
+
+      -- Low priority: bottom-left, no dimming, short duration
+      notify.sendCanvasNotification(
+        title,
+        message,
+        3,  -- Short 3 second duration
+        {
+          positionMode = "auto",  -- Original bottom-left behavior
+          dimBackground = false,
+          includeProgram = false,
+          appBundleID = bundleID,
+          priority = "low",
+        }
+      )
+
+      NotifyDB.log({
+        timestamp = os.time(),
+        rule_name = "Task Completions - Low Priority",
+        app_id = stackingID,
+        sender = title,
+        subtitle = subtitle,
+        message = message,
+        action_taken = "shown_bottom_left",
         focus_mode = nil,
         shown = true,
       })
