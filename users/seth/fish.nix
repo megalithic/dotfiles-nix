@@ -335,6 +335,7 @@ in {
       la = "${pkgs.eza}/bin/eza -lahF --group-directories-first --color=always --icons=always --hyperlink";
       tree = "${pkgs.eza}/bin/eza --tree --color=always";
       opencode = "op run --no-masking -- opencode";
+      claude = "op run --no-masking -- claude --allow-dangerously-skip-permissions";
       rm = "${pkgs.darwin.trash}/bin/trash -v";
       q = "exit";
       ",q" = "exit";

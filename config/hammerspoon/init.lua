@@ -24,9 +24,7 @@ function _G.req(mod, ...)
     return false
   else
     -- if there is an init function; invoke it first.
-    if type(reqmod) == "table" and reqmod.init ~= nil and type(reqmod.init) == "function" then
-      reqmod:init(...)
-    end
+    if type(reqmod) == "table" and reqmod.init ~= nil and type(reqmod.init) == "function" then reqmod:init(...) end
 
     -- always return the module.. we typically end up immediately invoking it.
     return reqmod
@@ -35,6 +33,10 @@ end
 
 _G.U = req("utils")
 _G.I = hs.inspect -- `i()` to easier inspect in the console
+
+-- Initialize notification tracking database
+_G.NotifyDB = req("notification_db")
+NotifyDB.init()
 
 function _G.P(...)
   -- local function getFnLocation()
@@ -45,6 +47,15 @@ function _G.P(...)
   local function getLocation()
     local info = debug.getinfo(2, "Snl")
     return string.format("%s:%s", info.short_src, info.currentline)
+  end
+
+  function callerInfo()
+    local info = debug.getinfo(2, "Sl") -- Get info from the caller (level 2)
+    if info then
+      return string.format("%s:%d", info.short_src, info.currentline)
+    else
+      print("Could not determine caller information")
+    end
   end
 
   if ... == nil then
@@ -66,10 +77,10 @@ function _G.P(...)
     end
   end
 
-  hs.console.printStyledtext(U.ts() .. " (" .. getLocation() .. ")" .. " => " .. contents)
+  hs.console.printStyledtext(U.ts() .. " (" .. callerInfo() .. ")" .. " => " .. contents)
 end
 
-local watchers = { "audio", "camera", "dock", "app" }
+local watchers = { "audio", "camera", "dock", "app", "notification" }
 
 hs.timer.doAfter(1, function()
   hs.loadSpoon("EmmyLua")

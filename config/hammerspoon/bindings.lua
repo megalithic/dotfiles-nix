@@ -1,3 +1,6 @@
+--- REFS:
+--- https://github.com/NateEag/dotfiles/blob/master/src/.hammerspoon/init.lua#L505-L537
+
 local M = {}
 
 _G.Hypers = {}
@@ -125,6 +128,7 @@ function M.loadUtils()
   --   -- WIP
   --   :bind({}, "h", utils.showAvailableHotkeys, function() utilsModality:delayedExit(0.1) end)
 
+  local lastBrowsedApp
   req("hyper", { id = "config.utils" })
     :start()
     :bind({ "shift" }, "r", nil, function()
@@ -147,6 +151,16 @@ function M.loadUtils()
       function() utils.tmux.focusDailyNote() end
     )
     :bind({ "ctrl" }, "d", nil, function() utils.dnd() end)
+    :bind({ "ctrl" }, "b", nil, function()
+      local axb = require("axbrowse")
+      local currentApp = hs.axuielement.applicationElement(hs.application.frontmostApplication())
+      if currentApp == lastBrowsedApp then
+        axb.browse() -- try to continue from where we left off
+      else
+        lastBrowsedApp = currentApp
+        axb.browse(currentApp) -- new app, so start over
+      end
+    end)
 end
 
 function M.loadWm()

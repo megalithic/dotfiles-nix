@@ -94,6 +94,7 @@ in {
     p7zip
     ripgrep
     starship
+    terminal-notifier
     # tmux
     vim
     wget

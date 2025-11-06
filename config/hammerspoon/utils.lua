@@ -30,44 +30,47 @@ function M.getInfo()
   return string.format("%s:%s: ", info.short_src, info.currentline)
 end
 
-M.log = {
-  n = function(m)
-    M.logger(m, "NOTE")
-  end,
-  nf = function(...)
-    M.logger(string.format(...), "NOTE")
-  end,
-  i = function(m)
-    M.logger(m, "INFO")
-  end,
-  f = function(...)
-    M.logger(string.format(...), "INFO")
-  end,
-  w = function(m)
-    M.logger(m, "WARN")
-  end,
-  wf = function(...)
-    M.logger(string.format(...), "WARN")
-  end,
-  e = function(m)
-    M.logger(m, "ERROR")
-  end,
-  ef = function(...)
-    M.logger(string.format(...), "ERROR")
-  end,
-  d = function(m)
-    M.logger(m, "DEBUG")
-  end,
-  df = function(...)
-    M.logger(string.format(...), "DEBUG")
-  end,
-  o = function(m)
-    M.logger(m, "OK")
-  end,
-  of = function(...)
-    M.logger(string.format(...), "OK")
-  end,
+-- Dynamic log level mapping using metatable
+local log_level_map = {
+  n = "NOTE",
+  i = "INFO",
+  w = "WARN",
+  e = "ERROR",
+  d = "DEBUG",
+  o = "OK",
 }
+
+M.log = setmetatable({}, {
+  __index = function(_, key)
+    -- Check if key ends with 'f' for formatted logging (e.g., 'if', 'ef', 'wf')
+    local is_formatted = key:sub(-1) == "f"
+    local level_key = is_formatted and key:sub(1, -2) or key
+
+    -- Special case: 'f' alone defaults to INFO with formatting
+    if key == "f" then
+      return function(...)
+        M.logger(string.format(...), "INFO")
+      end
+    end
+
+    -- Look up the log level
+    local level = log_level_map[level_key]
+    if not level then
+      error(string.format("Unknown log level: %s", key))
+    end
+
+    -- Return appropriate function (formatted or plain)
+    if is_formatted then
+      return function(...)
+        M.logger(string.format(...), level)
+      end
+    else
+      return function(m)
+        M.logger(m, level)
+      end
+    end
+  end
+})
 
 function M.logger(msg, level)
   level = level and level or "NOTE" --[[@as "NOTE"|"INFO"|"WARN"|"ERROR"|"OK"|"DEBUG"]]

@@ -19,6 +19,8 @@ hs.keycodes.log.setLogLevel("error")
 hs.window.animationDuration = 0.0
 hs.window.highlight.ui.overlay = false
 hs.window.setShadows(false)
+-- https://developer.apple.com/documentation/applicationservices/1459345-axuielementsetmessagingtimeout
+hs.window.timeout(0.5)
 hs.grid.setGrid("60x20")
 hs.grid.setMargins("0x0")
 
@@ -168,6 +170,146 @@ HYPER = "F19"
 
 BROWSER = "com.brave.Browser.nightly"
 TERMINAL = "com.mitchellh.ghostty"
+
+-- Notification positioning configuration
+NOTIFY_CONFIG = {
+  -- Vertical offsets (in pixels) from bottom of screen for different programs
+  -- These values account for typical prompt heights in each program
+  -- NOTE: Programs with expanding UI (thinking indicators, token counters) need extra padding
+  offsets = {
+    nvim = 100,        -- Neovim: minimal offset (statusline at bottom, no prompt)
+    vim = 100,         -- Vim: same as neovim
+    ["nvim-diff"] = 100,
+    fish = 350,        -- Fish: multiline prompt with git info
+    bash = 300,        -- Bash: standard prompt
+    zsh = 300,         -- Zsh: standard prompt
+    claude = 155,      -- Claude Code: optimized via screenshot testing with expanding UI (prompt + thinking + tokens)
+    ["claude-code"] = 155,  -- Claude Code: AI coding assistant with expanding prompt UI
+    opencode = 155,    -- OpenCode: AI coding assistant with expanding prompt UI
+    lazygit = 200,     -- Lazygit: status bar at bottom
+    htop = 150,        -- htop: minimal UI at bottom
+    btop = 150,        -- btop: minimal UI at bottom
+    node = 155,        -- Node.js (fallback for claude-code, opencode)
+    default = 200,     -- Default for unknown programs
+  },
+  -- Whether to apply offset adjustment when tmux is detected
+  tmuxShiftEnabled = true,
+  -- Default positioning mode: "auto" | "fixed" | "above-prompt"
+  -- "auto": intelligently detects program and applies appropriate offset
+  -- "fixed": uses only the verticalOffset parameter from notification call
+  -- "above-prompt": estimates prompt height based on terminal dimensions
+  positionMode = "auto",
+  -- Minimum offset to ensure notification is always visible
+  minOffset = 100,
+  -- Default notification duration (in seconds)
+  defaultDuration = 5,
+  -- Animation settings
+  animation = {
+    enabled = true,          -- Enable slide-up animation from bottom of screen
+    duration = 0.3,          -- Animation duration in seconds (0.3 = smooth, 0.5 = slower)
+  },
+}
+
+-- Notification Routing Rules
+-- Rules are evaluated in order. First match wins.
+NOTIFY_RULES = {
+  {
+    name = "Important Messages - Abby",
+    -- Match Messages app notifications
+    app = "com.apple.MobileSMS",
+    -- Match specific senders (exact match, case-sensitive)
+    senders = {"Abby Messer"},
+    -- Check focus mode before showing (nil = don't check, always show)
+    checkFocus = true,
+    -- Only show if in these focus modes (nil = no focus active)
+    -- If current focus mode is not in this list, notification will be blocked
+    allowedFocusModes = {nil, "Personal"},  -- nil = no focus, "Personal" = personal focus
+    -- Action to take when rule matches
+    action = function(title, subtitle, message, stackingID)
+      local notify = require('notify')
+      local timestamp = os.time()
+
+      -- Check focus mode to decide whether to show or block
+      local currentFocus = notify.getCurrentFocusMode and notify.getCurrentFocusMode() or nil
+      local shouldShow = true
+
+      if checkFocus and allowedFocusModes then
+        shouldShow = false
+        for _, allowed in ipairs(allowedFocusModes) do
+          if allowed == currentFocus then
+            shouldShow = true
+            break
+          end
+        end
+      end
+
+      if shouldShow then
+        -- Show notification centered in active window with dimmed background
+        notify.sendCanvasNotification(
+          title,    -- "Abby Messer"
+          message,  -- The message text
+          15,       -- Duration: 15 seconds for important messages
+          {
+            positionMode = "center-window",
+            dimBackground = true,
+            dimAlpha = 0.6,  -- 60% opacity overlay
+            includeProgram = false,
+          }
+        )
+
+        -- Log to database
+        NotifyDB.log({
+          timestamp = timestamp,
+          rule_name = "Important Messages - Abby",
+          app_id = stackingID,
+          sender = title,
+          subtitle = subtitle,
+          message = message,
+          action_taken = "shown_center_dimmed",
+          focus_mode = currentFocus,
+          shown = true,
+        })
+      else
+        -- Blocked by focus mode - still log it
+        NotifyDB.log({
+          timestamp = timestamp,
+          rule_name = "Important Messages - Abby",
+          app_id = stackingID,
+          sender = title,
+          subtitle = subtitle,
+          message = message,
+          action_taken = "blocked_by_focus",
+          focus_mode = currentFocus,
+          shown = false,
+        })
+
+        U.log.i("Blocked notification from Abby (focus mode: " .. (currentFocus or "none") .. ")")
+      end
+    end
+  },
+
+  -- Example: All other Messages notifications (lower priority)
+  {
+    name = "Messages - General",
+    app = "com.apple.MobileSMS",
+    checkFocus = false,  -- Always show, no focus check
+    action = function(title, subtitle, message, stackingID)
+      -- Default behavior: let macOS show the notification
+      -- We just log it to the database for tracking
+      NotifyDB.log({
+        timestamp = os.time(),
+        rule_name = "Messages - General",
+        app_id = stackingID,
+        sender = title,
+        subtitle = subtitle,
+        message = message,
+        action_taken = "macos_default",
+        focus_mode = nil,
+        shown = true,
+      })
+    end
+  },
+}
 
 DISPLAYS = {
   internal = "Built-in Retina Display",

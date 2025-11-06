@@ -1,6 +1,8 @@
 # REF: https://github.com/hackrmomo/.config.macos/blob/main/ghostty/config
 
-title = "Ghostty 👻"
+# title = "Ghostty 👻"
+# NOTE: Static title commented out to allow tmux/shell to set title dynamically via escape sequences
+# With shell-integration-features=title enabled below, programs can set the window title
 
 auto-update = download
 auto-update-channel = tip
@@ -52,7 +54,7 @@ shell-integration-features = true
 
 # custom-shader = shaders/cursor_blaze_no_trail.glsl
 # custom-shader = shaders/cursor_smear.glsl
-custom-shader = shaders/cursor_warp.glsl
+# custom-shader = shaders/cursor_warp.glsl
 cursor-style = block
 cursor-style-blink = true
 # selection-invert-fg-bg = true

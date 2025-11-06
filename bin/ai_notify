@@ -7,8 +7,81 @@
 NOTIFY_STATE_DIR="${TMPDIR:-/tmp}/ai_notify_state"
 mkdir -p "$NOTIFY_STATE_DIR"
 
-# Get phone number from macOS Contacts (no authentication needed)
+# Cache directory for contact information (XDG compliant)
+CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/ai_notify"
+CACHE_FILE="$CACHE_DIR/contact_info.cache"
+mkdir -p "$CACHE_DIR"
+
+# Default TTL: 7 days (604800 seconds), configurable via AI_NOTIFY_CACHE_TTL
+CACHE_TTL="${AI_NOTIFY_CACHE_TTL:-604800}"
+
+# Get cached value with TTL check
+# Returns: cached value if valid, empty string if expired or missing
+get_cached_value() {
+  local key="$1"
+
+  if [ ! -f "$CACHE_FILE" ]; then
+    return 1
+  fi
+
+  # Read cache file and find the key
+  local cached_line=$(grep "^${key}=" "$CACHE_FILE" 2>/dev/null)
+
+  if [ -z "$cached_line" ]; then
+    return 1
+  fi
+
+  # Extract timestamp and value: KEY=timestamp|value
+  local cache_data="${cached_line#*=}"
+  local cached_timestamp="${cache_data%%|*}"
+  local cached_value="${cache_data#*|}"
+
+  # Check if cache is still valid
+  local current_time=$(date +%s)
+  local elapsed=$((current_time - cached_timestamp))
+
+  if [ $elapsed -ge $CACHE_TTL ]; then
+    # Cache expired
+    return 1
+  fi
+
+  # Cache valid, return value
+  echo "$cached_value"
+  return 0
+}
+
+# Set cached value with current timestamp
+set_cached_value() {
+  local key="$1"
+  local value="$2"
+  local current_time=$(date +%s)
+
+  # Create or update cache file
+  local temp_file="${CACHE_FILE}.tmp"
+
+  # Copy existing cache entries (excluding the key we're updating)
+  if [ -f "$CACHE_FILE" ]; then
+    grep -v "^${key}=" "$CACHE_FILE" > "$temp_file" 2>/dev/null || true
+  fi
+
+  # Add new cache entry
+  echo "${key}=${current_time}|${value}" >> "$temp_file"
+
+  # Atomically replace cache file
+  mv "$temp_file" "$CACHE_FILE"
+}
+
+# Get phone number from macOS Contacts (with caching)
 get_phone_number() {
+  # Try to get from cache first
+  local cached_phone=$(get_cached_value "PHONE_NUMBER")
+
+  if [ -n "$cached_phone" ]; then
+    echo "$cached_phone"
+    return 0
+  fi
+
+  # Cache miss or expired - fetch from Contacts
   # Get the full name of the logged-in user
   local full_name=$(dscl . -read /Users/$(whoami) RealName | tail -1 | sed 's/^ //')
 
@@ -17,42 +90,44 @@ get_phone_number() {
     return 1
   fi
 
-  osascript -e "tell application \"Contacts\"
+  # Fetch phone number from Contacts (WITHOUT activate to keep it hidden)
+  local phone_number=$(osascript -e "tell application \"Contacts\"
         set thePerson to first person whose name is \"$full_name\"
 
         -- Try to find iPhone labeled number first
         repeat with aPhone in phones of thePerson
             if (label of aPhone as text) contains \"iPhone\" then
-                return value of aPhone
+                set phoneValue to value of aPhone
+                quit
+                return phoneValue
             end if
         end repeat
 
         -- Last resort: return first phone
-        return value of first phone of thePerson
-    end tell" 2>/dev/null
+        set phoneValue to value of first phone of thePerson
+        quit
+        return phoneValue
+    end tell" 2>/dev/null)
+
+  if [ -z "$phone_number" ]; then
+    echo "[WARN] Could not retrieve phone number from Contacts" >&2
+    return 1
+  fi
+
+  # Cache the phone number and full name
+  set_cached_value "PHONE_NUMBER" "$phone_number"
+  set_cached_value "FULL_NAME" "$full_name"
+
+  echo "$phone_number"
+  return 0
 }
 
 # Check if user is paying attention to the agents window
 # Returns: 0 if user is NOT paying attention (should notify), 1 if paying attention
 should_send_notification() {
   local check_result=$(hs -c "
-        -- Check if Ghostty is frontmost application
-        local frontmost = hs.application.frontmostApplication()
-        if not frontmost or frontmost:name() ~= 'Ghostty' then
-            print('not_ghostty')
-            return
-        end
-
-        -- Check if display is asleep (session properties don't have good indicators for this)
-        -- We'll use a workaround: check if screen is locked
-        local sessionInfo = hs.caffeinate.sessionProperties()
-        if sessionInfo and sessionInfo['CGSSessionScreenIsLocked'] then
-            print('display_asleep')
-            return
-        end
-
-        -- If we get here, Ghostty is frontmost, check tmux window
-        print('ghostty_active')
+        local notify = require('notify')
+        print(notify.checkAttention())
     " 2>/dev/null)
 
   # If Ghostty is not frontmost or display is asleep, send notifications
@@ -60,53 +135,94 @@ should_send_notification() {
     return 0 # Should send notification
   fi
 
-  # Check if tmux "agents" window in "launchdeck" session is active
-  local tmux_check=$(tmux list-windows -t launchdeck 2>/dev/null | grep -E '^\d+: agents.*\(active\)')
-  if [ -z "$tmux_check" ]; then
-    # agents window is not active in launchdeck session
-    return 0 # Should send notification
+  # If we're inside tmux, check if THIS pane is the active one
+  if [ -n "$TMUX" ]; then
+    # Get current pane ID
+    local current_pane=$(tmux display-message -p '#{pane_id}')
+    # Get active pane ID in the current window
+    local active_pane=$(tmux display-message -p '#{pane_active}')
+
+    # If this pane is not active, send notification
+    if [[ "$active_pane" != "1" ]]; then
+      return 0 # Should send notification
+    fi
+
+    # Also check if the window is active
+    local window_active=$(tmux display-message -p '#{window_active}')
+    if [[ "$window_active" != "1" ]]; then
+      return 0 # Should send notification
+    fi
   fi
 
-  # User is paying attention (Ghostty frontmost AND agents window active)
+  # User is paying attention (Ghostty frontmost AND this tmux pane/window is active)
   return 1 # Should NOT send notification
 }
 
 # Check if display is asleep
 is_display_asleep() {
-  local session_check=$(hs -c "
-        local sessionInfo = hs.caffeinate.sessionProperties()
-        if sessionInfo then
-            if sessionInfo['CGSSessionScreenIsLocked'] then
-                print('locked')
-            elseif not sessionInfo['kCGSessionOnConsoleKey'] then
-                print('not_on_console')
-            else
-                print('awake')
-            end
-        else
-            print('unknown')
-        end
+  local display_check=$(hs -c "
+        local notify = require('notify')
+        print(notify.checkDisplayState())
     " 2>/dev/null)
 
-  [[ "$session_check" == "locked" ]] || [[ "$session_check" == "not_on_console" ]]
+  [[ "$display_check" == "display_asleep" ]] || [[ "$display_check" == "screen_locked" ]] || [[ "$display_check" == "logged_out" ]]
 }
 
-# Send macOS Notification
+# Send macOS Notification (via Hammerspoon)
 send_macos_notification() {
   local title="$1"
   local subtitle="$2"
   local body="$3"
 
-  hs -c "hs.notify.show('$title', '$subtitle', '$body')" 2>/dev/null
+  # Escape single quotes for Lua
+  local escaped_title="${title//\'/\\\'}"
+  local escaped_subtitle="${subtitle//\'/\\\'}"
+  local escaped_body="${body//\'/\\\'}"
+
+  hs -c "
+    local notify = require('notify')
+    notify.sendMacOSNotification('$escaped_title', '$escaped_subtitle', '$escaped_body')
+  " 2>/dev/null
+}
+
+# Send macOS Notification (via osascript - alternative method)
+send_macos_notification_osascript() {
+  local title="$1"
+  local subtitle="$2"
+  local body="$3"
+
+  osascript -e "display notification \"$body\" with title \"$title\" subtitle \"$subtitle\"" 2>/dev/null
+}
+
+# Send custom Canvas notification at bottom-left with macOS Sequoia styling
+send_canvas_notification() {
+  local title="$1"
+  local message="$2"
+  local duration="${3:-5}"
+
+  # Escape single quotes for Lua
+  local escaped_title="${title//\'/\\\'}"
+  local escaped_message="${message//\'/\\\'}"
+
+  hs -c "
+    local notify = require('notify')
+    notify.sendCanvasNotification('$escaped_title', '$escaped_message', $duration)
+  " 2>/dev/null
 }
 
 # Send Hammerspoon Alert (on-screen overlay)
+# For long messages (>25 chars), uses custom canvas notification
 send_hammerspoon_alert() {
   local message="$1"
   local duration="${2:-5}"
 
+  # Escape single quotes for Lua
   local escaped_message="${message//\'/\\\'}"
-  hs -c "hs.alert.show('$escaped_message', $duration)" 2>/dev/null
+
+  hs -c "
+    local notify = require('notify')
+    notify.sendSmartAlert('$escaped_message', $duration)
+  " 2>/dev/null
 }
 
 # Send iMessage to Phone
@@ -115,12 +231,17 @@ send_phone_notification() {
   local phone_number=$(get_phone_number)
 
   if [ -z "$phone_number" ]; then
-    echo "[WARN] Could not retrieve phone number from 1Password" >&2
+    echo "[WARN] Could not retrieve phone number" >&2
     return 1
   fi
 
+  # Escape single quotes for Lua
   local escaped_message="${message//\'/\\\'}"
-  hs -c "hs.messages.iMessage('$phone_number', '$escaped_message')" 2>/dev/null
+
+  hs -c "
+    local notify = require('notify')
+    notify.sendPhoneNotification('$phone_number', '$escaped_message')
+  " 2>/dev/null
 }
 
 # Main notification function with smart detection
@@ -141,7 +262,7 @@ notify_user() {
   # Check if display is asleep - if so, ALWAYS send phone notification
   if is_display_asleep; then
     echo "[NOTIFY] Display asleep - sending phone notification"
-    send_phone_notification "🤖 OpenCode - $title: $message"
+    send_phone_notification "$title: $message"
     return
   fi
 
@@ -175,7 +296,7 @@ notify_user() {
 
     # 3. Phone notification (for important events or if requested)
     if [ "$send_to_phone" = "true" ] || [ "$urgency" = "critical" ]; then
-      send_phone_notification "🤖 OpenCode - $title: $message"
+      send_phone_notification "$title: $message"
     fi
   else
     # User is paying attention - only send subtle notification
@@ -247,48 +368,178 @@ stop_retry_daemon() {
   fi
 }
 
-# Export functions if sourced
-if [ "${BASH_SOURCE[0]}" != "${0}" ]; then
-  export -f get_phone_number
-  export -f should_send_notification
-  export -f is_display_asleep
-  export -f send_macos_notification
-  export -f send_hammerspoon_alert
-  export -f send_phone_notification
-  export -f notify_user
-  export -f answer_question
-  export -f retry_unanswered_questions
-  export -f start_retry_daemon
-  export -f stop_retry_daemon
-fi
+# Parse command-line arguments for 'notify' command
+parse_notify_args() {
+  local title=""
+  local message=""
+  local send_to_phone="false"
+  local urgency="normal"
+  local is_question="false"
 
-# If executed directly, run test
-if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
-  echo "Smart Notification System Test"
-  echo "==============================="
-  echo ""
-
-  echo "Checking attention state..."
-  if should_send_notification; then
-    echo "✅ User NOT paying attention - notifications will be sent"
+  # Check if first arg is JSON
+  if [[ "$1" =~ ^\{.*\}$ ]]; then
+    # Parse JSON using hs (Hammerspoon has JSON support)
+    local json_data="$1"
+    title=$(echo "$json_data" | hs -c "print(hs.json.decode([[$json_data]]).title or '')" 2>/dev/null)
+    message=$(echo "$json_data" | hs -c "print(hs.json.decode([[$json_data]]).message or '')" 2>/dev/null)
+    send_to_phone=$(echo "$json_data" | hs -c "print(tostring(hs.json.decode([[$json_data]]).send_to_phone or false))" 2>/dev/null)
+    urgency=$(echo "$json_data" | hs -c "print(hs.json.decode([[$json_data]]).urgency or 'normal')" 2>/dev/null)
+    is_question=$(echo "$json_data" | hs -c "print(tostring(hs.json.decode([[$json_data]]).is_question or false))" 2>/dev/null)
   else
-    echo "⚠️  User IS paying attention - notifications suppressed"
+    # Parse arguments (supports both short and long options)
+    while [ $# -gt 0 ]; do
+      case "$1" in
+        -t|--title)
+          title="$2"
+          shift 2
+          ;;
+        -m|--message)
+          message="$2"
+          shift 2
+          ;;
+        -p|--phone|--send-to-phone)
+          send_to_phone="$2"
+          shift 2
+          ;;
+        -u|--urgency)
+          urgency="$2"
+          shift 2
+          ;;
+        -q|--question|--is-question)
+          is_question="$2"
+          shift 2
+          ;;
+        --title=*)
+          title="${1#*=}"
+          shift
+          ;;
+        --message=*)
+          message="${1#*=}"
+          shift
+          ;;
+        --phone=*|--send-to-phone=*)
+          send_to_phone="${1#*=}"
+          shift
+          ;;
+        --urgency=*)
+          urgency="${1#*=}"
+          shift
+          ;;
+        --question=*|--is-question=*)
+          is_question="${1#*=}"
+          shift
+          ;;
+        --)
+          shift
+          break
+          ;;
+        -*)
+          echo "Unknown option: $1" >&2
+          return 1
+          ;;
+        *)
+          # Positional argument - use for title/message if not set
+          if [ -z "$title" ]; then
+            title="$1"
+          elif [ -z "$message" ]; then
+            message="$1"
+          elif [ "$send_to_phone" = "false" ]; then
+            send_to_phone="$1"
+          elif [ "$urgency" = "normal" ]; then
+            urgency="$1"
+          elif [ "$is_question" = "false" ]; then
+            is_question="$1"
+          fi
+          shift
+          ;;
+      esac
+    done
   fi
-  echo ""
 
-  echo "Testing notification (normal priority)..."
-  notify_user "Test Notification" "This is a test" false normal
-  sleep 2
+  # Validate required arguments
+  if [ -z "$title" ] || [ -z "$message" ]; then
+    echo "Error: title and message are required" >&2
+    return 1
+  fi
 
-  echo ""
-  echo "Testing question with retry (high priority)..."
-  notify_user "Test Question" "Should I proceed?" true high true
+  # Call notify_user with parsed arguments
+  notify_user "$title" "$message" "$send_to_phone" "$urgency" "$is_question"
+}
 
-  echo ""
-  echo "To test retry mechanism:"
-  echo "  1. Start retry daemon: start_retry_daemon"
-  echo "  2. Wait 5+ minutes without answering"
-  echo "  3. Question will be re-sent"
-  echo "  4. Answer with: answer_question 'Test Question' 'Should I proceed?'"
-  echo ""
+# Command-line interface for direct execution (works from any shell)
+# When sourced in bash/zsh, functions are directly available
+# When called from fish or as executable, use: ai_notify notify [options]
+if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
+  case "${1:-}" in
+    notify)
+      shift
+      parse_notify_args "$@"
+      ;;
+    test)
+      echo "Smart Notification System Test"
+      echo "==============================="
+      echo ""
+      echo "Checking attention state..."
+      if should_send_notification; then
+        echo "✅ User NOT paying attention - notifications will be sent"
+      else
+        echo "⚠️  User IS paying attention - notifications suppressed"
+      fi
+      echo ""
+      echo "Testing notification (normal priority)..."
+      notify_user "Test Notification" "This is a test" false normal
+      ;;
+    help|--help|-h|"")
+      echo "Usage: ai_notify <command> [options...]"
+      echo ""
+      echo "Commands:"
+      echo "  notify [options]"
+      echo "    Send a notification with smart detection"
+      echo ""
+      echo "Options:"
+      echo "  -t, --title <title>           Notification title (required)"
+      echo "  -m, --message <message>       Notification message (required)"
+      echo "  -p, --phone <true|false>      Send to phone (default: false)"
+      echo "  -u, --urgency <level>         Urgency: normal|high|critical (default: normal)"
+      echo "  -q, --question <true|false>   Mark as question for retry (default: false)"
+      echo ""
+      echo "Long options also support = syntax:"
+      echo "  --title=\"My Title\" --message=\"My Message\" --urgency=high"
+      echo ""
+      echo "JSON Input:"
+      echo "  ai_notify notify '{\"title\":\"...\",\"message\":\"...\",\"urgency\":\"high\"}'"
+      echo ""
+      echo "Positional Arguments (backward compatible):"
+      echo "  ai_notify notify <title> <message> [send_to_phone] [urgency] [is_question]"
+      echo ""
+      echo "Examples:"
+      echo "  # Short options"
+      echo "  ai_notify notify -t \"Task Done\" -m \"Tests passed\" -u high"
+      echo ""
+      echo "  # Long options"
+      echo "  ai_notify notify --title \"Task Done\" --message \"Tests passed\" --urgency high"
+      echo ""
+      echo "  # Long options with = syntax"
+      echo "  ai_notify notify --title=\"Task Done\" --message=\"Tests passed\" --urgency=high"
+      echo ""
+      echo "  # Positional arguments (backward compatible)"
+      echo "  ai_notify notify \"Task Done\" \"Tests passed\" false normal"
+      echo ""
+      echo "  # JSON input"
+      echo "  ai_notify notify '{\"title\":\"Build Failed\",\"message\":\"Check logs\",\"urgency\":\"critical\"}'"
+      echo ""
+      echo "Other Commands:"
+      echo "  test    Run notification system test"
+      echo ""
+      echo "Usage from different shells:"
+      echo "  bash/zsh: source ~/.dotfiles-nix/bin/ai_notify && notify_user \"title\" \"message\""
+      echo "  fish:     ~/.dotfiles-nix/bin/ai_notify notify -t \"title\" -m \"message\""
+      echo "  any:      ai_notify notify -t \"title\" -m \"message\" (if in PATH)"
+      ;;
+    *)
+      echo "Unknown command: $1"
+      echo "Run 'ai_notify help' for usage"
+      exit 1
+      ;;
+  esac
 fi

@@ -3,9 +3,12 @@
 local fmt = string.format
 local M = {}
 
-local function cameraActive()
+local function cameraActive(camera, property)
+  P({ property, camera })
   U.dnd(true, "meeting")
   hs.spotify.pause()
+  require("ptt").setState("push-to-talk")
+
   -- hs.shortcuts.run("Meeting Start")
   --
   -- if hs.application.find("Stretchly") ~= nil then
@@ -16,8 +19,10 @@ local function cameraActive()
   -- Elgato.cameraStart()
 end
 --
-local function cameraInactive()
+local function cameraInactive(camera, property)
+  P({ property, camera })
   U.dnd(false)
+  require("ptt").setState("push-to-talk")
 
   -- hs.shortcuts.run("Meeting End")
   --
@@ -29,7 +34,7 @@ local function cameraInactive()
   -- Elgato.cameraEnd()
 end
 
-local function cameraPropertyCallback(camera, property)
+local function watchCameraProperty(camera, property)
   -- TODO: Think about logging which application has started to use the camera with something like:
   -- https://www.howtogeek.com/289352/how-to-tell-which-application-is-using-your-macs-webcam/
   -- U.log.n("Camera " .. camera:name() .. " in use status changed.")
@@ -37,39 +42,46 @@ local function cameraPropertyCallback(camera, property)
   -- Weirdly, "gone" is used as the property  if the camera's use changes: https://www.hammerspoon.org/docs/hs.camera.html#setPropertyWatcherCallback
   if property == "gone" then
     if camera:isInUse() then
-      cameraActive()
+      cameraActive(camera, property)
       U.log.of("%s active", camera:name())
     else
-      cameraInactive()
+      cameraInactive(camera, property)
       U.log.of("%s inactive", camera:name())
     end
   end
 end
 
-local function cameraWatcherCallback(camera, status)
+local function watchCamera(camera, status)
   U.log.i(fmt("camera detected: %s (%s)", camera:name(), status))
   if status == "Added" then
-    camera:setPropertyWatcherCallback(cameraPropertyCallback)
-    camera:startPropertyWatcher()
+    if not camera:isPropertyWatcherRunning() then
+      camera:setPropertyWatcherCallback(watchCameraProperty)
+      camera:startPropertyWatcher()
+    end
   end
 end
 
 local function addCameraOnInit()
   for _, camera in ipairs(hs.camera.allCameras() or {}) do
     U.log.n(fmt("initial detection: %s", camera:name()))
-    camera:setPropertyWatcherCallback(cameraPropertyCallback)
+    camera:setPropertyWatcherCallback(watchCameraProperty)
     camera:startPropertyWatcher()
   end
 end
 
 function M:start()
-  hs.camera.setWatcherCallback(cameraWatcherCallback)
+  hs.camera.setWatcherCallback(watchCamera)
   hs.camera.startWatcher()
+
   addCameraOnInit()
 end
 
 function M:stop()
   if hs.camera.isWatcherRunning() then
+    for _, camera in ipairs(hs.camera.allCameras() or {}) do
+      if camera:isPropertyWatcherRunning() then camera:stopPropertyWatcher() end
+    end
+
     hs.camera.stopWatcher()
   end
 end

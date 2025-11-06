@@ -1,1 +1,3 @@
-- When running nix-related commands, you can use `nh`, so for a darwin-rebuild it'd be `nh darwin switch .`, and for home-manager, it'd be `nh home switch .`
+- When working in this repo (dotfiles-nix), always check the `justfile` to see available commands
+- To rebuild darwin in this repo, use `just mac` (which handles the darwin-rebuild process)
+- Alternative: You can also use `nh`, so for a darwin-rebuild it'd be `nh darwin switch .`, and for home-manager, it'd be `nh home switch .`

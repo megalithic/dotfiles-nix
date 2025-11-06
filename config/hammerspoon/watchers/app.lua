@@ -34,6 +34,8 @@ function M.watchApp(app, _)
   local watcher = app:newWatcher(M.handleWatchedEvent, app)
   if watcher == nil then return end
 
+  M.watchers.app[app:bundleID()] = watcher
+
   watcher:start({
     hs.uielement.watcher.windowCreated,
     hs.uielement.watcher.mainWindowChanged,
@@ -41,7 +43,6 @@ function M.watchApp(app, _)
     hs.uielement.watcher.titleChanged,
     hs.uielement.watcher.elementDestroyed,
   })
-  M.watchers.app[app:bundleID()] = watcher
 end
 
 function M.runLayoutRulesForAppBundleID(elementOrAppName, event, app)
@@ -66,7 +67,10 @@ end
 
 -- NOTE: all events are context-runnable
 function M.runContextForAppBundleID(elementOrAppName, event, app, metadata)
-  if not M.watchers.context[app:bundleID()] then return end
+  if not M.watchers.context[app:bundleID()] then
+    -- U.log.wf("%s context failed to run", app:bundleID())
+    return
+  end
 
   contexts:run({
     context = M.watchers.context[app:bundleID()],
