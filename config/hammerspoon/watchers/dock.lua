@@ -6,9 +6,7 @@ local M = {}
 M.is_docked = nil
 M.wifi_device = nil
 
-local function setWiFi(state)
-  U.run(fmt("networksetup -setairportpower %s %s", M.wifi_device, state), true)
-end
+local function setWiFi(state) U.run(fmt("networksetup -setairportpower %s %s", M.wifi_device, state), true) end
 
 local function docked()
   if M.is_docked ~= nil and M.is_docked == true then
@@ -20,15 +18,13 @@ local function docked()
   U.log.i("running docked setup..")
   M.wifi_device = U.run("network-status -d wifi", true)
 
-  if M.wifi_device ~= nil then
-    setWiFi(DOCK.docked.wifi)
-  end
+  if M.wifi_device ~= nil then setWiFi(C.dock.docked.wifi) end
 end
 
 local function undocked()
   M.is_docked = false
   U.log.i("running undocked setup..")
-  setWiFi(DOCK.undocked.wifi)
+  setWiFi(C.dock.undocked.wifi)
 end
 
 local function dockChangedState(state)
@@ -43,12 +39,12 @@ end
 
 local function keyboardChangedState(state)
   if state == "removed" then
-    local status = U.run(fmt([[karabiner_cli --select-profile %s &]], DOCK.keyboard.disconnected), true)
+    local status = U.run(fmt([[karabiner_cli --select-profile %s &]], C.dock.keyboard.disconnected), true)
 
     U.log.of("%s keyboard profile activated", status)
-    -- warn(fmt("[%s.keyboard] leeloo disconnected (%s)", obj.name, DOCK.keyboard.disconnected))
+    -- warn(fmt("[%s.keyboard] leeloo disconnected (%s)", obj.name, C.dock.keyboard.disconnected))
   elseif state == "added" then
-    local status = U.run(fmt([[karabiner_cli --select-profile %s &]], DOCK.keyboard.connected), true)
+    local status = U.run(fmt([[karabiner_cli --select-profile %s &]], C.dock.keyboard.connected), true)
     U.log.of("%s keyboard profile activated", status)
   else
     U.log.wf("unknown keyboard state: ", state)
@@ -56,23 +52,14 @@ local function keyboardChangedState(state)
 end
 
 local function usbWatcherCallback(data)
-  if data.vendorID == DOCK.target_alt.vendorID then
-    dockChangedState(data.eventType)
-  end
+  P(data)
+  if data.vendorID == C.dock.target_alt.vendorID then dockChangedState(data.eventType) end
 
-  if data.vendorID == DOCK.keyboard.vendorID then
-    keyboardChangedState(data.eventType)
-  end
+  if data.vendorID == C.dock.keyboard.vendorID then keyboardChangedState(data.eventType) end
 end
 
 function M.isDocked()
-  local usbDevices = hs.usb.attachedDevices()
-  for _, device in pairs(usbDevices or {}) do
-    if device.vendorID == DOCK.target_alt.vendorID then
-      return true
-    end
-  end
-  return false
+  return enum.find(hs.usb.attachedDevices(), function(device) return device.vendorID == C.dock.target_alt.vendorID end)
 end
 
 -- local initStart = os.clock()
@@ -96,9 +83,7 @@ function M:start()
 end
 
 function M:stop()
-  if M.watcher then
-    M.watcher:stop()
-  end
+  if M.watcher then M.watcher:stop() end
 end
 
 return M

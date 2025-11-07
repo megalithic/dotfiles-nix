@@ -1,23 +1,22 @@
 local M = {}
 M.__index = M
-M.name = "notify"
+M.name = "notifier"
 
--- Local shorthand
-local fmt = string.format
+local config = C.notifier.config
 
 -- Global references to active notification canvas and timer
 _G.activeNotificationCanvas = nil
 _G.activeNotificationTimer = nil
 _G.activeNotificationAnimTimer = nil
-_G.notificationOverlay = nil  -- Reusable dimming overlay
-_G.activeNotificationBundleID = nil  -- Track source app for auto-dismiss
-_G.notificationAppWatcher = nil  -- Application watcher for auto-dismiss
+_G.notificationOverlay = nil -- Reusable dimming overlay
+_G.activeNotificationBundleID = nil -- Track source app for auto-dismiss
+_G.notificationAppWatcher = nil -- Application watcher for auto-dismiss
 
 -- Focus mode cache (to avoid repeated subprocess calls)
 local focusModeCache = {
-  mode = nil,        -- Current focus mode name or nil
-  timestamp = 0,     -- When cached
-  ttl = 5,          -- Cache for 5 seconds
+  mode = nil, -- Current focus mode name or nil
+  timestamp = 0, -- When cached
+  ttl = 5, -- Cache for 5 seconds
 }
 
 -- Get active program name from Ghostty window title
@@ -46,13 +45,10 @@ end
 -- Calculate optimal vertical offset based on active program and config
 function M.calculateOffset(options)
   options = options or {}
-  local config = NOTIFY_CONFIG or {}
   local mode = options.positionMode or config.positionMode or "auto"
 
   -- Fixed mode: use provided offset directly
-  if mode == "fixed" then
-    return options.verticalOffset or config.minOffset or 100
-  end
+  if mode == "fixed" then return options.verticalOffset or config.minOffset or 100 end
 
   -- Auto mode: detect program and use configured offset
   if mode == "auto" then
@@ -66,9 +62,7 @@ function M.calculateOffset(options)
     end
 
     -- Add any additional offset from options
-    if options.verticalOffset then
-      offset = offset + options.verticalOffset
-    end
+    if options.verticalOffset then offset = offset + options.verticalOffset end
 
     -- Respect minimum offset
     local minOffset = config.minOffset or 100
@@ -104,7 +98,21 @@ function M.isInTerminal()
   local frontmost = hs.application.frontmostApplication()
   if not frontmost then return false end
 
-  return frontmost:bundleID() == TERMINAL or frontmost:name() == 'Ghostty'
+  return frontmost:bundleID() == TERMINAL or frontmost:name() == "Ghostty"
+end
+
+-- Get the focused window title for a given application bundle ID
+-- Returns: window title string or nil
+function M.getFocusedWindowTitle(bundleID)
+  if not bundleID then return nil end
+
+  local app = hs.application.get(bundleID)
+  if not app then return nil end
+
+  local window = app:focusedWindow()
+  if not window then return nil end
+
+  return window:title()
 end
 
 -- Determine if high priority notification should be shown
@@ -112,22 +120,18 @@ end
 -- Returns: {shouldShow: boolean, reason: string}
 function M.shouldShowHighPriority(bundleID, options)
   options = options or {}
-  local alwaysShowInTerminal = options.alwaysShowInTerminal ~= false  -- default true
-  local showWhenAppFocused = options.showWhenAppFocused or false  -- default false
+  local alwaysShowInTerminal = options.alwaysShowInTerminal ~= false -- default true
+  local showWhenAppFocused = options.showWhenAppFocused or false -- default false
 
   -- Check if we're in terminal (always show high priority in terminal)
-  if alwaysShowInTerminal and M.isInTerminal() then
-    return {shouldShow = true, reason = "in_terminal"}
-  end
+  if alwaysShowInTerminal and M.isInTerminal() then return { shouldShow = true, reason = "in_terminal" } end
 
   -- Check if source app is focused
   local appIsFocused = M.isAppFocused(bundleID)
 
-  if appIsFocused and not showWhenAppFocused then
-    return {shouldShow = false, reason = "app_already_focused"}
-  end
+  if appIsFocused and not showWhenAppFocused then return { shouldShow = false, reason = "app_already_focused" } end
 
-  return {shouldShow = true, reason = "app_not_focused"}
+  return { shouldShow = true, reason = "app_not_focused" }
 end
 
 -- Get current Focus Mode (with 5-second cache)
@@ -136,9 +140,7 @@ function M.getCurrentFocusMode()
   local now = os.time()
 
   -- Return cached value if still valid
-  if focusModeCache.timestamp + focusModeCache.ttl > now then
-    return focusModeCache.mode
-  end
+  if focusModeCache.timestamp + focusModeCache.ttl > now then return focusModeCache.mode end
 
   -- Fetch fresh focus mode status
   -- Uses fast JXA script: bin/get-focus-mode
@@ -173,26 +175,26 @@ function M.showOverlay(alpha)
   end
 
   -- Create overlay canvas first time
-  local screen = hs.screen.primaryScreen()
-  local frame = screen:fullFrame()  -- Includes menu bar
+  local screen = hs.screen.mainScreen()
+  local frame = screen:fullFrame() -- Includes menu bar
 
-  _G.notificationOverlay = hs.canvas.new(frame)
+  _G.notificationOverlay = hs
+    .canvas
+    .new(frame)
     :appendElements({
-      type = 'rectangle',
-      action = 'fill',
-      fillColor = {red = 0.0, green = 0.0, blue = 0.0, alpha = alpha},
-      frame = {x = 0, y = 0, h = '100%', w = '100%'}
+      type = "rectangle",
+      action = "fill",
+      fillColor = { red = 0.0, green = 0.0, blue = 0.0, alpha = alpha },
+      frame = { x = 0, y = 0, h = "100%", w = "100%" },
     })
-    :level('overlay')  -- Above windows, below notification canvas
+    :level("overlay") -- Above windows, below notification canvas
     :alpha(alpha)
     :show()
 end
 
 -- Hide dimming overlay (keeps canvas for reuse)
 function M.hideOverlay()
-  if _G.notificationOverlay then
-    _G.notificationOverlay:hide()
-  end
+  if _G.notificationOverlay then _G.notificationOverlay:hide() end
 end
 
 -- Dismiss active notification (helper function)
@@ -214,11 +216,7 @@ function M.dismissNotification(fadeTime)
     _G.activeNotificationAnimTimer = nil
   end
 
-  if _G.notificationOverlay then
-    hs.timer.doAfter(fadeTime, function()
-      M.hideOverlay()
-    end)
-  end
+  if _G.notificationOverlay then hs.timer.doAfter(fadeTime, function() M.hideOverlay() end) end
 
   _G.activeNotificationBundleID = nil
 end
@@ -226,7 +224,7 @@ end
 -- Set up application watcher for auto-dismiss
 -- Called once when module is loaded
 function M.setupAppWatcher()
-  if _G.notificationAppWatcher then return end  -- Already set up
+  if _G.notificationAppWatcher then return end -- Already set up
 
   _G.notificationAppWatcher = hs.application.watcher.new(function(appName, eventType, app)
     -- Only care about app activation events
@@ -237,7 +235,7 @@ function M.setupAppWatcher()
 
     -- Check if the activated app matches the notification source
     if app and app:bundleID() == _G.activeNotificationBundleID then
-      M.dismissNotification(0.2)  -- Quick fade
+      M.dismissNotification(0.2) -- Quick fade
     end
   end)
 
@@ -250,7 +248,7 @@ M.setupAppWatcher()
 -- Calculate notification position based on mode
 -- Returns: {x, y} table with pixel coordinates
 function M.calculatePosition(positionMode, width, height)
-  local screen = hs.screen.primaryScreen()
+  local screen = hs.screen.mainScreen()
   local screenFrame = screen:frame()
 
   if positionMode == "center-window" then
@@ -262,7 +260,7 @@ function M.calculatePosition(positionMode, width, height)
       -- Center within window
       return {
         x = winFrame.x + (winFrame.w - width) / 2,
-        y = winFrame.y + (winFrame.h - height) / 2
+        y = winFrame.y + (winFrame.h - height) / 2,
       }
     end
 
@@ -273,7 +271,7 @@ function M.calculatePosition(positionMode, width, height)
   if positionMode == "center-screen" then
     return {
       x = screenFrame.x + (screenFrame.w - width) / 2,
-      y = screenFrame.y + (screenFrame.h - height) / 2
+      y = screenFrame.y + (screenFrame.h - height) / 2,
     }
   end
 
@@ -285,47 +283,39 @@ end
 -- Returns: 'not_ghostty', 'display_asleep', or 'ghostty_active'
 function M.checkAttention()
   local frontmost = hs.application.frontmostApplication()
-  if not frontmost or frontmost:name() ~= 'Ghostty' then
-    return 'not_ghostty'
-  end
+  if not frontmost or frontmost:name() ~= "Ghostty" then return "not_ghostty" end
 
-  local displayIdle = hs.caffeinate.get('displayIdle')
-  if displayIdle then
-    return 'display_asleep'
-  end
+  local displayIdle = hs.caffeinate.get("displayIdle")
+  if displayIdle then return "display_asleep" end
 
-  return 'ghostty_active'
+  return "ghostty_active"
 end
 
 -- Check if display is asleep, screen is locked, or user is logged out
 -- Returns: 'display_asleep', 'screen_locked', 'logged_out', or 'awake'
 function M.checkDisplayState()
-  local displayIdle = hs.caffeinate.get('displayIdle')
+  local displayIdle = hs.caffeinate.get("displayIdle")
   local sessionInfo = hs.caffeinate.sessionProperties()
-  local screenLocked = sessionInfo and sessionInfo['CGSSessionScreenIsLocked'] or false
-  local onConsole = sessionInfo and sessionInfo['kCGSSessionOnConsoleKey'] or false
+  local screenLocked = sessionInfo and sessionInfo["CGSSessionScreenIsLocked"] or false
+  local onConsole = sessionInfo and sessionInfo["kCGSSessionOnConsoleKey"] or false
 
   if displayIdle then
-    return 'display_asleep'
+    return "display_asleep"
   elseif screenLocked then
-    return 'screen_locked'
+    return "screen_locked"
   elseif not onConsole then
-    return 'logged_out'
+    return "logged_out"
   else
-    return 'awake'
+    return "awake"
   end
 end
 
 -- Send macOS notification via hs.notify
-function M.sendMacOSNotification(title, subtitle, body)
-  hs.notify.show(title, subtitle or '', body or '')
-end
+function M.sendMacOSNotification(title, subtitle, body) hs.notify.show(title, subtitle or "", body or "") end
 
 -- Send iMessage to phone number
 function M.sendPhoneNotification(phoneNumber, message)
-  if not phoneNumber or phoneNumber == '' then
-    return false
-  end
+  if not phoneNumber or phoneNumber == "" then return false end
   hs.messages.iMessage(phoneNumber, message)
   return true
 end
@@ -344,27 +334,22 @@ end
 --   includeProgram = boolean,  -- whether to prepend program name to title (default: true)
 -- }
 function M.sendCanvasNotification(title, message, duration, options)
-  local config = NOTIFY_CONFIG or {}
   duration = duration or config.defaultDuration or 5
   options = options or {}
 
   -- Optionally prepend program name to title
-  if options.includeProgram ~= false then  -- default to true
+  if options.includeProgram ~= false then -- default to true
     local program = M.getActiveProgram()
-    if program then
-      title = "[" .. program .. "] " .. title
-    end
+    if program then title = "[" .. program .. "] " .. title end
   end
 
   -- Close any existing notification before showing new one
   if _G.activeNotificationCanvas then
-    M.dismissNotification(0)  -- Instant dismiss
+    M.dismissNotification(0) -- Instant dismiss
   end
 
   -- Show dimming overlay if requested
-  if options.dimBackground then
-    M.showOverlay(options.dimAlpha or 0.6)
-  end
+  if options.dimBackground then M.showOverlay(options.dimAlpha or 0.6) end
 
   -- Limit message to 3 lines, truncate with ellipsis if longer
   local lines = {}
@@ -373,14 +358,14 @@ function M.sendCanvasNotification(title, message, duration, options)
   end
   local lineCount = #lines
   if lineCount > 3 then
-    lines = {table.unpack(lines, 1, 3)}
+    lines = { table.unpack(lines, 1, 3) }
     lines[3] = lines[3] .. "..."
     message = table.concat(lines, "\n")
     lineCount = 3
   end
 
-  local screen = hs.screen.primaryScreen()
-  local frame = screen:frame()
+  local screen = hs.screen.mainScreen()
+  local screenFrame = screen:frame()
 
   -- Calculate dynamic height based on content
   local baseHeight = 70
@@ -404,21 +389,28 @@ function M.sendCanvasNotification(title, message, duration, options)
       y = pos.y
     else
       -- Fallback to default if calculatePosition returns nil
-      x = frame.x + padding
-      y = frame.h - height - padding
+      x = screenFrame.x + padding
+      y = screenFrame.h - height - padding
     end
   else
-    -- Default: Calculate bottom-left position with padding
-    x = frame.x + padding
-    y = frame.h - height - padding
+    -- Default: Position at bottom-left of focused window (or screen if no window)
+    local focusedWin = hs.window.focusedWindow()
+    if focusedWin then
+      local winFrame = focusedWin:frame()
+      x = winFrame.x + padding
+      y = winFrame.y + winFrame.h - height - padding
+    else
+      -- Fallback to screen if no focused window
+      x = screenFrame.x + padding
+      y = screenFrame.h - height - padding
+    end
   end
 
   -- Apply intelligent offset calculation (only for bottom-left positioning)
   if not (posMode == "center-window" or posMode == "center-screen") then
-    local config = NOTIFY_CONFIG or {}
     local _, tmuxRunning = hs.execute("pgrep -x tmux")
     local frontmost = hs.application.frontmostApplication()
-    local inTerminal = frontmost and (frontmost:bundleID() == TERMINAL or frontmost:name() == 'Ghostty')
+    local inTerminal = frontmost and (frontmost:bundleID() == TERMINAL or frontmost:name() == "Ghostty")
 
     -- Only apply offset if in terminal (with or without tmux, depending on config)
     if inTerminal then
@@ -444,131 +436,157 @@ function M.sendCanvasNotification(title, message, duration, options)
   local animEnabled = animConfig.enabled ~= false -- default to true
 
   if animEnabled then
-    -- Start from the bottom of the screen for dramatic effect
-    y = frame.h - height
+    -- Start from the bottom of the focused window (or screen if no window)
+    local focusedWin = hs.window.focusedWindow()
+    if focusedWin then
+      local winFrame = focusedWin:frame()
+      y = winFrame.y + winFrame.h - height
+    else
+      y = screenFrame.h - height
+    end
   end
 
   -- Create canvas
-  local canvas = hs.canvas.new({x = x, y = y, h = height, w = width})
+  local canvas = hs.canvas.new({ x = x, y = y, h = height, w = width })
 
   -- Shadow layer
   canvas:appendElements({
-    type = 'rectangle',
-    action = 'fill',
-    fillColor = {red = 0.0, green = 0.0, blue = 0.0, alpha = 0.2},
-    roundedRectRadii = {xRadius = 14, yRadius = 14},
-    frame = {x = '0.5%', y = '1%', h = '99%', w = '99%'},
+    type = "rectangle",
+    action = "fill",
+    fillColor = { red = 0.0, green = 0.0, blue = 0.0, alpha = 0.2 },
+    roundedRectRadii = { xRadius = 14, yRadius = 14 },
+    frame = { x = "0.5%", y = "1%", h = "99%", w = "99%" },
     shadow = {
       blurRadius = 15,
-      color = {red = 0.0, green = 0.0, blue = 0.0, alpha = 0.3},
-      offset = {h = 4, w = 0}
-    }
+      color = { red = 0.0, green = 0.0, blue = 0.0, alpha = 0.3 },
+      offset = { h = 4, w = 0 },
+    },
   })
 
   -- Main background
   canvas:appendElements({
-    type = 'rectangle',
-    action = 'fill',
-    fillColor = {red = 0.98, green = 0.98, blue = 0.98, alpha = 0.92},
-    roundedRectRadii = {xRadius = 12, yRadius = 12},
-    frame = {x = '0%', y = '0%', h = '100%', w = '100%'},
-    id = 'background',
-    trackMouseDown = true
+    type = "rectangle",
+    action = "fill",
+    fillColor = { red = 0.98, green = 0.98, blue = 0.98, alpha = 0.92 },
+    roundedRectRadii = { xRadius = 12, yRadius = 12 },
+    frame = { x = "0%", y = "0%", h = "100%", w = "100%" },
+    id = "background",
+    trackMouseDown = true,
   })
 
   -- Subtle border
   canvas:appendElements({
-    type = 'rectangle',
-    action = 'stroke',
-    strokeColor = {red = 0.85, green = 0.85, blue = 0.85, alpha = 0.6},
+    type = "rectangle",
+    action = "stroke",
+    strokeColor = { red = 0.85, green = 0.85, blue = 0.85, alpha = 0.6 },
     strokeWidth = 1,
-    roundedRectRadii = {xRadius = 12, yRadius = 12},
-    frame = {x = 0, y = 0, h = height, w = width}
+    roundedRectRadii = { xRadius = 12, yRadius = 12 },
+    frame = { x = 0, y = 0, h = height, w = width },
   })
 
   -- Layout constants for consistent spacing
-  local iconSize = 42
-  local leftPadding = 15
-  local iconSpacing = 12
-  local topPadding = 15
-  local rightPadding = 15
+  local iconSize = 48
+  local leftPadding = 8
+  local iconSpacing = 10
+  local topPadding = 8
+  local rightPadding = 8
   local titleHeight = 22
-  local titleToMessageSpacing = 6
+  local titleToMessageSpacing = 3
 
-  local textLeftMargin = leftPadding  -- Default if no icon
-  local iconYOffset = topPadding
+  -- All vertical positioning uses topPadding as the base reference
+  local contentY = topPadding  -- Single reference point for top alignment
+  local textLeftMargin = leftPadding -- Default if no icon
 
+  -- Emoji icon (if provided, takes precedence over app icon)
+  if options.emojiIcon then
+    canvas:appendElements({
+      type = "text",
+      text = options.emojiIcon,
+      textSize = 40,
+      frame = { x = leftPadding + 4, y = contentY + 4, h = iconSize, w = iconSize },
+      textAlignment = "center",
+      id = "emojiIcon",
+    })
+    -- Adjust text position to make room for icon
+    textLeftMargin = leftPadding + iconSize + iconSpacing
   -- App icon (if bundle ID provided)
-  if options.appBundleID then
-    local appIcon = hs.image.imageFromAppBundle(options.appBundleID)
+  elseif options.appBundleID then
+    local appIcon
+
+    -- Handle special icon markers
+    if options.appBundleID == "hal9000" then
+      local iconPath = hs.configdir .. "/assets/hal9000.png"
+      appIcon = hs.image.imageFromPath(iconPath)
+    else
+      appIcon = hs.image.imageFromAppBundle(options.appBundleID)
+    end
+
     if appIcon then
       canvas:appendElements({
-        type = 'image',
+        type = "image",
         image = appIcon,
-        frame = {x = leftPadding, y = iconYOffset, h = iconSize, w = iconSize},
-        imageScaling = 'scaleProportionally',
-        imageAlignment = 'center',
-        id = 'appIcon',
+        frame = { x = leftPadding, y = contentY, h = iconSize, w = iconSize },
+        imageScaling = "scaleProportionally",
+        imageAlignment = "center",
+        id = "appIcon",
         trackMouseDown = true,
-        trackMouseEnterExit = true
+        trackMouseEnterExit = true,
       })
       -- Adjust text position to make room for icon
       textLeftMargin = leftPadding + iconSize + iconSpacing
     end
   end
 
-  -- Title text
+  -- Title text (aligned with icon top)
   canvas:appendElements({
-    type = 'text',
+    type = "text",
     text = title,
-    textColor = {red = 0.1, green = 0.1, blue = 0.1, alpha = 1.0},
+    textColor = { red = 0.1, green = 0.1, blue = 0.1, alpha = 1.0 },
     textSize = 16,
-    textFont = '.AppleSystemUIFontBold',
-    frame = {x = textLeftMargin, y = topPadding, h = titleHeight, w = width - textLeftMargin - rightPadding - 50},
-    textAlignment = 'left',
-    textLineBreak = 'truncateTail',
-    id = 'title',
-    trackMouseDown = true
+    textFont = ".AppleSystemUIFontBold",
+    frame = { x = textLeftMargin, y = contentY, h = titleHeight, w = width - textLeftMargin - rightPadding - 50 },
+    textAlignment = "left",
+    textLineBreak = "truncateTail",
+    id = "title",
+    trackMouseDown = true,
   })
 
-  -- Message text
-  local messageY = topPadding + titleHeight + titleToMessageSpacing
+  -- Message text (positioned directly below title)
+  local messageY = contentY + titleHeight + titleToMessageSpacing
   canvas:appendElements({
-    type = 'text',
+    type = "text",
     text = message,
-    textColor = {red = 0.3, green = 0.3, blue = 0.3, alpha = 1.0},
+    textColor = { red = 0.3, green = 0.3, blue = 0.3, alpha = 1.0 },
     textSize = 14,
-    textFont = '.AppleSystemUIFont',
-    frame = {x = textLeftMargin, y = messageY, h = height - messageY - 30, w = width - textLeftMargin - rightPadding},
-    textAlignment = 'left',
-    textLineBreak = 'wordWrap',
-    id = 'message',
-    trackMouseDown = true
+    textFont = ".AppleSystemUIFont",
+    frame = { x = textLeftMargin, y = messageY, h = height - messageY - 30, w = width - textLeftMargin - rightPadding },
+    textAlignment = "left",
+    textLineBreak = "wordWrap",
+    id = "message",
+    trackMouseDown = true,
   })
 
   -- Timestamp (bottom-right corner, subtle)
-  local timestamp = os.date("%b %d, %I:%M %p")  -- e.g., "Nov 06, 02:30 PM"
+  local timestamp = os.date("%b %d, %I:%M %p") -- e.g., "Nov 06, 02:30 PM"
   local timestampWidth = 120
   canvas:appendElements({
-    type = 'text',
+    type = "text",
     text = timestamp,
-    textColor = {red = 0.6, green = 0.6, blue = 0.6, alpha = 0.7},
+    textColor = { red = 0.6, green = 0.6, blue = 0.6, alpha = 0.7 },
     textSize = 11,
-    textFont = '.AppleSystemUIFont',
-    frame = {x = width - timestampWidth - rightPadding, y = height - 22, h = 20, w = timestampWidth},
-    textAlignment = 'right',
-    id = 'timestamp',
-    trackMouseDown = true
+    textFont = ".AppleSystemUIFont",
+    frame = { x = width - timestampWidth - rightPadding, y = height - 22, h = 20, w = timestampWidth },
+    textAlignment = "right",
+    id = "timestamp",
+    trackMouseDown = true,
   })
 
   -- Handle mouse events - dismiss on any click except app icon
   canvas:mouseCallback(function(obj, message, id, x, y)
-    if message == 'mouseDown' then
-      if id == 'appIcon' then
+    if message == "mouseDown" then
+      if id == "appIcon" then
         -- Click on app icon - activate/focus the app
-        if options.appBundleID then
-          hs.application.launchOrFocusByBundleID(options.appBundleID)
-        end
+        if options.appBundleID then hs.application.launchOrFocusByBundleID(options.appBundleID) end
         return true
       else
         -- Click anywhere else - dismiss notification
@@ -582,7 +600,7 @@ function M.sendCanvasNotification(title, message, duration, options)
   canvas:canvasMouseEvents(true, false, false, false)
 
   -- Show canvas with higher level
-  canvas:level('overlay')
+  canvas:level("overlay")
   canvas:show()
 
   -- Store canvas reference globally
@@ -600,19 +618,15 @@ function M.sendCanvasNotification(title, message, duration, options)
     local startY = y
     local slideDistance = startY - finalY
 
-    _G.activeNotificationAnimTimer = hs.timer.doUntil(
-      function() return currentFrame >= totalFrames end,
-      function()
-        currentFrame = currentFrame + 1
-        -- Ease-out cubic for smooth deceleration
-        local progress = currentFrame / totalFrames
-        local eased = 1 - math.pow(1 - progress, 3)
-        local newY = startY - (slideDistance * eased)
+    _G.activeNotificationAnimTimer = hs.timer.doUntil(function() return currentFrame >= totalFrames end, function()
+      currentFrame = currentFrame + 1
+      -- Ease-out cubic for smooth deceleration
+      local progress = currentFrame / totalFrames
+      local eased = 1 - math.pow(1 - progress, 3)
+      local newY = startY - (slideDistance * eased)
 
-        canvas:topLeft({x = x, y = newY})
-      end,
-      1 / fps
-    )
+      canvas:topLeft({ x = x, y = newY })
+    end, 1 / fps)
   end
 
   -- Auto-hide after duration with fade
@@ -627,11 +641,7 @@ function M.sendCanvasNotification(title, message, duration, options)
       end
 
       -- Hide overlay with slight delay for smooth fadeout
-      if options.dimBackground then
-        hs.timer.doAfter(0.5, function()
-          M.hideOverlay()
-        end)
-      end
+      if options.dimBackground then hs.timer.doAfter(0.5, function() M.hideOverlay() end) end
     end
   end)
 end
@@ -644,15 +654,11 @@ function M.sendSmartAlert(message, duration)
   if #message > 25 then
     -- Extract title (up to first colon or first 25 chars)
     local title = message:match("^([^:]+)")
-    if not title or title == message then
-      title = message:sub(1, 25)
-    end
+    if not title or title == message then title = message:sub(1, 25) end
 
     -- Rest is the body
     local body = message:match("^[^:]+:%s*(.+)")
-    if not body or body == message then
-      body = message:sub(26)
-    end
+    if not body or body == message then body = message:sub(26) end
 
     M.sendCanvasNotification(title, body, duration)
   else

@@ -211,43 +211,44 @@ return {
         n_lines = 500,
         search_method = "cover_or_next",
         custom_textobjects = {
-          ["?"] = false,
-          ["/"] = ai.gen_spec.user_prompt(),
-          ["%"] = function() -- Entire file
-            local from = { line = 1, col = 1 }
-            local to = {
-              line = vim.fn.line("$"),
-              col = math.max(vim.fn.getline("$"):len(), 1),
-            }
-            return { from = from, to = to }
-          end,
-          a = ai.gen_spec.treesitter({ a = "@parameter.outer", i = "@parameter.inner" }),
-          c = ai.gen_spec.treesitter({ a = "@comment.outer", i = "@comment.inner" }),
-          f = ai.gen_spec.treesitter({ a = "@function.outer", i = "@function.inner" }),
-          w = { -- Single words in different cases (camelCase, snake_case, etc.)
-            {
-              "%u[%l%d]+%f[^%l%d]",
-              "%f[^%s%p][%l%d]+%f[^%l%d]",
-              "^[%l%d]+%f[^%l%d]",
-              "%f[^%s%p][%a%d]+%f[^%a%d]",
-              "^[%a%d]+%f[^%a%d]",
-            },
-            "^().*()$",
-          },
-          o = ai.gen_spec.treesitter({
+          -- ["?"] = false,
+          -- 				["/"] = ai.gen_spec.user_prompt(),
+          -- 				["%"] = function() -- Entire file
+          -- 					local from = { line = 1, col = 1 }
+          -- 					local to = {
+          -- 						line = vim.fn.line("$"),
+          -- 						col = math.max(vim.fn.getline("$"):len(), 1),
+          -- 					}
+          -- 					return { from = from, to = to }
+          -- 				end,
+          -- 				a = ai.gen_spec.treesitter({ a = "@parameter.outer", i = "@parameter.inner" }),
+          -- 				c = ai.gen_spec.treesitter({ a = "@comment.outer", i = "@comment.inner" }),
+          -- 				f = ai.gen_spec.treesitter({ a = "@function.outer", i = "@function.inner" }),
+          -- 				s = { -- Single words in different cases (camelCase, snake_case, etc.)
+          -- 					{
+          -- 						"%u[%l%d]+%f[^%l%d]",
+          -- 						"%f[^%s%p][%l%d]+%f[^%l%d]",
+          -- 						"^[%l%d]+%f[^%l%d]",
+          -- 						"%f[^%s%p][%a%d]+%f[^%a%d]",
+          -- 						"^[%a%d]+%f[^%a%d]",
+          -- 					},
+          -- 					"^().*()$",
+          -- 				},
+          o = gen_spec.treesitter({
             a = { "@block.outer", "@conditional.outer", "@loop.outer" },
             i = { "@block.inner", "@conditional.inner", "@loop.inner" },
           }, {}),
-          -- c = ai.gen_spec.treesitter({ a = "@class.outer", i = "@class.inner" }, {}),
+          f = gen_spec.treesitter({ a = "@function.outer", i = "@function.inner" }, {}),
+          c = gen_spec.treesitter({ a = "@class.outer", i = "@class.inner" }, {}),
           -- t = { "<(%w-)%f[^<%w][^<>]->.-</%1>", "^<.->%s*().*()%s*</[^/]->$" }, -- deal with selection without the carriage return
           t = { "<([%p%w]-)%f[^<%p%w][^<>]->.-</%1>", "^<.->().*()</[^/]->$" },
 
           -- scope
-          s = ai.gen_spec.treesitter({
+          s = gen_spec.treesitter({
             a = { "@function.outer", "@class.outer", "@testitem.outer" },
             i = { "@function.inner", "@class.inner", "@testitem.inner" },
           }),
-          S = ai.gen_spec.treesitter({
+          S = gen_spec.treesitter({
             a = { "@function.name", "@class.name", "@testitem.name" },
             i = { "@function.name", "@class.name", "@testitem.name" },
           }),

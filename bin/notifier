@@ -4,11 +4,11 @@
 # Provides intelligent multi-channel notifications based on user attention state
 
 # Temporary directory for tracking pending questions
-NOTIFY_STATE_DIR="${TMPDIR:-/tmp}/ai_notify_state"
+NOTIFY_STATE_DIR="${TMPDIR:-/tmp}/notifier_state"
 mkdir -p "$NOTIFY_STATE_DIR"
 
 # Cache directory for contact information (XDG compliant)
-CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/ai_notify"
+CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/notifier"
 CACHE_FILE="$CACHE_DIR/contact_info.cache"
 mkdir -p "$CACHE_DIR"
 
@@ -122,46 +122,56 @@ get_phone_number() {
   return 0
 }
 
-# Check if user is paying attention to the agents window
+# Get the session context for where this script was called
+# Returns: session identifier (tmux session:window or TTY name)
+get_session_context() {
+  if [ -n "$TMUX" ]; then
+    # In tmux: use session:window format
+    tmux display-message -p '#S:#W'
+  else
+    # Not in tmux: use TTY name
+    tty | sed 's|/dev/||'
+  fi
+}
+
+# Check if user is paying attention to THIS specific session
 # Returns: 0 if user is NOT paying attention (should notify), 1 if paying attention
 should_send_notification() {
-  local check_result=$(hs -c "
-        local notify = require('notify')
-        print(notify.checkAttention())
-    " 2>/dev/null)
+  # Get the terminal bundle ID (prefer env var, has default fallback)
+  local terminal_bundle_id="${TERMINAL_BUNDLE_ID:-com.mitchellh.ghostty}"
 
-  # If Ghostty is not frontmost or display is asleep, send notifications
-  if [[ "$check_result" == "not_ghostty" ]] || [[ "$check_result" == "display_asleep" ]]; then
-    return 0 # Should send notification
+  # Get our calling context
+  local calling_context=$(get_session_context)
+
+  # Check if terminal is even focused
+  local frontmost=$(hs -c 'local app = hs.application.frontmostApplication(); if app then print(app:bundleID()) end' 2>/dev/null)
+  if [ "$frontmost" != "$terminal_bundle_id" ]; then
+    return 0  # Send (terminal not focused)
   fi
 
-  # If we're inside tmux, check if THIS pane is the active one
-  if [ -n "$TMUX" ]; then
-    # Get current pane ID
-    local current_pane=$(tmux display-message -p '#{pane_id}')
-    # Get active pane ID in the current window
-    local active_pane=$(tmux display-message -p '#{pane_active}')
-
-    # If this pane is not active, send notification
-    if [[ "$active_pane" != "1" ]]; then
-      return 0 # Should send notification
-    fi
-
-    # Also check if the window is active
-    local window_active=$(tmux display-message -p '#{window_active}')
-    if [[ "$window_active" != "1" ]]; then
-      return 0 # Should send notification
-    fi
+  # Check display idle state
+  local displayIdle=$(hs -c 'print(hs.caffeinate.get("displayIdle"))' 2>/dev/null)
+  if [ "$displayIdle" = "true" ]; then
+    return 0  # Send (display asleep)
   fi
 
-  # User is paying attention (Ghostty frontmost AND this tmux pane/window is active)
-  return 1 # Should NOT send notification
+  # Get active window title via Hammerspoon
+  # Try global TERMINAL first, then fall back to local env var
+  local active_title=$(hs -c "local n = require('notifier'); local bundleId = TERMINAL or '${terminal_bundle_id}'; print(n.getFocusedWindowTitle(bundleId) or '')" 2>/dev/null)
+
+  # If our context appears in active window title, user is paying attention to THIS session
+  if echo "$active_title" | grep -qF "$calling_context"; then
+    return 1  # Don't send (user paying attention to this session)
+  fi
+
+  # Context doesn't match - user is in a different session
+  return 0  # Send (user not paying attention to this session)
 }
 
 # Check if display is asleep
 is_display_asleep() {
   local display_check=$(hs -c "
-        local notify = require('notify')
+        local notify = require('notifier')
         print(notify.checkDisplayState())
     " 2>/dev/null)
 
@@ -180,7 +190,7 @@ send_macos_notification() {
   local escaped_body="${body//\'/\\\'}"
 
   hs -c "
-    local notify = require('notify')
+    local notify = require('notifier')
     notify.sendMacOSNotification('$escaped_title', '$escaped_subtitle', '$escaped_body')
   " 2>/dev/null
 }
@@ -194,19 +204,51 @@ send_macos_notification_osascript() {
   osascript -e "display notification \"$body\" with title \"$title\" subtitle \"$subtitle\"" 2>/dev/null
 }
 
-# Send custom Canvas notification at bottom-left with macOS Sequoia styling
+# Send notification via notifier module with AI agent configuration
 send_canvas_notification() {
   local title="$1"
   local message="$2"
-  local duration="${3:-5}"
+  local duration="${3:-10}"
 
   # Escape single quotes for Lua
   local escaped_title="${title//\'/\\\'}"
   local escaped_message="${message//\'/\\\'}"
 
+  # Send directly via notifier module with HAL 9000 icon and AI agent settings
   hs -c "
-    local notify = require('notify')
-    notify.sendCanvasNotification('$escaped_title', '$escaped_message', $duration)
+    local notify = require('notifier')
+
+    local title = [[${title}]]
+    local msg = [[${message}]]
+    local duration = ${duration}
+
+    -- Check for critical patterns in message
+    local isCritical = false
+    local criticalPatterns = {'error', 'failed', 'critical', 'urgent', 'question', '?', '!!!'}
+    for _, pattern in ipairs(criticalPatterns) do
+      if msg:lower():find(pattern:lower(), 1, true) then
+        isCritical = true
+        break
+      end
+    end
+
+    local priority = isCritical and 'high' or 'normal'
+    local config = {
+      appBundleID = 'hal9000',
+      includeProgram = false,
+      priority = priority,
+    }
+
+    if priority == 'high' then
+      config.positionMode = 'center-window'
+      config.dimBackground = true
+      config.dimAlpha = 0.6
+    else
+      config.positionMode = 'auto'
+      config.dimBackground = false
+    end
+
+    notify.sendCanvasNotification(title, msg, duration, config)
   " 2>/dev/null
 }
 
@@ -220,7 +262,7 @@ send_hammerspoon_alert() {
   local escaped_message="${message//\'/\\\'}"
 
   hs -c "
-    local notify = require('notify')
+    local notify = require('notifier')
     notify.sendSmartAlert('$escaped_message', $duration)
   " 2>/dev/null
 }
@@ -239,7 +281,7 @@ send_phone_notification() {
   local escaped_message="${message//\'/\\\'}"
 
   hs -c "
-    local notify = require('notify')
+    local notify = require('notifier')
     notify.sendPhoneNotification('$phone_number', '$escaped_message')
   " 2>/dev/null
 }
@@ -291,8 +333,8 @@ notify_user() {
     # 1. macOS Notification Center
     send_macos_notification "$title" "" "$message"
 
-    # 2. Hammerspoon Alert (on-screen overlay)
-    send_hammerspoon_alert "🤖 $title: $message" "$duration"
+    # 2. Canvas notification with HAL 9000 icon (on-screen overlay)
+    send_canvas_notification "$title" "$message" "$duration"
 
     # 3. Phone notification (for important events or if requested)
     if [ "$send_to_phone" = "true" ] || [ "$urgency" = "critical" ]; then
@@ -468,7 +510,7 @@ parse_notify_args() {
 
 # Command-line interface for direct execution (works from any shell)
 # When sourced in bash/zsh, functions are directly available
-# When called from fish or as executable, use: ai_notify notify [options]
+# When called from fish or as executable, use: notifier notify [options]
 if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
   case "${1:-}" in
     notify)
@@ -490,7 +532,7 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
       notify_user "Test Notification" "This is a test" false normal
       ;;
     help|--help|-h|"")
-      echo "Usage: ai_notify <command> [options...]"
+      echo "Usage: notifier <command> [options...]"
       echo ""
       echo "Commands:"
       echo "  notify [options]"
@@ -507,38 +549,38 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
       echo "  --title=\"My Title\" --message=\"My Message\" --urgency=high"
       echo ""
       echo "JSON Input:"
-      echo "  ai_notify notify '{\"title\":\"...\",\"message\":\"...\",\"urgency\":\"high\"}'"
+      echo "  notifier notify '{\"title\":\"...\",\"message\":\"...\",\"urgency\":\"high\"}'"
       echo ""
       echo "Positional Arguments (backward compatible):"
-      echo "  ai_notify notify <title> <message> [send_to_phone] [urgency] [is_question]"
+      echo "  notifier notify <title> <message> [send_to_phone] [urgency] [is_question]"
       echo ""
       echo "Examples:"
       echo "  # Short options"
-      echo "  ai_notify notify -t \"Task Done\" -m \"Tests passed\" -u high"
+      echo "  notifier notify -t \"Task Done\" -m \"Tests passed\" -u high"
       echo ""
       echo "  # Long options"
-      echo "  ai_notify notify --title \"Task Done\" --message \"Tests passed\" --urgency high"
+      echo "  notifier notify --title \"Task Done\" --message \"Tests passed\" --urgency high"
       echo ""
       echo "  # Long options with = syntax"
-      echo "  ai_notify notify --title=\"Task Done\" --message=\"Tests passed\" --urgency=high"
+      echo "  notifier notify --title=\"Task Done\" --message=\"Tests passed\" --urgency=high"
       echo ""
       echo "  # Positional arguments (backward compatible)"
-      echo "  ai_notify notify \"Task Done\" \"Tests passed\" false normal"
+      echo "  notifier notify \"Task Done\" \"Tests passed\" false normal"
       echo ""
       echo "  # JSON input"
-      echo "  ai_notify notify '{\"title\":\"Build Failed\",\"message\":\"Check logs\",\"urgency\":\"critical\"}'"
+      echo "  notifier notify '{\"title\":\"Build Failed\",\"message\":\"Check logs\",\"urgency\":\"critical\"}'"
       echo ""
       echo "Other Commands:"
       echo "  test    Run notification system test"
       echo ""
       echo "Usage from different shells:"
-      echo "  bash/zsh: source ~/.dotfiles-nix/bin/ai_notify && notify_user \"title\" \"message\""
-      echo "  fish:     ~/.dotfiles-nix/bin/ai_notify notify -t \"title\" -m \"message\""
-      echo "  any:      ai_notify notify -t \"title\" -m \"message\" (if in PATH)"
+      echo "  bash/zsh: source ~/.dotfiles-nix/bin/notifier && notify_user \"title\" \"message\""
+      echo "  fish:     ~/.dotfiles-nix/bin/notifier notify -t \"title\" -m \"message\""
+      echo "  any:      notifier notify -t \"title\" -m \"message\" (if in PATH)"
       ;;
     *)
       echo "Unknown command: $1"
-      echo "Run 'ai_notify help' for usage"
+      echo "Run 'notifier help' for usage"
       exit 1
       ;;
   esac

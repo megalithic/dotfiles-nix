@@ -117,7 +117,7 @@ end
 function obj:splitTab(to_next_screen)
   -- Move current window to the left half
   if not to_next_screen then
-    wm.place(POSITIONS.halves.left)
+    wm.place(C.grid.halves.left)
   end
 
   hs.timer.doAfter(0.25, function()
@@ -132,11 +132,11 @@ function obj:splitTab(to_next_screen)
 
       -- Move the split tab to the right of the screen
       if to_next_screen then
-        app:selectMenuItem({ "Window", fmt("Move to %s", DISPLAYS.internal) })
-        wm.place(POSITIONS.full)
+        app:selectMenuItem({ "Window", fmt("Move to %s", C.displays.internal) })
+        wm.place(C.grid.full)
         note(fmt("[RUN] %s.splitTab/%s (next screen, full)", obj.name, app:bundleID()))
       else
-        wm.place(POSITIONS.halves.right)
+        wm.place(C.grid.halves.right)
         note(fmt("[RUN] %s.splitTab/%s (same screen, half)", obj.name, app:bundleID()))
       end
     else

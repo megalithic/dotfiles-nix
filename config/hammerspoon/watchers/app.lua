@@ -28,7 +28,7 @@ end
 
 -- interface: (app, initializing)
 function M.watchApp(app, _)
-  if app == nil then return end
+  if app == nil or app:bundleID() == nil then return end
   if M.watchers.app[app:bundleID()] then return end
 
   local watcher = app:newWatcher(M.handleWatchedEvent, app)

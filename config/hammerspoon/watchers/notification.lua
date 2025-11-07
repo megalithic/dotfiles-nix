@@ -23,15 +23,10 @@ local function handleNotification(element)
   -- Skip if notification drawer is open (user is already looking at notifications)
   local notificationCenterBundleID = "com.apple.notificationcenterui"
   local notificationCenter = hs.axuielement.applicationElement(notificationCenterBundleID)
-  if notificationCenter and notificationCenter:asHSApplication():focusedWindow() then
-    return
-  end
+  if notificationCenter and notificationCenter:asHSApplication():focusedWindow() then return end
 
   -- Process each notification only once
-  if not notificationSubroles[element.AXSubrole] or
-     M.processedNotificationIDs[element.AXIdentifier] then
-    return
-  end
+  if not notificationSubroles[element.AXSubrole] or M.processedNotificationIDs[element.AXIdentifier] then return end
 
   M.processedNotificationIDs[element.AXIdentifier] = true
 
@@ -43,12 +38,8 @@ local function handleNotification(element)
 
   -- Extract notification text elements
   local staticTexts = hs.fnutils.imap(
-    hs.fnutils.ifilter(element, function(value)
-      return value.AXRole == "AXStaticText"
-    end),
-    function(value)
-      return value.AXValue
-    end
+    hs.fnutils.ifilter(element, function(value) return value.AXRole == "AXStaticText" end),
+    function(value) return value.AXValue end
   )
 
   local title, subtitle, message = nil, nil, nil
@@ -59,39 +50,32 @@ local function handleNotification(element)
   end
 
   -- Process routing rules
-  local rules = NOTIFY_RULES or {}
-  local ruleMatched = false
+  local rules = C.notifier.rules or {}
 
   for _, rule in ipairs(rules) do
     -- Quick app match (plain string search, not pattern)
     if stackingID:find(rule.app, 1, true) then
-
       -- Check sender if specified
       if rule.senders then
         local senderMatch = false
         for _, sender in ipairs(rule.senders) do
-          if title == sender then  -- Exact match, case-sensitive
+          if title == sender then -- Exact match, case-sensitive
             senderMatch = true
             break
           end
         end
         if not senderMatch then
-          goto continue  -- Skip to next rule
+          goto continue -- Skip to next rule
         end
       end
 
-      -- Rule matched!
-      ruleMatched = true
-      U.log.d(fmt("→ %s: %s", rule.name, title or bundleID))
+      -- Rule matched! Log and execute action
+      U.log.df("→ %s: %s", rule.name, title or bundleID)
 
       -- Execute rule action with bundle ID
-      local ok, err = pcall(function()
-        rule.action(title, subtitle, message, stackingID, bundleID)
-      end)
+      local ok, err = pcall(function() rule.action(title, subtitle, message, stackingID, bundleID) end)
 
-      if not ok then
-        U.log.e(fmt("Error executing rule '%s': %s", rule.name, tostring(err)))
-      end
+      if not ok then U.log.ef("Error executing rule '%s': %s", rule.name, tostring(err)) end
 
       -- First match wins - stop processing rules
       return
@@ -107,15 +91,14 @@ function M:start()
   local notificationCenter = hs.axuielement.applicationElement(notificationCenterBundleID)
 
   if not notificationCenter then
-    U.log.e("Notification watcher: Unable to find Notification Center AX element")
+    U.log.e("Unable to find Notification Center AX element")
     return
   end
 
   -- Create observer for layout changes
-  M.observer = hs.axuielement.observer.new(notificationCenter:pid())
-    :callback(function(_, element)
-      handleNotification(element)
-    end)
+  M.observer = hs.axuielement.observer
+    .new(notificationCenter:pid())
+    :callback(function(_, element) handleNotification(element) end)
     :addWatcher(notificationCenter, "AXLayoutChanged")
     :start()
 
@@ -126,12 +109,10 @@ function M:start()
       count = count + 1
     end
 
-    if count > MAX_PROCESSED_IDS then
-      M.processedNotificationIDs = {}
-    end
+    if count > MAX_PROCESSED_IDS then M.processedNotificationIDs = {} end
   end)
 
-  U.log.i("Notification watcher started")
+  U.log.i("started")
 end
 
 function M:stop()
@@ -146,7 +127,7 @@ function M:stop()
   end
 
   M.processedNotificationIDs = {}
-  U.log.i("Notification watcher stopped")
+  U.log.i("stopped")
 end
 
 return M

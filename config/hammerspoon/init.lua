@@ -38,6 +38,10 @@ _G.I = hs.inspect -- `i()` to easier inspect in the console
 _G.NotifyDB = req("notification_db")
 NotifyDB.init()
 
+-- Initialize blocked notification menubar indicator
+_G.NotifyMenubar = req("notification_menubar")
+NotifyMenubar.init()
+
 function _G.P(...)
   -- local function getFnLocation()
   --   local w = debug.getinfo(3, "S")

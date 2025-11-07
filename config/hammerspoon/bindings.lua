@@ -14,7 +14,7 @@ local utils = require("utils")
 
 function M.loadApps()
   local hyper = req("hyper", { id = "apps" }):start()
-  enum.each(LAUNCHERS, function(bindingTable)
+  enum.each(C.launchers, function(bindingTable)
     local bundleID, globalBind, localBinds, focusOnly = table.unpack(bindingTable)
     if globalBind ~= nil then
       local key = globalBind
@@ -164,7 +164,7 @@ function M.loadUtils()
 end
 
 function M.loadWm()
-  -- [ MODAL LAUNCHERS ] ---------------------------------------------------------
+  -- [ MODAL C.launchers ] ---------------------------------------------------------
 
   -- # wm/window management ---------------------------------------------------------
 
@@ -184,32 +184,32 @@ function M.loadWm()
       function() wmModality:exit(0.1) end
     )
     :bind({}, "escape", function() wmModality:exit() end)
-    -- :bind({}, "space", function() wm.place(POSITIONS.preview) end, function() wmModality:exit(0.1) end)
+    -- :bind({}, "space", function() wm.place(C.grid.preview) end, function() wmModality:exit(0.1) end)
     :bind(
       {},
       "space",
       chain({
-        POSITIONS.full,
-        POSITIONS.center.large,
-        POSITIONS.center.medium,
-        POSITIONS.center.small,
-        POSITIONS.center.tiny,
-        POSITIONS.center.mini,
-        POSITIONS.preview,
+        C.grid.full,
+        C.grid.center.large,
+        C.grid.center.medium,
+        C.grid.center.small,
+        C.grid.center.tiny,
+        C.grid.center.mini,
+        C.grid.preview,
       }, wmModality, 1.0)
     )
-    :bind({}, "return", function() wm.place(POSITIONS.full) end, function() wmModality:exit(0.1) end)
+    :bind({}, "return", function() wm.place(C.grid.full) end, function() wmModality:exit(0.1) end)
     :bind({ "shift" }, "return", function()
       wm.toNextScreen()
-      wm.place(POSITIONS.full)
+      wm.place(C.grid.full)
     end, function() wmModality:exit() end)
     :bind(
       {},
       "h",
       chain(
         enum.map({ "halves", "thirds", "twoThirds", "fiveSixths", "sixths" }, function(size)
-          if type(POSITIONS[size]) == "string" then return POSITIONS[size] end
-          return POSITIONS[size]["left"]
+          if type(C.grid[size]) == "string" then return C.grid[size] end
+          return C.grid[size]["left"]
         end),
         wmModality,
         1.0
@@ -220,8 +220,8 @@ function M.loadWm()
       "l",
       chain(
         enum.map({ "halves", "thirds", "twoThirds", "fiveSixths", "sixths" }, function(size)
-          if type(POSITIONS[size]) == "string" then return POSITIONS[size] end
-          return POSITIONS[size]["right"]
+          if type(C.grid[size]) == "string" then return C.grid[size] end
+          return C.grid[size]["right"]
         end),
         wmModality,
         1.0
@@ -231,8 +231,8 @@ function M.loadWm()
       wm.toPrevScreen()
       chain(
         enum.map({ "halves", "thirds", "twoThirds", "fiveSixths", "sixths" }, function(size)
-          if type(POSITIONS[size]) == "string" then return POSITIONS[size] end
-          return POSITIONS[size]["left"]
+          if type(C.grid[size]) == "string" then return C.grid[size] end
+          return C.grid[size]["left"]
         end),
         wmModality,
         1.0
@@ -242,8 +242,8 @@ function M.loadWm()
       wm.toNextScreen()
       chain(
         enum.map({ "halves", "thirds", "twoThirds", "fiveSixths", "sixths" }, function(size)
-          if type(POSITIONS[size]) == "string" then return POSITIONS[size] end
-          return POSITIONS[size]["right"]
+          if type(C.grid[size]) == "string" then return C.grid[size] end
+          return C.grid[size]["right"]
         end),
         wmModality,
         1.0
@@ -253,26 +253,26 @@ function M.loadWm()
     :bind(
       {},
       "j",
-      function() wm.place(POSITIONS.center.large) end,
+      function() wm.place(C.grid.center.large) end,
       -- chain({
-      --   POSITIONS.center.mini,
-      --   POSITIONS.center.tiny,
-      --   POSITIONS.center.small,
-      --   POSITIONS.center.medium,
-      --   POSITIONS.center.large,
+      --   C.grid.center.mini,
+      --   C.grid.center.tiny,
+      --   C.grid.center.small,
+      --   C.grid.center.medium,
+      --   C.grid.center.large,
       -- }, wmModality, 1.0)
       function() wmModality:exit() end
     )
     :bind(
       {},
       "k",
-      function() wm.place(POSITIONS.center.medium) end,
+      function() wm.place(C.grid.center.medium) end,
       -- chain({
-      --   POSITIONS.center.large,
-      --   POSITIONS.center.medium,
-      --   POSITIONS.center.small,
-      --   POSITIONS.center.tiny,
-      --   POSITIONS.center.mini,
+      --   C.grid.center.large,
+      --   C.grid.center.medium,
+      --   C.grid.center.small,
+      --   C.grid.center.tiny,
+      --   C.grid.center.mini,
       -- }, wmModality, 1.0)
       function() wmModality:exit() end
     )
@@ -356,43 +356,43 @@ function M.loadWm()
 req("hyper", { id = "wm" })
   :bind({ "ctrl", "shift" }, "r", req("wm").placeAllApps)
   -- :bind({}, "escape", function() wmModality:exit() end)
-  -- :bind({}, "space", function() wm.place(POSITIONS.preview) end, function() wmModality:exit(0.1) end)
+  -- :bind({}, "space", function() wm.place(C.grid.preview) end, function() wmModality:exit(0.1) end)
   :bind(
     { "ctrl" },
     "space",
     chain(
       {
-        POSITIONS.full,
-        POSITIONS.center.large,
-        POSITIONS.center.medium,
-        POSITIONS.center.small,
-        POSITIONS.center.tiny,
-        POSITIONS.center.mini,
-        POSITIONS.preview,
+        C.grid.full,
+        C.grid.center.large,
+        C.grid.center.medium,
+        C.grid.center.small,
+        C.grid.center.tiny,
+        C.grid.center.mini,
+        C.grid.preview,
       }
       -- wmModality, 1.0
     )
-    -- function() wm.place(POSITIONS.preview) end
+    -- function() wm.place(C.grid.preview) end
   )
-  -- :bind({}, "return", function() wm.place(POSITIONS.full) end, function() wmModality:exit(0.1) end)
+  -- :bind({}, "return", function() wm.place(C.grid.full) end, function() wmModality:exit(0.1) end)
   :bind(
     { "ctrl" },
     "return",
-    function() wm.place(POSITIONS.full) end
+    function() wm.place(C.grid.full) end
   )
   :bind({ "ctrl", "shift" }, "return", function()
     wm.toNextScreen()
-    wm.place(POSITIONS.full)
+    wm.place(C.grid.full)
     -- end, function() wmModality:exit() end)
   end)
   :bind(
     { "ctrl" },
     "l",
-    -- function() wm.place(POSITIONS.halves.right) end,
+    -- function() wm.place(C.grid.halves.right) end,
     chain(
       enum.map({ "halves", "thirds", "twoThirds", "fiveSixths", "sixths" }, function(size)
-        if type(POSITIONS[size]) == "string" then return POSITIONS[size] end
-        return POSITIONS[size]["right"]
+        if type(C.grid[size]) == "string" then return C.grid[size] end
+        return C.grid[size]["right"]
       end)
       -- wmModality,
       -- 1.0
@@ -401,11 +401,11 @@ req("hyper", { id = "wm" })
   )
   :bind({ "ctrl", "shift" }, "l", function()
     wm.toNextScreen()
-    -- wm.place(POSITIONS.halves.right)
+    -- wm.place(C.grid.halves.right)
     chain(
       enum.map({ "halves", "thirds", "twoThirds", "fiveSixths", "sixths" }, function(size)
-        if type(POSITIONS[size]) == "string" then return POSITIONS[size] end
-        return POSITIONS[size]["right"]
+        if type(C.grid[size]) == "string" then return C.grid[size] end
+        return C.grid[size]["right"]
       end)
       -- wmModality,
       -- 1.0
@@ -415,11 +415,11 @@ req("hyper", { id = "wm" })
   :bind(
     { "ctrl" },
     "h",
-    -- function() wm.place(POSITIONS.halves.left) end,
+    -- function() wm.place(C.grid.halves.left) end,
     chain(
       enum.map({ "halves", "thirds", "twoThirds", "fiveSixths", "sixths" }, function(size)
-        if type(POSITIONS[size]) == "string" then return POSITIONS[size] end
-        return POSITIONS[size]["left"]
+        if type(C.grid[size]) == "string" then return C.grid[size] end
+        return C.grid[size]["left"]
       end)
       -- wmModality,
       -- 1.0
@@ -428,11 +428,11 @@ req("hyper", { id = "wm" })
   )
   :bind({ "shift" }, "h", function()
     wm.toPrevScreen()
-    -- wm.place(POSITIONS.halves.left)
+    -- wm.place(C.grid.halves.left)
     chain(
       enum.map({ "halves", "thirds", "twoThirds", "fiveSixths", "sixths" }, function(size)
-        if type(POSITIONS[size]) == "string" then return POSITIONS[size] end
-        return POSITIONS[size]["left"]
+        if type(C.grid[size]) == "string" then return C.grid[size] end
+        return C.grid[size]["left"]
       end)
       -- wmModality,
       -- 1.0
@@ -443,14 +443,14 @@ req("hyper", { id = "wm" })
   -- :bind(
   --   {},
   --   "j",
-  --   -- function() wm.place(POSITIONS.center.large) end,
+  --   -- function() wm.place(C.grid.center.large) end,
   --   chain(
   --     {
-  --       POSITIONS.center.mini,
-  --       POSITIONS.center.tiny,
-  --       POSITIONS.center.small,
-  --       POSITIONS.center.medium,
-  --       POSITIONS.center.large,
+  --       C.grid.center.mini,
+  --       C.grid.center.tiny,
+  --       C.grid.center.small,
+  --       C.grid.center.medium,
+  --       C.grid.center.large,
   --     }
   --     -- wmModality, 1.0
   --   )
@@ -459,13 +459,13 @@ req("hyper", { id = "wm" })
   -- :bind(
   --   {},
   --   "k",
-  --   function() wm.place(POSITIONS.center.large) end
+  --   function() wm.place(C.grid.center.large) end
   --   -- chain({
-  --   --   POSITIONS.center.large,
-  --   --   POSITIONS.center.medium,
-  --   --   POSITIONS.center.small,
-  --   --   POSITIONS.center.tiny,
-  --   --   POSITIONS.center.mini,
+  --   --   C.grid.center.large,
+  --   --   C.grid.center.medium,
+  --   --   C.grid.center.small,
+  --   --   C.grid.center.tiny,
+  --   --   C.grid.center.mini,
   --   -- }, wmModality, 1.0)
   --   -- function() wmModality:exit() end
   -- )

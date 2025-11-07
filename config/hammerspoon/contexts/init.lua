@@ -28,7 +28,15 @@ function M:run(opts)
   local contextId = opts["bundleID"] and bundleID or app:bundleID()
 
   if not context then
-    U.log.w(fmt("[WARN] %s: No context found for %s", self.name, app:bundleID()))
+    U.log.wf("[WARN] %s: No context found for %s", self.name, app:bundleID())
+    return self
+  end
+  if not context["start"] then
+    U.log.wf("[WARN] %s: No context start fn found for %s", self.name, app:bundleID())
+    return self
+  end
+  if not context["stop"] then
+    U.log.wf("[WARN] %s: No context stop fn found for %s", self.name, app:bundleID())
     return self
   end
 

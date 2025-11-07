@@ -1,3 +1,5 @@
 - When working in this repo (dotfiles-nix), always check the `justfile` to see available commands
 - To rebuild darwin in this repo, use `just mac` (which handles the darwin-rebuild process)
 - Alternative: You can also use `nh`, so for a darwin-rebuild it'd be `nh darwin switch .`, and for home-manager, it'd be `nh home switch .`
+- you don't need to call   Bash(hs -c "hs.reload()" 2>&1; sleep 2 && echo "✓ Reloaded - debug logging removed") to reload hammerspoon, rather, you don't have to sleep and echo anything; just call the reload, and then check that hammerspoon left a notification center entry in the notifications db for something like "hammerspork"
+- check config.lua for locations of certain things, like the database

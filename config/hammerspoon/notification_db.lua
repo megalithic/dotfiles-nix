@@ -11,9 +11,7 @@ M.dbPath = M.dbPath .. "/hammerspoon/notifications.db"
 -- Ensure directory exists
 function M.ensureDirectory()
   local dir = M.dbPath:match("(.*/)")
-  if dir then
-    os.execute(fmt("mkdir -p '%s'", dir))
-  end
+  if dir then os.execute(fmt("mkdir -p '%s'", dir)) end
 end
 
 -- Initialize database and create schema
@@ -23,7 +21,7 @@ function M.init()
   M.db = hs.sqlite3.open(M.dbPath)
 
   if not M.db then
-    U.log.e(fmt("Failed to open notification database at: %s", M.dbPath))
+    U.log.ef("Failed to open notification database at: %s", M.dbPath)
     return false
   end
 
@@ -83,7 +81,7 @@ function M.init()
     END
   ]])
 
-  U.log.i(fmt("Notification database initialized: %s", M.dbPath))
+  U.log.f("initialized: %s", M.dbPath)
   return true
 end
 
@@ -110,12 +108,22 @@ function M.log(data)
   local focus_mode = data.focus_mode and escapeSql(data.focus_mode) or "NULL"
   local shown = data.shown and 1 or 0
 
-  local query = fmt([[
+  local query = fmt(
+    [[
     INSERT INTO notifications
     (timestamp, rule_name, app_id, sender, subtitle, message, action_taken, focus_mode, shown)
     VALUES (%d, '%s', '%s', '%s', '%s', '%s', '%s', %s, %d)
-  ]], timestamp, rule_name, app_id, sender, subtitle, message, action_taken,
-     focus_mode == "NULL" and "NULL" or "'" .. focus_mode .. "'", shown)
+  ]],
+    timestamp,
+    rule_name,
+    app_id,
+    sender,
+    subtitle,
+    message,
+    action_taken,
+    focus_mode == "NULL" and "NULL" or "'" .. focus_mode .. "'",
+    shown
+  )
 
   local result = M.db:execute(query)
 
@@ -132,14 +140,17 @@ function M.getRecent(hours)
   hours = hours or 24
   local cutoff = os.time() - (hours * 3600)
 
-  local query = fmt([[
+  local query = fmt(
+    [[
     SELECT
       datetime(timestamp, 'unixepoch', 'localtime') as time,
       rule_name, sender, message, action_taken, focus_mode, shown
     FROM notifications
     WHERE timestamp > %d
     ORDER BY timestamp DESC
-  ]], cutoff)
+  ]],
+    cutoff
+  )
 
   local results = {}
   for row in M.db:nrows(query) do
@@ -154,7 +165,8 @@ function M.getMissed(hours)
   hours = hours or 24
   local cutoff = os.time() - (hours * 3600)
 
-  local query = fmt([[
+  local query = fmt(
+    [[
     SELECT
       datetime(timestamp, 'unixepoch', 'localtime') as time,
       rule_name, sender, message, focus_mode
@@ -163,7 +175,9 @@ function M.getMissed(hours)
       AND action_taken = 'blocked_by_focus'
       AND shown = 0
     ORDER BY timestamp DESC
-  ]], cutoff)
+  ]],
+    cutoff
+  )
 
   local results = {}
   for row in M.db:nrows(query) do
@@ -178,7 +192,8 @@ function M.getBySender(sender, limit)
   limit = limit or 50
   sender = escapeSql(sender)
 
-  local query = fmt([[
+  local query = fmt(
+    [[
     SELECT
       datetime(timestamp, 'unixepoch', 'localtime') as time,
       rule_name, message, action_taken, focus_mode, shown
@@ -186,7 +201,10 @@ function M.getBySender(sender, limit)
     WHERE sender = '%s'
     ORDER BY timestamp DESC
     LIMIT %d
-  ]], sender, limit)
+  ]],
+    sender,
+    limit
+  )
 
   local results = {}
   for row in M.db:nrows(query) do
@@ -201,7 +219,8 @@ function M.search(searchTerm, limit)
   limit = limit or 50
   searchTerm = escapeSql(searchTerm)
 
-  local query = fmt([[
+  local query = fmt(
+    [[
     SELECT
       datetime(n.timestamp, 'unixepoch', 'localtime') as time,
       n.rule_name, n.sender, n.message, n.action_taken, n.shown
@@ -210,7 +229,10 @@ function M.search(searchTerm, limit)
     WHERE ft_notifications MATCH '%s'
     ORDER BY n.timestamp DESC
     LIMIT %d
-  ]], searchTerm, limit)
+  ]],
+    searchTerm,
+    limit
+  )
 
   local results = {}
   for row in M.db:nrows(query) do
@@ -225,7 +247,8 @@ function M.getStats(hours)
   hours = hours or 24
   local cutoff = os.time() - (hours * 3600)
 
-  local query = fmt([[
+  local query = fmt(
+    [[
     SELECT
       COUNT(*) as total,
       SUM(CASE WHEN shown = 1 THEN 1 ELSE 0 END) as shown,
@@ -233,7 +256,9 @@ function M.getStats(hours)
       COUNT(DISTINCT sender) as unique_senders
     FROM notifications
     WHERE timestamp > %d
-  ]], cutoff)
+  ]],
+    cutoff
+  )
 
   for row in M.db:nrows(query) do
     return row
@@ -247,17 +272,69 @@ function M.cleanup(days)
   days = days or 30
   local cutoff = os.time() - (days * 86400)
 
-  local query = fmt([[
+  local query = fmt(
+    [[
     DELETE FROM notifications WHERE timestamp < %d
-  ]], cutoff)
+  ]],
+    cutoff
+  )
 
   local result = M.db:execute(query)
 
-  if result then
-    U.log.i(fmt("Cleaned up notifications older than %d days", days))
-  end
+  if result then U.log.f("Cleaned up notifications older than %d days", days) end
 
   return result
+end
+
+-- Query: Get undismissed blocked high/critical notifications
+function M.getBlockedHighPriority()
+  local query = [[
+    SELECT
+      id, timestamp,
+      datetime(timestamp, 'unixepoch', 'localtime') as time,
+      rule_name, app_id, sender, message
+    FROM notifications
+    WHERE dismissed_at IS NULL
+      AND shown = 0
+      AND (action_taken LIKE 'blocked%')
+    ORDER BY timestamp DESC
+    LIMIT 50
+  ]]
+
+  local results = {}
+  for row in M.db:nrows(query) do
+    table.insert(results, row)
+  end
+
+  return results
+end
+
+-- Mark notification(s) as dismissed
+function M.dismiss(notificationId)
+  if not M.db then return false end
+
+  local dismissTime = os.time()
+  local query
+
+  if notificationId == "all" then
+    -- Dismiss all undismissed blocked notifications
+    query = fmt([[
+      UPDATE notifications
+      SET dismissed_at = %d
+      WHERE dismissed_at IS NULL
+        AND shown = 0
+        AND (action_taken LIKE 'blocked%%')
+    ]], dismissTime)
+  else
+    -- Dismiss specific notification
+    query = fmt([[
+      UPDATE notifications
+      SET dismissed_at = %d
+      WHERE id = %d
+    ]], dismissTime, notificationId)
+  end
+
+  return M.db:execute(query)
 end
 
 -- Print query results in a readable format

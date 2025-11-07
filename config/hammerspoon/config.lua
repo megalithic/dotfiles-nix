@@ -171,270 +171,284 @@ HYPER = "F19"
 BROWSER = "com.brave.Browser.nightly"
 TERMINAL = "com.mitchellh.ghostty"
 
--- Notification positioning configuration
-NOTIFY_CONFIG = {
-  -- Vertical offsets (in pixels) from bottom of screen for different programs
-  -- These values account for typical prompt heights in each program
-  -- NOTE: Programs with expanding UI (thinking indicators, token counters) need extra padding
-  offsets = {
-    nvim = 100,        -- Neovim: minimal offset (statusline at bottom, no prompt)
-    vim = 100,         -- Vim: same as neovim
-    ["nvim-diff"] = 100,
-    fish = 350,        -- Fish: multiline prompt with git info
-    bash = 300,        -- Bash: standard prompt
-    zsh = 300,         -- Zsh: standard prompt
-    claude = 155,      -- Claude Code: optimized via screenshot testing with expanding UI (prompt + thinking + tokens)
-    ["claude-code"] = 155,  -- Claude Code: AI coding assistant with expanding prompt UI
-    opencode = 155,    -- OpenCode: AI coding assistant with expanding prompt UI
-    lazygit = 200,     -- Lazygit: status bar at bottom
-    htop = 150,        -- htop: minimal UI at bottom
-    btop = 150,        -- btop: minimal UI at bottom
-    node = 155,        -- Node.js (fallback for claude-code, opencode)
-    default = 200,     -- Default for unknown programs
-  },
-  -- Whether to apply offset adjustment when tmux is detected
-  tmuxShiftEnabled = true,
-  -- Default positioning mode: "auto" | "fixed" | "above-prompt"
-  -- "auto": intelligently detects program and applies appropriate offset
-  -- "fixed": uses only the verticalOffset parameter from notification call
-  -- "above-prompt": estimates prompt height based on terminal dimensions
-  positionMode = "auto",
-  -- Minimum offset to ensure notification is always visible
-  minOffset = 100,
-  -- Default notification duration (in seconds)
-  defaultDuration = 5,
-  -- Animation settings
-  animation = {
-    enabled = true,          -- Enable slide-up animation from bottom of screen
-    duration = 0.3,          -- Animation duration in seconds (0.3 = smooth, 0.5 = slower)
-  },
-}
+---@class NotificationRule
+---@field name string                   # Human-readable name for the rule
+---@field app string                    # Bundle ID or stacking ID to match
+---@field senders? string[]             # Optional: list of sender names to match (exact match)
+---@field priority? "low"|"normal"|"high" # Base priority level (default: "normal")
+---@field duration? number              # How long to show notification in seconds
+---@field criticalPatterns? string[]    # Lua patterns that escalate priority to "high"
+---@field alwaysShowInTerminal? boolean # Show even when terminal is focused (high priority only)
+---@field showWhenAppFocused? boolean   # Show even when source app is focused (high priority only)
+---@field allowedFocusModes? (string|nil)[] # Focus modes where notification is allowed (nil = no focus mode)
+---@field appBundleID? string           # Override bundle ID for icon display
+---@field action fun(title: string, subtitle: string, message: string, stackingID: string, bundleID: string) # Action to execute when rule matches
 
--- Notification Routing Rules
--- Rules are evaluated in order. First match wins.
-NOTIFY_RULES = {
-  {
-    name = "Important Messages - Abby",
-    -- Match Messages app notifications
-    app = "com.apple.MobileSMS",
-    -- Match specific senders (exact match, case-sensitive)
-    senders = {"Abby Messer"},
-    -- Priority: "high", "normal", "low"
-    priority = "normal",  -- Default priority for regular messages
-    -- Critical patterns: Lua patterns to match in message content
-    -- Uses same pattern matching as hs.application:findWindow()
-    criticalPatterns = {
-      "%?",        -- Question mark
-      "👋",        -- Wave emoji
-      "❓",        -- Question mark emoji
-      "‼️",        -- Double exclamation
-      "⚠️",        -- Warning sign
-      "urgent",    -- Literal text (case-sensitive)
-      "asap",
-      "emergency",
-      "!+$",       -- Multiple exclamation marks at end
-      "%?+$",      -- Multiple question marks at end
-    },
-    -- High priority settings (applied when critical pattern matches)
-    alwaysShowInTerminal = true,  -- Always show in Ghostty, even if Messages focused
-    showWhenAppFocused = false,   -- Don't show if Messages is already focused (except terminal)
-    -- Check focus mode before showing
-    checkFocus = true,
-    -- Only show if in these focus modes (nil = no focus active)
-    allowedFocusModes = {nil, "Personal"},
-    -- Action to take when rule matches
-    action = function(title, subtitle, message, stackingID, bundleID)
-      local notify = require('notify')
-      local timestamp = os.time()
+---Processes a notification according to rule configuration
+---Handles critical pattern matching, focus mode checks, priority logic, and rendering
+---@param rule NotificationRule The notification rule configuration
+---@param title string Notification title
+---@param subtitle string Notification subtitle (may be empty)
+---@param message string Notification message body
+---@param stackingID string Full stacking identifier from notification center
+---@param bundleID string Parsed bundle ID from stacking identifier
+local function processNotificationRule(rule, title, subtitle, message, stackingID, bundleID)
+  local notify = require("notifier")
+  local timestamp = os.time()
 
-      -- Check if message contains critical patterns (using Lua patterns)
-      local isCritical = false
-      if criticalPatterns and message then
-        for _, pattern in ipairs(criticalPatterns) do
-          -- Use Lua pattern matching (same as hs.application:findWindow)
-          if message:find(pattern) then
-            isCritical = true
-            U.log.w(string.format("Critical pattern matched: '%s' in message from %s", pattern, title))
-            break
-          end
-        end
+  -- Check if message contains critical patterns
+  local isCritical = false
+  if rule.criticalPatterns and message then
+    for _, pattern in ipairs(rule.criticalPatterns) do
+      if message:find(pattern) then
+        isCritical = true
+        U.log.w(string.format("Critical pattern matched: '%s' in message from %s", pattern, title))
+        break
       end
+    end
+  end
 
-      -- Determine effective priority
-      local effectivePriority = isCritical and "high" or (priority or "normal")
+  -- Determine effective priority
+  local effectivePriority = isCritical and "high" or (rule.priority or "normal")
 
-      -- Check focus mode
-      local currentFocus = notify.getCurrentFocusMode and notify.getCurrentFocusMode() or nil
-      local focusAllowed = true
+  -- Check focus mode (if allowedFocusModes is defined)
+  local currentFocus = notify.getCurrentFocusMode and notify.getCurrentFocusMode() or nil
+  local focusAllowed = true
 
-      if checkFocus and allowedFocusModes then
-        focusAllowed = false
-        for _, allowed in ipairs(allowedFocusModes) do
-          if allowed == currentFocus then
-            focusAllowed = true
-            break
-          end
-        end
+  if rule.allowedFocusModes and #rule.allowedFocusModes > 0 then
+    focusAllowed = false
+    for _, allowed in ipairs(rule.allowedFocusModes) do
+      if allowed == currentFocus then
+        focusAllowed = true
+        break
       end
+    end
+  end
 
-      if not focusAllowed then
-        -- Blocked by focus mode
+  if not focusAllowed then
+    NotifyDB.log({
+      timestamp = timestamp,
+      rule_name = rule.name,
+      app_id = stackingID,
+      sender = title,
+      subtitle = subtitle,
+      message = message,
+      action_taken = "blocked_by_focus",
+      focus_mode = currentFocus,
+      shown = false,
+    })
+    -- Update menubar indicator
+    if NotifyMenubar then
+      NotifyMenubar.update()
+    end
+    return
+  end
+
+  -- Check priority-based app focus rules (only for high priority)
+  if effectivePriority == "high" then
+    local priorityCheck = notify.shouldShowHighPriority(bundleID, {
+      alwaysShowInTerminal = rule.alwaysShowInTerminal,
+      showWhenAppFocused = rule.showWhenAppFocused,
+    })
+
+    if not priorityCheck.shouldShow then
+      NotifyDB.log({
+        timestamp = timestamp,
+        rule_name = rule.name,
+        app_id = stackingID,
+        sender = title,
+        subtitle = subtitle,
+        message = message,
+        action_taken = "blocked_" .. priorityCheck.reason,
+        focus_mode = currentFocus,
+        shown = false,
+      })
+      -- Update menubar indicator
+      if NotifyMenubar then
+        NotifyMenubar.update()
+      end
+      return
+    end
+  end
+
+  -- Determine notification config based on priority
+  local duration = rule.duration or (effectivePriority == "high" and 15 or effectivePriority == "low" and 3 or 10)
+  local notifConfig = {}
+
+  -- Use rule's appBundleID if specified, otherwise use the actual bundleID
+  local iconBundleID = rule.appBundleID or bundleID
+
+  if effectivePriority == "high" then
+    notifConfig = {
+      positionMode = "center-window",
+      dimBackground = true,
+      dimAlpha = 0.6,
+      includeProgram = false,
+      appBundleID = iconBundleID,
+      priority = "high",
+    }
+  else
+    notifConfig = {
+      positionMode = "auto",
+      dimBackground = false,
+      includeProgram = false,
+      appBundleID = iconBundleID,
+      priority = effectivePriority,
+    }
+  end
+
+  -- Show notification
+  notify.sendCanvasNotification(title, message, duration, notifConfig)
+
+  -- Log to database
+  NotifyDB.log({
+    timestamp = timestamp,
+    rule_name = rule.name,
+    app_id = stackingID,
+    sender = title,
+    subtitle = subtitle,
+    message = message,
+    action_taken = effectivePriority == "high" and "shown_center_dimmed" or "shown_bottom_left",
+    focus_mode = currentFocus,
+    shown = true,
+  })
+end
+
+M.notifier = {
+  rules = {
+    -- Notification Routing Rules
+    -- Rules are evaluated in order. First match wins.
+    (function()
+      local rule = {
+        name = "Important Messages - Abby",
+        app = "com.apple.MobileSMS",
+        senders = { "Abby Messer" },
+        priority = "normal",
+        duration = 15,
+        criticalPatterns = {
+          "%?", "👋", "❓", "‼️", "⚠️",
+          "urgent", "asap", "emergency",
+          "!+$", "%?+$",
+        },
+        alwaysShowInTerminal = true,
+        showWhenAppFocused = false,
+        allowedFocusModes = { nil, "Personal" },
+      }
+      rule.action = function(title, subtitle, message, stackingID, bundleID)
+        processNotificationRule(rule, title, subtitle, message, stackingID, bundleID)
+      end
+      return rule
+    end)(),
+
+    -- Example: All other Messages notifications (lower priority)
+    {
+      name = "Messages - General",
+      app = "com.apple.MobileSMS",
+      -- No allowedFocusModes = always show, no focus check
+      action = function(title, subtitle, message, stackingID, bundleID)
+        -- Default behavior: let macOS show the notification
+        -- We just log it to the database for tracking
         NotifyDB.log({
-          timestamp = timestamp,
-          rule_name = "Important Messages - Abby",
+          timestamp = os.time(),
+          rule_name = "Messages - General",
           app_id = stackingID,
           sender = title,
           subtitle = subtitle,
           message = message,
-          action_taken = "blocked_by_focus",
-          focus_mode = currentFocus,
-          shown = false,
-        })
-        U.log.i("Blocked notification from Abby (focus mode: " .. (currentFocus or "none") .. ")")
-        return
-      end
-
-      -- Check priority-based app focus rules (only for high priority)
-      if effectivePriority == "high" then
-        local priorityCheck = notify.shouldShowHighPriority(bundleID, {
-          alwaysShowInTerminal = alwaysShowInTerminal,
-          showWhenAppFocused = showWhenAppFocused,
-        })
-
-        if not priorityCheck.shouldShow then
-          -- Don't show - app already focused
-          NotifyDB.log({
-            timestamp = timestamp,
-            rule_name = "Important Messages - Abby",
-            app_id = stackingID,
-            sender = title,
-            subtitle = subtitle,
-            message = message,
-            action_taken = "blocked_" .. priorityCheck.reason,
-            focus_mode = currentFocus,
-            shown = false,
-          })
-          U.log.i(string.format("Skipped high priority notification: %s", priorityCheck.reason))
-          return
-        end
-      end
-
-      -- Determine notification style based on priority
-      local notifConfig = {}
-      if effectivePriority == "high" then
-        -- High priority: centered with dimming
-        notifConfig = {
-          positionMode = "center-window",
-          dimBackground = true,
-          dimAlpha = 0.6,
-          includeProgram = false,
-          appBundleID = bundleID,
-          priority = "high",
-        }
-      else
-        -- Normal priority: bottom-left, no dimming
-        notifConfig = {
-          positionMode = "auto",
-          dimBackground = false,
-          includeProgram = false,
-          appBundleID = bundleID,
-          priority = "normal",
-        }
-      end
-
-      -- Show notification
-      notify.sendCanvasNotification(
-        title,
-        message,
-        15,  -- Duration
-        notifConfig
-      )
-
-        -- Log to database
-        NotifyDB.log({
-          timestamp = timestamp,
-          rule_name = "Important Messages - Abby",
-          app_id = stackingID,
-          sender = title,
-          subtitle = subtitle,
-          message = message,
-          action_taken = "shown_center_dimmed",
-          focus_mode = currentFocus,
+          action_taken = "macos_default",
+          focus_mode = nil,
           shown = true,
         })
-    end
+      end,
+    },
+
+    -- AI Agent Notifications (from bin/notifier via hs.notify)
+    (function()
+      local rule = {
+        name = "AI Agent Notifications",
+        app = "org.hammerspoon.Hammerspoon",
+        priority = "normal",
+        duration = 10,
+        criticalPatterns = {
+          "error", "failed", "critical", "urgent",
+          "question", "%?",
+          "!!!", "‼️", "⚠️",
+        },
+        alwaysShowInTerminal = true,
+        showWhenAppFocused = false,
+        allowedFocusModes = { nil, "Personal", "Work" },
+        -- Use HAL 9000 icon path
+        appBundleID = "hal9000",  -- Special marker for HAL icon
+      }
+      rule.action = function(title, subtitle, message, stackingID, bundleID)
+        processNotificationRule(rule, title, subtitle, message, stackingID, bundleID)
+      end
+      return rule
+    end)(),
+
+    -- Example: Low priority notifications
+    (function()
+      local rule = {
+        name = "Task Completions - Low Priority",
+        app = "com.example.taskapp",
+        priority = "low",
+        duration = 3,
+        -- No allowedFocusModes = always show
+      }
+      rule.action = function(title, subtitle, message, stackingID, bundleID)
+        processNotificationRule(rule, title, subtitle, message, stackingID, bundleID)
+      end
+      return rule
+    end)(),
   },
+  config = {
+    -- Notification positioning configuration
 
-  -- Example: All other Messages notifications (lower priority)
-  {
-    name = "Messages - General",
-    app = "com.apple.MobileSMS",
-    checkFocus = false,  -- Always show, no focus check
-    action = function(title, subtitle, message, stackingID, bundleID)
-      -- Default behavior: let macOS show the notification
-      -- We just log it to the database for tracking
-      NotifyDB.log({
-        timestamp = os.time(),
-        rule_name = "Messages - General",
-        app_id = stackingID,
-        sender = title,
-        subtitle = subtitle,
-        message = message,
-        action_taken = "macos_default",
-        focus_mode = nil,
-        shown = true,
-      })
-    end
-  },
-
-  -- Example: Low priority notifications (like Claude finishing tasks)
-  -- These use the original bottom-left positioning, no interruption
-  -- NOTE: This is a template - Claude doesn't actually send system notifications
-  --       This would apply to any app that sends completion notifications
-  {
-    name = "Task Completions - Low Priority",
-    app = "com.example.taskapp",  -- Replace with actual app bundle ID
-    priority = "low",
-    checkFocus = false,
-    action = function(title, subtitle, message, stackingID, bundleID)
-      local notify = require('notify')
-
-      -- Low priority: bottom-left, no dimming, short duration
-      notify.sendCanvasNotification(
-        title,
-        message,
-        3,  -- Short 3 second duration
-        {
-          positionMode = "auto",  -- Original bottom-left behavior
-          dimBackground = false,
-          includeProgram = false,
-          appBundleID = bundleID,
-          priority = "low",
-        }
-      )
-
-      NotifyDB.log({
-        timestamp = os.time(),
-        rule_name = "Task Completions - Low Priority",
-        app_id = stackingID,
-        sender = title,
-        subtitle = subtitle,
-        message = message,
-        action_taken = "shown_bottom_left",
-        focus_mode = nil,
-        shown = true,
-      })
-    end
+    -- Vertical offsets (in pixels) from bottom of screen for different programs
+    -- These values account for typical prompt heights in each program
+    -- NOTE: Programs with expanding UI (thinking indicators, token counters) need extra padding
+    offsets = {
+      nvim = 100, -- Neovim: minimal offset (statusline at bottom, no prompt)
+      vim = 100, -- Vim: same as neovim
+      ["nvim-diff"] = 100,
+      fish = 350, -- Fish: multiline prompt with git info
+      bash = 300, -- Bash: standard prompt
+      zsh = 300, -- Zsh: standard prompt
+      claude = 155, -- Claude Code: optimized via screenshot testing with expanding UI (prompt + thinking + tokens)
+      ["claude-code"] = 155, -- Claude Code: AI coding assistant with expanding prompt UI
+      opencode = 155, -- OpenCode: AI coding assistant with expanding prompt UI
+      lazygit = 200, -- Lazygit: status bar at bottom
+      htop = 150, -- htop: minimal UI at bottom
+      btop = 150, -- btop: minimal UI at bottom
+      node = 155, -- Node.js (fallback for claude-code, opencode)
+      default = 200, -- Default for unknown programs
+    },
+    -- Whether to apply offset adjustment when tmux is detected
+    tmuxShiftEnabled = true,
+    -- Default positioning mode: "auto" | "fixed" | "above-prompt"
+    -- "auto": intelligently detects program and applies appropriate offset
+    -- "fixed": uses only the verticalOffset parameter from notification call
+    -- "above-prompt": estimates prompt height based on terminal dimensions
+    positionMode = "auto",
+    -- Minimum offset to ensure notification is always visible
+    minOffset = 100,
+    -- Default notification duration (in seconds)
+    defaultDuration = 5,
+    -- Animation settings
+    animation = {
+      enabled = true, -- Enable slide-up animation from bottom of screen
+      duration = 0.3, -- Animation duration in seconds (0.3 = smooth, 0.5 = slower)
+    },
   },
 }
 
-DISPLAYS = {
+M.displays = {
   internal = "Built-in Retina Display",
   laptop = "Built-in Retina Display",
   external = "LG UltraFine",
 }
 
-POSITIONS = {
+M.grid = {
   full = "0,0 60x20",
   preview = "0,0 60x2",
 
@@ -473,226 +487,226 @@ POSITIONS = {
   },
 }
 
-LAYOUTS = {
+M.layouts = {
   --- [bundleID] = { name, bundleID, {{ winTitle, screenNum, gridPosition }} }
   ["com.raycast.macos"] = {
     name = "Raycast",
     bundleID = "com.raycast.macos",
     rules = {
-      { nil, 1, POSITIONS.center.large },
+      { nil, 1, M.grid.center.large },
     },
   },
   ["net.kovidgoyal.kitty"] = {
     bundleID = "net.kovidgoyal.kitty",
     name = "kitty",
     rules = {
-      { "", 1, POSITIONS.full },
+      { "", 1, M.grid.full },
     },
   },
   ["com.github.wez.wezterm"] = {
     bundleID = "com.github.wez.wezterm",
     name = "wezterm",
     rules = {
-      { "", 1, POSITIONS.full },
+      { "", 1, M.grid.full },
     },
   },
   ["com.mitchellh.ghostty"] = {
     bundleID = "com.mitchellh.ghostty",
     name = "ghostty",
     rules = {
-      { "Software Update", 1, POSITIONS.center.small },
-      { "", 1, POSITIONS.full },
+      { "Software Update", 1, M.grid.center.small },
+      { "", 1, M.grid.full },
     },
   },
   ["com.kagi.kagimacOS"] = {
     bundleID = "com.kagi.kagimacOS",
     name = "Orion",
     rules = {
-      { "", 1, POSITIONS.full },
+      { "", 1, M.grid.full },
     },
   },
   ["org.mozilla.floorp"] = {
     bundleID = "org.mozilla.floorp",
     name = "Floorp",
     rules = {
-      { "", 1, POSITIONS.full },
+      { "", 1, M.grid.full },
     },
   },
   ["com.brave.Browser.nightly"] = {
     bundleID = "com.brave.Browser.nightly",
     name = "Brave Browser Nightly",
     rules = {
-      { "", 1, POSITIONS.full },
+      { "", 1, M.grid.full },
     },
   },
   ["com.brave.Browser.dev"] = {
     bundleID = "com.brave.Browser.dev",
     name = "Brave Browser Dev",
     rules = {
-      { "", 1, POSITIONS.full },
+      { "", 1, M.grid.full },
     },
   },
   ["com.apple.Safari"] = {
     bundleID = "com.apple.Safari",
     name = "Safari",
     rules = {
-      { "", 2, POSITIONS.full },
+      { "", 2, M.grid.full },
     },
   },
   ["com.apple.SafariTechnologyPreview"] = {
     bundleID = "com.apple.SafariTechnologyPreview",
     name = "Safari Technology Preview",
     rules = {
-      { "", 2, POSITIONS.full },
+      { "", 2, M.grid.full },
     },
   },
   ["org.chromium.Thorium"] = {
     bundleID = "org.chromium.Thorium",
     name = "Thorium",
     rules = {
-      { "", 1, POSITIONS.full },
+      { "", 1, M.grid.full },
     },
   },
   ["org.chromium.Chromium"] = {
     bundleID = "org.chromium.Chromium",
     name = "Chromium",
     rules = {
-      { "", 1, POSITIONS.full },
+      { "", 1, M.grid.full },
     },
   },
   ["org.mozilla.firefoxdeveloperedition"] = {
     bundleID = "org.mozilla.firefoxdeveloperedition",
     name = "Firefox Developer Edition",
     rules = {
-      { "", 2, POSITIONS.full },
+      { "", 2, M.grid.full },
     },
   },
   ["com.kapeli.dashdoc"] = {
     bundleID = "com.kapeli.dashdoc",
     name = "Dash",
     rules = {
-      { "", 1, POSITIONS.full },
+      { "", 1, M.grid.full },
     },
   },
   ["com.obsproject.obs-studio"] = {
     bundleID = "com.obsproject.obs-studio",
     name = "OBS Studio",
     rules = {
-      { "", 2, POSITIONS.full },
+      { "", 2, M.grid.full },
     },
   },
   ["co.detail.mac"] = {
     bundleID = "co.detail.mac",
     name = "Detail",
     rules = {
-      { "", 2, POSITIONS.full },
+      { "", 2, M.grid.full },
     },
   },
   ["com.freron.MailMate"] = {
     bundleID = "com.freron.MailMate",
     name = "MailMate",
     rules = {
-      { nil, 2, POSITIONS.halves.left },
-      { "Inbox", 2, POSITIONS.full },
-      { "All Messages", 2, POSITIONS.full },
+      { nil, 2, M.grid.halves.left },
+      { "Inbox", 2, M.grid.full },
+      { "All Messages", 2, M.grid.full },
     },
   },
   ["com.apple.finder"] = {
     bundleID = "com.apple.finder",
     name = "Finder",
     rules = {
-      { "", 1, POSITIONS.center.medium },
+      { "", 1, M.grid.center.medium },
     },
   },
   ["com.spotify.client"] = {
     bundleID = "com.spotify.client",
     name = "Spotify",
     rules = {
-      { "", 2, POSITIONS.halves.right },
+      { "", 2, M.grid.halves.right },
     },
   },
   ["com.electron.postbird"] = {
     bundleID = "com.electron.postbird",
     name = "Postbird",
     rules = {
-      { "", 1, POSITIONS.center.large },
+      { "", 1, M.grid.center.large },
     },
   },
   ["com.apple.MobileSMS"] = {
     bundleID = "com.apple.MobileSMS",
     name = "Messages",
     rules = {
-      -- { "", 2, POSITIONS.full },
-      -- { "", 2, POSITIONS.thirds.left },
-      { "", 2, POSITIONS.halves.left },
+      -- { "", 2, M.grid.full },
+      -- { "", 2, M.grid.thirds.left },
+      { "", 2, M.grid.halves.left },
     },
   },
   ["org.whispersystems.signal-desktop"] = {
     bundleID = "org.whispersystems.signal-desktop",
     name = "Signal",
     rules = {
-      { "", 2, POSITIONS.halves.right },
+      { "", 2, M.grid.halves.right },
     },
   },
   ["com.tinyspeck.slackmacgap"] = {
     bundleID = "com.tinyspeck.slackmacgap",
     name = "Slack",
     rules = {
-      { nil, 2, POSITIONS.full },
+      { nil, 2, M.grid.full },
     },
   },
   ["com.agilebits.onepassword7"] = {
     bundleID = "com.1password.1password",
     name = "1Password",
     rules = {
-      { nil, 1, POSITIONS.center.medium },
+      { nil, 1, M.grid.center.medium },
     },
   },
   ["org.hammerspoon.Hammerspoon"] = {
     bundleID = "org.hammerspoon.Hammerspoon",
     name = "Hammerspoon",
     rules = {
-      { nil, 1, POSITIONS.full },
+      { nil, 1, M.grid.full },
     },
   },
   ["com.dexterleng.Homerow"] = {
     bundleID = "com.dexterleng.Homerow",
     name = "Homerow",
     rules = {
-      { nil, 1, POSITIONS.center.large },
+      { nil, 1, M.grid.center.large },
     },
   },
   ["com.flexibits.fantastical2.mac"] = {
     bundleID = "com.flexibits.fantastical2.mac",
     name = "Fantastical",
     rules = {
-      { nil, 1, POSITIONS.center.large },
+      { nil, 1, M.grid.center.large },
     },
   },
   ["com.figma.Desktop"] = {
     bundleID = "com.figma.Desktop",
     name = "Figma",
     rules = {
-      { nil, 1, POSITIONS.full },
+      { nil, 1, M.grid.full },
     },
   },
   ["com.apple.iphonesimulator"] = {
     bundleID = "com.apple.iphonesimulator",
     name = "iPhone Simulator",
     rules = {
-      { nil, 1, POSITIONS.halves.right },
+      { nil, 1, M.grid.halves.right },
     },
   },
   ["com.softfever3d.orca-slicer"] = {
     bundleID = "com.softfever3d.orca-slicer",
     name = "OrcaSlicer",
     rules = {
-      { "", 1, POSITIONS.full },
+      { "", 1, M.grid.full },
     },
   },
 }
 
-QUITTERS = {
+M.quitters = {
   "org.chromium.Thorium",
   "org.chromium.Chromium",
   "Brave Browser Nightly",
@@ -711,7 +725,7 @@ QUITTERS = {
   "com.github.wez.wezterm",
 }
 
-LOLLYGAGGERS = {
+M.lollygaggers = {
   --- [bundleID] = { hideAfter, quitAfter }
   ["org.hammerspoon.Hammerspoon"] = { 1, nil },
   ["com.flexibits.fantastical2.mac"] = { 1, nil },
@@ -719,7 +733,7 @@ LOLLYGAGGERS = {
   ["com.spotify.client"] = { 1, nil },
 }
 
-LAUNCHERS = {
+M.launchers = {
   { "com.brave.Browser.nightly", "j", nil },
   { "com.mitchellh.ghostty", "k", { "`" } },
   -- { "net.kovidgoyal.kitty", "k", nil },
@@ -743,7 +757,7 @@ LAUNCHERS = {
   { "com.microsoft.VSCode", "v", nil, true },
 }
 
-DOCK = {
+M.dock = {
   target = {
     productID = 39536,
     productName = "LG UltraFine Display Controls",

@@ -115,7 +115,7 @@ obj.placeAllApps = function()
 end
 
 obj.placeApp = function(elementOrAppName, event, app)
-  local appLayout = LAYOUTS[app:bundleID()]
+  local appLayout = C.layouts[app:bundleID()]
   if appLayout ~= nil then
     if appLayout.rules and #appLayout.rules > 0 then
       enum.each(appLayout.rules, function(rule)
