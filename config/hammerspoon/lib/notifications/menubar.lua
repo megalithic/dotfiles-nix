@@ -3,6 +3,7 @@
 
 local M = {}
 local fmt = string.format
+local db = require("lib.notifications.db")
 
 -- Menubar item
 M.menubar = nil
@@ -42,7 +43,7 @@ function M.update()
   if not M.menubar then return end
 
   -- Get notifications blocked by focus mode
-  local blocked = NotifyDB.getBlockedByFocus()
+  local blocked = db.getBlockedByFocus()
   local count = #blocked
 
   if count > 0 then
@@ -72,7 +73,7 @@ function M.startPulse()
   M.pulseTimer = hs.timer.doEvery(0.5, function()
     if not M.menubar or not M.isShowing then return end
 
-    local blocked = NotifyDB.getBlockedByFocus()
+    local blocked = db.getBlockedByFocus()
     local count = #blocked
 
     if count > 0 then
@@ -149,7 +150,7 @@ function M.handleNotificationClick(notif)
   end
 
   -- Mark as dismissed
-  NotifyDB.dismiss(notif.id)
+  db.dismiss(notif.id)
 
   -- Update display
   hs.timer.doAfter(0.1, function()
@@ -159,7 +160,7 @@ end
 
 -- Clear all blocked notifications
 function M.clearAll()
-  NotifyDB.dismiss("all")
+  db.dismiss("all")
   hs.timer.doAfter(0.1, function()
     M.update()
   end)

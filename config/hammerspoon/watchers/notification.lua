@@ -33,8 +33,10 @@ local function handleNotification(element)
   -- Get the stacking identifier to determine which app sent the notification
   local stackingID = element.AXStackingIdentifier or "unknown"
 
-  -- Extract bundle ID (everything before first semicolon or space)
-  local bundleID = stackingID:match("^([^;%s]+)") or stackingID
+  -- Extract bundle ID from stackingID
+  -- Format: bundleIdentifier=com.example.app,threadIdentifier=...
+  -- Try to extract bundleIdentifier value first, fallback to simple extraction
+  local bundleID = stackingID:match("bundleIdentifier=([^,;%s]+)") or stackingID:match("^([^;%s]+)") or stackingID
 
   -- Extract notification text elements
   local staticTexts = hs.fnutils.imap(
@@ -52,12 +54,9 @@ local function handleNotification(element)
   -- Process routing rules
   local rules = C.notifier.rules or {}
 
-  for _, ruleOrFn in ipairs(rules) do
-    -- Resolve rule: if it's a function, call it to get the rule table
-    local rule = type(ruleOrFn) == "function" and ruleOrFn() or ruleOrFn
-
+  for _, rule in ipairs(rules) do
     -- Quick app match (plain string search, not pattern)
-    if stackingID:find(rule.app, 1, true) then
+    if stackingID:find(rule.appBundleID, 1, true) then
       -- Check sender if specified
       if rule.senders then
         local senderMatch = false
@@ -72,13 +71,13 @@ local function handleNotification(element)
         end
       end
 
-      -- Rule matched! Log and execute action
+      -- Rule matched! Process via notification system
       U.log.nf("%s: %s", rule.name, title or bundleID)
 
-      -- Execute rule action with bundle ID
-      local ok, err = pcall(function() rule.action(title, subtitle, message, stackingID, bundleID) end)
+      -- Delegate to unified notification system
+      local ok, err = pcall(function() N.process(rule, title, subtitle, message, stackingID, bundleID) end)
 
-      if not ok then U.log.ef("Error executing rule '%s': %s", rule.name, tostring(err)) end
+      if not ok then U.log.ef("Error processing rule '%s': %s", rule.name, tostring(err)) end
 
       -- First match wins - stop processing rules
       return

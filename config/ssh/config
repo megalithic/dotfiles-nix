@@ -44,3 +44,14 @@ Host launchdeck-portal-api.devspace
   UserKnownHostsFile /dev/null
   User devspace
 # DevSpace End launchdeck-portal-api.devspace
+
+Host *.devspace
+  StrictHostKeyChecking no
+  UserKnownHostsFile=/dev/null
+  IdentityAgent "/Users/seth/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+  BatchMode yes
+  PasswordAuthentication no
+  ControlMaster auto
+  ControlPath /Users/seth/.ssh/control-%C
+  ControlPersist 10m
+  LogLevel QUIET

@@ -157,7 +157,7 @@ should_send_notification() {
 
   # Get active window title via Hammerspoon
   # Try global TERMINAL first, then fall back to local env var
-  local active_title=$(hs -c "local n = require('notifier'); local bundleId = TERMINAL or '${terminal_bundle_id}'; print(n.getFocusedWindowTitle(bundleId) or '')" 2>/dev/null)
+  local active_title=$(hs -c "local n = require('lib.notifications.notifier'); local bundleId = TERMINAL or '${terminal_bundle_id}'; print(n.getFocusedWindowTitle(bundleId) or '')" 2>/dev/null)
 
   # If our context appears in active window title, user is paying attention to THIS session
   if echo "$active_title" | grep -qF "$calling_context"; then
@@ -171,7 +171,7 @@ should_send_notification() {
 # Check if display is asleep
 is_display_asleep() {
   local display_check=$(hs -c "
-        local notify = require('notifier')
+        local notify = require('lib.notifications.notifier')
         print(notify.checkDisplayState())
     " 2>/dev/null)
 
@@ -190,7 +190,7 @@ send_macos_notification() {
   local escaped_body="${body//\'/\\\'}"
 
   hs -c "
-    local notify = require('notifier')
+    local notify = require('lib.notifications.notifier')
     notify.sendMacOSNotification('$escaped_title', '$escaped_subtitle', '$escaped_body')
   " 2>/dev/null
 }
@@ -209,6 +209,7 @@ send_canvas_notification() {
   local title="$1"
   local message="$2"
   local duration="${3:-10}"
+  local urgency="${4:-}"  # Optional explicit urgency (high, critical, normal)
 
   # Escape single quotes for Lua
   local escaped_title="${title//\'/\\\'}"
@@ -216,35 +217,47 @@ send_canvas_notification() {
 
   # Send directly via notifier module with HAL 9000 icon and AI agent settings
   hs -c "
-    local notify = require('notifier')
+    local notify = require('lib.notifications.notifier')
 
     local title = [[${title}]]
     local msg = [[${message}]]
     local duration = ${duration}
+    local explicitUrgency = '${urgency}'
 
-    -- Check for critical patterns in message
-    local isCritical = false
-    local criticalPatterns = {'error', 'failed', 'critical', 'urgent', 'question', '?', '!!!'}
-    for _, pattern in ipairs(criticalPatterns) do
-      if msg:lower():find(pattern:lower(), 1, true) then
-        isCritical = true
-        break
+    local priority
+    -- Prefer explicit urgency if provided, otherwise use pattern matching
+    if explicitUrgency == 'high' or explicitUrgency == 'critical' then
+      priority = 'high'
+    elseif explicitUrgency == 'normal' or explicitUrgency == 'low' then
+      priority = 'normal'
+    else
+      -- Fallback to pattern matching
+      local isCritical = false
+      local criticalPatterns = {'error', 'failed', 'critical', 'urgent', 'question', '?', '!!!'}
+      for _, pattern in ipairs(criticalPatterns) do
+        if msg:lower():find(pattern:lower(), 1, true) then
+          isCritical = true
+          break
+        end
       end
+      priority = isCritical and 'high' or 'normal'
     end
 
-    local priority = isCritical and 'high' or 'normal'
     local config = {
-      appBundleID = 'hal9000',
+      appImageID = 'hal9000',
+      appBundleID = 'org.hammerspoon.Hammerspoon',
       includeProgram = false,
       priority = priority,
     }
 
     if priority == 'high' then
-      config.positionMode = 'center-window'
+      config.anchor = 'window'
+      config.position = 'C'
       config.dimBackground = true
       config.dimAlpha = 0.6
     else
-      config.positionMode = 'auto'
+      config.anchor = 'screen'
+      config.position = 'SW'
       config.dimBackground = false
     end
 
@@ -262,7 +275,7 @@ send_hammerspoon_alert() {
   local escaped_message="${message//\'/\\\'}"
 
   hs -c "
-    local notify = require('notifier')
+    local notify = require('lib.notifications.notifier')
     notify.sendSmartAlert('$escaped_message', $duration)
   " 2>/dev/null
 }
@@ -281,7 +294,7 @@ send_phone_notification() {
   local escaped_message="${message//\'/\\\'}"
 
   hs -c "
-    local notify = require('notifier')
+    local notify = require('lib.notifications.notifier')
     notify.sendPhoneNotification('$phone_number', '$escaped_message')
   " 2>/dev/null
 }
@@ -330,13 +343,12 @@ notify_user() {
 
   # Send notifications based on attention state
   if [ $should_notify -eq 1 ] || [ "$urgency" = "critical" ]; then
-    # 1. macOS Notification Center
-    send_macos_notification "$title" "" "$message"
+    # Canvas notification with HAL 9000 icon (on-screen overlay)
+    # Note: We skip macOS notification here because the canvas notification
+    # will be caught by the watcher and re-processed, which would override our positioning
+    send_canvas_notification "$title" "$message" "$duration" "$urgency"
 
-    # 2. Canvas notification with HAL 9000 icon (on-screen overlay)
-    send_canvas_notification "$title" "$message" "$duration"
-
-    # 3. Phone notification (for important events or if requested)
+    # Phone notification (for important events or if requested)
     if [ "$send_to_phone" = "true" ] || [ "$urgency" = "critical" ]; then
       send_phone_notification "$title: $message"
     fi

@@ -40,13 +40,13 @@ end
 _G.U = req("utils")
 _G.I = hs.inspect -- `i()` to easier inspect in the console
 
--- Initialize notification tracking database
-_G.NotifyDB = req("notification_db")
-NotifyDB.init()
+-- Initialize unified notification system
+_G.N = req("lib.notifications")
+N.init()
 
--- Initialize blocked notification menubar indicator
-_G.NotifyMenubar = req("notification_menubar")
-NotifyMenubar.init()
+-- Backward compatibility (temporary during transition)
+_G.NotifyDB = N.db
+_G.NotifyMenubar = N.menubar
 
 function _G.P(...)
   -- local function getFnLocation()

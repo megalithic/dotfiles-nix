@@ -7,152 +7,113 @@ TERMINAL = "com.mitchellh.ghostty"
 
 ---@class NotificationRule
 ---@field name string                   # Human-readable name for the rule
----@field app string                    # Bundle ID or stacking ID to match
+---@field appBundleID string            # Bundle ID or stacking ID to match
 ---@field senders? string[]             # Optional: list of sender names to match (exact match)
 ---@field patterns? table<"low"|"normal"|"high", string[]> # Patterns mapped to priorities (default: normal if no match)
 ---@field duration? number              # How long to show notification in seconds
 ---@field alwaysShowInTerminal? boolean # Show even when terminal is focused (high priority only)
 ---@field showWhenAppFocused? boolean   # Show even when source app is focused (high priority only)
 ---@field allowedFocusModes? (string|nil)[] # Focus modes where notification is allowed (nil = no focus mode)
----@field appBundleID? string           # Override bundle ID for icon display
----@field action fun(title: string, subtitle: string, message: string, stackingID: string, bundleID: string) # Action to execute when rule matches
+---@field appImageID? string            # Custom icon identifier (e.g. "hal9000")
 
 M.notifier = {
   rules = {
     -- Notification Routing Rules
     -- Rules are evaluated in order. First match wins.
-    -- Rules can be either:
-    --   1. A table (for simple static rules)
-    --   2. A function that returns a table (for dynamic rules with closures)
-    function()
-      local rule = {
-        name = "Important Messages - Abby",
-        app = "com.apple.MobileSMS",
-        senders = { "Abby Messer" },
-        duration = 15,
-        patterns = {
-          high = {
-            "%?",
-            "👋",
-            "❓",
-            "‼️",
-            "⚠️",
-            "urgent",
-            "asap",
-            "emergency",
-            "!+$",
-            "%?+$",
-          },
-          low = {
-            "brb",
-            "k",
-            "ok",
-            "👍",
-            "lol",
-          },
-          -- Everything else defaults to "normal"
+    -- Each rule is a table defining matching criteria and behavior.
+    {
+      name = "Important Messages",
+      appBundleID = "com.apple.MobileSMS",
+      senders = { "Abby Messer" },
+      duration = 15,
+      patterns = {
+        high = {
+          "%?",
+          "👋",
+          "❓",
+          "‼️",
+          "⚠️",
+          "urgent",
+          "asap",
+          "emergency",
+          "!+$",
+          "%?+$",
         },
-        alwaysShowInTerminal = true,
-        showWhenAppFocused = false,
-        allowedFocusModes = { nil, "Personal" },
-      }
-      rule.action = function(title, subtitle, message, stackingID, bundleID)
-        local NotificationProcessor = require("notification")
-        NotificationProcessor.processRule(rule, title, subtitle, message, stackingID, bundleID)
-      end
-      return rule
-    end,
+        low = {
+          "brb",
+          "k",
+          "ok",
+          "👍",
+          "lol",
+        },
+        -- Everything else defaults to "normal"
+      },
+      alwaysShowInTerminal = true,
+      showWhenAppFocused = false,
+      allowedFocusModes = { nil, "Personal" },
+    },
 
     -- Example: All other Messages notifications (lower priority)
     {
-      name = "Messages - General",
-      app = "com.apple.MobileSMS",
+      name = "Messages",
+      appBundleID = "com.apple.MobileSMS",
       -- No allowedFocusModes = always show, no focus check
-      action = function(title, subtitle, message, stackingID, bundleID)
-        -- Default behavior: let macOS show the notification
-        -- We just log it to the database for tracking
-        NotifyDB.log({
-          timestamp = os.time(),
-          rule_name = "Messages - General",
-          app_id = stackingID,
-          sender = title,
-          subtitle = subtitle,
-          message = message,
-          action_taken = "macos_default",
-          focus_mode = nil,
-          shown = true,
-        })
-      end,
     },
 
     -- AI Agent Notifications (from bin/notifier via hs.notify)
-    function()
-      local rule = {
-        name = "AI Agent Notifications",
-        app = "org.hammerspoon.Hammerspoon",
-        duration = 10,
-        patterns = {
-          high = {
-            "error",
-            "failed",
-            "critical",
-            "urgent",
-            "question",
-            "%?",
-            "!!!",
-            "‼️",
-            "⚠️",
-          },
-          low = {
-            "info",
-            "debug",
-            "starting",
-            "completed",
-            "finished",
-          },
-          -- Everything else defaults to "normal"
+    {
+      name = "AI Agent Notifications",
+      appBundleID = "org.hammerspoon.Hammerspoon",
+      duration = 10,
+      patterns = {
+        high = {
+          "error",
+          "failed",
+          "critical",
+          "urgent",
+          "question",
+          "%?",
+          "!!!",
+          "‼️",
+          "⚠️",
         },
-        alwaysShowInTerminal = true,
-        showWhenAppFocused = false,
-        allowedFocusModes = { nil, "Personal", "Work" },
-        appBundleID = "hal9000", -- Special marker for HAL icon
-      }
-      rule.action = function(title, subtitle, message, stackingID, bundleID)
-        local NotificationProcessor = require("notification")
-        NotificationProcessor.processRule(rule, title, subtitle, message, stackingID, bundleID)
-      end
-      return rule
-    end,
+        low = {
+          "info",
+          "debug",
+          "starting",
+          "completed",
+          "finished",
+        },
+        -- Everything else defaults to "normal"
+      },
+      alwaysShowInTerminal = true,
+      showWhenAppFocused = false,
+      allowedFocusModes = { nil, "Personal", "Work" },
+      appImageID = "hal9000", -- Special marker for HAL icon
+    },
 
     -- Example: Build notifications with pattern-based priority
-    function()
-      local rule = {
-        name = "Build System Notifications",
-        app = "com.example.buildapp",
-        duration = 5,
-        patterns = {
-          high = {
-            "failed",
-            "error",
-            "fatal",
-            "broke",
-          },
-          low = {
-            "started",
-            "building",
-            "compiling",
-            "running",
-          },
-          -- "succeeded", "completed" = normal (default)
+    {
+      name = "Build System Notifications",
+      appBundleID = "com.example.buildapp",
+      duration = 5,
+      patterns = {
+        high = {
+          "failed",
+          "error",
+          "fatal",
+          "broke",
         },
-        allowedFocusModes = { nil, "Work" },
-      }
-      rule.action = function(title, subtitle, message, stackingID, bundleID)
-        local NotificationProcessor = require("notification")
-        NotificationProcessor.processRule(rule, title, subtitle, message, stackingID, bundleID)
-      end
-      return rule
-    end,
+        low = {
+          "started",
+          "building",
+          "compiling",
+          "running",
+        },
+        -- "succeeded", "completed" = normal (default)
+      },
+      allowedFocusModes = { nil, "Work" },
+    },
   },
   config = {
     -- Notification positioning configuration
@@ -178,11 +139,15 @@ M.notifier = {
     },
     -- Whether to apply offset adjustment when tmux is detected
     tmuxShiftEnabled = true,
-    -- Default positioning mode: "auto" | "fixed" | "above-prompt"
-    -- "auto": intelligently detects program and applies appropriate offset
-    -- "fixed": uses only the verticalOffset parameter from notification call
-    -- "above-prompt": estimates prompt height based on terminal dimensions
-    positionMode = "auto",
+    -- Default positioning (Neovim-style anchor + position system)
+    -- anchor: "screen" | "window" | "app" (coordinate system context)
+    -- position: "NW" | "N" | "NE" | "W" | "C" | "E" | "SW" | "S" | "SE" (cardinal direction)
+    -- Examples:
+    --   anchor="screen", position="SW" → bottom-left of screen (with auto offset)
+    --   anchor="window", position="C" → center of focused window
+    --   anchor="screen", position="N" → top-center of screen
+    defaultAnchor = "screen",
+    defaultPosition = "SW",
     -- Minimum offset to ensure notification is always visible
     minOffset = 100,
     -- Default notification duration (in seconds)

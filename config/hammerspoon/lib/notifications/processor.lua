@@ -13,7 +13,9 @@ local fmt = string.format
 ---@param stackingID string Full stacking identifier from notification center
 ---@param bundleID string Parsed bundle ID from stacking identifier
 function M.processRule(rule, title, subtitle, message, stackingID, bundleID)
-  local notify = require("notifier")
+  local notify = require("lib.notifications.notifier")
+  local db = require("lib.notifications.db")
+  local menubar = require("lib.notifications.menubar")
   local timestamp = os.time()
 
   -- Determine priority based on pattern matching
@@ -54,7 +56,7 @@ function M.processRule(rule, title, subtitle, message, stackingID, bundleID)
   end
 
   if not focusAllowed then
-    NotifyDB.log({
+    db.log({
       timestamp = timestamp,
       rule_name = rule.name,
       app_id = stackingID,
@@ -66,7 +68,7 @@ function M.processRule(rule, title, subtitle, message, stackingID, bundleID)
       shown = false,
     })
     -- Update menubar indicator
-    if NotifyMenubar then NotifyMenubar.update() end
+    menubar.update()
     return
   end
 
@@ -78,7 +80,7 @@ function M.processRule(rule, title, subtitle, message, stackingID, bundleID)
     })
 
     if not priorityCheck.shouldShow then
-      NotifyDB.log({
+      db.log({
         timestamp = timestamp,
         rule_name = rule.name,
         app_id = stackingID,
@@ -90,7 +92,7 @@ function M.processRule(rule, title, subtitle, message, stackingID, bundleID)
         shown = false,
       })
       -- Update menubar indicator
-      if NotifyMenubar then NotifyMenubar.update() end
+      menubar.update()
       return
     end
   end
@@ -99,24 +101,31 @@ function M.processRule(rule, title, subtitle, message, stackingID, bundleID)
   local duration = rule.duration or (effectivePriority == "high" and 15 or effectivePriority == "low" and 3 or 10)
   local notifConfig = {}
 
-  -- Use rule's appBundleID if specified, otherwise use the actual bundleID
-  local iconBundleID = rule.appBundleID or bundleID
+  -- Fallback chain for icon: appImageID → bundleID → rule.appBundleID
+  local iconBundleID = rule.appImageID or bundleID or rule.appBundleID
+
+  -- Fallback chain for launching: bundleID → rule.appBundleID
+  local launchBundleID = bundleID or rule.appBundleID
 
   if effectivePriority == "high" then
     notifConfig = {
-      positionMode = "center-window",
+      anchor = "window",
+      position = "C",
       dimBackground = true,
       dimAlpha = 0.6,
       includeProgram = false,
-      appBundleID = iconBundleID,
+      appImageID = iconBundleID,
+      appBundleID = launchBundleID,
       priority = "high",
     }
   else
     notifConfig = {
-      positionMode = "auto",
+      anchor = "screen",
+      position = "SW",
       dimBackground = false,
       includeProgram = false,
-      appBundleID = iconBundleID,
+      appImageID = iconBundleID,
+      appBundleID = launchBundleID,
       priority = effectivePriority,
     }
   end
@@ -125,7 +134,7 @@ function M.processRule(rule, title, subtitle, message, stackingID, bundleID)
   notify.sendCanvasNotification(title, message, duration, notifConfig)
 
   -- Log to database
-  NotifyDB.log({
+  db.log({
     timestamp = timestamp,
     rule_name = rule.name,
     app_id = stackingID,

@@ -43,12 +43,12 @@ function M.getActiveProgram()
 end
 
 -- Calculate optimal vertical offset based on active program and config
-function M.calculateOffset(options)
-  options = options or {}
-  local mode = options.positionMode or config.positionMode or "auto"
+function M.calculateOffset(opts)
+  opts = opts or {}
+  local mode = opts.positionMode or config.positionMode or "auto"
 
   -- Fixed mode: use provided offset directly
-  if mode == "fixed" then return options.verticalOffset or config.minOffset or 100 end
+  if mode == "fixed" then return opts.verticalOffset or config.minOffset or 100 end
 
   -- Auto mode: detect program and use configured offset
   if mode == "auto" then
@@ -62,7 +62,7 @@ function M.calculateOffset(options)
     end
 
     -- Add any additional offset from options
-    if options.verticalOffset then offset = offset + options.verticalOffset end
+    if opts.verticalOffset then offset = offset + opts.verticalOffset end
 
     -- Respect minimum offset
     local minOffset = config.minOffset or 100
@@ -71,14 +71,14 @@ function M.calculateOffset(options)
 
   -- Above-prompt mode: estimate based on prompt lines
   if mode == "above-prompt" then
-    local promptLines = options.estimatedPromptLines or 2
+    local promptLines = opts.estimatedPromptLines or 2
     local lineHeight = 20 -- approximate px per line
     local offset = promptLines * lineHeight + 40 -- extra padding
-    return offset + (options.verticalOffset or 0)
+    return offset + (opts.verticalOffset or 0)
   end
 
   -- Fallback
-  return options.verticalOffset or config.minOffset or 100
+  return opts.verticalOffset or config.minOffset or 100
 end
 
 -- Check if source app is currently focused
@@ -118,10 +118,10 @@ end
 -- Determine if high priority notification should be shown
 -- Based on app focus state and terminal exception
 -- Returns: {shouldShow: boolean, reason: string}
-function M.shouldShowHighPriority(bundleID, options)
-  options = options or {}
-  local alwaysShowInTerminal = options.alwaysShowInTerminal ~= false -- default true
-  local showWhenAppFocused = options.showWhenAppFocused or false -- default false
+function M.shouldShowHighPriority(bundleID, opts)
+  opts = opts or {}
+  local alwaysShowInTerminal = opts.alwaysShowInTerminal ~= false -- default true
+  local showWhenAppFocused = opts.showWhenAppFocused or false -- default false
 
   -- Check if we're in terminal (always show high priority in terminal)
   if alwaysShowInTerminal and M.isInTerminal() then return { shouldShow = true, reason = "in_terminal" } end
@@ -245,38 +245,75 @@ end
 -- Initialize app watcher on module load
 M.setupAppWatcher()
 
--- Calculate notification position based on mode
+-- Calculate notification position based on anchor and position
+-- @param anchor string: "screen", "window", or "app"
+-- @param position string: "NW", "N", "NE", "W", "C", "E", "SW", "S", "SE"
+-- @param width number: notification width in pixels
+-- @param height number: notification height in pixels
+-- @param offset number: optional additional vertical offset for fine-tuning
 -- Returns: {x, y} table with pixel coordinates
-function M.calculatePosition(positionMode, width, height)
+function M.calculatePosition(anchor, position, width, height, offset)
+  offset = offset or 0
   local screen = hs.screen.mainScreen()
   local screenFrame = screen:frame()
+  local frame = screenFrame
 
-  if positionMode == "center-window" then
-    -- Get focused window (if any)
+  -- Determine the reference frame based on anchor
+  if anchor == "window" then
     local win = hs.window.focusedWindow()
-
     if win then
-      local winFrame = win:frame()
-      -- Center within window
-      return {
-        x = winFrame.x + (winFrame.w - width) / 2,
-        y = winFrame.y + (winFrame.h - height) / 2,
-      }
+      frame = win:frame()
+    else
+      -- Fallback to screen if no window
+      anchor = "screen"
+      frame = screenFrame
     end
-
-    -- Fallback to center-screen if no window
-    positionMode = "center-screen"
+  elseif anchor == "app" then
+    -- Get frontmost app's main window
+    local app = hs.application.frontmostApplication()
+    if app then
+      local win = app:mainWindow()
+      if win then
+        frame = win:frame()
+      else
+        anchor = "screen"
+        frame = screenFrame
+      end
+    else
+      anchor = "screen"
+      frame = screenFrame
+    end
   end
 
-  if positionMode == "center-screen" then
-    return {
-      x = screenFrame.x + (screenFrame.w - width) / 2,
-      y = screenFrame.y + (screenFrame.h - height) / 2,
-    }
+  -- Calculate base coordinates for each cardinal direction
+  local x, y
+
+  -- Horizontal positioning
+  if position:match("W") then -- West (left)
+    x = frame.x + 20 -- 20px padding from left edge
+  elseif position:match("E") then -- East (right)
+    x = frame.x + frame.w - width - 20 -- 20px padding from right edge
+  else -- Center or no horizontal indicator
+    x = frame.x + (frame.w - width) / 2
   end
 
-  -- Return nil for other modes (will use existing bottom-left logic)
-  return nil
+  -- Vertical positioning
+  if position:match("N") and not position:match("NE") and not position:match("NW") then -- North (top center)
+    y = frame.y + 20 -- 20px padding from top edge
+  elseif position:match("S") and not position:match("SE") and not position:match("SW") then -- South (bottom center)
+    y = frame.y + frame.h - height - 20 -- 20px padding from bottom edge
+  elseif position:find("NW") or position:find("NE") then -- Northwest/Northeast (top corners)
+    y = frame.y + 20
+  elseif position:find("SW") or position:find("SE") then -- Southwest/Southeast (bottom corners)
+    y = frame.y + frame.h - height - 20
+  else -- Center or middle
+    y = frame.y + (frame.h - height) / 2
+  end
+
+  -- Apply additional offset (typically for SW position with program detection)
+  y = y - offset
+
+  return { x = x, y = y }
 end
 
 -- Check if Ghostty is frontmost and display is awake
@@ -333,12 +370,12 @@ end
 --   estimatedPromptLines = number,  -- for "above-prompt" mode
 --   includeProgram = boolean,  -- whether to prepend program name to title (default: true)
 -- }
-function M.sendCanvasNotification(title, message, duration, options)
+function M.sendCanvasNotification(title, message, duration, opts)
   duration = duration or config.defaultDuration or 5
-  options = options or {}
+  opts = opts or {}
 
   -- Optionally prepend program name to title
-  if options.includeProgram ~= false then -- default to true
+  if opts.includeProgram ~= false then -- default to true
     local program = M.getActiveProgram()
     if program then title = "[" .. program .. "] " .. title end
   end
@@ -358,7 +395,7 @@ function M.sendCanvasNotification(title, message, duration, options)
   end
 
   -- Show dimming overlay if requested
-  if options.dimBackground then M.showOverlay(options.dimAlpha or 0.6) end
+  if opts.dimBackground then M.showOverlay(opts.dimAlpha or 0.6) end
 
   -- Limit message to 3 lines, truncate with ellipsis if longer
   local lines = {}
@@ -387,36 +424,14 @@ function M.sendCanvasNotification(title, message, duration, options)
 
   local padding = 20
   local width = 420
-  local x, y
 
-  -- Check if using center-window or center-screen positioning
-  local posMode = options.positionMode
-  if posMode == "center-window" or posMode == "center-screen" then
-    local pos = M.calculatePosition(posMode, width, height)
-    if pos then
-      x = pos.x
-      y = pos.y
-    else
-      -- Fallback to default if calculatePosition returns nil
-      x = screenFrame.x + padding
-      y = screenFrame.h - height - padding
-    end
-  else
-    -- Default: Position at bottom-left of focused window (or screen if no window)
-    local focusedWin = hs.window.focusedWindow()
-    if focusedWin then
-      local winFrame = focusedWin:frame()
-      x = winFrame.x + padding
-      y = winFrame.y + winFrame.h - height - padding
-    else
-      -- Fallback to screen if no focused window
-      x = screenFrame.x + padding
-      y = screenFrame.h - height - padding
-    end
-  end
+  -- Get anchor and position from opts (with defaults)
+  local anchor = opts.anchor or "screen"
+  local position = opts.position or "SW"
 
-  -- Apply intelligent offset calculation (only for bottom-left positioning)
-  if not (posMode == "center-window" or posMode == "center-screen") then
+  -- Calculate intelligent offset for SW position in terminal
+  local offset = 0
+  if position == "SW" then
     local _, tmuxRunning = hs.execute("pgrep -x tmux")
     local frontmost = hs.application.frontmostApplication()
     local inTerminal = frontmost and (frontmost:bundleID() == TERMINAL or frontmost:name() == "Ghostty")
@@ -431,11 +446,15 @@ function M.sendCanvasNotification(title, message, duration, options)
       -- If tmuxShiftEnabled is true or nil (default), always apply offset in terminal
 
       if shouldApplyOffset then
-        local offset = M.calculateOffset(options)
-        y = y - offset
+        offset = M.calculateOffset(opts)
       end
     end
   end
+
+  -- Calculate position using new anchor + position system
+  local pos = M.calculatePosition(anchor, position, width, height, offset)
+  local x = pos.x
+  local y = pos.y
 
   -- Store final position for animation
   local finalY = y
@@ -505,31 +524,18 @@ function M.sendCanvasNotification(title, message, duration, options)
   local timestampHeight = 20
 
   -- All vertical positioning uses topPadding as the base reference
-  local contentY = topPadding  -- Single reference point for top alignment
+  local contentY = topPadding -- Single reference point for top alignment
   local textLeftMargin = leftPadding -- Default if no icon
 
-  -- Emoji icon (if provided, takes precedence over app icon)
-  if options.emojiIcon then
-    canvas:appendElements({
-      type = "text",
-      text = options.emojiIcon,
-      textSize = 40,
-      frame = { x = leftPadding + 4, y = contentY + 4, h = iconSize, w = iconSize },
-      textAlignment = "center",
-      id = "emojiIcon",
-    })
-    -- Adjust text position to make room for icon
-    textLeftMargin = leftPadding + iconSize + iconSpacing
-  -- App icon (if bundle ID provided)
-  elseif options.appBundleID then
+  if opts.appImageID then
     local appIcon
 
     -- Handle special icon markers
-    if options.appBundleID == "hal9000" then
+    if opts.appImageID == "hal9000" then
       local iconPath = hs.configdir .. "/assets/hal9000.png"
       appIcon = hs.image.imageFromPath(iconPath)
     else
-      appIcon = hs.image.imageFromAppBundle(options.appBundleID)
+      appIcon = hs.image.imageFromAppBundle(opts.appImageID)
     end
 
     if appIcon then
@@ -571,7 +577,12 @@ function M.sendCanvasNotification(title, message, duration, options)
     textColor = { red = 0.3, green = 0.3, blue = 0.3, alpha = 1.0 },
     textSize = 14,
     textFont = ".AppleSystemUIFont",
-    frame = { x = textLeftMargin, y = messageY, h = height - messageY - messageBottomSpace, w = width - textLeftMargin - rightPadding },
+    frame = {
+      x = textLeftMargin,
+      y = messageY,
+      h = height - messageY - messageBottomSpace,
+      w = width - textLeftMargin - rightPadding,
+    },
     textAlignment = "left",
     textLineBreak = "wordWrap",
     id = "message",
@@ -587,7 +598,12 @@ function M.sendCanvasNotification(title, message, duration, options)
     textColor = { red = 0.5, green = 0.5, blue = 0.5, alpha = 0.85 },
     textSize = 11,
     textFont = ".AppleSystemUIFont",
-    frame = { x = width - timestampWidth - rightPadding, y = height - timestampHeight - bottomPadding, h = timestampHeight, w = timestampWidth },
+    frame = {
+      x = width - timestampWidth - rightPadding,
+      y = height - timestampHeight - bottomPadding,
+      h = timestampHeight,
+      w = timestampWidth,
+    },
     textAlignment = "right",
     id = "timestamp",
     trackMouseDown = true,
@@ -598,7 +614,7 @@ function M.sendCanvasNotification(title, message, duration, options)
     if message == "mouseDown" then
       if id == "appIcon" then
         -- Click on app icon - activate/focus the app
-        if options.appBundleID then hs.application.launchOrFocusByBundleID(options.appBundleID) end
+        if opts.appBundleID then hs.application.launchOrFocusByBundleID(opts.appBundleID) end
         return true
       else
         -- Click anywhere else - dismiss notification
@@ -619,7 +635,7 @@ function M.sendCanvasNotification(title, message, duration, options)
   _G.activeNotificationCanvas = canvas
 
   -- Store source app bundle ID for auto-dismiss
-  _G.activeNotificationBundleID = options.appBundleID or nil
+  _G.activeNotificationBundleID = opts.appBundleID or nil
 
   -- Animate slide-up if enabled
   if animEnabled then
@@ -653,7 +669,7 @@ function M.sendCanvasNotification(title, message, duration, options)
       end
 
       -- Hide overlay with slight delay for smooth fadeout
-      if options.dimBackground then hs.timer.doAfter(0.5, function() M.hideOverlay() end) end
+      if opts.dimBackground then hs.timer.doAfter(0.5, function() M.hideOverlay() end) end
     end
   end)
 end
