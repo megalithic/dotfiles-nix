@@ -52,7 +52,10 @@ local function handleNotification(element)
   -- Process routing rules
   local rules = C.notifier.rules or {}
 
-  for _, rule in ipairs(rules) do
+  for _, ruleOrFn in ipairs(rules) do
+    -- Resolve rule: if it's a function, call it to get the rule table
+    local rule = type(ruleOrFn) == "function" and ruleOrFn() or ruleOrFn
+
     -- Quick app match (plain string search, not pattern)
     if stackingID:find(rule.app, 1, true) then
       -- Check sender if specified
@@ -70,7 +73,7 @@ local function handleNotification(element)
       end
 
       -- Rule matched! Log and execute action
-      U.log.df("→ %s: %s", rule.name, title or bundleID)
+      U.log.nf("%s: %s", rule.name, title or bundleID)
 
       -- Execute rule action with bundle ID
       local ok, err = pcall(function() rule.action(title, subtitle, message, stackingID, bundleID) end)

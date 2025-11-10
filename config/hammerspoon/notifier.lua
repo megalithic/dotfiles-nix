@@ -343,6 +343,15 @@ function M.sendCanvasNotification(title, message, duration, options)
     if program then title = "[" .. program .. "] " .. title end
   end
 
+  -- Check if we should redact notification content based on focus mode
+  local currentFocus = M.getCurrentFocusMode and M.getCurrentFocusMode() or nil
+  local shouldRedact = currentFocus == "Do Not Disturb" or currentFocus == "Work"
+
+  if shouldRedact then
+    -- Redact message content only (keep title visible)
+    message = "•••••••••••••••••••"
+  end
+
   -- Close any existing notification before showing new one
   if _G.activeNotificationCanvas then
     M.dismissNotification(0) -- Instant dismiss
@@ -453,13 +462,13 @@ function M.sendCanvasNotification(title, message, duration, options)
   canvas:appendElements({
     type = "rectangle",
     action = "fill",
-    fillColor = { red = 0.0, green = 0.0, blue = 0.0, alpha = 0.2 },
+    fillColor = { red = 0.0, green = 0.0, blue = 0.0, alpha = 0.3 },
     roundedRectRadii = { xRadius = 14, yRadius = 14 },
     frame = { x = "0.5%", y = "1%", h = "99%", w = "99%" },
     shadow = {
-      blurRadius = 15,
-      color = { red = 0.0, green = 0.0, blue = 0.0, alpha = 0.3 },
-      offset = { h = 4, w = 0 },
+      blurRadius = 25,
+      color = { red = 0.0, green = 0.0, blue = 0.0, alpha = 0.5 },
+      offset = { h = 6, w = 0 },
     },
   })
 
@@ -490,8 +499,10 @@ function M.sendCanvasNotification(title, message, duration, options)
   local iconSpacing = 10
   local topPadding = 8
   local rightPadding = 8
+  local bottomPadding = 8
   local titleHeight = 22
   local titleToMessageSpacing = 3
+  local timestampHeight = 20
 
   -- All vertical positioning uses topPadding as the base reference
   local contentY = topPadding  -- Single reference point for top alignment
@@ -553,13 +564,14 @@ function M.sendCanvasNotification(title, message, duration, options)
 
   -- Message text (positioned directly below title)
   local messageY = contentY + titleHeight + titleToMessageSpacing
+  local messageBottomSpace = timestampHeight + bottomPadding + 4 -- 4px spacing above timestamp
   canvas:appendElements({
     type = "text",
     text = message,
     textColor = { red = 0.3, green = 0.3, blue = 0.3, alpha = 1.0 },
     textSize = 14,
     textFont = ".AppleSystemUIFont",
-    frame = { x = textLeftMargin, y = messageY, h = height - messageY - 30, w = width - textLeftMargin - rightPadding },
+    frame = { x = textLeftMargin, y = messageY, h = height - messageY - messageBottomSpace, w = width - textLeftMargin - rightPadding },
     textAlignment = "left",
     textLineBreak = "wordWrap",
     id = "message",
@@ -572,10 +584,10 @@ function M.sendCanvasNotification(title, message, duration, options)
   canvas:appendElements({
     type = "text",
     text = timestamp,
-    textColor = { red = 0.6, green = 0.6, blue = 0.6, alpha = 0.7 },
+    textColor = { red = 0.5, green = 0.5, blue = 0.5, alpha = 0.85 },
     textSize = 11,
     textFont = ".AppleSystemUIFont",
-    frame = { x = width - timestampWidth - rightPadding, y = height - 22, h = 20, w = timestampWidth },
+    frame = { x = width - timestampWidth - rightPadding, y = height - timestampHeight - bottomPadding, h = timestampHeight, w = timestampWidth },
     textAlignment = "right",
     id = "timestamp",
     trackMouseDown = true,

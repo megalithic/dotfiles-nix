@@ -1,3 +1,9 @@
+local ok, mod_or_err = pcall(require, "preflight")
+if not ok then
+  error("Error preloading hammerspork; unable to continue...\n" .. mod_or_err)
+  return
+end
+
 local ok, mod_or_err = pcall(require, "config")
 if not ok then
   error("Error loading hammerspork config; unable to continue...\n" .. mod_or_err)

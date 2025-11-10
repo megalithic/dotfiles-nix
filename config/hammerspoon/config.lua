@@ -1,170 +1,4 @@
-local con = hs.console
-local wf = hs.window.filter
-local aw = hs.application.watcher
-local fmt = string.format
-
 local M = {}
--- local u = require("utils")
-
-hs.allowAppleScript(true)
-hs.application.enableSpotlightForNameSearches(false)
-hs.autoLaunch(true)
-hs.automaticallyCheckForUpdates(true)
-hs.menuIcon(true)
-hs.dockIcon(true)
-hs.logger.defaultLogLevel = "error"
-hs.hotkey.setLogLevel("error")
-hs.hotkey.setLogLevel(0) ---@diagnostic disable-line: undefined-field https://github.com/Hammerspoon/hammerspoon/issues/3491
-hs.keycodes.log.setLogLevel("error")
-hs.window.animationDuration = 0.0
-hs.window.highlight.ui.overlay = false
-hs.window.setShadows(false)
--- https://developer.apple.com/documentation/applicationservices/1459345-axuielementsetmessagingtimeout
-hs.window.timeout(0.5)
-hs.grid.setGrid("60x20")
-hs.grid.setMargins("0x0")
-
----------------------------------------------------------------------------------------------------
-DefaultFont = { name = "JetBrainsMono Nerd Font Mono", size = 18 }
-function Red(isDark)
-  if isDark then
-    -- return { red = 1, green = 0, blue = 0 }
-    return { hex = "#f6757c", alpha = 1 }
-  end
-  return { red = 0.7, green = 0, blue = 0 }
-end
-function Yellow(isDark)
-  if isDark then return { red = 1, green = 1, blue = 0 } end
-  return { red = 0.7, green = 0.5, blue = 0 }
-end
-function Orange(isDark) return { hex = "#ef9672", alpha = 1 } end
-function Green(isDark) return { hex = "#a7c080", alpha = 1 } end
-function Base(isDark)
-  if isDark then return { white = 0.6 } end
-  return { white = 0.1 }
-end
-function Grey(isDark)
-  if isDark then
-    -- return { white = 0.45 }
-    return { hex = "#444444", alpha = 1 }
-  end
-  return { white = 0.55 }
-end
-function Blue(isDark)
-  if isDark then
-    -- return { red = 0, green = 0.7, blue = 1 }
-    return { hex = "#51afef", alpha = 0.65 }
-  end
-  return { red = 0, green = 0.1, blue = 0.5 }
-end
-con.titleVisibility("hidden")
-con.toolbar(nil)
-hs.consoleOnTop(false) -- buggy?
-con.darkMode(true)
-con.consoleFont(DefaultFont)
-con.alpha(0.985)
-local darkGrayColor = { red = 26 / 255, green = 28 / 255, blue = 39 / 255, alpha = 1.0 }
-local whiteColor = { white = 1.0, alpha = 1.0 }
-local lightGrayColor = { white = 1.0, alpha = 0.9 }
-local grayColor = { red = 24 * 4 / 255, green = 24 * 4 / 255, blue = 24 * 4 / 255, alpha = 1.0 }
-con.outputBackgroundColor(darkGrayColor)
--- con.outputBackgroundColor({ hex = "#2c353d" })
-con.consoleCommandColor(whiteColor)
-con.consoleResultColor(lightGrayColor)
-con.consolePrintColor(grayColor)
----filter console entries, removing logging for enabling/disabling hotkeys,
----useless layout info or warnings, or info on extension loading.
--- HACK to fix https://www.reddit.com/r/hammerspoon/comments/11ao9ui/how_to_suppress_logging_for_hshotkeyenable/
-function M.cleanupConsole()
-  local col = hs.console
-  local consoleOutput = tostring(col.getConsole())
-  col.clearConsole()
-  local lines = hs.fnutils.split(consoleOutput, "\n+")
-  if not lines then return end
-
-  local isDark = true --U.isDarkMode()
-
-  for _, line in ipairs(lines) do
-    -- remove some lines
-    local ignore = line:find("Loading extensions?: ")
-      or line:find("Lazy extension loading enabled$")
-      or line:find("Loading Spoon: RoundedCorners$")
-      or line:find("Loading .*/init.lua$")
-      or line:find("hs%.canvas:delete")
-      or line:find("%-%- Done%.$")
-      or line:find("wfilter: .* is STILL not registered") -- FIX https://github.com/Hammerspoon/hammerspoon/issues/3462
-
-    -- colorize timestamp & error levels
-    if not ignore then
-      local timestamp, msg = line:match("(%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d: )(.*)")
-      if not msg then msg = line end -- msg without timestamp
-      msg = msg
-        :gsub("^%s-%d%d:%d%d:%d%d:? ", "") -- remove duplicate timestamp
-        :gsub("^%s*", "")
-
-      local color
-      local lmsg = msg:lower()
-      if msg:find("^> ") then -- user input
-        color = Blue(isDark)
-      elseif lmsg:find("error") or lmsg:find("fatal") then
-        color = Red(isDark)
-      elseif lmsg:find("ok") or lmsg:find("success") then
-        color = Green(isDark)
-      elseif lmsg:find("warn") or lmsg:find("warning") or msg:find("stack traceback") or lmsg:find("abort") then
-        color = Orange(isDark)
-      else
-        color = grayColor
-      end
-
-      local coloredLine = hs.styledtext.new(msg, { color = color, font = DefaultFont })
-      if timestamp then
-        local time = hs.styledtext.new(timestamp, { color = Grey(isDark), font = DefaultFont })
-        col.printStyledtext(time, coloredLine)
-      else
-        col.printStyledtext(coloredLine)
-      end
-    end
-  end
-end
-
--- clean up console as soon as it is opened
--- M.wf_hsConsole = wf.new("Hammerspoon"):subscribe(wf.windowFocused, function()
---   u.defer(0.1, M.cleanupConsole)
--- end)
--- M.aw_hsConsole = aw.new(function(appName, eventType)
---   if eventType == aw.activated and appName == "Hammerspoon" then
---     u.defer(0.1, M.cleanupConsole)
---   end
--- end):start()
--- Insert a separator in the console log every day at midnight
--- M.timer_dailyConsoleSeparator = hs.timer
---   .doAt("00:01", "01d", function() -- `00:01` to ensure date switched to the next day
---     local date = os.date("%a, %d. %b")
--- 		-- stylua: ignore
--- 		print(("\n------------------------- %s -----------------------------\n"):format(date))
---   end, true)
---   :start()
----------------------------------------------------------------------------------------------------
-
-hs.alert.defaultStyle["textSize"] = 24
-hs.alert.defaultStyle["radius"] = 10
-hs.alert.defaultStyle["strokeColor"] = {
-  white = 1,
-  alpha = 0.3,
-}
-hs.alert.defaultStyle["fillColor"] = {
-  red = 9 / 255,
-  green = 8 / 255,
-  blue = 32 / 255,
-  alpha = 0.9,
-}
-hs.alert.defaultStyle["textColor"] = {
-  red = 209 / 255,
-  green = 236 / 255,
-  blue = 240 / 255,
-  alpha = 1,
-}
-hs.alert.defaultStyle["textFont"] = DefaultFont.name
 
 HYPER = "F19"
 
@@ -175,170 +9,59 @@ TERMINAL = "com.mitchellh.ghostty"
 ---@field name string                   # Human-readable name for the rule
 ---@field app string                    # Bundle ID or stacking ID to match
 ---@field senders? string[]             # Optional: list of sender names to match (exact match)
----@field priority? "low"|"normal"|"high" # Base priority level (default: "normal")
+---@field patterns? table<"low"|"normal"|"high", string[]> # Patterns mapped to priorities (default: normal if no match)
 ---@field duration? number              # How long to show notification in seconds
----@field criticalPatterns? string[]    # Lua patterns that escalate priority to "high"
 ---@field alwaysShowInTerminal? boolean # Show even when terminal is focused (high priority only)
 ---@field showWhenAppFocused? boolean   # Show even when source app is focused (high priority only)
 ---@field allowedFocusModes? (string|nil)[] # Focus modes where notification is allowed (nil = no focus mode)
 ---@field appBundleID? string           # Override bundle ID for icon display
 ---@field action fun(title: string, subtitle: string, message: string, stackingID: string, bundleID: string) # Action to execute when rule matches
 
----Processes a notification according to rule configuration
----Handles critical pattern matching, focus mode checks, priority logic, and rendering
----@param rule NotificationRule The notification rule configuration
----@param title string Notification title
----@param subtitle string Notification subtitle (may be empty)
----@param message string Notification message body
----@param stackingID string Full stacking identifier from notification center
----@param bundleID string Parsed bundle ID from stacking identifier
-local function processNotificationRule(rule, title, subtitle, message, stackingID, bundleID)
-  local notify = require("notifier")
-  local timestamp = os.time()
-
-  -- Check if message contains critical patterns
-  local isCritical = false
-  if rule.criticalPatterns and message then
-    for _, pattern in ipairs(rule.criticalPatterns) do
-      if message:find(pattern) then
-        isCritical = true
-        U.log.w(string.format("Critical pattern matched: '%s' in message from %s", pattern, title))
-        break
-      end
-    end
-  end
-
-  -- Determine effective priority
-  local effectivePriority = isCritical and "high" or (rule.priority or "normal")
-
-  -- Check focus mode (if allowedFocusModes is defined)
-  local currentFocus = notify.getCurrentFocusMode and notify.getCurrentFocusMode() or nil
-  local focusAllowed = true
-
-  if rule.allowedFocusModes and #rule.allowedFocusModes > 0 then
-    focusAllowed = false
-    for _, allowed in ipairs(rule.allowedFocusModes) do
-      if allowed == currentFocus then
-        focusAllowed = true
-        break
-      end
-    end
-  end
-
-  if not focusAllowed then
-    NotifyDB.log({
-      timestamp = timestamp,
-      rule_name = rule.name,
-      app_id = stackingID,
-      sender = title,
-      subtitle = subtitle,
-      message = message,
-      action_taken = "blocked_by_focus",
-      focus_mode = currentFocus,
-      shown = false,
-    })
-    -- Update menubar indicator
-    if NotifyMenubar then
-      NotifyMenubar.update()
-    end
-    return
-  end
-
-  -- Check priority-based app focus rules (only for high priority)
-  if effectivePriority == "high" then
-    local priorityCheck = notify.shouldShowHighPriority(bundleID, {
-      alwaysShowInTerminal = rule.alwaysShowInTerminal,
-      showWhenAppFocused = rule.showWhenAppFocused,
-    })
-
-    if not priorityCheck.shouldShow then
-      NotifyDB.log({
-        timestamp = timestamp,
-        rule_name = rule.name,
-        app_id = stackingID,
-        sender = title,
-        subtitle = subtitle,
-        message = message,
-        action_taken = "blocked_" .. priorityCheck.reason,
-        focus_mode = currentFocus,
-        shown = false,
-      })
-      -- Update menubar indicator
-      if NotifyMenubar then
-        NotifyMenubar.update()
-      end
-      return
-    end
-  end
-
-  -- Determine notification config based on priority
-  local duration = rule.duration or (effectivePriority == "high" and 15 or effectivePriority == "low" and 3 or 10)
-  local notifConfig = {}
-
-  -- Use rule's appBundleID if specified, otherwise use the actual bundleID
-  local iconBundleID = rule.appBundleID or bundleID
-
-  if effectivePriority == "high" then
-    notifConfig = {
-      positionMode = "center-window",
-      dimBackground = true,
-      dimAlpha = 0.6,
-      includeProgram = false,
-      appBundleID = iconBundleID,
-      priority = "high",
-    }
-  else
-    notifConfig = {
-      positionMode = "auto",
-      dimBackground = false,
-      includeProgram = false,
-      appBundleID = iconBundleID,
-      priority = effectivePriority,
-    }
-  end
-
-  -- Show notification
-  notify.sendCanvasNotification(title, message, duration, notifConfig)
-
-  -- Log to database
-  NotifyDB.log({
-    timestamp = timestamp,
-    rule_name = rule.name,
-    app_id = stackingID,
-    sender = title,
-    subtitle = subtitle,
-    message = message,
-    action_taken = effectivePriority == "high" and "shown_center_dimmed" or "shown_bottom_left",
-    focus_mode = currentFocus,
-    shown = true,
-  })
-end
-
 M.notifier = {
   rules = {
     -- Notification Routing Rules
     -- Rules are evaluated in order. First match wins.
-    (function()
+    -- Rules can be either:
+    --   1. A table (for simple static rules)
+    --   2. A function that returns a table (for dynamic rules with closures)
+    function()
       local rule = {
         name = "Important Messages - Abby",
         app = "com.apple.MobileSMS",
         senders = { "Abby Messer" },
-        priority = "normal",
         duration = 15,
-        criticalPatterns = {
-          "%?", "👋", "❓", "‼️", "⚠️",
-          "urgent", "asap", "emergency",
-          "!+$", "%?+$",
+        patterns = {
+          high = {
+            "%?",
+            "👋",
+            "❓",
+            "‼️",
+            "⚠️",
+            "urgent",
+            "asap",
+            "emergency",
+            "!+$",
+            "%?+$",
+          },
+          low = {
+            "brb",
+            "k",
+            "ok",
+            "👍",
+            "lol",
+          },
+          -- Everything else defaults to "normal"
         },
         alwaysShowInTerminal = true,
         showWhenAppFocused = false,
         allowedFocusModes = { nil, "Personal" },
       }
       rule.action = function(title, subtitle, message, stackingID, bundleID)
-        processNotificationRule(rule, title, subtitle, message, stackingID, bundleID)
+        local NotificationProcessor = require("notification")
+        NotificationProcessor.processRule(rule, title, subtitle, message, stackingID, bundleID)
       end
       return rule
-    end)(),
+    end,
 
     -- Example: All other Messages notifications (lower priority)
     {
@@ -363,43 +86,73 @@ M.notifier = {
     },
 
     -- AI Agent Notifications (from bin/notifier via hs.notify)
-    (function()
+    function()
       local rule = {
         name = "AI Agent Notifications",
         app = "org.hammerspoon.Hammerspoon",
-        priority = "normal",
         duration = 10,
-        criticalPatterns = {
-          "error", "failed", "critical", "urgent",
-          "question", "%?",
-          "!!!", "‼️", "⚠️",
+        patterns = {
+          high = {
+            "error",
+            "failed",
+            "critical",
+            "urgent",
+            "question",
+            "%?",
+            "!!!",
+            "‼️",
+            "⚠️",
+          },
+          low = {
+            "info",
+            "debug",
+            "starting",
+            "completed",
+            "finished",
+          },
+          -- Everything else defaults to "normal"
         },
         alwaysShowInTerminal = true,
         showWhenAppFocused = false,
         allowedFocusModes = { nil, "Personal", "Work" },
-        -- Use HAL 9000 icon path
-        appBundleID = "hal9000",  -- Special marker for HAL icon
+        appBundleID = "hal9000", -- Special marker for HAL icon
       }
       rule.action = function(title, subtitle, message, stackingID, bundleID)
-        processNotificationRule(rule, title, subtitle, message, stackingID, bundleID)
+        local NotificationProcessor = require("notification")
+        NotificationProcessor.processRule(rule, title, subtitle, message, stackingID, bundleID)
       end
       return rule
-    end)(),
+    end,
 
-    -- Example: Low priority notifications
-    (function()
+    -- Example: Build notifications with pattern-based priority
+    function()
       local rule = {
-        name = "Task Completions - Low Priority",
-        app = "com.example.taskapp",
-        priority = "low",
-        duration = 3,
-        -- No allowedFocusModes = always show
+        name = "Build System Notifications",
+        app = "com.example.buildapp",
+        duration = 5,
+        patterns = {
+          high = {
+            "failed",
+            "error",
+            "fatal",
+            "broke",
+          },
+          low = {
+            "started",
+            "building",
+            "compiling",
+            "running",
+          },
+          -- "succeeded", "completed" = normal (default)
+        },
+        allowedFocusModes = { nil, "Work" },
       }
       rule.action = function(title, subtitle, message, stackingID, bundleID)
-        processNotificationRule(rule, title, subtitle, message, stackingID, bundleID)
+        local NotificationProcessor = require("notification")
+        NotificationProcessor.processRule(rule, title, subtitle, message, stackingID, bundleID)
       end
       return rule
-    end)(),
+    end,
   },
   config = {
     -- Notification positioning configuration
@@ -789,113 +542,5 @@ M.dock = {
     output = "megabose",
   },
 }
-
-if not hs.ipc.cliStatus() then hs.ipc.cliInstall() end
-require("hs.ipc")
-
-pcall(require, "nix_path")
-NIX_PATH = NIX_PATH or nil
-if NIX_PATH then
-  PATH = table.concat({ NIX_PATH, "/opt/homebrew/bin", os.getenv("PATH") }, ":")
-else
-  PATH = table.concat({ "/opt/homebrew/bin", os.getenv("PATH") }, ":")
-end
-
---- Created by muescha.
---- DateTime: 15.10.24
---- See: https://github.com/Hammerspoon/hammerspoon/issues/3224#issuecomment-2155567633
---- https://github.com/Hammerspoon/hammerspoon/issues/3277
--- local function axHotfix(win, infoText)
---   if not win then
---     win = hs.window.frontmostWindow()
---   end
---   if not infoText then
---     infoText = "?"
---   end
---
---   local axApp = hs.axuielement.applicationElement(win:application())
---   local wasEnhanced = axApp.AXEnhancedUserInterface
---   axApp.AXEnhancedUserInterface = false
---   -- print(" enable hotfix: " .. infoText)
---
---   return function()
---     hs.timer.doAfter(hs.window.animationDuration * 2, function()
---       -- print("disable hotfix: " .. infoText)
---       axApp.AXEnhancedUserInterface = wasEnhanced
---     end)
---   end
--- end
---
--- local function withAxHotfix(fn, position, infoText)
---   if not position then
---     position = 1
---   end
---   return function(...)
---     local revert = axHotfix(select(position, ...), infoText)
---     fn(...)
---     revert()
---   end
--- end
---
--- local windowMT = hs.getObjectMetatable("hs.window")
--- windowMT.setFrame = withAxHotfix(windowMT.setFrame, 1, "setFrame")
-
---- REF: https://github.com/skrypka/hammerspoon_config/blob/master/init.lua#L26C1-L51C56
-local function axHotfix(win)
-  if not win then win = hs.window.frontmostWindow() end
-
-  local axApp = hs.axuielement.applicationElement(win:application())
-  local wasEnhanced = axApp.AXEnhancedUserInterface
-  axApp.AXEnhancedUserInterface = false
-
-  return function()
-    hs.timer.doAfter(hs.window.animationDuration * 2, function() axApp.AXEnhancedUserInterface = wasEnhanced end)
-  end
-end
-
-local function withAxHotfix(fn, position)
-  if not position then position = 1 end
-  return function(...)
-    local revert = axHotfix(select(position, ...))
-    fn(...)
-    revert()
-  end
-end
-
-local windowMT = hs.getObjectMetatable("hs.window")
-windowMT.maximize = withAxHotfix(windowMT.maximize)
-windowMT.moveToUnit = withAxHotfix(windowMT.moveToUnit)
-
-function Windows(appString)
-  local app
-  if appString ~= nil and type(appString) == "string" then app = hs.application.find(appString) end
-
-  local windows = app == nil and hs.window.allWindows() or app:allWindows()
-
-  hs.fnutils.each(windows, function(win)
-    U.log.i(fmt("[WIN] %s (%s)", win:title(), win:application():bundleID()))
-    U.log.n(I({
-      id = win:id(),
-      title = win:title(),
-      app = win:application():name(),
-      bundleID = win:application():bundleID(),
-      role = win:role(),
-      subrole = win:subrole(),
-      frame = win:frame(),
-      isFullScreen = win:isFullScreen(),
-      isStandard = win:isStandard(),
-      isMinimized = win:isMinimized(),
-      -- buttonZoom       = axuiWindowElement(win):attributeValue('AXZoomButton'),
-      -- buttonFullScreen = axuiWindowElement(win):attributeValue('AXFullScreenButton'),
-      -- isResizable      = axuiWindowElement(win):isAttributeSettable('AXSize')
-    }))
-
-    return win
-  end)
-
-  if app then return app end
-
-  return windows
-end
 
 return M

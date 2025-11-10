@@ -15,6 +15,8 @@ M.debug = true
 M.dndCmd = os.getenv("HOME") .. "/.dotfiles-nix/bin/dnd"
 M.slckCmd = os.getenv("HOME") .. "/.dotfiles-nix/bin/slck"
 
+function M.bin(cmd) return string.format([[%s/.dotfiles-nix/bin/%s]], os.getenv("HOME"), cmd) end
+
 function M.run(cmd, use_env)
   local output = hs.execute(cmd, use_env)
   return string.gsub(output, "^%s*(.-)%s*$", "%1")
@@ -48,28 +50,20 @@ M.log = setmetatable({}, {
 
     -- Special case: 'f' alone defaults to INFO with formatting
     if key == "f" then
-      return function(...)
-        M.logger(string.format(...), "INFO")
-      end
+      return function(...) M.logger(string.format(...), "INFO") end
     end
 
     -- Look up the log level
     local level = log_level_map[level_key]
-    if not level then
-      error(string.format("Unknown log level: %s", key))
-    end
+    if not level then error(string.format("Unknown log level: %s", key)) end
 
     -- Return appropriate function (formatted or plain)
     if is_formatted then
-      return function(...)
-        M.logger(string.format(...), level)
-      end
+      return function(...) M.logger(string.format(...), level) end
     else
-      return function(m)
-        M.logger(m, level)
-      end
+      return function(m) M.logger(m, level) end
     end
-  end
+  end,
 })
 
 function M.logger(msg, level)
@@ -115,7 +109,7 @@ function M.logger(msg, level)
           .. w.linedefined
           .. ") => ["
           .. fname
-          .. "]"
+          .. "] "
           .. tostring(msg),
         {
           color = { hex = "#dddddd", alpha = 1 },
@@ -136,24 +130,12 @@ function M.logger(msg, level)
   end
 
   local lg = {
-    n = function(m)
-      M.log(m, "NOTE")
-    end,
-    i = function(m)
-      M.log(m, "INFO")
-    end,
-    w = function(m)
-      M.log(m, "WARN")
-    end,
-    e = function(m)
-      M.log(m, "ERROR")
-    end,
-    d = function(m)
-      M.log(m, "DEBUG")
-    end,
-    o = function(m)
-      M.log(m, "OK")
-    end,
+    n = function(m) M.log(m, "NOTE") end,
+    i = function(m) M.log(m, "INFO") end,
+    w = function(m) M.log(m, "WARN") end,
+    e = function(m) M.log(m, "ERROR") end,
+    d = function(m) M.log(m, "DEBUG") end,
+    o = function(m) M.log(m, "OK") end,
   }
 
   return setmetatable(lg, {
@@ -173,9 +155,7 @@ function M.logger(msg, level)
   })
 end
 
-function M.template(template, vars)
-  return string.gsub(template, "{(.-)}", vars)
-end
+function M.template(template, vars) return string.gsub(template, "{(.-)}", vars) end
 
 --- utils.scriptPath([n]) -> string
 --- Function
@@ -187,9 +167,7 @@ end
 --- Returns:
 ---  * String with the path from where the calling code was loaded.
 function M.scriptPath(n)
-  if n == nil then
-    n = 2
-  end
+  if n == nil then n = 2 end
   local str = debug.getinfo(n, "S").source:sub(2)
   return str:match("(.*/)")
 end
@@ -203,16 +181,12 @@ end
 ---
 --- Returns:
 ---  * Absolute path of the file. Note: no existence or other checks are done on the path.
-function M.resourcePath(partial)
-  return (M.scriptPath(3) .. partial)
-end
+function M.resourcePath(partial) return (M.scriptPath(3) .. partial) end
 
 function M.eventString(e)
   local a = hs.application.watcher
 
-  if type(e) == "string" then
-    return e
-  end
+  if type(e) == "string" then return e end
 
   local enum_tbl = {
     [0] = { "launching", a.launching },
@@ -250,13 +224,9 @@ function M.truncate(str, width, at_tail)
   -- @usage ('1234567890'):shorten(8, true) == '...67890'
   -- @usage ('1234567890'):shorten(20) == '1234567890'
   local function shorten(s, w, tail)
-    if s == nil then
-      return ""
-    end
+    if s == nil then return "" end
     if #s > w then
-      if w < n_ellipsis then
-        return ellipsis:sub(1, w)
-      end
+      if w < n_ellipsis then return ellipsis:sub(1, w) end
       if tail then
         local i = #s - w + 1 + n_ellipsis
         return ellipsis .. s:sub(i)
@@ -272,22 +242,12 @@ end
 
 ---@param status boolean|string|nil dnd status on or off as a boolean to pass to the dnd binary
 function M.dnd(status)
-  if type(status) == "boolean" then
-    status = status and "on" or "off"
-  end
+  if type(status) == "boolean" then status = status and "on" or "off" end
 
   if status ~= nil then
-    hs.task
-      .new(M.dndCmd, function(_exitCode, _stdOut, _stdErr)
-        M.log.i("[RUN] dnd/" .. status)
-      end, { status })
-      :start()
+    hs.task.new(M.dndCmd, function(_exitCode, _stdOut, _stdErr) M.log.i("[RUN] dnd/" .. status) end, { status }):start()
   else
-    hs.task
-      .new(M.dndCmd, function(_exitCode, _stdOut, _stdErr)
-        M.log.i("[RUN] dnd/toggle")
-      end, { "toggle" })
-      :start()
+    hs.task.new(M.dndCmd, function(_exitCode, _stdOut, _stdErr) M.log.i("[RUN] dnd/toggle") end, { "toggle" }):start()
   end
 end
 
@@ -416,9 +376,7 @@ function M.tmux.focusDailyNote(splitFocusedWindow)
 
     term:activate()
 
-    hs.timer.waitUntil(function()
-      return term:isFrontmost()
-    end, function()
+    hs.timer.waitUntil(function() return term:isFrontmost() end, function()
       -- mimics pressing the tmux prefix `ctrl-space`,
       hs.eventtap.keyStroke({ "ctrl" }, "space", 10000, term)
       -- then the daily note binding, `ctrl-o`,
@@ -434,21 +392,15 @@ function M.tmux.focusDailyNote(splitFocusedWindow)
 end
 
 -- Takes a list of path parts, returns a string with the parts delimited by '/'
-function M.file.toPath(...)
-  return table.concat({ ... }, "/")
-end
+function M.file.toPath(...) return table.concat({ ... }, "/") end
 
 function M.file.splitPath(file)
   -- Splits a string by '/', returning the parent dir, filename (with extension),
   -- and the extension alone.
   local parent = file:match("(.+)/[^/]+$")
-  if parent == nil then
-    parent = "."
-  end
+  if parent == nil then parent = "." end
   local filename = file:match("/([^/]+)$")
-  if filename == nil then
-    filename = file
-  end
+  if filename == nil then filename = file end
   local ext = filename:match("%.([^.]+)$")
   return parent, filename, ext
 end
@@ -471,13 +423,9 @@ function M.file.runOnFiles(path, callback)
   local files = {}
   repeat
     local item = iter(data)
-    if item ~= nil then
-      table.insert(files, M.file.toPath(path, item))
-    end
+    if item ~= nil then table.insert(files, M.file.toPath(path, item)) end
   until item == nil
-  if #files > 0 then
-    callback(files)
-  end
+  if #files > 0 then callback(files) end
 end
 
 -- Make a parent dir for a file. Does not error if it exists already.
@@ -485,25 +433,19 @@ function M.file.makeParentDir(path)
   local parent, _, _ = M.file.splitPath(path)
   local ok, err = hs.fs.mkdir(parent)
   if ok == nil then
-    if err == "File exists" then
-      ok = true
-    end
+    if err == "File exists" then ok = true end
   end
   return ok, err
 end
 
 -- Create a file (making parent directories if necessary).
 function M.file.create(path)
-  if M.file.makeParentDir(path) then
-    io.open(path, "w"):close()
-  end
+  if M.file.makeParentDir(path) then io.open(path, "w"):close() end
 end
 
 -- Append a line of text to a file.
 function M.file.append(file, text)
-  if text == "" then
-    return
-  end
+  if text == "" then return end
 
   local f = io.open(file, "a")
   f:write(tostring(text) .. "\n")
@@ -524,9 +466,7 @@ function M.file.move(from, to, force, onSuccess, onFailure)
     end
   end
 
-  if M.file.exists(from) then
-    hs.task.new("/bin/mv", callback, { force, from, to }):start()
-  end
+  if M.file.exists(from) then hs.task.new("/bin/mv", callback, { force, from, to }):start() end
 end
 
 -- If the given file is older than the given time (in epoch seconds), return
@@ -534,30 +474,22 @@ end
 -- time.
 function M.file.isOlderThan(file, seconds)
   local age = os.time() - hs.fs.attributes(file, "change")
-  if age > seconds then
-    return true
-  end
+  if age > seconds then return true end
   return false
 end
 
 -- Return the last modified time of a file in epoch seconds.
 function M.file.lastModified(file)
   local when = os.time()
-  if M.file.exists(file) then
-    when = hs.fs.attributes(file, "modification")
-  end
+  if M.file.exists(file) then when = hs.fs.attributes(file, "modification") end
   return when
 end
 
 function M.file.moveFileToPath(file, toPath)
   -- move a given file to toPath, overwriting the destination, with logging
-  local function onFileMoveSuccess(_)
-    info("Moved " .. file .. " to " .. toPath)
-  end
+  local function onFileMoveSuccess(_) info("Moved " .. file .. " to " .. toPath) end
 
-  local function onFileMoveFailure(stdErr)
-    error("Error moving " .. file .. " to " .. toPath .. ": " .. stdErr)
-  end
+  local function onFileMoveFailure(stdErr) error("Error moving " .. file .. " to " .. toPath .. ": " .. stdErr) end
 
   M.file.makeParentDir(toPath)
   M.file.move(file, toPath, true, onFileMoveSuccess, onFileMoveFailure)
@@ -637,16 +569,10 @@ M.app.find = M.app.get
 ---@nodiscard
 ---@return boolean true when *one* of the apps is frontmost
 function M.app.isFront(appNames)
-  if appNames == nil then
-    return false
-  end
-  if type(appNames) == "string" then
-    appNames = { appNames }
-  end
+  if appNames == nil then return false end
+  if type(appNames) == "string" then appNames = { appNames } end
   for _, name in pairs(appNames) do
-    if M.app.get(name) and M.app.get(name):isFrontmost() then
-      return true
-    end
+    if M.app.get(name) and M.app.get(name):isFrontmost() then return true end
   end
   return false
 end
@@ -655,14 +581,10 @@ end
 ---@nodiscard
 ---@return boolean true when all apps are running
 function M.app.isRunning(appNames)
-  if type(appNames) == "string" then
-    appNames = { appNames }
-  end
+  if type(appNames) == "string" then appNames = { appNames } end
   local allAreRunning = true
   for _, name in pairs(appNames) do
-    if not M.app.get(name) then
-      allAreRunning = false
-    end
+    if not M.app.get(name) then allAreRunning = false end
   end
   return allAreRunning
 end
@@ -680,22 +602,16 @@ end
 
 ---@param appNames string|string[]
 function M.app.open(appNames)
-  if type(appNames) == "string" then
-    appNames = { appNames }
-  end
+  if type(appNames) == "string" then appNames = { appNames } end
   for _, name in pairs(appNames) do
     local runs = M.app.get(name) ~= nil
-    if not runs then
-      hs.application.open(name)
-    end
+    if not runs then hs.application.open(name) end
   end
 end
 
 ---@param appNames string|string[]
 function M.app.quit(appNames)
-  if type(appNames) == "string" then
-    appNames = { appNames }
-  end
+  if type(appNames) == "string" then appNames = { appNames } end
   for _, name in pairs(appNames) do
     local appObj = M.app.get(name)
     if appObj then
@@ -722,15 +638,11 @@ end
 ---@param delaySecs number|number[]
 ---@param callbackFn function
 function M.defer(delaySecs, callbackFn)
-  if type(delaySecs) == "number" then
-    delaySecs = { delaySecs }
-  end
+  if type(delaySecs) == "number" then delaySecs = { delaySecs } end
   for _, delay in pairs(delaySecs) do
     M.defer_timer_idx = (M.defer_timer_idx or 0) + 1
     M[M.defer_timer_idx] = hs.timer.doAfter(delay, callbackFn):start()
-    if M.defer_timer_idx > 30 then
-      M.defer_timer_idx = 0
-    end
+    if M.defer_timer_idx > 30 then M.defer_timer_idx = 0 end
   end
 end
 
@@ -750,9 +662,7 @@ function M.notify(...)
     local safeArg = (type(arg) == "table") and hs.inspect(arg) or tostring(arg)
     return safeArg
   end)
-  if not args then
-    return
-  end
+  if not args then return end
   local out = table.concat(args, " ")
   hs.notify.show("Hammerspoon", "", out)
   print("💬 " .. out)

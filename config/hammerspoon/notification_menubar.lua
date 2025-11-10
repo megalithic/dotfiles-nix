@@ -1,5 +1,5 @@
 -- Notification Menubar Indicator
--- Shows blocked high/critical notifications with pulsing red indicator
+-- Shows notifications blocked by focus mode only (not other suppression reasons)
 
 local M = {}
 local fmt = string.format
@@ -41,8 +41,8 @@ end
 function M.update()
   if not M.menubar then return end
 
-  -- Get blocked notifications
-  local blocked = NotifyDB.getBlockedHighPriority()
+  -- Get notifications blocked by focus mode
+  local blocked = NotifyDB.getBlockedByFocus()
   local count = #blocked
 
   if count > 0 then
@@ -72,7 +72,7 @@ function M.startPulse()
   M.pulseTimer = hs.timer.doEvery(0.5, function()
     if not M.menubar or not M.isShowing then return end
 
-    local blocked = NotifyDB.getBlockedHighPriority()
+    local blocked = NotifyDB.getBlockedByFocus()
     local count = #blocked
 
     if count > 0 then
@@ -97,7 +97,7 @@ end
 
 -- Build menu with notification list
 function M.buildMenu()
-  local blocked = NotifyDB.getBlockedHighPriority()
+  local blocked = NotifyDB.getBlockedByFocus()
   local menu = {}
 
   if #blocked == 0 then
@@ -108,7 +108,7 @@ function M.buildMenu()
   else
     -- Add header
     table.insert(menu, {
-      title = fmt("Blocked Notifications (%d)", #blocked),
+      title = fmt("Blocked by Focus Mode (%d)", #blocked),
       disabled = true,
     })
     table.insert(menu, { title = "-" }) -- Separator

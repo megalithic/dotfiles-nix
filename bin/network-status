@@ -4,13 +4,14 @@
 # for Wi-Fi and actively connected Thunderbolt Ethernet interfaces
 #
 # Usage:
-#   network-status              # Show full report
-#   network-status -d wifi      # Get device for connected wifi
+#   network-status                  # Show full report
+#   network-status -d wifi          # Get device for connected wifi
+#   network-status -f -d wifi       # Get device for wifi (even if not connected)
 #   network-status --device ethernet  # Get device for connected ethernet
-#   network-status -n wifi      # Get service name for connected wifi
-#   network-status --name ethernet    # Get service name for connected ethernet
-#   network-status -f wifi      # Show full report for just wifi
-#   network-status --full ethernet    # Show full report for just ethernet
+#   network-status -n wifi          # Get service name for connected wifi
+#   network-status -f -n ethernet   # Get service name for ethernet (even if not connected)
+#   network-status -r wifi          # Show full report for just wifi
+#   network-status --report ethernet  # Show full report for just ethernet
 
 # Function to parse network services and their devices
 # Output format: "Service Name|Device"
@@ -82,6 +83,7 @@ is_connected() {
 # Function to find device by fuzzy/regex matching the service name
 find_device_by_name() {
     local search_term="$1"
+    local force="${2:-false}"
     local all_services=$(get_all_network_services)
 
     # Convert search term to lowercase and remove non-alphanumeric chars for fuzzy matching
@@ -94,7 +96,12 @@ find_device_by_name() {
 
         # Check if search term is contained in service name (fuzzy match)
         if [[ "$service_normalized" =~ $search_normalized ]]; then
-            # Check if this service is connected
+            # If force mode, return device regardless of connection status
+            if [[ "$force" == "true" ]]; then
+                echo "$device"
+                return 0
+            fi
+            # Otherwise, check if this service is connected
             if is_connected "$service_name" "$device"; then
                 echo "$device"
                 return 0
@@ -102,13 +109,14 @@ find_device_by_name() {
         fi
     done <<< "$all_services"
 
-    # No matching connected service found
+    # No matching service found
     return 1
 }
 
 # Function to find service name by fuzzy/regex matching
 find_service_name() {
     local search_term="$1"
+    local force="${2:-false}"
     local all_services=$(get_all_network_services)
 
     # Convert search term to lowercase and remove non-alphanumeric chars for fuzzy matching
@@ -121,7 +129,12 @@ find_service_name() {
 
         # Check if search term is contained in service name (fuzzy match)
         if [[ "$service_normalized" =~ $search_normalized ]]; then
-            # Check if this service is connected
+            # If force mode, return service name regardless of connection status
+            if [[ "$force" == "true" ]]; then
+                echo "$service_name"
+                return 0
+            fi
+            # Otherwise, check if this service is connected
             if is_connected "$service_name" "$device"; then
                 echo "$service_name"
                 return 0
@@ -129,7 +142,7 @@ find_service_name() {
         fi
     done <<< "$all_services"
 
-    # No matching connected service found
+    # No matching service found
     return 1
 }
 
@@ -274,7 +287,10 @@ OPTIONS:
     -n, --name <term>      Return only the service name (e.g., Wi-Fi) for the
                           connected service matching <term>
 
-    -f, --full <term>      Show full report for only the connected service
+    -f, --force            Force return device/name even if not connected
+                          (must be used with -d or -n)
+
+    -r, --report <term>    Show full report for only the connected service
                           matching <term> (includes device, status, IPs)
 
     -h, --help            Show this help message
@@ -282,20 +298,23 @@ OPTIONS:
 EXAMPLES:
     network-status                    # Show full report for all services
     network-status -d wifi            # Get device for Wi-Fi (e.g., en0)
+    network-status -f -d wifi         # Get device for Wi-Fi even if not connected
     network-status -n ethernet        # Get service name for ethernet
-    network-status -f thunderbolt     # Show full info for Thunderbolt Ethernet
+    network-status -f -n ethernet     # Get service name even if not connected
+    network-status -r thunderbolt     # Show full info for Thunderbolt Ethernet
 
 NOTES:
     - Search terms use fuzzy matching (case-insensitive, ignores hyphens/spaces)
-    - Only connected services are returned
-    - Exit code 0 on success, 1 if no matching connected service found
+    - Without --force, only connected services are returned
+    - Exit code 0 on success, 1 if no matching service found
 EOF
 }
 
 # Main script - Parse arguments
 device_mode=false
 name_mode=false
-full_mode=false
+report_mode=false
+force_mode=false
 search_term=""
 
 while [[ $# -gt 0 ]]; do
@@ -303,6 +322,10 @@ while [[ $# -gt 0 ]]; do
         -h|--help)
             show_help
             exit 0
+            ;;
+        -f|--force)
+            force_mode=true
+            shift
             ;;
         -d|--device)
             device_mode=true
@@ -314,14 +337,14 @@ while [[ $# -gt 0 ]]; do
             search_term="$2"
             shift 2
             ;;
-        -f|--full)
-            full_mode=true
+        -r|--report)
+            report_mode=true
             search_term="$2"
             shift 2
             ;;
         *)
             echo "Unknown option: $1" >&2
-            echo "Usage: $0 [-d|--device <search_term>] [-n|--name <search_term>] [-f|--full <search_term>] [-h|--help]" >&2
+            echo "Usage: $0 [-f|--force] [-d|--device <term>] [-n|--name <term>] [-r|--report <term>] [-h|--help]" >&2
             exit 1
             ;;
     esac
@@ -334,7 +357,7 @@ if $device_mode; then
         exit 1
     fi
 
-    device=$(find_device_by_name "$search_term")
+    device=$(find_device_by_name "$search_term" "$force_mode")
     if [[ $? -eq 0 ]]; then
         echo "$device"
         exit 0
@@ -347,16 +370,16 @@ elif $name_mode; then
         exit 1
     fi
 
-    service_name=$(find_service_name "$search_term")
+    service_name=$(find_service_name "$search_term" "$force_mode")
     if [[ $? -eq 0 ]]; then
         echo "$service_name"
         exit 0
     else
         exit 1
     fi
-elif $full_mode; then
+elif $report_mode; then
     if [[ -z "$search_term" ]]; then
-        echo "Error: -f|--full requires a search term" >&2
+        echo "Error: -r|--report requires a search term" >&2
         exit 1
     fi
 

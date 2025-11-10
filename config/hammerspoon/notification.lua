@@ -1,0 +1,141 @@
+-- Notification Rule Processing
+-- Business logic for handling notification routing, priority, and focus mode checks
+--
+local M = {}
+local fmt = string.format
+
+---Processes a notification according to rule configuration
+---Handles pattern matching, focus mode checks, priority logic, and rendering
+---@param rule NotificationRule The notification rule configuration
+---@param title string Notification title
+---@param subtitle string Notification subtitle (may be empty)
+---@param message string Notification message body
+---@param stackingID string Full stacking identifier from notification center
+---@param bundleID string Parsed bundle ID from stacking identifier
+function M.processRule(rule, title, subtitle, message, stackingID, bundleID)
+  local notify = require("notifier")
+  local timestamp = os.time()
+
+  -- Determine priority based on pattern matching
+  local effectivePriority = "normal" -- default
+
+  if rule.patterns and message then
+    -- Check each priority level for matching patterns
+    -- Iterate in priority order: high -> normal -> low
+    for _, priority in ipairs({ "high", "normal", "low" }) do
+      local patternList = rule.patterns[priority]
+      if patternList then
+        for _, pattern in ipairs(patternList) do
+          if message:find(pattern) then
+            effectivePriority = priority
+            U.log.d(fmt("Pattern '%s' matched -> priority: %s", pattern, priority))
+            goto priority_determined -- exit both loops
+          end
+        end
+      end
+    end
+    ::priority_determined::
+  end
+
+  -- Check focus mode (if allowedFocusModes is defined)
+  local currentFocus = notify.getCurrentFocusMode and notify.getCurrentFocusMode() or nil
+  local focusAllowed = true
+
+  if rule.allowedFocusModes and #rule.allowedFocusModes > 0 then
+    focusAllowed = false
+    -- Use numeric loop instead of ipairs to handle nil values in the array
+    for i = 1, #rule.allowedFocusModes do
+      local allowed = rule.allowedFocusModes[i]
+      if allowed == currentFocus then
+        focusAllowed = true
+        break
+      end
+    end
+  end
+
+  if not focusAllowed then
+    NotifyDB.log({
+      timestamp = timestamp,
+      rule_name = rule.name,
+      app_id = stackingID,
+      sender = title,
+      subtitle = subtitle,
+      message = message,
+      action_taken = "blocked_by_focus",
+      focus_mode = currentFocus,
+      shown = false,
+    })
+    -- Update menubar indicator
+    if NotifyMenubar then NotifyMenubar.update() end
+    return
+  end
+
+  -- Check priority-based app focus rules (only for high priority)
+  if effectivePriority == "high" then
+    local priorityCheck = notify.shouldShowHighPriority(bundleID, {
+      alwaysShowInTerminal = rule.alwaysShowInTerminal,
+      showWhenAppFocused = rule.showWhenAppFocused,
+    })
+
+    if not priorityCheck.shouldShow then
+      NotifyDB.log({
+        timestamp = timestamp,
+        rule_name = rule.name,
+        app_id = stackingID,
+        sender = title,
+        subtitle = subtitle,
+        message = message,
+        action_taken = "blocked_" .. priorityCheck.reason,
+        focus_mode = currentFocus,
+        shown = false,
+      })
+      -- Update menubar indicator
+      if NotifyMenubar then NotifyMenubar.update() end
+      return
+    end
+  end
+
+  -- Determine notification config based on priority
+  local duration = rule.duration or (effectivePriority == "high" and 15 or effectivePriority == "low" and 3 or 10)
+  local notifConfig = {}
+
+  -- Use rule's appBundleID if specified, otherwise use the actual bundleID
+  local iconBundleID = rule.appBundleID or bundleID
+
+  if effectivePriority == "high" then
+    notifConfig = {
+      positionMode = "center-window",
+      dimBackground = true,
+      dimAlpha = 0.6,
+      includeProgram = false,
+      appBundleID = iconBundleID,
+      priority = "high",
+    }
+  else
+    notifConfig = {
+      positionMode = "auto",
+      dimBackground = false,
+      includeProgram = false,
+      appBundleID = iconBundleID,
+      priority = effectivePriority,
+    }
+  end
+
+  -- Show notification
+  notify.sendCanvasNotification(title, message, duration, notifConfig)
+
+  -- Log to database
+  NotifyDB.log({
+    timestamp = timestamp,
+    rule_name = rule.name,
+    app_id = stackingID,
+    sender = title,
+    subtitle = subtitle,
+    message = message,
+    action_taken = effectivePriority == "high" and "shown_center_dimmed" or "shown_bottom_left",
+    focus_mode = currentFocus,
+    shown = true,
+  })
+end
+
+return M

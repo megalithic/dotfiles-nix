@@ -286,8 +286,8 @@ function M.cleanup(days)
   return result
 end
 
--- Query: Get undismissed blocked high/critical notifications
-function M.getBlockedHighPriority()
+-- Query: Get undismissed notifications blocked by focus mode only
+function M.getBlockedByFocus()
   local query = [[
     SELECT
       id, timestamp,
@@ -296,7 +296,7 @@ function M.getBlockedHighPriority()
     FROM notifications
     WHERE dismissed_at IS NULL
       AND shown = 0
-      AND (action_taken LIKE 'blocked%')
+      AND action_taken = 'blocked_by_focus'
     ORDER BY timestamp DESC
     LIMIT 50
   ]]

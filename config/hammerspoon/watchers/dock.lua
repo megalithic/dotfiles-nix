@@ -4,9 +4,21 @@ local enum = require("hs.fnutils")
 local M = {}
 
 M.is_docked = nil
-M.wifi_device = nil
+M.defaultWifiDevice = "en0"
 
-local function setWiFi(state) U.run(fmt("networksetup -setairportpower %s %s", M.wifi_device, state), true) end
+local function wifiDevice()
+  local device = U.run(U.bin("network-status -f -d wifi", true))
+
+  -- If device is nil or empty, use default
+  if device == nil or device == "" then
+    U.log.wf("defaulting wifi device to %s", M.defaultWifiDevice)
+    return M.defaultWifiDevice
+  end
+
+  return device
+end
+
+local function setWifi(state) U.run(fmt("networksetup -setairportpower %s %s", wifiDevice(), state), true) end
 
 local function docked()
   if M.is_docked ~= nil and M.is_docked == true then
@@ -14,17 +26,15 @@ local function docked()
     return
   end
 
-  M.is_docked = true
   U.log.i("running docked setup..")
-  M.wifi_device = U.run("network-status -d wifi", true)
-
-  if M.wifi_device ~= nil then setWiFi(C.dock.docked.wifi) end
+  M.is_docked = true
+  setWifi(C.dock.docked.wifi)
 end
 
 local function undocked()
-  M.is_docked = false
   U.log.i("running undocked setup..")
-  setWiFi(C.dock.undocked.wifi)
+  M.is_docked = false
+  setWifi(C.dock.undocked.wifi)
 end
 
 local function dockChangedState(state)
@@ -39,31 +49,30 @@ end
 
 local function keyboardChangedState(state)
   if state == "removed" then
-    local status = U.run(fmt([[karabiner_cli --select-profile %s &]], C.dock.keyboard.disconnected), true)
+    local _status = U.run(fmt([[karabiner_cli --select-profile %s &]], C.dock.keyboard.disconnected), true)
 
-    U.log.of("%s keyboard profile activated", status)
+    U.log.of("%s keyboard profile activated", C.dock.keyboard.disconnected)
     -- warn(fmt("[%s.keyboard] leeloo disconnected (%s)", obj.name, C.dock.keyboard.disconnected))
   elseif state == "added" then
-    local status = U.run(fmt([[karabiner_cli --select-profile %s &]], C.dock.keyboard.connected), true)
-    U.log.of("%s keyboard profile activated", status)
+    local _status = U.run(fmt([[karabiner_cli --select-profile %s &]], C.dock.keyboard.connected), true)
+    U.log.of("%s keyboard profile activated", C.dock.keyboard.connected)
   else
     U.log.wf("unknown keyboard state: ", state)
   end
 end
 
 local function usbWatcherCallback(data)
-  P(data)
-  if data.vendorID == C.dock.target_alt.vendorID then dockChangedState(data.eventType) end
-
-  if data.vendorID == C.dock.keyboard.vendorID then keyboardChangedState(data.eventType) end
+  if data.productID == C.dock.target_alt.productID then dockChangedState(data.eventType) end
+  if data.productID == C.dock.keyboard.productID then keyboardChangedState(data.eventType) end
 end
 
 function M.isDocked()
-  return enum.find(hs.usb.attachedDevices(), function(device) return device.vendorID == C.dock.target_alt.vendorID end)
+  return enum.find(
+    hs.usb.attachedDevices(),
+    function(device) return device.productID == C.dock.target_alt.productID end
+  ) ~= nil
 end
 
--- local initStart = os.clock()
--- ethernetMenubar = hs.menubar.new()
 function M:start()
   if M.isDocked() == true then
     dockChangedState("added")
@@ -78,8 +87,6 @@ function M:start()
   -- Set up watcher for future dock connects/disconnects
   M.watcher = hs.usb.watcher.new(usbWatcherCallback)
   M.watcher:start()
-
-  -- U.log.n(debug.getinfo(1, "S").short_src:gsub(".*/", "") .. " loaded in " .. (os.clock() - initStart) .. " seconds.")
 end
 
 function M:stop()
