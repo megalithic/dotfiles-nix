@@ -39,12 +39,14 @@ function M.processRule(rule, title, subtitle, message, stackingID, bundleID)
     ::priority_determined::
   end
 
-  -- Check focus mode (if allowedFocusModes is defined)
+  -- Check focus mode
+  -- Default behavior: if no allowedFocusModes defined, block when ANY focus mode is active
+  -- If allowedFocusModes is defined, allow only if current focus mode is in the list
   local currentFocus = notify.getCurrentFocusMode and notify.getCurrentFocusMode() or nil
-  local focusAllowed = true
+  local focusAllowed = false
 
-  if rule.allowedFocusModes and #rule.allowedFocusModes > 0 then
-    focusAllowed = false
+  if rule.allowedFocusModes then
+    -- Rule explicitly defines allowed focus modes - check if current mode is in the list
     -- Use numeric loop instead of ipairs to handle nil values in the array
     for i = 1, #rule.allowedFocusModes do
       local allowed = rule.allowedFocusModes[i]
@@ -53,6 +55,9 @@ function M.processRule(rule, title, subtitle, message, stackingID, bundleID)
         break
       end
     end
+  else
+    -- No allowedFocusModes defined - only allow if NO focus mode is active
+    focusAllowed = (currentFocus == nil)
   end
 
   if not focusAllowed then

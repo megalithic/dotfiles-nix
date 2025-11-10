@@ -13,7 +13,7 @@ TERMINAL = "com.mitchellh.ghostty"
 ---@field duration? number              # How long to show notification in seconds
 ---@field alwaysShowInTerminal? boolean # Show even when terminal is focused (high priority only)
 ---@field showWhenAppFocused? boolean   # Show even when source app is focused (high priority only)
----@field allowedFocusModes? (string|nil)[] # Focus modes where notification is allowed (nil = no focus mode)
+---@field allowedFocusModes? (string|nil)[] # Focus modes where notification is allowed. If undefined: blocks during ANY focus mode. If defined: only shows if current focus mode is in the list (nil = no focus mode)
 ---@field appImageID? string            # Custom icon identifier (e.g. "hal9000")
 
 M.notifier = {
@@ -25,7 +25,7 @@ M.notifier = {
       name = "Important Messages",
       appBundleID = "com.apple.MobileSMS",
       senders = { "Abby Messer" },
-      duration = 15,
+      duration = 5,
       patterns = {
         high = {
           "%?",
@@ -39,13 +39,12 @@ M.notifier = {
           "!+$",
           "%?+$",
         },
-        low = {
-          "brb",
-          "k",
-          "ok",
-          "👍",
-          "lol",
-        },
+        -- low = {
+        --   "brb",
+        --   "ok",
+        --   "👍",
+        --   "lol",
+        -- },
         -- Everything else defaults to "normal"
       },
       alwaysShowInTerminal = true,
@@ -64,7 +63,7 @@ M.notifier = {
     {
       name = "AI Agent Notifications",
       appBundleID = "org.hammerspoon.Hammerspoon",
-      duration = 10,
+      duration = 3,
       patterns = {
         high = {
           "error",
@@ -96,7 +95,7 @@ M.notifier = {
     {
       name = "Build System Notifications",
       appBundleID = "com.example.buildapp",
-      duration = 5,
+      duration = 3,
       patterns = {
         high = {
           "failed",
@@ -151,7 +150,7 @@ M.notifier = {
     -- Minimum offset to ensure notification is always visible
     minOffset = 100,
     -- Default notification duration (in seconds)
-    defaultDuration = 5,
+    defaultDuration = 3,
     -- Animation settings
     animation = {
       enabled = true, -- Enable slide-up animation from bottom of screen

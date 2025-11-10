@@ -140,7 +140,7 @@ should_send_notification() {
   # Get the terminal bundle ID (prefer env var, has default fallback)
   local terminal_bundle_id="${TERMINAL_BUNDLE_ID:-com.mitchellh.ghostty}"
 
-  # Get our calling context
+  # Get our calling context (session identifier)
   local calling_context=$(get_session_context)
 
   # Check if terminal is even focused
@@ -155,16 +155,16 @@ should_send_notification() {
     return 0  # Send (display asleep)
   fi
 
+  # Terminal is focused and display is awake - check if user is viewing THIS specific session
   # Get active window title via Hammerspoon
-  # Try global TERMINAL first, then fall back to local env var
   local active_title=$(hs -c "local n = require('lib.notifications.notifier'); local bundleId = TERMINAL or '${terminal_bundle_id}'; print(n.getFocusedWindowTitle(bundleId) or '')" 2>/dev/null)
 
-  # If our context appears in active window title, user is paying attention to THIS session
+  # If our calling context appears in active window title, user is paying attention to THIS session
   if echo "$active_title" | grep -qF "$calling_context"; then
-    return 1  # Don't send (user paying attention to this session)
+    return 1  # Don't send (user is actively viewing this session)
   fi
 
-  # Context doesn't match - user is in a different session
+  # Terminal is focused but user is viewing a different session
   return 0  # Send (user not paying attention to this session)
 }
 

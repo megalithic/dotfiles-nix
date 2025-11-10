@@ -5,3 +5,4 @@
 - check config.lua for locations of certain things, like the database
 - when reloading hammerspoon, always just call to reload it, then check the notifications db for "reloaded" messages.
 - when looking for paths to things for hammerspoon stuff, check config.lua first
+- dont' sleep after an hs.reload; you only need to check to make sure the reloaded notification was stored; if it was, then it was reloaded or at the very least check for the ai agent notification was just in the console
