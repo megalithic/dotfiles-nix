@@ -8,6 +8,8 @@ local M = {}
 M.observer = nil
 M.processedNotificationIDs = {}
 M.cleanupTimer = nil
+M.processWatcher = nil
+M.currentPID = nil
 
 -- Maximum number of stored notification IDs before cleanup
 local MAX_PROCESSED_IDS = 100
@@ -60,9 +62,15 @@ local function handleNotification(element)
   -- Process routing rules
   local rules = C.notifier.rules or {}
 
+  U.log.df("Processing notification - stackingID: %s, bundleID: %s, title: %s",
+    tostring(stackingID), tostring(bundleID), tostring(title))
+  U.log.df("Total rules to check: %d", #rules)
+
   for _, rule in ipairs(rules) do
+    U.log.df("Checking rule '%s' (appBundleID: %s)", rule.name, rule.appBundleID)
     -- Quick app match (plain string search, not pattern)
     if stackingID:find(rule.appBundleID, 1, true) then
+      U.log.df("Rule '%s' MATCHED!", rule.name)
       -- Check sender if specified
       if rule.senders then
         local senderMatch = false
@@ -80,7 +88,7 @@ local function handleNotification(element)
       -- Rule matched! Process via notification system
       U.log.nf("%s: %s", rule.name, title or bundleID)
 
-      -- Delegate to unified notification system
+      -- Delegate to unified notification system via clean API
       local ok, err = pcall(function() N.process(rule, title, subtitle, message, stackingID, bundleID) end)
 
       if not ok then U.log.ef("Error processing rule '%s': %s", rule.name, tostring(err)) end
@@ -93,30 +101,72 @@ local function handleNotification(element)
   end
 end
 
-function M:start()
-  -- Get Notification Center UI element
+-- Helper to start/restart the AX observer
+local function startObserver()
   local notificationCenterBundleID = "com.apple.notificationcenterui"
   local notificationCenter = hs.axuielement.applicationElement(notificationCenterBundleID)
 
   if not notificationCenter then
     U.log.e("Unable to find Notification Center AX element")
-    return
+    return false
   end
 
   local ncPID = notificationCenter:pid()
-  U.log.df("Notification Center PID: %d", ncPID)
+
+  -- Check if we're already watching this PID
+  if M.currentPID == ncPID and M.observer then
+    U.log.df("Already watching NC PID %d", ncPID)
+    return true
+  end
+
+  -- Stop old observer if it exists
+  if M.observer then
+    U.log.wf("NC PID changed: %d → %d, recreating observer", M.currentPID or 0, ncPID)
+    pcall(function() M.observer:stop() end)
+    M.observer = nil
+  end
+
+  M.currentPID = ncPID
+  U.log.df("Starting observer for NC PID: %d", ncPID)
 
   -- Create observer for layout changes
+  -- NOTE: Using both AXLayoutChanged and AXCreated for maximum compatibility
+  -- AXCreated was mentioned as more reliable in some cases
   M.observer = hs.axuielement.observer
     .new(ncPID)
     :callback(function(observer, element, notification, observerInfo)
-      U.log.df("Observer callback: notification=%s", tostring(notification))
+      U.log.df("Observer callback: notification=%s, element=%s", tostring(notification), tostring(element))
       handleNotification(element)
     end)
     :addWatcher(notificationCenter, "AXLayoutChanged")
+    :addWatcher(notificationCenter, "AXCreated")
     :start()
 
-  U.log.df("Observer created and started, watching AXLayoutChanged events")
+  U.log.df("Observer created and started, watching AXLayoutChanged and AXCreated events")
+  return true
+end
+
+function M:start()
+  -- Start the observer
+  if not startObserver() then
+    U.log.e("Failed to start notification observer")
+    return
+  end
+
+  -- Monitor Notification Center process for restarts
+  -- Check every 30 seconds if NC has restarted (PID changed)
+  M.processWatcher = hs.timer.doEvery(30, function()
+    local nc = hs.axuielement.applicationElement("com.apple.notificationcenterui")
+    if nc then
+      local currentPID = nc:pid()
+      if currentPID ~= M.currentPID then
+        U.log.wf("Notification Center restarted (PID %d → %d), recreating observer", M.currentPID or 0, currentPID)
+        startObserver()
+      end
+    else
+      U.log.w("Notification Center not found during health check")
+    end
+  end)
 
   -- Periodic cleanup of notification ID cache (every 5 minutes)
   M.cleanupTimer = hs.timer.doEvery(300, function()
@@ -137,11 +187,17 @@ function M:stop()
     M.observer = nil
   end
 
+  if M.processWatcher then
+    M.processWatcher:stop()
+    M.processWatcher = nil
+  end
+
   if M.cleanupTimer then
     M.cleanupTimer:stop()
     M.cleanupTimer = nil
   end
 
+  M.currentPID = nil
   M.processedNotificationIDs = {}
   U.log.i("stopped")
 end

@@ -61,11 +61,11 @@ set_cached_value() {
 
   # Copy existing cache entries (excluding the key we're updating)
   if [ -f "$CACHE_FILE" ]; then
-    grep -v "^${key}=" "$CACHE_FILE" > "$temp_file" 2>/dev/null || true
+    grep -v "^${key}=" "$CACHE_FILE" >"$temp_file" 2>/dev/null || true
   fi
 
   # Add new cache entry
-  echo "${key}=${current_time}|${value}" >> "$temp_file"
+  echo "${key}=${current_time}|${value}" >>"$temp_file"
 
   # Atomically replace cache file
   mv "$temp_file" "$CACHE_FILE"
@@ -146,13 +146,13 @@ should_send_notification() {
   # Check if terminal is even focused
   local frontmost=$(hs -c 'local app = hs.application.frontmostApplication(); if app then print(app:bundleID()) end' 2>/dev/null)
   if [ "$frontmost" != "$terminal_bundle_id" ]; then
-    return 0  # Send (terminal not focused)
+    return 0 # Send (terminal not focused)
   fi
 
   # Check display idle state
   local displayIdle=$(hs -c 'print(hs.caffeinate.get("displayIdle"))' 2>/dev/null)
   if [ "$displayIdle" = "true" ]; then
-    return 0  # Send (display asleep)
+    return 0 # Send (display asleep)
   fi
 
   # Terminal is focused and display is awake - check if user is viewing THIS specific session
@@ -161,11 +161,11 @@ should_send_notification() {
 
   # If our calling context appears in active window title, user is paying attention to THIS session
   if echo "$active_title" | grep -qF "$calling_context"; then
-    return 1  # Don't send (user is actively viewing this session)
+    return 1 # Don't send (user is actively viewing this session)
   fi
 
   # Terminal is focused but user is viewing a different session
-  return 0  # Send (user not paying attention to this session)
+  return 0 # Send (user not paying attention to this session)
 }
 
 # Check if display is asleep
@@ -204,12 +204,17 @@ send_macos_notification_osascript() {
   osascript -e "display notification \"$body\" with title \"$title\" subtitle \"$subtitle\"" 2>/dev/null
 }
 
+# send_pushover_notification() {
+# "op://Shared/bjdr5wcxdv6eeq3yylc25vvofy/PUSHOVER_USER_TOKEN"
+# curl -s -F "token=$TOKEN" -F "user=$USER" -F "message=$*" https://api.pushover.net/1/messages.json > /dev/null
+# }
+
 # Send notification via notifier module with AI agent configuration
 send_canvas_notification() {
   local title="$1"
   local message="$2"
   local duration="${3:-10}"
-  local urgency="${4:-}"  # Optional explicit urgency (high, critical, normal)
+  local urgency="${4:-}" # Optional explicit urgency (high, critical, normal)
 
   # Escape single quotes for Lua
   local escaped_title="${title//\'/\\\'}"
@@ -443,69 +448,69 @@ parse_notify_args() {
     # Parse arguments (supports both short and long options)
     while [ $# -gt 0 ]; do
       case "$1" in
-        -t|--title)
-          title="$2"
-          shift 2
-          ;;
-        -m|--message)
-          message="$2"
-          shift 2
-          ;;
-        -p|--phone|--send-to-phone)
-          send_to_phone="$2"
-          shift 2
-          ;;
-        -u|--urgency)
-          urgency="$2"
-          shift 2
-          ;;
-        -q|--question|--is-question)
-          is_question="$2"
-          shift 2
-          ;;
-        --title=*)
-          title="${1#*=}"
-          shift
-          ;;
-        --message=*)
-          message="${1#*=}"
-          shift
-          ;;
-        --phone=*|--send-to-phone=*)
-          send_to_phone="${1#*=}"
-          shift
-          ;;
-        --urgency=*)
-          urgency="${1#*=}"
-          shift
-          ;;
-        --question=*|--is-question=*)
-          is_question="${1#*=}"
-          shift
-          ;;
-        --)
-          shift
-          break
-          ;;
-        -*)
-          echo "Unknown option: $1" >&2
-          return 1
-          ;;
-        *)
-          # Positional argument - use for title/message if not set
-          if [ -z "$title" ]; then
-            title="$1"
-          elif [ -z "$message" ]; then
-            message="$1"
-          elif [ "$send_to_phone" = "false" ]; then
-            send_to_phone="$1"
-          elif [ "$urgency" = "normal" ]; then
-            urgency="$1"
-          elif [ "$is_question" = "false" ]; then
-            is_question="$1"
-          fi
-          shift
-          ;;
+      -t | --title)
+        title="$2"
+        shift 2
+        ;;
+      -m | --message)
+        message="$2"
+        shift 2
+        ;;
+      -p | --phone | --send-to-phone)
+        send_to_phone="$2"
+        shift 2
+        ;;
+      -u | --urgency)
+        urgency="$2"
+        shift 2
+        ;;
+      -q | --question | --is-question)
+        is_question="$2"
+        shift 2
+        ;;
+      --title=*)
+        title="${1#*=}"
+        shift
+        ;;
+      --message=*)
+        message="${1#*=}"
+        shift
+        ;;
+      --phone=* | --send-to-phone=*)
+        send_to_phone="${1#*=}"
+        shift
+        ;;
+      --urgency=*)
+        urgency="${1#*=}"
+        shift
+        ;;
+      --question=* | --is-question=*)
+        is_question="${1#*=}"
+        shift
+        ;;
+      --)
+        shift
+        break
+        ;;
+      -*)
+        echo "Unknown option: $1" >&2
+        return 1
+        ;;
+      *)
+        # Positional argument - use for title/message if not set
+        if [ -z "$title" ]; then
+          title="$1"
+        elif [ -z "$message" ]; then
+          message="$1"
+        elif [ "$send_to_phone" = "false" ]; then
+          send_to_phone="$1"
+        elif [ "$urgency" = "normal" ]; then
+          urgency="$1"
+        elif [ "$is_question" = "false" ]; then
+          is_question="$1"
+        fi
+        shift
+        ;;
       esac
     done
   fi
@@ -525,75 +530,75 @@ parse_notify_args() {
 # When called from fish or as executable, use: notifier notify [options]
 if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
   case "${1:-}" in
-    notify)
-      shift
-      parse_notify_args "$@"
-      ;;
-    test)
-      echo "Smart Notification System Test"
-      echo "==============================="
-      echo ""
-      echo "Checking attention state..."
-      if should_send_notification; then
-        echo "✅ User NOT paying attention - notifications will be sent"
-      else
-        echo "⚠️  User IS paying attention - notifications suppressed"
-      fi
-      echo ""
-      echo "Testing notification (normal priority)..."
-      notify_user "Test Notification" "This is a test" false normal
-      ;;
-    help|--help|-h|"")
-      echo "Usage: notifier <command> [options...]"
-      echo ""
-      echo "Commands:"
-      echo "  notify [options]"
-      echo "    Send a notification with smart detection"
-      echo ""
-      echo "Options:"
-      echo "  -t, --title <title>           Notification title (required)"
-      echo "  -m, --message <message>       Notification message (required)"
-      echo "  -p, --phone <true|false>      Send to phone (default: false)"
-      echo "  -u, --urgency <level>         Urgency: normal|high|critical (default: normal)"
-      echo "  -q, --question <true|false>   Mark as question for retry (default: false)"
-      echo ""
-      echo "Long options also support = syntax:"
-      echo "  --title=\"My Title\" --message=\"My Message\" --urgency=high"
-      echo ""
-      echo "JSON Input:"
-      echo "  notifier notify '{\"title\":\"...\",\"message\":\"...\",\"urgency\":\"high\"}'"
-      echo ""
-      echo "Positional Arguments (backward compatible):"
-      echo "  notifier notify <title> <message> [send_to_phone] [urgency] [is_question]"
-      echo ""
-      echo "Examples:"
-      echo "  # Short options"
-      echo "  notifier notify -t \"Task Done\" -m \"Tests passed\" -u high"
-      echo ""
-      echo "  # Long options"
-      echo "  notifier notify --title \"Task Done\" --message \"Tests passed\" --urgency high"
-      echo ""
-      echo "  # Long options with = syntax"
-      echo "  notifier notify --title=\"Task Done\" --message=\"Tests passed\" --urgency=high"
-      echo ""
-      echo "  # Positional arguments (backward compatible)"
-      echo "  notifier notify \"Task Done\" \"Tests passed\" false normal"
-      echo ""
-      echo "  # JSON input"
-      echo "  notifier notify '{\"title\":\"Build Failed\",\"message\":\"Check logs\",\"urgency\":\"critical\"}'"
-      echo ""
-      echo "Other Commands:"
-      echo "  test    Run notification system test"
-      echo ""
-      echo "Usage from different shells:"
-      echo "  bash/zsh: source ~/.dotfiles-nix/bin/notifier && notify_user \"title\" \"message\""
-      echo "  fish:     ~/.dotfiles-nix/bin/notifier notify -t \"title\" -m \"message\""
-      echo "  any:      notifier notify -t \"title\" -m \"message\" (if in PATH)"
-      ;;
-    *)
-      echo "Unknown command: $1"
-      echo "Run 'notifier help' for usage"
-      exit 1
-      ;;
+  notify)
+    shift
+    parse_notify_args "$@"
+    ;;
+  test)
+    echo "Smart Notification System Test"
+    echo "==============================="
+    echo ""
+    echo "Checking attention state..."
+    if should_send_notification; then
+      echo "✅ User NOT paying attention - notifications will be sent"
+    else
+      echo "⚠️  User IS paying attention - notifications suppressed"
+    fi
+    echo ""
+    echo "Testing notification (normal priority)..."
+    notify_user "Test Notification" "This is a test" false normal
+    ;;
+  help | --help | -h | "")
+    echo "Usage: notifier <command> [options...]"
+    echo ""
+    echo "Commands:"
+    echo "  notify [options]"
+    echo "    Send a notification with smart detection"
+    echo ""
+    echo "Options:"
+    echo "  -t, --title <title>           Notification title (required)"
+    echo "  -m, --message <message>       Notification message (required)"
+    echo "  -p, --phone <true|false>      Send to phone (default: false)"
+    echo "  -u, --urgency <level>         Urgency: normal|high|critical (default: normal)"
+    echo "  -q, --question <true|false>   Mark as question for retry (default: false)"
+    echo ""
+    echo "Long options also support = syntax:"
+    echo "  --title=\"My Title\" --message=\"My Message\" --urgency=high"
+    echo ""
+    echo "JSON Input:"
+    echo "  notifier notify '{\"title\":\"...\",\"message\":\"...\",\"urgency\":\"high\"}'"
+    echo ""
+    echo "Positional Arguments (backward compatible):"
+    echo "  notifier notify <title> <message> [send_to_phone] [urgency] [is_question]"
+    echo ""
+    echo "Examples:"
+    echo "  # Short options"
+    echo "  notifier notify -t \"Task Done\" -m \"Tests passed\" -u high"
+    echo ""
+    echo "  # Long options"
+    echo "  notifier notify --title \"Task Done\" --message \"Tests passed\" --urgency high"
+    echo ""
+    echo "  # Long options with = syntax"
+    echo "  notifier notify --title=\"Task Done\" --message=\"Tests passed\" --urgency=high"
+    echo ""
+    echo "  # Positional arguments (backward compatible)"
+    echo "  notifier notify \"Task Done\" \"Tests passed\" false normal"
+    echo ""
+    echo "  # JSON input"
+    echo "  notifier notify '{\"title\":\"Build Failed\",\"message\":\"Check logs\",\"urgency\":\"critical\"}'"
+    echo ""
+    echo "Other Commands:"
+    echo "  test    Run notification system test"
+    echo ""
+    echo "Usage from different shells:"
+    echo "  bash/zsh: source ~/.dotfiles-nix/bin/notifier && notify_user \"title\" \"message\""
+    echo "  fish:     ~/.dotfiles-nix/bin/notifier notify -t \"title\" -m \"message\""
+    echo "  any:      notifier notify -t \"title\" -m \"message\" (if in PATH)"
+    ;;
+  *)
+    echo "Unknown command: $1"
+    echo "Run 'notifier help' for usage"
+    exit 1
+    ;;
   esac
 fi

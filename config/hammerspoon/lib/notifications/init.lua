@@ -17,7 +17,10 @@ M.notifier = require("lib.notifications.notifier")
 
 -- LIFECYCLE
 
--- Initialize all notification subsystems
+---Initialize all notification subsystems
+---Must be called before using any notification functions
+---@return boolean success True if initialization succeeded
+---@usage N.init()
 function M.init()
   if M.initialized then
     U.log.w("Notification system already initialized")
@@ -68,7 +71,10 @@ function M.init()
   return true
 end
 
--- Graceful shutdown
+---Gracefully shut down the notification system
+---Stops health checks, cleans up menubar, closes database
+---@return nil
+---@usage N.cleanup()
 function M.cleanup()
   U.log.i("Cleaning up notification system...")
 
@@ -167,10 +173,19 @@ function M.isReady()
   return M.initialized and DB.db ~= nil
 end
 
--- MAIN ENTRY POINT (called by watcher)
+-- PUBLIC API
+-- These functions provide a clean interface for scripts, CLI, and console usage
 
--- Process a notification according to rule configuration
--- This is the main entry point called by watchers/notification.lua
+---Process a notification according to rule configuration
+---This is the main entry point called by watchers/notification.lua
+---@param rule NotificationRule The notification rule configuration
+---@param title string Notification title
+---@param subtitle string|nil Notification subtitle (optional)
+---@param message string Notification message body
+---@param stackingID string Full stacking identifier from notification center
+---@param bundleID string Parsed bundle ID from stacking identifier
+---@return nil
+---@usage N.process(rule, "Test", nil, "Message", "com.example.app", "com.example.app")
 function M.process(rule, title, subtitle, message, stackingID, bundleID)
   if not M.initialized then
     U.log.e("Notification system not initialized - cannot process notification")
@@ -181,41 +196,91 @@ function M.process(rule, title, subtitle, message, stackingID, bundleID)
   M.processor.processRule(rule, title, subtitle, message, stackingID, bundleID)
 end
 
--- Manual health check trigger (for debugging)
+---Send a canvas notification directly
+---Displays a custom notification using the canvas renderer
+---@param title string Notification title
+---@param message string Notification message body
+---@param opts table|nil Optional configuration { duration = number, urgency = string, position = string, includeProgram = boolean }
+---@return nil
+---@usage N.notify("Test Title", "Test message", { duration = 5, urgency = "high" })
+---@usage N.notify("Quick note", "This is a message") -- uses defaults
+function M.notify(title, message, opts)
+  if not M.initialized then
+    U.log.e("Notification system not initialized - cannot send notification")
+    return
+  end
+
+  opts = opts or {}
+  local duration = opts.duration or 3
+
+  -- Delegate to notifier (it expects: title, message, duration, opts)
+  M.notifier.sendCanvasNotification(title, message, duration, opts)
+end
+
+---Manually trigger a health check of the notification system
+---Useful for debugging. Returns the timestamp of the health check.
+---@return number|nil timestamp Unix timestamp of the health check
+---@usage N.checkHealth()
 function M.checkHealth()
   U.log.i("Running manual notification system health check...")
   M.performHealthCheck()
   return M.lastHealthCheck
 end
 
--- FACADE METHODS (convenience shortcuts)
+---Check if the notification system is ready to use
+---@return boolean ready True if initialized and database is connected
+---@usage if N.isReady() then N.notify("Test", "Message") end
+function M.isReady()
+  local DB = require("lib.db")
+  return M.initialized and DB.db ~= nil
+end
 
--- Log a notification event
+-- DATABASE QUERY METHODS (convenience shortcuts)
+
+---Log a notification event to the database
+---@param data table Notification data { sender, message, bundle_id, action_taken, focus_mode, urgency, etc. }
+---@return boolean success True if logged successfully
+---@usage N.log({ sender = "Test", message = "Test message", bundle_id = "com.test", action_taken = "shown" })
 function M.log(data)
   return M.db.log(data)
 end
 
--- Get recent notifications
+---Get recent notifications from the database
+---@param hours number|nil Number of hours to look back (default: 24)
+---@return table notifications Array of notification records
+---@usage local recent = N.getRecent(12) -- get notifications from last 12 hours
 function M.getRecent(hours)
   return M.db.getRecent(hours)
 end
 
--- Get blocked notifications
+---Get notifications that were blocked by focus mode
+---@return table notifications Array of blocked notification records
+---@usage local blocked = N.getBlocked()
 function M.getBlocked()
   return M.db.getBlockedByFocus()
 end
 
--- Search notifications
+---Search notifications by query string
+---@param query string Search query (searches sender, message, bundle_id)
+---@param limit number|nil Maximum results to return (default: 50)
+---@return table notifications Array of matching notification records
+---@usage local results = N.search("Abby", 10)
 function M.search(query, limit)
   return M.db.search(query, limit)
 end
 
--- Get statistics
+---Get notification statistics
+---@param hours number|nil Number of hours to analyze (default: 24)
+---@return table stats Statistics including total count, by sender, by app, by action
+---@usage local stats = N.getStats(24)
 function M.getStats(hours)
   return M.db.getStats(hours)
 end
 
--- Update menubar
+---Update the menubar indicator
+---Call this after database changes to refresh the menubar display
+---@return nil
+---@usage N.updateMenubar()
 function M.updateMenubar()
   if M.menubar then
     M.menubar.update()

@@ -293,14 +293,37 @@ function M.buildMenu()
       end,
     }
 
+    -- Build tooltip with full details
+    local tooltip = {}
+    if event.type == "notification" then
+      local notif = event.data
+      table.insert(tooltip, fmt("From: %s", notif.sender or "Unknown"))
+      if notif.subtitle and notif.subtitle ~= "" then
+        table.insert(tooltip, fmt("Subject: %s", notif.subtitle))
+      end
+      table.insert(tooltip, fmt("Message: %s", notif.message or ""))
+      table.insert(tooltip, fmt("App: %s", notif.app_id or "Unknown"))
+      table.insert(tooltip, fmt("Focus Mode: %s", notif.focus_mode or "None"))
+      table.insert(tooltip, fmt("Time: %s", os.date("%H:%M:%S", notif.timestamp)))
+    else
+      -- Network event tooltip
+      table.insert(tooltip, fmt("Event: %s", event.title))
+      table.insert(tooltip, fmt("Time: %s", os.date("%H:%M:%S", event.timestamp)))
+    end
+    menuItem.tooltip = table.concat(tooltip, "\n")
+
     -- Handle icon (string emoji/nerd font or image)
     if type(event.icon) == "table" and event.icon.image then
-      -- App icon (image)
+      -- App icon (image) - title without extra prefix
       menuItem.title = fmt("%s (%s)", event.title, timeStr)
       menuItem.image = event.icon.image
-    else
-      -- Network icon (emoji/nerd font string) - fallback
+    elseif event.icon then
+      -- Network icon (emoji/nerd font string)
       menuItem.title = fmt("%s %s (%s)", event.icon, event.title, timeStr)
+    else
+      -- No icon available - add spacing character to maintain alignment
+      -- Use a narrow non-breaking space to reserve icon space
+      menuItem.title = fmt("   %s (%s)", event.title, timeStr)
     end
 
     table.insert(menu, menuItem)
