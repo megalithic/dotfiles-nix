@@ -20,10 +20,16 @@ local notificationSubroles = {
 
 -- Process a notification that appeared in Notification Center
 local function handleNotification(element)
+  -- DEBUG: Log every callback invocation to verify AX observer is working
+  U.log.df("AX callback triggered! Element: %s, Subrole: %s", tostring(element), tostring(element.AXSubrole))
+
   -- Skip if notification drawer is open (user is already looking at notifications)
   local notificationCenterBundleID = "com.apple.notificationcenterui"
   local notificationCenter = hs.axuielement.applicationElement(notificationCenterBundleID)
-  if notificationCenter and notificationCenter:asHSApplication():focusedWindow() then return end
+  if notificationCenter and notificationCenter:asHSApplication():focusedWindow() then
+    U.log.df("Skipping - notification drawer is open")
+    return
+  end
 
   -- Process each notification only once
   if not notificationSubroles[element.AXSubrole] or M.processedNotificationIDs[element.AXIdentifier] then return end
@@ -97,12 +103,20 @@ function M:start()
     return
   end
 
+  local ncPID = notificationCenter:pid()
+  U.log.df("Notification Center PID: %d", ncPID)
+
   -- Create observer for layout changes
   M.observer = hs.axuielement.observer
-    .new(notificationCenter:pid())
-    :callback(function(_, element) handleNotification(element) end)
+    .new(ncPID)
+    :callback(function(observer, element, notification, observerInfo)
+      U.log.df("Observer callback: notification=%s", tostring(notification))
+      handleNotification(element)
+    end)
     :addWatcher(notificationCenter, "AXLayoutChanged")
     :start()
+
+  U.log.df("Observer created and started, watching AXLayoutChanged events")
 
   -- Periodic cleanup of notification ID cache (every 5 minutes)
   M.cleanupTimer = hs.timer.doEvery(300, function()
