@@ -284,6 +284,27 @@
         "type": "github"
       }
     },
+    "nix-casks": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1762732863,
+        "narHash": "sha256-PCX7kYGtjPmBktHZn8XSzn0hLmFxqRN4LI39KlRzHRw=",
+        "owner": "atahanyorganci",
+        "repo": "nix-casks",
+        "rev": "e473f213e18f44a453b540bd02710956bcad81c4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "atahanyorganci",
+        "ref": "archive",
+        "repo": "nix-casks",
+        "type": "github"
+      }
+    },
     "nix-darwin": {
       "inputs": {
         "nixpkgs": [
@@ -446,6 +467,7 @@
         "mcp-hub": "mcp-hub",
         "neovim-nightly-overlay": "neovim-nightly-overlay",
         "nix-ai-tools": "nix-ai-tools",
+        "nix-casks": "nix-casks",
         "nix-darwin": "nix-darwin",
         "nixpkgs": "nixpkgs_5",
         "nixpkgs-unstable": "nixpkgs-unstable",

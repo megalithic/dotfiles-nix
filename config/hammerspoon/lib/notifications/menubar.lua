@@ -1,15 +1,22 @@
--- Notification Menubar Indicator
--- Shows notifications blocked by focus mode only (not other suppression reasons)
+-- Event Menubar Indicator
+-- Shows important events: notifications blocked by focus mode, network status changes, etc.
 
 local M = {}
 local fmt = string.format
 local db = require("lib.notifications.db")
+local DB = require("lib.db")
 
 -- Menubar item
 M.menubar = nil
 M.pulseTimer = nil
 M.pulseState = false
 M.isShowing = false
+
+-- Event categories
+M.CATEGORY = {
+  FOCUS_BLOCKED = "focus_blocked",
+  NETWORK = "network",
+}
 
 -- Initialize menubar indicator
 function M.init()
@@ -38,25 +45,43 @@ function M.init()
   return true
 end
 
+-- Get all important events
+function M.getEvents()
+  local events = {
+    focusBlocked = db.getBlockedByFocus() or {},
+    network = DB.connections.getEvents(24) or {}, -- Last 24 hours
+  }
+  return events
+end
+
+-- Get total event count
+function M.getEventCount(events)
+  local count = 0
+  for _, categoryEvents in pairs(events) do
+    count = count + #categoryEvents
+  end
+  return count
+end
+
 -- Update menubar display
 function M.update()
   if not M.menubar then return end
 
-  -- Get notifications blocked by focus mode
-  local blocked = db.getBlockedByFocus()
-  local count = #blocked
+  local events = M.getEvents()
+  local totalCount = M.getEventCount(events)
 
-  if count > 0 then
+  if totalCount > 0 then
     -- Show menubar if hidden
     if not M.isShowing then
       M.menubar:returnToMenuBar()
       M.isShowing = true
     end
-    -- Show count with pulsing indicator
-    M.menubar:setTitle(fmt("🔴 %d", count))
-    M.menubar:setTooltip(fmt("%d blocked notification%s", count, count == 1 and "" or "s"))
+
+    -- Single indicator with total count
+    M.menubar:setTitle(fmt("🔴 %d", totalCount))
+    M.menubar:setTooltip(fmt("%d important event%s", totalCount, totalCount == 1 and "" or "s"))
   else
-    -- No blocked notifications - hide menubar completely
+    -- No events - hide menubar completely
     if M.isShowing then
       M.menubar:removeFromMenuBar()
       M.isShowing = false
@@ -73,16 +98,16 @@ function M.startPulse()
   M.pulseTimer = hs.timer.doEvery(0.5, function()
     if not M.menubar or not M.isShowing then return end
 
-    local blocked = db.getBlockedByFocus()
-    local count = #blocked
+    local events = M.getEvents()
+    local totalCount = M.getEventCount(events)
 
-    if count > 0 then
-      -- Alternate between bright and dim red
+    if totalCount > 0 then
+      -- Alternate between bright and dim indicator
       M.pulseState = not M.pulseState
       if M.pulseState then
-        M.menubar:setTitle(fmt("🔴 %d", count))
+        M.menubar:setTitle(fmt("🔴 %d", totalCount))
       else
-        M.menubar:setTitle(fmt("⭕ %d", count))
+        M.menubar:setTitle(fmt("⭕ %d", totalCount))
       end
     end
   end)
@@ -96,48 +121,170 @@ function M.stopPulse()
   end
 end
 
--- Build menu with notification list
-function M.buildMenu()
-  local blocked = NotifyDB.getBlockedByFocus()
-  local menu = {}
-
-  if #blocked == 0 then
-    table.insert(menu, {
-      title = "No blocked notifications",
-      disabled = true,
-    })
+-- Format timestamp relative to now
+local function formatTimeAgo(timestamp)
+  local timeAgo = os.time() - timestamp
+  if timeAgo < 60 then
+    return "Just now"
+  elseif timeAgo < 3600 then
+    return fmt("%dm ago", math.floor(timeAgo / 60))
+  elseif timeAgo < 86400 then
+    return fmt("%dh ago", math.floor(timeAgo / 3600))
   else
-    -- Add header
-    table.insert(menu, {
-      title = fmt("Blocked by Focus Mode (%d)", #blocked),
-      disabled = true,
-    })
-    table.insert(menu, { title = "-" }) -- Separator
+    return fmt("%dd ago", math.floor(timeAgo / 86400))
+  end
+end
 
-    -- Add each notification
-    for _, notif in ipairs(blocked) do
-      local title = notif.sender or "Unknown"
-      local preview = notif.message and notif.message:sub(1, 50) or ""
-      if #preview == 50 then preview = preview .. "..." end
+-- Get icon from config or use default
+local function getNetworkIcon(eventType)
+  local icons = C.notifier and C.notifier.config and C.notifier.config.networkIcons
+  if icons and icons[eventType] then
+    return icons[eventType]
+  end
 
-      table.insert(menu, {
-        title = fmt("%s: %s", title, preview),
-        fn = function()
-          M.handleNotificationClick(notif)
-        end,
-      })
+  -- Fallback icons if config not available
+  local defaults = {
+    internet_connected = "✅",
+    internet_disconnected = "❌",
+    router_connected = "🔗",
+    router_disconnected = "⚠️",
+  }
+  return defaults[eventType] or "📡"
+end
+
+-- Get app icon or fallback to default
+local function getAppIcon(bundleID)
+  if not bundleID then
+    return nil
+  end
+
+  local icon = hs.image.imageFromAppBundle(bundleID)
+  if icon then
+    -- Resize to menubar size
+    local size = { w = 16, h = 16 }
+    return icon:setSize(size)
+  end
+
+  return nil
+end
+
+-- Convert events to unified format for sorting and display
+local function normalizeEvents(events)
+  local normalized = {}
+
+  -- Add network events
+  for _, event in ipairs(events.network) do
+    local icon = getNetworkIcon(event.event_type)
+    local title
+
+    if event.event_type == "internet_connected" then
+      title = "Internet Connected"
+    elseif event.event_type == "internet_disconnected" then
+      title = "Internet Disconnected"
+    elseif event.event_type == "router_connected" then
+      title = "Router Connected"
+    elseif event.event_type == "router_disconnected" then
+      title = "Router Disconnected"
+    else
+      title = event.event_type
     end
 
-    table.insert(menu, { title = "-" }) -- Separator
-
-    -- Add "Clear All" action
-    table.insert(menu, {
-      title = "Clear All Notifications",
-      fn = function()
-        M.clearAll()
-      end,
+    table.insert(normalized, {
+      type = "network",
+      icon = icon,
+      title = title,
+      timestamp = event.timestamp,
+      data = event,
     })
   end
+
+  -- Add focus-blocked notifications
+  for _, notif in ipairs(events.focusBlocked) do
+    local sender = notif.sender or "Unknown"
+    local preview = notif.message and notif.message:sub(1, 40) or ""
+    if #preview == 40 then preview = preview .. "..." end
+
+    -- Try to get app icon, fallback to 🔴
+    local appIcon = getAppIcon(notif.app_id)
+
+    table.insert(normalized, {
+      type = "notification",
+      icon = appIcon and { image = appIcon } or "🔴",
+      title = fmt("%s: %s", sender, preview),
+      timestamp = notif.timestamp,
+      data = notif,
+    })
+  end
+
+  -- Sort by timestamp (most recent first)
+  table.sort(normalized, function(a, b)
+    return a.timestamp > b.timestamp
+  end)
+
+  return normalized
+end
+
+-- Build menu with unified event list
+function M.buildMenu()
+  local events = M.getEvents()
+  local menu = {}
+
+  local totalCount = M.getEventCount(events)
+
+  if totalCount == 0 then
+    table.insert(menu, {
+      title = "No important events",
+      disabled = true,
+    })
+    return menu
+  end
+
+  -- Get normalized and sorted events
+  local allEvents = normalizeEvents(events)
+
+  -- Add header
+  table.insert(menu, {
+    title = fmt("Important Events (%d)", totalCount),
+    disabled = true,
+  })
+  table.insert(menu, { title = "-" }) -- Separator
+
+  -- Add all events in chronological order
+  for _, event in ipairs(allEvents) do
+    local timeStr = formatTimeAgo(event.timestamp)
+
+    -- Build menu item with icon support
+    local menuItem = {
+      fn = function()
+        if event.type == "notification" then
+          M.handleNotificationClick(event.data)
+        end
+        -- Network events don't have a click action currently
+      end,
+    }
+
+    -- Handle icon (string emoji/nerd font or image)
+    if type(event.icon) == "table" and event.icon.image then
+      -- App icon (image)
+      menuItem.title = fmt("%s (%s)", event.title, timeStr)
+      menuItem.image = event.icon.image
+    else
+      -- Network icon (emoji/nerd font string)
+      menuItem.title = fmt("%s %s (%s)", event.icon, event.title, timeStr)
+    end
+
+    table.insert(menu, menuItem)
+  end
+
+  table.insert(menu, { title = "-" }) -- Separator
+
+  -- Clear Actions
+  table.insert(menu, {
+    title = "Clear All Events",
+    fn = function()
+      M.clearAll()
+    end,
+  })
 
   return menu
 end
@@ -158,13 +305,20 @@ function M.handleNotificationClick(notif)
   end)
 end
 
--- Clear all blocked notifications
+-- Clear all events (notifications and network events)
 function M.clearAll()
+  -- Clear blocked notifications
   db.dismiss("all")
+
+  -- Clear network events
+  DB.connections.dismissAll()
+
+  -- Update menubar
   hs.timer.doAfter(0.1, function()
     M.update()
   end)
-  U.log.i("Cleared all blocked notifications")
+
+  U.log.i("Cleared all events from menubar")
 end
 
 -- Cleanup

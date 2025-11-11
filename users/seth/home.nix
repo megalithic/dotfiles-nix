@@ -13,7 +13,8 @@
   inherit (pkgs.stdenv.hostPlatform) isDarwin;
 in {
   imports = [
-    # ./packages.nix
+    ./packages.nix
+    ./packages-cask.nix
     ./email.nix
     # ./mail
     ./chromium
@@ -21,7 +22,6 @@ in {
     ./qutebrowser.nix
     ./fish.nix
     ./fzf.nix
-    # ./karabiner
     # ./kanata
     # ./tmux
     ./nvim.nix
@@ -34,146 +34,6 @@ in {
     "${config.home.homeDirectory}/.local/bin"
     "${config.home.homeDirectory}/bin"
     "${config.home.homeDirectory}/.cargo/bin"
-  ];
-  home.packages = with pkgs; [
-    # [rest] ----------------------------------------------------------------------------------------
-    _1password-cli
-    amber
-    argc
-    aws-sam-cli
-    awscli2
-    bash # macOS ships with a very old version of bash for whatever reason
-    blueutil
-    cachix
-    curlie
-    delta
-    devbox
-    difftastic
-    ffmpeg
-    flyctl
-    gh
-    git-lfs
-    gum
-    helium
-    jwt-cli
-    poppler
-    pre-commit
-    procs
-    # qutebrowser
-    ripgrep
-    sqlite
-    # terminal-notifier FIXME: not working with nixpkgs (arch not supported?)
-    switchaudio-osx
-    tmux
-    unstable.devenv
-    w3m
-    yubikey-manager
-    yubikey-personalization
-    # [for neovim] --------------------------------------------------------------------------------
-    par
-    hadolint # Docker linter
-    dotenv-linter
-    shfmt # Doesn't work with zsh, only sh & bash
-    vscode-langservers-extracted # HTML, CSS, JSON & ESLint LSPs
-    # vscode-json-languageserver
-    nodePackages.prettier
-    deno
-    biome
-    bash-language-server
-    vtsls # js/ts LSP
-    yaml-language-server
-    (tailwindcss-language-server.override {nodejs_latest = nodejs_22;})
-    statix
-    tree-sitter # required for treesitter "auto-install" option to work
-    nixd # nix lsp
-    actionlint
-    taplo # TOML linter and formatter
-    # neovim luarocks support requires lua 5.1
-    # https://github.com/folke/lazy.nvim/issues/1570#issuecomment-2194329169
-    lua51Packages.luarocks
-    typos
-    typos-lsp
-    typst
-    copilot-language-server
-    pngpaste # For Obsidian paste_img command
-    stylelint-lsp
-
-    # [ai] ----------------------------------------------------------------------------------------
-    ai-tools.opencode
-    ai-tools.claude-code
-    ai-tools.claude-code-acp
-
-    # [langs] --------------------------------------------------------------------------------------
-    cargo
-    harper
-    k9s
-    kubectl
-    kubernetes-helm
-    kubie
-    lua-language-server
-    markdown-oxide
-    podman
-    shellcheck
-    shfmt
-    stylua
-    # docker --------------------------------------------------------------------------------------
-    colima
-    docker
-    docker-compose
-    docker-compose-language-service
-    dockerfile-language-server-nodejs
-    # node/js/ts ----------------------------------------------------------------------------------
-    nodejs_22
-    # nodePackages_latest.nodejs
-    # nodePackages_latest.prettier
-    # nodePackages_latest.vscode-json-languageserver
-    pnpm
-    vue-language-server
-    # python --------------------------------------------------------------------------------------
-    basedpyright
-    # python3
-    python313
-    python313Packages.pip
-    python313Packages.websockets
-    python313Packages.websocket-client
-    python313Packages.ipython
-    python313Packages.sqlfmt
-    uv
-    # nix -----------------------------------------------------------------------------------------
-    nixfmt-rfc-style
-    alejandra
-    nix-direnv
-    nil
-    # terraform -----------------------------------------------------------------------------------
-    # terraform
-    # terraform-docs
-    # terraform-ls
-    # tflint
-    # tfsec
-    # trivy
-    # atlas
-
-    # fonts ---------------------------------------------------------------------------------------
-    atkinson-hyperlegible
-    inter
-    jetbrains-mono
-    emacs-all-the-icons-fonts
-    # joypixels
-    fira-code
-    fira-mono
-    font-awesome
-    victor-mono
-    maple-mono.NF
-    maple-mono.truetype
-    maple-mono.variable
-    nerd-fonts.fira-code
-    nerd-fonts.jetbrains-mono
-    nerd-fonts.symbols-only
-    noto-fonts-emoji
-    nerd-fonts.fantasque-sans-mono
-    nerd-fonts.iosevka
-    nerd-fonts.victor-mono
-    twemoji-color-font
   ];
 
   home.file = {
@@ -499,6 +359,12 @@ in {
     #     let $PATH = $PATH . ':${pkgs.git}/bin'
     #   '';
     # };
+
+    _1password.enable = true;
+    _1password-gui = {
+      enable = true;
+      package = pkgs.unstable._1password-gui;
+    };
 
     starship = {enable = true;};
 

@@ -63,11 +63,25 @@ function M.init()
       timestamp INTEGER NOT NULL,
       event_type TEXT NOT NULL,
       duration_seconds INTEGER,
+      dismissed INTEGER DEFAULT 0,
       created_at INTEGER DEFAULT (strftime('%s', 'now'))
     )
   ]]
 
   M.db:execute(connectionsSchema)
+
+  -- Migration: Add dismissed column if it doesn't exist
+  local hasColumn = false
+  for row in M.db:nrows("PRAGMA table_info(connection_events)") do
+    if row.name == "dismissed" then
+      hasColumn = true
+      break
+    end
+  end
+  if not hasColumn then
+    M.db:execute("ALTER TABLE connection_events ADD COLUMN dismissed INTEGER DEFAULT 0")
+    U.log.i("Added dismissed column to connection_events table")
+  end
 
   -- Create user_cache table (for caching external data)
   local cacheSchema = [[
@@ -485,7 +499,7 @@ function M.connections.logEvent(data)
   return M.db:execute(query) ~= nil
 end
 
--- Get recent connection events
+-- Get recent connection events (non-dismissed only)
 function M.connections.getEvents(hours)
   hours = hours or 24
   local cutoff = os.time() - (hours * 3600)
@@ -493,10 +507,13 @@ function M.connections.getEvents(hours)
   local query = fmt(
     [[
     SELECT
+      id,
+      timestamp,
       datetime(timestamp, 'unixepoch', 'localtime') as time,
-      event_type, duration_seconds
+      event_type,
+      duration_seconds
     FROM connection_events
-    WHERE timestamp > %d
+    WHERE timestamp > %d AND dismissed = 0
     ORDER BY timestamp DESC
   ]],
     cutoff
@@ -508,6 +525,17 @@ function M.connections.getEvents(hours)
   end
 
   return results
+end
+
+--- Dismiss connection events from menubar
+function M.connections.dismissAll()
+  if not M.db then
+    U.log.e("Database not initialized - cannot dismiss connection events")
+    return false
+  end
+
+  local query = "UPDATE connection_events SET dismissed = 1 WHERE dismissed = 0"
+  return M.db:execute(query) ~= nil
 end
 
 --------------------------------------------------------------------------------

@@ -471,6 +471,12 @@ addSearchAlias(
 );
 
 addSearchAlias(
+  "!casks",
+  "nix casks search",
+  "https://nix-casks.yorganci.dev/search?q=",
+);
+
+addSearchAlias(
   "d",
   "duckduckgo",
   "https://duckduckgo.com/?q=",

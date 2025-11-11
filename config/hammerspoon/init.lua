@@ -90,7 +90,7 @@ function _G.P(...)
   hs.console.printStyledtext(U.ts() .. " (" .. callerInfo() .. ")" .. " => " .. contents)
 end
 
-local watchers = { "audio", "camera", "dock", "app", "notification" }
+local watchers = { "audio", "camera", "dock", "app", "notification", "network" }
 
 hs.timer.doAfter(1, function()
   hs.loadSpoon("EmmyLua")

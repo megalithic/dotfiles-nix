@@ -156,6 +156,13 @@ M.notifier = {
       enabled = true, -- Enable slide-up animation from bottom of screen
       duration = 0.3, -- Animation duration in seconds (0.3 = smooth, 0.5 = slower)
     },
+    -- Network event icons (nerd font icons or emoji)
+    networkIcons = {
+      router_connected = "󰱓", -- Nerd font: network icon
+      router_disconnected = "󰱟", -- Nerd font: network off icon
+      internet_connected = "󰱓", -- Nerd font: network icon
+      internet_disconnected = "󰖪", -- Nerd font: wifi off icon (or use 󰱓)
+    },
   },
 }
 
