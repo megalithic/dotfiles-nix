@@ -16,156 +16,6 @@ TERMINAL = "com.mitchellh.ghostty"
 ---@field allowedFocusModes? (string|nil)[] # Focus modes where notification is allowed. If undefined: blocks during ANY focus mode. If defined: only shows if current focus mode is in the list (nil = no focus mode)
 ---@field appImageID? string            # Custom icon identifier (e.g. "hal9000")
 
-M.notifier = {
-  rules = {
-    -- Notification Routing Rules
-    -- Rules are evaluated in order. First match wins.
-    -- Each rule is a table defining matching criteria and behavior.
-    {
-      name = "Important Messages",
-      appBundleID = "com.apple.MobileSMS",
-      senders = { "Abby Messer" },
-      duration = 5,
-      patterns = {
-        high = {
-          "%?",
-          "👋",
-          "❓",
-          "‼️",
-          "⚠️",
-          "urgent",
-          "asap",
-          "emergency",
-          "!+$",
-          "%?+$",
-        },
-        -- low = {
-        --   "brb",
-        --   "ok",
-        --   "👍",
-        --   "lol",
-        -- },
-        -- Everything else defaults to "normal"
-      },
-      alwaysShowInTerminal = true,
-      showWhenAppFocused = false,
-      allowedFocusModes = { nil, "Personal" },
-    },
-
-    -- Example: All other Messages notifications (lower priority)
-    {
-      name = "Messages",
-      appBundleID = "com.apple.MobileSMS",
-      -- No allowedFocusModes = always show, no focus check
-    },
-
-    -- AI Agent Notifications (from bin/notifier via hs.notify)
-    {
-      name = "AI Agent Notifications",
-      appBundleID = "org.hammerspoon.Hammerspoon",
-      duration = 3,
-      patterns = {
-        high = {
-          "error",
-          "failed",
-          "critical",
-          "urgent",
-          "question",
-          "%?",
-          "!!!",
-          "‼️",
-          "⚠️",
-        },
-        low = {
-          "info",
-          "debug",
-          "starting",
-          "completed",
-          "finished",
-        },
-        -- Everything else defaults to "normal"
-      },
-      alwaysShowInTerminal = true,
-      showWhenAppFocused = false,
-      allowedFocusModes = { nil, "Personal", "Work" },
-      appImageID = "hal9000", -- Special marker for HAL icon
-    },
-
-    -- Example: Build notifications with pattern-based priority
-    {
-      name = "Build System Notifications",
-      appBundleID = "com.example.buildapp",
-      duration = 3,
-      patterns = {
-        high = {
-          "failed",
-          "error",
-          "fatal",
-          "broke",
-        },
-        low = {
-          "started",
-          "building",
-          "compiling",
-          "running",
-        },
-        -- "succeeded", "completed" = normal (default)
-      },
-      allowedFocusModes = { nil, "Work" },
-    },
-  },
-  config = {
-    -- Notification positioning configuration
-
-    -- Vertical offsets (in pixels) from bottom of screen for different programs
-    -- These values account for typical prompt heights in each program
-    -- NOTE: Programs with expanding UI (thinking indicators, token counters) need extra padding
-    offsets = {
-      nvim = 100, -- Neovim: minimal offset (statusline at bottom, no prompt)
-      vim = 100, -- Vim: same as neovim
-      ["nvim-diff"] = 100,
-      fish = 350, -- Fish: multiline prompt with git info
-      bash = 300, -- Bash: standard prompt
-      zsh = 300, -- Zsh: standard prompt
-      claude = 155, -- Claude Code: optimized via screenshot testing with expanding UI (prompt + thinking + tokens)
-      ["claude-code"] = 155, -- Claude Code: AI coding assistant with expanding prompt UI
-      opencode = 155, -- OpenCode: AI coding assistant with expanding prompt UI
-      lazygit = 200, -- Lazygit: status bar at bottom
-      htop = 150, -- htop: minimal UI at bottom
-      btop = 150, -- btop: minimal UI at bottom
-      node = 155, -- Node.js (fallback for claude-code, opencode)
-      default = 200, -- Default for unknown programs
-    },
-    -- Whether to apply offset adjustment when tmux is detected
-    tmuxShiftEnabled = true,
-    -- Default positioning (Neovim-style anchor + position system)
-    -- anchor: "screen" | "window" | "app" (coordinate system context)
-    -- position: "NW" | "N" | "NE" | "W" | "C" | "E" | "SW" | "S" | "SE" (cardinal direction)
-    -- Examples:
-    --   anchor="screen", position="SW" → bottom-left of screen (with auto offset)
-    --   anchor="window", position="C" → center of focused window
-    --   anchor="screen", position="N" → top-center of screen
-    defaultAnchor = "screen",
-    defaultPosition = "SW",
-    -- Minimum offset to ensure notification is always visible
-    minOffset = 100,
-    -- Default notification duration (in seconds)
-    defaultDuration = 3,
-    -- Animation settings
-    animation = {
-      enabled = true, -- Enable slide-up animation from bottom of screen
-      duration = 0.3, -- Animation duration in seconds (0.3 = smooth, 0.5 = slower)
-    },
-    -- Network event icons (nerd font icons or emoji)
-    networkIcons = {
-      router_connected = "󰱓", -- Nerd font: network icon
-      router_disconnected = "󰱟", -- Nerd font: network off icon
-      internet_connected = "󰱓", -- Nerd font: network icon
-      internet_disconnected = "󰖪", -- Nerd font: wifi off icon (or use 󰱓)
-    },
-  },
-}
-
 M.displays = {
   internal = "Built-in Retina Display",
   laptop = "Built-in Retina Display",
@@ -502,6 +352,13 @@ M.dock = {
     vendorID = 7504,
     vendorName = "ZMK Project",
   },
+  kanata = {
+    enabled = false, -- Set to true to enable Kanata profile switching
+    connected = "leeloo.kbd",
+    disconnected = "internal.kbd",
+    configPath = os.getenv("HOME") .. "/.config/kanata",
+    daemonLabel = "org.nixos.kanata",
+  },
   docked = {
     wifi = "off",
     input = "Samson GoMic",
@@ -511,6 +368,179 @@ M.dock = {
     wifi = "on",
     input = "megabose",
     output = "megabose",
+  },
+}
+
+M.notifier = {
+  rules = {
+    -- Notification Routing Rules
+    -- Rules are evaluated in order. First match wins.
+    -- Each rule is a table defining matching criteria and behavior.
+    {
+      name = "Important Messages",
+      appBundleID = "com.apple.MobileSMS",
+      senders = { "Abby Messer" },
+      duration = 5,
+      patterns = {
+        high = {
+          "%?",
+          "👋",
+          "❓",
+          "‼️",
+          "⚠️",
+          "urgent",
+          "asap",
+          "emergency",
+          "!+$",
+          "%?+$",
+        },
+        -- low = {
+        --   "brb",
+        --   "ok",
+        --   "👍",
+        --   "lol",
+        -- },
+        -- Everything else defaults to "normal"
+      },
+      alwaysShowInTerminal = true,
+      showWhenAppFocused = false,
+      allowedFocusModes = { nil, "Personal" },
+    },
+
+    -- Example: All other Messages notifications (lower priority)
+    {
+      name = "Messages",
+      appBundleID = "com.apple.MobileSMS",
+      -- No allowedFocusModes = always show, no focus check
+    },
+
+    -- AI Agent Notifications (from bin/notifier via hs.notify)
+    {
+      name = "AI Agent Notifications",
+      appBundleID = "org.hammerspoon.Hammerspoon",
+      duration = 3,
+      patterns = {
+        high = {
+          "error",
+          "failed",
+          "critical",
+          "urgent",
+          "question",
+          "%?",
+          "!!!",
+          "‼️",
+          "⚠️",
+        },
+        low = {
+          "info",
+          "debug",
+          "starting",
+          "completed",
+          "finished",
+        },
+        -- Everything else defaults to "normal"
+      },
+      alwaysShowInTerminal = true,
+      showWhenAppFocused = false,
+      allowedFocusModes = { nil, "Personal", "Work" },
+      appImageID = "hal9000", -- Special marker for HAL icon
+    },
+
+    -- Example: Build notifications with pattern-based priority
+    {
+      name = "Build System Notifications",
+      appBundleID = "com.example.buildapp",
+      duration = 3,
+      patterns = {
+        high = {
+          "failed",
+          "error",
+          "fatal",
+          "broke",
+        },
+        low = {
+          "started",
+          "building",
+          "compiling",
+          "running",
+        },
+        -- "succeeded", "completed" = normal (default)
+      },
+      allowedFocusModes = { nil, "Work" },
+    },
+  },
+  config = {
+    -- Notification positioning configuration
+
+    -- Vertical offsets (in pixels) from bottom of screen for different programs
+    -- These values account for typical prompt heights in each program
+    -- NOTE: Programs with expanding UI (thinking indicators, token counters) need extra padding
+    offsets = {
+      nvim = 100, -- Neovim: minimal offset (statusline at bottom, no prompt)
+      vim = 100, -- Vim: same as neovim
+      ["nvim-diff"] = 100,
+      fish = 350, -- Fish: multiline prompt with git info
+      bash = 300, -- Bash: standard prompt
+      zsh = 300, -- Zsh: standard prompt
+      claude = 155, -- Claude Code: optimized via screenshot testing with expanding UI (prompt + thinking + tokens)
+      ["claude-code"] = 155, -- Claude Code: AI coding assistant with expanding prompt UI
+      opencode = 155, -- OpenCode: AI coding assistant with expanding prompt UI
+      lazygit = 200, -- Lazygit: status bar at bottom
+      htop = 150, -- htop: minimal UI at bottom
+      btop = 150, -- btop: minimal UI at bottom
+      node = 155, -- Node.js (fallback for claude-code, opencode)
+      default = 200, -- Default for unknown programs
+    },
+    -- Whether to apply offset adjustment when tmux is detected
+    tmuxShiftEnabled = true,
+    -- Default positioning (Neovim-style anchor + position system)
+    -- anchor: "screen" | "window" | "app" (coordinate system context)
+    -- position: "NW" | "N" | "NE" | "W" | "C" | "E" | "SW" | "S" | "SE" (cardinal direction)
+    -- Examples:
+    --   anchor="screen", position="SW" → bottom-left of screen (with auto offset)
+    --   anchor="window", position="C" → center of focused window
+    --   anchor="screen", position="N" → top-center of screen
+    defaultAnchor = "screen",
+    defaultPosition = "SW",
+    -- Minimum offset to ensure notification is always visible
+    minOffset = 100,
+    -- Default notification duration (in seconds)
+    defaultDuration = 3,
+    -- Animation settings
+    animation = {
+      enabled = true, -- Enable slide-up animation from bottom of screen
+      duration = 0.3, -- Animation duration in seconds (0.3 = smooth, 0.5 = slower)
+    },
+    -- Network event icons (nerd font icons or emoji)
+    networkIcons = {
+      router_connected = "󰱓", -- Nerd font: network icon
+      router_disconnected = "󰱟", -- Nerd font: network off icon
+      internet_connected = "󰱓", -- Nerd font: network icon
+      internet_disconnected = "󰖪", -- Nerd font: wifi off icon (or use 󰱓)
+    },
+    -- Dismiss notification keybinding (only affects active canvas notifications)
+    -- Format: { mods, key } where mods is table of modifiers (e.g., {"shift"}, {})
+    dismissBindings = { {}, "escape" }, -- F19+escape to dismiss
+    clickDismiss = true, -- Click dimming overlay to dismiss
+    -- Color schemes for light and dark mode
+    colors = {
+      light = {
+        shadow = { red = 0.0, green = 0.0, blue = 0.0, alpha = 0.3 },
+        background = { red = 0.98, green = 0.98, blue = 0.98, alpha = 0.92 },
+        border = { red = 0.85, green = 0.85, blue = 0.85, alpha = 0.6 },
+        title = { red = 0.1, green = 0.1, blue = 0.1, alpha = 1.0 },
+        message = { red = 0.3, green = 0.3, blue = 0.3, alpha = 1.0 },
+        timestamp = { red = 0.5, green = 0.5, blue = 0.5, alpha = 0.85 },
+      },
+      dark = {
+        shadow = { red = 0.0, green = 0.0, blue = 0.0, alpha = 0.5 },
+        background = { red = 0.17, green = 0.17, blue = 0.18, alpha = 0.95 }, -- #2c2c2e
+        border = { red = 0.30, green = 0.30, blue = 0.31, alpha = 0.85 }, -- Lighter border for better visibility
+        title = { red = 0.92, green = 0.92, blue = 0.92, alpha = 1.0 }, -- Slightly darker than pure white
+        message = { red = 0.96, green = 0.96, blue = 0.97, alpha = 1.0 }, -- #f5f5f7
+        timestamp = { red = 0.56, green = 0.56, blue = 0.58, alpha = 0.85 }, -- #8e8e93
+      },
+    },
   },
 }
 

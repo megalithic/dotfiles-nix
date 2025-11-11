@@ -755,4 +755,22 @@ return {
 
   -- forces plugins to use CursorLineSign
   { "jake-stewart/force-cul.nvim", opts = {} },
+  {
+    "codethread/qmk.nvim",
+    ft = "keymap",
+    enabled = true,
+    event = "VeryLazy",
+    opts = {
+      name = "LAYOUT_leeloo",
+      variant = "zmk",
+      -- layout = {
+      --   "x x x x x _ _ _ _ _ _ _ _ _ x x x x x",
+      --   "x x x x x x _ _ _ _ _ _ _ x x x x x x",
+      --   "x x x x x x _ _ _ _ _ _ _ x x x x x x",
+      --   "x x x x x x _ _ _ _ _ _ _ x x x x x x",
+      --   "x x x x x x x x x _ x x x x x x x x x",
+      --   "x x x x x _ x x x _ x x x _ x x x x x",
+      -- },
+    },
+  },
 }

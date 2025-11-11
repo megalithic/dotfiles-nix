@@ -14,17 +14,19 @@
 in {
   imports = [
     ./packages.nix
-    ./packages-cask.nix
+    ./packages-casks.nix
+    ./packages-fonts.nix
+    ./packages-langs.nix
     ./email.nix
-    # ./mail
     ./chromium
     ./jujutsu.nix
     ./qutebrowser.nix
     ./fish.nix
     ./fzf.nix
+    ./nvim.nix
     # ./kanata
     # ./tmux
-    ./nvim.nix
+    # ./mail
   ];
 
   home.username = username;
@@ -33,6 +35,7 @@ in {
   home.sessionPath = [
     "${config.home.homeDirectory}/.local/bin"
     "${config.home.homeDirectory}/bin"
+    "${config.home.homeDirectory}/.dotfiles-nix/bin"
     "${config.home.homeDirectory}/.cargo/bin"
   ];
 

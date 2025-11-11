@@ -42,51 +42,166 @@ function M.loadApps()
   end)
 end
 
+-- Generic meeting window finder
+-- Searches for windows matching video call patterns (title keywords or large windows)
+local function findMeetingWindow(app)
+  if not app then return nil end
+
+  local bundleID = app:bundleID()
+
+  -- Strategy 1: Find window by title pattern (most reliable)
+  -- Check multiple patterns in order of specificity
+  local titlePatterns = { "meeting", "standup", "call", "video" }
+  for _, pattern in ipairs(titlePatterns) do
+    local window = app:findWindow(pattern)
+    if window and window:isStandard() then
+      return window
+    end
+  end
+
+  -- Strategy 2: App-specific detection
+  if bundleID == "com.microsoft.teams2" then
+    -- Teams: Meeting windows DON'T have "| Microsoft Teams" suffix
+    -- The main window is titled like "Chat | Team Name | Microsoft Teams"
+    -- Meeting windows are just the meeting name (e.g., "Daily Standup")
+    local windows = app:allWindows()
+    for _, window in ipairs(windows) do
+      local title = window:title()
+      if title and window:isStandard() and not title:find("Microsoft Teams", 1, true) then
+        -- Found a window without the Teams suffix - likely a meeting
+        return window
+      end
+    end
+  elseif bundleID == "us.zoom.xos" then
+    -- Zoom: Meeting window title is "Zoom Meeting" (not just "Zoom")
+    local window = app:findWindow("zoom meeting")
+    if window and window:isStandard() then
+      return window
+    end
+  elseif bundleID == "com.pop.pop.app" then
+    -- Pop: Large windows (>1000x1000) are video calls
+    local windows = app:allWindows()
+    for _, window in ipairs(windows) do
+      if window:isStandard() then
+        local frame = window:frame()
+        if frame.w > 1000 and frame.h > 1000 then
+          return window
+        end
+      end
+    end
+  end
+
+  -- Strategy 3: Find large window (likely video call)
+  -- Video calls typically use large windows (> 800x600)
+  local mainWindow = app:mainWindow()
+  if mainWindow and mainWindow:isStandard() then
+    local frame = mainWindow:frame()
+    if frame.w > 800 and frame.h > 600 then
+      return mainWindow
+    end
+  end
+
+  -- Strategy 4: Fallback to any standard window
+  local windows = app:allWindows()
+  for _, window in ipairs(windows) do
+    if window:isStandard() then
+      return window
+    end
+  end
+
+  return nil
+end
+
 function M.loadMeeting()
   req("hyper", { id = "meeting" }):start():bind({}, "z", nil, function()
-    local focusedApp = hs.application.frontmostApplication()
-    if hs.application.find("us.zoom.xos") then
-      local prevWin = hs.window.focusedWindow()
-      -- hs.application.launchOrFocusByBundleID("us.zoom.xos")
-      local app = hs.application.find("us.zoom.xos")
-      local targetWin = app:findWindow("Zoom Meeting")
-      if targetWin and targetWin:isStandard() then
-        targetWin:focus()
-      else
-        prevWin:focus()
+    -- Check native meeting apps in priority order
+    local meetingApps = {
+      "us.zoom.xos",              -- Zoom
+      "com.microsoft.teams2",     -- Teams
+      "com.pop.pop.app",          -- Pop
+    }
+
+    -- Browser-based meeting URL patterns (regex patterns for JavaScript)
+    -- Used by osascript JavaScript, supports standard regex syntax
+    local meetingUrlPatterns = {
+      "meet.google.com",
+      "hangouts.google.com.call",
+      "www.valant.io",
+      "telehealth.px.athena.io",
+      -- Add more patterns as needed (e.g., "teams.microsoft.com", "whereby.com")
+    }
+
+    local targetWindow = nil
+    local targetApp = nil
+
+    -- Find first running meeting app with a valid meeting window
+    for _, bundleID in ipairs(meetingApps) do
+      local app = hs.application.find(bundleID)
+      if app then
+        targetApp = app
+        targetWindow = findMeetingWindow(app)
+        if targetWindow then
+          break -- Found a meeting window, stop searching
+        end
       end
-    -- elseif hs.application.find("com.brave.Browser.nightly.app.kjgfgldnnfoeklkmfkjfagphfepbbdan") then
-    --   hs.application.launchOrFocusByBundleID("com.brave.Browser.nightly.app.kjgfgldnnfoeklkmfkjfagphfepbbdan")
-    elseif hs.application.find("com.microsoft.teams2") then
-      local prevWin = hs.window.focusedWindow()
-      -- hs.application.launchOrFocusByBundleID("com.microsoft.teams2")
-      local app = hs.application.find("com.microsoft.teams2")
-      local targetWin = app:findWindow("Meeting|Launch Deck Standup")
-      if targetWin then
-        targetWin:focus()
-      else
-        prevWin:focus()
-      end
-    elseif hs.application.find("com.pop.pop.app") then
-      wm.focusMainWindow("com.pop.pop.app")
-
-    -- hs.application.launchOrFocusByBundleID("com.pop.pop.app")
-    -- local app = hs.application.find("com.pop.pop.app")
-    -- local targetWin = enum.find(
-    --   app:allWindows(),
-    --   function(win)
-    --     return app:mainWindow() == win and win:isStandard() and win:frame().w > 1000 and win:frame().h > 1000
-    --   end
-    -- )
-
-    -- if targetWin ~= nil then targetWin:focus() end
-    elseif req("browser").hasTab("meet.google.com|hangouts.google.com.call|www.valant.io|telehealth.px.athena.io") then
-      req("browser").jump("meet.google.com|hangouts.google.com.call|www.valant.io|telehealth.px.athena.io")
-    else
-      print(fmt("%s: no meeting targets to focus", "bindings.hyper.meeting"))
-
-      focusedApp:activate()
     end
+
+    -- Focus the meeting window if found
+    if targetWindow then
+      targetWindow:focus()
+    else
+      -- Check browser-based meetings as fallback
+      local urlPattern = table.concat(meetingUrlPatterns, "|")
+      if req("browser").hasTab(urlPattern) then
+        req("browser").jump(urlPattern)
+      else
+        -- No meeting found
+        U.log.w("No active meeting window found")
+      end
+    end
+
+    -- if hs.application.find("us.zoom.xos") then
+    --   local prevWin = hs.window.focusedWindow()
+    --   -- hs.application.launchOrFocusByBundleID("us.zoom.xos")
+    --   local app = hs.application.find("us.zoom.xos")
+    --   local targetWin = app:findWindow("Zoom Meeting")
+    --   if targetWin and targetWin:isStandard() then
+    --     targetWin:focus()
+    --   else
+    --     prevWin:focus()
+    --   end
+    -- -- elseif hs.application.find("com.brave.Browser.nightly.app.kjgfgldnnfoeklkmfkjfagphfepbbdan") then
+    -- --   hs.application.launchOrFocusByBundleID("com.brave.Browser.nightly.app.kjgfgldnnfoeklkmfkjfagphfepbbdan")
+    -- elseif hs.application.find("com.microsoft.teams2") then
+    --   local prevWin = hs.window.focusedWindow()
+    --   -- hs.application.launchOrFocusByBundleID("com.microsoft.teams2")
+    --   local app = hs.application.find("com.microsoft.teams2")
+    --   local targetWin = app:findWindow("Meeting|Launch Deck Standup")
+    --   if targetWin then
+    --     targetWin:focus()
+    --   else
+    --     prevWin:focus()
+    --   end
+    -- elseif hs.application.find("com.pop.pop.app") then
+    --   -- wm.focusMainWindow("com.pop.pop.app")
+    --
+    --   -- hs.application.launchOrFocusByBundleID("com.pop.pop.app")
+    --   local app = hs.application.find("com.pop.pop.app")
+    --   local targetWin = enum.find(
+    --     app:allWindows(),
+    --     function(win)
+    --       return app:mainWindow() == win and win:isStandard() and win:frame().w > 1000 and win:frame().h > 1000
+    --     end
+    --   )
+    --
+    --   if targetWin ~= nil then targetWin:focus() end
+    -- elseif req("browser").hasTab("meet.google.com|hangouts.google.com.call|www.valant.io|telehealth.px.athena.io") then
+    --   req("browser").jump("meet.google.com|hangouts.google.com.call|www.valant.io|telehealth.px.athena.io")
+    -- else
+    --   print(fmt("%s: no meeting targets to focus", "bindings.hyper.meeting"))
+    --
+    --   hs.application.frontmostApplication():activate()
+    -- end
   end)
 end
 
@@ -512,12 +627,28 @@ req("hyper", { id = "wm" })
   --
 end
 
+function M.loadNotifications()
+  -- Dismiss active canvas notification with F19+escape
+  local dismissBindings = C.notifier.config.dismissBindings
+  if dismissBindings then
+    local mods, key = table.unpack(dismissBindings)
+    req("hyper", { id = "notifications" }):start():bind(mods, key, nil, function()
+      -- Only dismiss if notification is active
+      if _G.activeNotificationCanvas then
+        local notifier = require("lib.notifications.notifier")
+        notifier.dismissNotification()
+      end
+    end)
+  end
+end
+
 function M:init()
   M.loadApps()
   M.loadMeeting()
   M.loadFigma()
   M.loadUtils()
   M.loadWm()
+  M.loadNotifications()
 
   -- req("snipper")
   -- req("clipper")

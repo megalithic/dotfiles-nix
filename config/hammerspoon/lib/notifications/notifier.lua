@@ -189,7 +189,19 @@ function M.showOverlay(alpha)
     })
     :level("overlay") -- Above windows, below notification canvas
     :alpha(alpha)
-    :show()
+
+  -- Add click-to-dismiss if enabled in config
+  local clickDismiss = config.clickDismiss
+  if clickDismiss then
+    _G.notificationOverlay:canvasMouseEvents(true, true)
+    _G.notificationOverlay:mouseCallback(function(canvas, event, id, x, y)
+      if event == "mouseDown" and _G.activeNotificationCanvas then
+        M.dismissNotification()
+      end
+    end)
+  end
+
+  _G.notificationOverlay:show()
 end
 
 -- Hide dimming overlay (keeps canvas for reuse)
@@ -347,6 +359,24 @@ function M.checkDisplayState()
   end
 end
 
+-- Detect if system is in dark mode
+-- Returns: 'dark' or 'light'
+function M.getSystemAppearance()
+  local appearance = hs.host.interfaceStyle()
+  if appearance == "Dark" then
+    return "dark"
+  else
+    return "light"
+  end
+end
+
+-- Get color scheme based on system appearance
+-- Returns: table of colors from config
+function M.getColorScheme()
+  local appearance = M.getSystemAppearance()
+  return config.colors[appearance] or config.colors.light
+end
+
 -- Send macOS notification via hs.notify
 function M.sendMacOSNotification(title, subtitle, body) hs.notify.show(title, subtitle or "", body or "") end
 
@@ -477,11 +507,14 @@ function M.sendCanvasNotification(title, message, duration, opts)
   -- Create canvas
   local canvas = hs.canvas.new({ x = x, y = y, h = height, w = width })
 
+  -- Get color scheme based on system appearance
+  local colors = M.getColorScheme()
+
   -- Shadow layer
   canvas:appendElements({
     type = "rectangle",
     action = "fill",
-    fillColor = { red = 0.0, green = 0.0, blue = 0.0, alpha = 0.3 },
+    fillColor = colors.shadow,
     roundedRectRadii = { xRadius = 14, yRadius = 14 },
     frame = { x = "0.5%", y = "1%", h = "99%", w = "99%" },
     shadow = {
@@ -495,7 +528,7 @@ function M.sendCanvasNotification(title, message, duration, opts)
   canvas:appendElements({
     type = "rectangle",
     action = "fill",
-    fillColor = { red = 0.98, green = 0.98, blue = 0.98, alpha = 0.92 },
+    fillColor = colors.background,
     roundedRectRadii = { xRadius = 12, yRadius = 12 },
     frame = { x = "0%", y = "0%", h = "100%", w = "100%" },
     id = "background",
@@ -506,21 +539,21 @@ function M.sendCanvasNotification(title, message, duration, opts)
   canvas:appendElements({
     type = "rectangle",
     action = "stroke",
-    strokeColor = { red = 0.85, green = 0.85, blue = 0.85, alpha = 0.6 },
-    strokeWidth = 1,
+    strokeColor = colors.border,
+    strokeWidth = 1.5,
     roundedRectRadii = { xRadius = 12, yRadius = 12 },
     frame = { x = 0, y = 0, h = height, w = width },
   })
 
   -- Layout constants for consistent spacing
   local iconSize = 48
-  local leftPadding = 8
-  local iconSpacing = 10
-  local topPadding = 8
-  local rightPadding = 8
-  local bottomPadding = 8
+  local leftPadding = 16
+  local iconSpacing = 12
+  local topPadding = 16
+  local rightPadding = 16
+  local bottomPadding = 16
   local titleHeight = 22
-  local titleToMessageSpacing = 3
+  local titleToMessageSpacing = 4
   local timestampHeight = 20
 
   -- All vertical positioning uses topPadding as the base reference
@@ -558,7 +591,7 @@ function M.sendCanvasNotification(title, message, duration, opts)
   canvas:appendElements({
     type = "text",
     text = title,
-    textColor = { red = 0.1, green = 0.1, blue = 0.1, alpha = 1.0 },
+    textColor = colors.title,
     textSize = 16,
     textFont = ".AppleSystemUIFontBold",
     frame = { x = textLeftMargin, y = contentY, h = titleHeight, w = width - textLeftMargin - rightPadding - 50 },
@@ -570,11 +603,11 @@ function M.sendCanvasNotification(title, message, duration, opts)
 
   -- Message text (positioned directly below title)
   local messageY = contentY + titleHeight + titleToMessageSpacing
-  local messageBottomSpace = timestampHeight + bottomPadding + 4 -- 4px spacing above timestamp
+  local messageBottomSpace = timestampHeight + bottomPadding + 4 -- Base spacing
   canvas:appendElements({
     type = "text",
     text = message,
-    textColor = { red = 0.3, green = 0.3, blue = 0.3, alpha = 1.0 },
+    textColor = colors.message,
     textSize = 14,
     textFont = ".AppleSystemUIFont",
     frame = {
@@ -590,17 +623,19 @@ function M.sendCanvasNotification(title, message, duration, opts)
   })
 
   -- Timestamp (bottom-right corner, subtle)
+  -- Moved up slightly to create more space above it without cutting off message text
   local timestamp = os.date("%b %d, %I:%M %p") -- e.g., "Nov 06, 02:30 PM"
   local timestampWidth = 120
+  local timestampExtraSpacing = 8 -- Additional space above timestamp
   canvas:appendElements({
     type = "text",
     text = timestamp,
-    textColor = { red = 0.5, green = 0.5, blue = 0.5, alpha = 0.85 },
+    textColor = colors.timestamp,
     textSize = 11,
     textFont = ".AppleSystemUIFont",
     frame = {
       x = width - timestampWidth - rightPadding,
-      y = height - timestampHeight - bottomPadding,
+      y = height - timestampHeight - bottomPadding + timestampExtraSpacing,
       h = timestampHeight,
       w = timestampWidth,
     },

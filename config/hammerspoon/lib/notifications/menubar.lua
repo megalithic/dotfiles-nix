@@ -152,6 +152,35 @@ local function getNetworkIcon(eventType)
   return defaults[eventType] or "📡"
 end
 
+-- Render nerd font icon as image (for consistent sizing with app icons)
+local function renderIconAsImage(iconChar, dimmed)
+  if not iconChar or iconChar == "" then return nil end
+
+  local size = 16
+  local canvas = hs.canvas.new({ x = 0, y = 0, w = size, h = size })
+
+  -- Use dimmed color for network events, full white for others
+  local colorValue = dimmed and 0.45 or 1.0
+
+  -- Render the icon character as text
+  -- Adjust positioning to vertically center with menu item text
+  canvas:appendElements({
+    type = "text",
+    text = iconChar,
+    textSize = 18, -- Adjusted size for better fit
+    textFont = "JetBrainsMono Nerd Font Mono", -- Use Nerd Font
+    textColor = { white = colorValue }, -- Dimmed or full white
+    textAlignment = "center",
+    frame = { x = 0, y = -3, w = size, h = size },
+  })
+
+  -- Convert canvas to image
+  local image = canvas:imageFromCanvas()
+  canvas:delete()
+
+  return image
+end
+
 -- Get app icon or fallback to default
 local function getAppIcon(bundleID)
   if not bundleID then
@@ -174,7 +203,8 @@ local function normalizeEvents(events)
 
   -- Add network events
   for _, event in ipairs(events.network) do
-    local icon = getNetworkIcon(event.event_type)
+    local iconChar = getNetworkIcon(event.event_type)
+    local iconImage = renderIconAsImage(iconChar, true) -- Pass true to dim network icons
     local title
 
     if event.event_type == "internet_connected" then
@@ -191,7 +221,7 @@ local function normalizeEvents(events)
 
     table.insert(normalized, {
       type = "network",
-      icon = icon,
+      icon = iconImage and { image = iconImage } or iconChar, -- Use image if available, fallback to char
       title = title,
       timestamp = event.timestamp,
       data = event,
@@ -269,7 +299,7 @@ function M.buildMenu()
       menuItem.title = fmt("%s (%s)", event.title, timeStr)
       menuItem.image = event.icon.image
     else
-      -- Network icon (emoji/nerd font string)
+      -- Network icon (emoji/nerd font string) - fallback
       menuItem.title = fmt("%s %s (%s)", event.icon, event.title, timeStr)
     end
 

@@ -7,7 +7,7 @@ return {
     "MeanderingProgrammer/render-markdown.nvim",
     cond = not vim.g.started_by_firenvim,
     dependencies = "echasnovski/mini.icons",
-    ft = { "markdown", "codecompanion", "vimwiki", "gitcommit" },
+    ft = { "markdown", "codecompanion", "vimwiki", "gitcommit", "obsidian" },
     -- keys = {
     --   {
     --     "<leader>oc",
@@ -27,12 +27,61 @@ return {
       },
       heading = {
         position = "inline", -- remove indentation of headings
-        icons = { "󰲠 ", "󰲢 ", "󰲤 ", "󰲦 ", "󰲨 ", "󰲪 " },
+        -- icons = { "󰲠 ", "󰲢 ", "󰲤 ", "󰲦 ", "󰲨 ", "󰲪 " },
+
+        icons = { "󰉫 ", "󰉬 ", "󰉭 ", "󰉮 ", "󰉯 ", "󰉰 " },
       },
       bullet = {
         -- icons = { "▪️", "▫️", "•", "◦" },
         icons = { "•", "∘", "▪", "▫", "" }, -- alts: ◦
         ordered_icons = "", -- empty string = disable
+      },
+
+      -- checkbox = {
+      --   -- Turn on / off checkbox state rendering
+      --   enabled = true,
+      --   unchecked = {
+      --     -- Replaces '[ ]' of 'task_list_marker_unchecked'
+      --     icon = " ", -- alts: 󰄱
+      --     -- Highlight for the unchecked icon
+      --     highlight = "RenderMarkdownUnchecked",
+      --   },
+      --   checked = {
+      --     -- Replaces '[x]' of 'task_list_marker_checked'
+      --     icon = " ", -- alts: 󰱒   
+      --     -- Highligh for the checked icon
+      --     highlight = "RenderMarkdownChecked",
+      --   },
+      --   -- Define custom checkbox states, more involved as they are not part of the markdown grammar
+      --   -- As a result this requires neovim >= 0.10.0 since it relies on 'inline' extmarks
+      --   -- Can specify as many additional states as you like following the 'todo' pattern below
+      --   --   The key in this case 'todo' is for healthcheck and to allow users to change its values
+      --   --   'raw': Matched against the raw text of a 'shortcut_link'
+      --   --   'rendered': Replaces the 'raw' value when rendering
+      --   --   'highlight': Highlight for the 'rendered' icon
+      --   -- custom = {
+      --   --   todo = { raw = "[-]", rendered = "󰥔 ", highlight = "RenderMarkdownTodo" },
+      --   -- },
+      --   custom = {
+      --     -- todo = { raw = "[-]", rendered = " 󰥔 ", highlight = "RenderMarkdownTodo" },
+      --     todo = { raw = "[-]", rendered = "󱗽 ", highlight = "RenderMarkdownListTodo" },
+      --     event = { raw = "[|]", rendered = "󰀠 ", highlight = "RenderMarkdownListEvent" },
+      --     wip = { raw = "[.]", rendered = "󰡖 ", highlight = "RenderMarkdownListWip" },
+      --     -- trash = { raw = "[/]", rendered = " ", highlight = "RenderMarkdownListSkipped" },
+      --     skip = { raw = "[/]", rendered = " ", highlight = "RenderMarkdownListTrash" },
+      --
+      --     fire = { raw = "[f]", rendered = "󰈸 ", highlight = "RenderMarkdownListFire" },
+      --     star = { raw = "[s]", rendered = " ", highlight = "RenderMarkdownListStar" },
+      --     idea = { raw = "[*]", rendered = "󰌵 ", highlight = "RenderMarkdownListIdea" },
+      --     yes = { raw = "[y]", rendered = "󰔓 ", highlight = "RenderMarkdownListYes" },
+      --     no = { raw = "[n]", rendered = "󰔑 ", highlight = "RenderMarkdownListNo" },
+      --     question = { raw = "[?]", rendered = " ", highlight = "RenderMarkdownListQuestion" },
+      --     info = { raw = "[i]", rendered = " ", highlight = "RenderMarkdownListInfo" },
+      --     important = { raw = "[!]", rendered = "󱅶 ", highlight = "RenderMarkdownListImportant" },
+      --   },
+      -- },
+      dash = {
+        icon = "┈",
       },
       code = {
         border = "thick",

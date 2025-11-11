@@ -48,7 +48,7 @@ in {
   ids.gids.nixbld = 30000;
 
   # system wide packages (all users)
-  environment.systemPath = ["/opt/homebrew/bin"];
+  environment.systemPath = ["/opt/homebrew/bin" "${config.home.homeDirectory}/bin"];
   environment.pathsToLink = ["/Applications"];
   environment.systemPackages = with pkgs; [
     (fenix.complete.withComponents [
@@ -300,7 +300,7 @@ in {
 
   # services.karabiner-elements.enable = true;
   # services.kanata.enable = true;
-  # services.kanata.configFile = "/Users/${username}/.config/kanata/megabookpro.kbd";
+  # services.kanata.configFile = "/Users/${username}/.config/kanata/active.kbd"; # Symlink managed by Hammerspoon dock watcher
 
   # launchd.user.agents.mbsync = {
   #   script = ''

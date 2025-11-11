@@ -41,9 +41,19 @@ local function showState()
   elseif M.state == "push-to-mute" then
     if M.pushed then
       M.menubar:setIcon(hs.image.imageFromPath("assets/unrecord.pdf"))
+
+      M.menubar:setTitle(hs.styledtext.new("", {
+        color = { hex = "#aaaaaa" },
+        font = { name = "Symbols Nerd Font Mono", size = 15 },
+      }))
       muted = true
     else
       M.menubar:setIcon(hs.image.imageFromPath("assets/record.pdf"), false)
+
+      M.menubar:setTitle(hs.styledtext.new("", {
+        color = { hex = "#c43e1f" },
+        font = { name = "Symbols Nerd Font Mono", size = 15 },
+      }))
     end
   end
 

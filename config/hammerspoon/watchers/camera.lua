@@ -27,7 +27,7 @@ local function detectCameraApp()
           if mainAppPath then
             local mainAppInfo = hs.application.infoForBundlePath(mainAppPath)
             if mainAppInfo and mainAppInfo.CFBundleIdentifier then
-              U.log.df("[camera] Detected via video_capture process: %s (from %s)", mainAppInfo.CFBundleIdentifier, mainAppPath)
+              U.log.df("Detected via video_capture process: %s (from %s)", mainAppInfo.CFBundleIdentifier, mainAppPath)
               return mainAppInfo.CFBundleIdentifier, "video_capture_process"
             end
           end
@@ -35,7 +35,7 @@ local function detectCameraApp()
           -- Main app itself (not a helper)
           local bundleID = app:bundleID()
           if bundleID then
-            U.log.df("[camera] Detected via video_capture process: %s", bundleID)
+            U.log.df("Detected via video_capture process: %s", bundleID)
             return bundleID, "video_capture_process"
           end
         end
@@ -59,7 +59,7 @@ local function detectCameraApp()
       local accessTime = tonumber(timestamp)
       -- If accessed within last 5 seconds, likely the current user
       if accessTime and math.abs(now - accessTime) < 5 then
-        U.log.df("[camera] Detected via recent TCC access: %s", bundleID)
+        U.log.df("Detected via recent TCC access: %s", bundleID)
         return bundleID, "tcc_recent"
       end
     end
@@ -70,19 +70,17 @@ local function detectCameraApp()
   local frontmost = hs.application.frontmostApplication()
   if frontmost then
     local bundleID = frontmost:bundleID()
-    U.log.df("[camera] Detected via frontmost app heuristic: %s", bundleID)
+    U.log.df("Detected via frontmost app heuristic: %s", bundleID)
     return bundleID, "frontmost_heuristic"
   end
 
-  U.log.d("[camera] Could not detect which app is using camera")
+  U.log.d("Could not detect which app is using camera")
   return nil, "unknown"
 end
 
 local function cameraActive(camera, property)
-  P({ property, camera })
-
   -- Detect which app is using the camera
-  local appBundleID, detectionMethod = detectCameraApp()
+  -- local appBundleID, detectionMethod = detectCameraApp()
 
   if appBundleID then
     -- Get app name for display
@@ -124,6 +122,7 @@ local function cameraInactive(camera, property)
 end
 
 local function watchCameraProperty(camera, property)
+  P({ camera:name(), property })
   -- Weirdly, "gone" is used as the property  if the camera's use changes: https://www.hammerspoon.org/docs/hs.camera.html#setPropertyWatcherCallback
   if property == "gone" then
     if camera:isInUse() then
