@@ -60,10 +60,7 @@ local function audioDeviceChanged(arg)
     local timeSinceLastProcess = now - lastProcessedTime
 
     -- Debounce: ignore events that occur too soon after the last one
-    if timeSinceLastProcess < DEBOUNCE_INTERVAL then
-      U.log.d("[audio] debounced (%.2fs since last, threshold: %.2fs)", timeSinceLastProcess, DEBOUNCE_INTERVAL)
-      return
-    end
+    if timeSinceLastProcess < DEBOUNCE_INTERVAL then return end
 
     lastProcessedTime = now
 
@@ -80,7 +77,7 @@ local function audioDeviceChanged(arg)
       end
     end)
 
-    if not ok then U.log.e("[audio] error during device change: %s", tostring(err)) end
+    if not ok then U.log.e("failed to change device: %s", tostring(err)) end
   end
 end
 

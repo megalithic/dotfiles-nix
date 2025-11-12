@@ -48,7 +48,7 @@ in {
   ids.gids.nixbld = 30000;
 
   # system wide packages (all users)
-  environment.systemPath = ["/opt/homebrew/bin" "${config.home.homeDirectory}/bin"];
+  environment.systemPath = ["/opt/homebrew/bin"];
   environment.pathsToLink = ["/Applications"];
   environment.systemPackages = with pkgs; [
     (fenix.complete.withComponents [

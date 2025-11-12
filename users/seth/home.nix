@@ -15,7 +15,7 @@ in {
   imports = [
     ./agenix.nix
     ./packages.nix
-    ./packages-casks.nix
+    # ./packages-casks.nix
     ./packages-fonts.nix
     ./packages-langs.nix
     ./email.nix
@@ -115,8 +115,11 @@ in {
   xdg.enable = true;
   xdg.configFile."ghostty".source = ./ghostty;
   xdg.configFile."ghostty".recursive = true;
-  xdg.configFile."zsh".source = ./zsh;
-  xdg.configFile."zsh".recursive = true;
+
+  # FIXME: remove when sure; i don't use zsh anymore, i don't need this, right?
+  # xdg.configFile."zsh".source = ./zsh;
+  # xdg.configFile."zsh".recursive = true;
+
   xdg.configFile."opencode/opencode.json".text = ''
     {
       "$schema": "https://opencode.ai/config.json",
@@ -364,11 +367,12 @@ in {
     #   '';
     # };
 
-    _1password.enable = true;
-    _1password-gui = {
-      enable = true;
-      package = pkgs.unstable._1password-gui;
-    };
+    # TODO: enable this when we get things working for nix-casks
+    # _1password.enable = true;
+    # _1password-gui = {
+    #   enable = true;
+    #   package = pkgs.unstable._1password-gui;
+    # };
 
     starship = {enable = true;};
 

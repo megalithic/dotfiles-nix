@@ -133,7 +133,6 @@ local function watchCameraProperty(camera, property)
 
     -- Debounce: ignore events that occur too soon after the last one
     if timeSinceLastProcess < DEBOUNCE_INTERVAL then
-      U.log.d(fmt("[camera] debounced %s (%.2fs since last, threshold: %.2fs)", camera:name(), timeSinceLastProcess, DEBOUNCE_INTERVAL))
       return
     end
 

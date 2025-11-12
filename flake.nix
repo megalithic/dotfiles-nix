@@ -62,9 +62,8 @@
     # zen-browser.inputs.home-manager.follows = "home-manager";
     mcp-hub.url = "github:ravitemer/mcp-hub";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    # jujutsu.url = "github:martinvonz/jj";
-    agenix.url = "github:ryantm/agenix";
     nix-ai-tools.url = "github:numtide/nix-ai-tools";
+    # jujutsu.url = "github:martinvonz/jj";
     # yazi.url = "github:sxyazi/yazi";
     # yazi-plugins = {
     #   url = "github:yazi-rs/plugins";
