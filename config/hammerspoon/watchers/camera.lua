@@ -27,7 +27,7 @@ local function detectCameraApp()
           if mainAppPath then
             local mainAppInfo = hs.application.infoForBundlePath(mainAppPath)
             if mainAppInfo and mainAppInfo.CFBundleIdentifier then
-              U.log.df("Detected via video_capture process: %s (from %s)", mainAppInfo.CFBundleIdentifier, mainAppPath)
+              U.log.nf("Detected via video_capture process: %s (from %s)", mainAppInfo.CFBundleIdentifier, mainAppPath)
               return mainAppInfo.CFBundleIdentifier, "video_capture_process"
             end
           end
@@ -35,7 +35,7 @@ local function detectCameraApp()
           -- Main app itself (not a helper)
           local bundleID = app:bundleID()
           if bundleID then
-            U.log.df("Detected via video_capture process: %s", bundleID)
+            U.log.nf("Detected via video_capture process: %s", bundleID)
             return bundleID, "video_capture_process"
           end
         end
@@ -59,7 +59,7 @@ local function detectCameraApp()
       local accessTime = tonumber(timestamp)
       -- If accessed within last 5 seconds, likely the current user
       if accessTime and math.abs(now - accessTime) < 5 then
-        U.log.df("Detected via recent TCC access: %s", bundleID)
+        U.log.nf("Detected via recent TCC access: %s", bundleID)
         return bundleID, "tcc_recent"
       end
     end
@@ -70,26 +70,26 @@ local function detectCameraApp()
   local frontmost = hs.application.frontmostApplication()
   if frontmost then
     local bundleID = frontmost:bundleID()
-    U.log.df("Detected via frontmost app heuristic: %s", bundleID)
+    U.log.nf("Detected via frontmost app heuristic: %s", bundleID)
     return bundleID, "frontmost_heuristic"
   end
 
-  U.log.d("Could not detect which app is using camera")
+  U.log.n("Could not detect which app is using camera")
   return nil, "unknown"
 end
 
 local function cameraActive(camera, property)
   -- Detect which app is using the camera
-  -- local appBundleID, detectionMethod = detectCameraApp()
+  local appBundleID, detectionMethod = detectCameraApp()
 
   if appBundleID then
     -- Get app name for display
     local app = hs.application.get(appBundleID)
     local appName = app and app:name() or appBundleID
 
-    U.log.of("%s active - used by: %s (detected via: %s)", camera:name(), appName, detectionMethod)
+    U.log.of("%s active: %s (%s)", camera:name(), appName, detectionMethod)
   else
-    U.log.of("%s active - app unknown", camera:name())
+    U.log.of("%s active", camera:name())
   end
 
   U.dnd(true, "meeting")
@@ -153,10 +153,27 @@ local function addCameraOnInit()
 end
 
 function M:start()
+  -- Stop existing watcher first to avoid duplicates
+  if hs.camera.isWatcherRunning() then hs.camera.stopWatcher() end
+
+  -- Stop and clean up any existing property watchers
+  for _, camera in ipairs(hs.camera.allCameras() or {}) do
+    if camera:isPropertyWatcherRunning() then camera:stopPropertyWatcher() end
+  end
+
   hs.camera.setWatcherCallback(watchCamera)
   hs.camera.startWatcher()
 
-  addCameraOnInit()
+  -- Start property watchers for existing cameras
+  -- While startWatcher() may fire "Added" events, it's not always reliable,
+  -- so we explicitly set up watchers for cameras that are already present
+  for _, camera in ipairs(hs.camera.allCameras() or {}) do
+    if not camera:isPropertyWatcherRunning() then
+      U.log.n(fmt("initial detection: %s", camera:name()))
+      camera:setPropertyWatcherCallback(watchCameraProperty)
+      camera:startPropertyWatcher()
+    end
+  end
 end
 
 function M:stop()

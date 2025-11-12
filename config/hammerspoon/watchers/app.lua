@@ -83,6 +83,12 @@ function M.runContextForAppBundleID(elementOrAppName, event, app, metadata)
 end
 
 function M:start()
+  -- Stop existing watchers first to avoid duplicates
+  if self.watchers.global then
+    self.watchers.global:stop()
+    self.watchers.global = nil
+  end
+
   -- for watching all app events; the orchestrator, if you will
   self.watchers.global = hs.application.watcher
     .new(function(appName, appEvent, appObj)

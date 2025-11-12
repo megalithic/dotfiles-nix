@@ -111,6 +111,16 @@ local function handleRouterStatus(flags)
 end
 
 function M:start()
+  -- Stop existing watchers first to avoid duplicates
+  if M.internetWatcher then
+    M.internetWatcher:stop()
+    M.internetWatcher = nil
+  end
+  if M.routerWatcher then
+    M.routerWatcher:stop()
+    M.routerWatcher = nil
+  end
+
   -- Monitor internet connectivity (0.0.0.0 is a standard way to check internet)
   M.internetWatcher = hs.network.reachability.internet()
   M.internetWatcher:setCallback(handleInternetStatus)

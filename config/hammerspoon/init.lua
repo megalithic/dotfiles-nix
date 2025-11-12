@@ -92,19 +92,17 @@ end
 
 local watchers = { "audio", "camera", "dock", "app", "notification", "network" }
 
-hs.timer.doAfter(1, function()
-  hs.loadSpoon("EmmyLua")
-  req("bindings")
-  req("watchers", { watchers = watchers })
-  req("ptt", { push = { { "cmd", "alt" }, nil }, toggle = { { "cmd", "alt" }, "p" } }):start()
+hs.loadSpoon("EmmyLua")
+req("bindings")
+req("watchers", { watchers = watchers })
+req("ptt", { push = { { "cmd", "alt" }, nil }, toggle = { { "cmd", "alt" }, "p" } }):start()
 
-  hs.shutdownCallback = function()
-    require("watchers"):stop({ watchers = watchers })
-    -- require("hyper"):stop()
-  end
+hs.shutdownCallback = function()
+  require("watchers"):stop({ watchers = watchers })
+  if N and N.cleanup then N.cleanup() end
+  -- require("hyper"):stop()
+end
 
-  hs.timer.doAfter(0.2, function()
-    hs.notify.withdrawAll()
-    hs.notify.new({ title = "hammerspork", subTitle = "config is loaded.", alwaysPresent = true }):send()
-  end)
-end)
+hs.notify.withdrawAll()
+hs.notify.new({ title = "hammerspork", subTitle = "config is loaded.", alwaysPresent = true }):send()
+U.log.o("hammerspork config is loaded")

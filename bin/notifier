@@ -204,10 +204,63 @@ send_macos_notification_osascript() {
   osascript -e "display notification \"$body\" with title \"$title\" subtitle \"$subtitle\"" 2>/dev/null
 }
 
-# send_pushover_notification() {
-# "op://Shared/bjdr5wcxdv6eeq3yylc25vvofy/PUSHOVER_USER_TOKEN"
-# curl -s -F "token=$TOKEN" -F "user=$USER" -F "message=$*" https://api.pushover.net/1/messages.json > /dev/null
-# }
+# Send Pushover notification (for remote/mobile notifications)
+# Requires: op (1Password CLI) for token retrieval
+send_pushover_notification() {
+  local title="$1"
+  local message="$2"
+  local urgency="${3:-normal}"
+
+  # Map urgency to Pushover priority
+  # -2=lowest, -1=low, 0=normal, 1=high, 2=emergency (requires retry/expire)
+  local priority=0
+  case "$urgency" in
+  critical) priority=1 ;; # High priority (not emergency, which requires ack)
+  high) priority=1 ;;
+  low) priority=-1 ;;
+  esac
+
+  # Check if op CLI is available
+  if ! command -v op &>/dev/null; then
+    echo "[WARN] 1Password CLI (op) not found - skipping Pushover notification" >&2
+    return 1
+  fi
+
+  # Fetch tokens from 1Password (cached by op CLI)
+  local pushover_user
+  local pushover_token
+
+  pushover_user=$(op read "op://Shared/bjdr5wcxdv6eeq3yylc25vvofy/PUSHOVER_USER_TOKEN" 2>/dev/null)
+  if [ -z "$pushover_user" ]; then
+    echo "[WARN] Could not retrieve PUSHOVER_USER_TOKEN from 1Password" >&2
+    return 1
+  fi
+
+  pushover_token=$(op read "op://Shared/bjdr5wcxdv6eeq3yylc25vvofy/PUSHOVER_APP_TOKEN" 2>/dev/null)
+  if [ -z "$pushover_token" ]; then
+    echo "[WARN] Could not retrieve PUSHOVER_APP_TOKEN from 1Password" >&2
+    return 1
+  fi
+
+  # Send via Pushover API
+  local response
+  response=$(curl -s \
+    --form-string "token=$pushover_token" \
+    --form-string "user=$pushover_user" \
+    --form-string "title=$title" \
+    --form-string "message=$message" \
+    --form-string "priority=$priority" \
+    https://api.pushover.net/1/messages.json 2>&1)
+
+  # Check for success (Pushover returns {"status":1} on success)
+  if echo "$response" | grep -q '"status":1'; then
+    echo "[NOTIFY] Pushover notification sent successfully"
+    return 0
+  else
+    echo "[WARN] Pushover notification failed: $response" >&2
+    return 1
+  fi
+}
 
 # Send notification via notifier module with AI agent configuration
 send_canvas_notification() {
@@ -311,6 +364,7 @@ notify_user() {
   local send_to_phone="${3:-false}"
   local urgency="${4:-normal}"
   local is_question="${5:-false}" # New: mark if this is a question
+  local send_to_pushover="${6:-false}" # New: send via Pushover
 
   # Determine alert duration based on urgency
   local duration=5
@@ -319,10 +373,15 @@ notify_user() {
   critical) duration=15 ;;
   esac
 
-  # Check if display is asleep - if so, ALWAYS send phone notification
+  # Check if display is asleep - if so, ALWAYS send remote notifications
   if is_display_asleep; then
-    echo "[NOTIFY] Display asleep - sending phone notification"
-    send_phone_notification "$title: $message"
+    echo "[NOTIFY] Display asleep - sending remote notifications"
+    if [ "$send_to_phone" = "true" ] || [ "$urgency" = "critical" ]; then
+      send_phone_notification "$title: $message"
+    fi
+    if [ "$send_to_pushover" = "true" ] || [ "$urgency" = "critical" ]; then
+      send_pushover_notification "$title" "$message" "$urgency"
+    fi
     return
   fi
 
@@ -353,9 +412,12 @@ notify_user() {
     # will be caught by the watcher and re-processed, which would override our positioning
     send_canvas_notification "$title" "$message" "$duration" "$urgency"
 
-    # Phone notification (for important events or if requested)
+    # Remote notifications (for important events or if requested)
     if [ "$send_to_phone" = "true" ] || [ "$urgency" = "critical" ]; then
       send_phone_notification "$title: $message"
+    fi
+    if [ "$send_to_pushover" = "true" ]; then
+      send_pushover_notification "$title" "$message" "$urgency"
     fi
   else
     # User is paying attention - only send subtle notification
@@ -434,6 +496,7 @@ parse_notify_args() {
   local send_to_phone="false"
   local urgency="normal"
   local is_question="false"
+  local send_to_pushover="false"
 
   # Check if first arg is JSON
   if [[ "$1" =~ ^\{.*\}$ ]]; then
@@ -444,6 +507,7 @@ parse_notify_args() {
     send_to_phone=$(echo "$json_data" | hs -c "print(tostring(hs.json.decode([[$json_data]]).send_to_phone or false))" 2>/dev/null)
     urgency=$(echo "$json_data" | hs -c "print(hs.json.decode([[$json_data]]).urgency or 'normal')" 2>/dev/null)
     is_question=$(echo "$json_data" | hs -c "print(tostring(hs.json.decode([[$json_data]]).is_question or false))" 2>/dev/null)
+    send_to_pushover=$(echo "$json_data" | hs -c "print(tostring(hs.json.decode([[$json_data]]).send_to_pushover or false))" 2>/dev/null)
   else
     # Parse arguments (supports both short and long options)
     while [ $# -gt 0 ]; do
@@ -468,6 +532,10 @@ parse_notify_args() {
         is_question="$2"
         shift 2
         ;;
+      -P | --pushover | --send-to-pushover)
+        send_to_pushover="$2"
+        shift 2
+        ;;
       --title=*)
         title="${1#*=}"
         shift
@@ -486,6 +554,10 @@ parse_notify_args() {
         ;;
       --question=* | --is-question=*)
         is_question="${1#*=}"
+        shift
+        ;;
+      --pushover=* | --send-to-pushover=*)
+        send_to_pushover="${1#*=}"
         shift
         ;;
       --)
@@ -522,7 +594,7 @@ parse_notify_args() {
   fi
 
   # Call notify_user with parsed arguments
-  notify_user "$title" "$message" "$send_to_phone" "$urgency" "$is_question"
+  notify_user "$title" "$message" "$send_to_phone" "$urgency" "$is_question" "$send_to_pushover"
 }
 
 # Command-line interface for direct execution (works from any shell)
@@ -556,14 +628,16 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
     echo "    Send a notification with smart detection"
     echo ""
     echo "Options:"
-    echo "  -t, --title <title>           Notification title (required)"
-    echo "  -m, --message <message>       Notification message (required)"
-    echo "  -p, --phone <true|false>      Send to phone (default: false)"
-    echo "  -u, --urgency <level>         Urgency: normal|high|critical (default: normal)"
-    echo "  -q, --question <true|false>   Mark as question for retry (default: false)"
+    echo "  -t, --title <title>                Notification title (required)"
+    echo "  -m, --message <message>            Notification message (required)"
+    echo "  -p, --phone <true|false>           Send to phone via iMessage (default: false)"
+    echo "  -u, --urgency <level>              Urgency: normal|high|critical (default: normal)"
+    echo "  -q, --question <true|false>        Mark as question for retry (default: false)"
+    echo "  -P, --pushover <true|false>        Send via Pushover (default: false)"
+    echo "      --send-to-pushover <true|false> (alias for --pushover)"
     echo ""
     echo "Long options also support = syntax:"
-    echo "  --title=\"My Title\" --message=\"My Message\" --urgency=high"
+    echo "  --title=\"My Title\" --message=\"My Message\" --urgency=high --pushover=true"
     echo ""
     echo "JSON Input:"
     echo "  notifier notify '{\"title\":\"...\",\"message\":\"...\",\"urgency\":\"high\"}'"
@@ -581,11 +655,15 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
     echo "  # Long options with = syntax"
     echo "  notifier notify --title=\"Task Done\" --message=\"Tests passed\" --urgency=high"
     echo ""
+    echo "  # With Pushover (short and long forms)"
+    echo "  notifier notify -t \"Build Failed\" -m \"Check logs\" -u critical -P true"
+    echo "  notifier notify --title=\"Build Failed\" --message=\"Check logs\" --pushover=true"
+    echo ""
     echo "  # Positional arguments (backward compatible)"
     echo "  notifier notify \"Task Done\" \"Tests passed\" false normal"
     echo ""
     echo "  # JSON input"
-    echo "  notifier notify '{\"title\":\"Build Failed\",\"message\":\"Check logs\",\"urgency\":\"critical\"}'"
+    echo "  notifier notify '{\"title\":\"Build Failed\",\"message\":\"Check logs\",\"urgency\":\"critical\",\"send_to_pushover\":true}'"
     echo ""
     echo "Other Commands:"
     echo "  test    Run notification system test"

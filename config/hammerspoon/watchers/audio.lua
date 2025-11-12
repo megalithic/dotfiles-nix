@@ -49,16 +49,38 @@ local function input()
   return 1
 end
 
+local isProcessing = false
+
 local function audioDeviceChanged(arg)
+  -- Add debug logging to see all events
+  U.log.d("[audio] event received: %s", arg)
+
+  -- Guard against re-entrancy
+  if isProcessing then
+    U.log.d("[audio] skipping duplicate callback (already processing)")
+    return
+  end
+
   local oRetval = 1
   local iRetval = 1
 
   if arg == "dev#" then
-    iRetval = input()
-    oRetval = output()
+    isProcessing = true
 
-    if oRetval == 1 and iRetval == 1 then
-      U.log.w("unable to set input or output devices. input: " .. iRetval .. ", output: " .. oRetval)
+    -- Wrap in pcall to ensure flag is reset even if errors occur
+    local ok, err = pcall(function()
+      iRetval = input()
+      oRetval = output()
+
+      if oRetval == 1 and iRetval == 1 then
+        U.log.w("unable to set input or output devices. input: " .. iRetval .. ", output: " .. oRetval)
+      end
+    end)
+
+    isProcessing = false
+
+    if not ok then
+      U.log.e("[audio] error during device change: %s", tostring(err))
     end
   end
 end
@@ -73,6 +95,11 @@ local function showCurrentlyConnected()
 end
 
 function M:start()
+  -- Stop any existing watcher first to ensure clean state
+  if hs.audiodevice.watcher.isRunning() then
+    hs.audiodevice.watcher.stop()
+  end
+
   hs.audiodevice.watcher.setCallback(audioDeviceChanged)
   hs.audiodevice.watcher.start()
   showCurrentlyConnected()

@@ -112,6 +112,12 @@ function M.isDocked()
 end
 
 function M:start()
+  -- Stop existing watcher first to avoid duplicates
+  if M.watcher then
+    M.watcher:stop()
+    M.watcher = nil
+  end
+
   if M.isDocked() == true then
     dockChangedState("added")
     M.is_docked = true

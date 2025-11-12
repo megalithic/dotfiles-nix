@@ -6,11 +6,18 @@
 
 ## Hammerspoon
 
-- you don't need to call   Bash(hs -c "hs.reload()" 2>&1; sleep 2 && echo "✓ Reloaded - debug logging removed") to reload hammerspoon, rather, you don't have to sleep and echo anything; just call the reload, and then check that hammerspoon left a notification center entry in the notifications db for something like "hammerspork"
-- check config.lua for locations of certain things, like the database
-- when reloading hammerspoon, always just call to reload it, then check the notifications db for "reloaded" messages.
-- when looking for paths to things for hammerspoon stuff, check config.lua first
-- dont' sleep after an hs.reload; you only need to check to make sure the reloaded notification was stored; if it was, then it was reloaded or at the very least check for the ai agent notification was just in the console
+- **Reloading Hammerspoon**: Use `timeout` to prevent hanging, then verify via notification database:
+  ```bash
+  RELOAD_TIME=$(date +%s)
+  timeout 2 hs -c "hs.reload()" 2>&1 || true
+  sqlite3 ~/.local/share/hammerspoon/hammerspoon.db "SELECT timestamp FROM notifications WHERE sender = 'hammerspork' AND message = 'config is loaded.' AND timestamp >= $RELOAD_TIME LIMIT 1" && echo "✓ Reloaded"
+  ```
+  - `timeout` is required because hs.reload() destroys the Lua interpreter, causing the CLI command to hang
+  - The timeout is expected and normal - reload succeeds even though the command times out
+  - Notification database path: `~/.local/share/hammerspoon/hammerspoon.db`
+  - Do NOT use sleep - check the database immediately after the timeout
+- Check config.lua for paths to database, icons, and other resources
+- When looking for paths to things for hammerspoon stuff, check config.lua first
 - for any and all changes to hammerspoon, you must verify that there are NO workspace or document diagnostic errors before attempting to reload hammerspoon; that you always check online documentation and references (never assume); and that cpu and memory efficiency are of absolute importance (we can't have the operating system crash or become laggy because of hammerspoon scripts).
 
 ## Version Control with Jujutsu (jj)
