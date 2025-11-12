@@ -49,25 +49,28 @@ local function input()
   return 1
 end
 
-local isProcessing = false
+local lastProcessedTime = 0
+local DEBOUNCE_INTERVAL = 0.5 -- 500ms - ignore events within this window
 
 local function audioDeviceChanged(arg)
   -- Add debug logging to see all events
-  U.log.d("[audio] event received: %s", arg)
-
-  -- Guard against re-entrancy
-  if isProcessing then
-    U.log.d("[audio] skipping duplicate callback (already processing)")
-    return
-  end
-
-  local oRetval = 1
-  local iRetval = 1
 
   if arg == "dev#" then
-    isProcessing = true
+    local now = hs.timer.secondsSinceEpoch()
+    local timeSinceLastProcess = now - lastProcessedTime
 
-    -- Wrap in pcall to ensure flag is reset even if errors occur
+    -- Debounce: ignore events that occur too soon after the last one
+    if timeSinceLastProcess < DEBOUNCE_INTERVAL then
+      U.log.d("[audio] debounced (%.2fs since last, threshold: %.2fs)", timeSinceLastProcess, DEBOUNCE_INTERVAL)
+      return
+    end
+
+    lastProcessedTime = now
+
+    local oRetval = 1
+    local iRetval = 1
+
+    -- Wrap in pcall for error handling
     local ok, err = pcall(function()
       iRetval = input()
       oRetval = output()
@@ -77,11 +80,7 @@ local function audioDeviceChanged(arg)
       end
     end)
 
-    isProcessing = false
-
-    if not ok then
-      U.log.e("[audio] error during device change: %s", tostring(err))
-    end
+    if not ok then U.log.e("[audio] error during device change: %s", tostring(err)) end
   end
 end
 
@@ -96,9 +95,7 @@ end
 
 function M:start()
   -- Stop any existing watcher first to ensure clean state
-  if hs.audiodevice.watcher.isRunning() then
-    hs.audiodevice.watcher.stop()
-  end
+  if hs.audiodevice.watcher.isRunning() then hs.audiodevice.watcher.stop() end
 
   hs.audiodevice.watcher.setCallback(audioDeviceChanged)
   hs.audiodevice.watcher.start()
@@ -106,9 +103,7 @@ function M:start()
 end
 
 function M:stop()
-  if hs.audiodevice.watcher.isRunning() then
-    hs.audiodevice.watcher.stop()
-  end
+  if hs.audiodevice.watcher.isRunning() then hs.audiodevice.watcher.stop() end
 end
 
 return M

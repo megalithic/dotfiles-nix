@@ -3,6 +3,10 @@
 local fmt = string.format
 local M = {}
 
+-- Debouncing state to prevent rapid-fire camera events
+local lastProcessedTime = 0
+local DEBOUNCE_INTERVAL = 1.0 -- 1 second - ignore events within this window
+
 -- Detect which application is using the camera
 -- Uses multiple detection methods with fallbacks
 -- Returns: bundleID (string or nil), method (string)
@@ -122,9 +126,20 @@ local function cameraInactive(camera, property)
 end
 
 local function watchCameraProperty(camera, property)
-  P({ camera:name(), property })
   -- Weirdly, "gone" is used as the property  if the camera's use changes: https://www.hammerspoon.org/docs/hs.camera.html#setPropertyWatcherCallback
   if property == "gone" then
+    local now = hs.timer.secondsSinceEpoch()
+    local timeSinceLastProcess = now - lastProcessedTime
+
+    -- Debounce: ignore events that occur too soon after the last one
+    if timeSinceLastProcess < DEBOUNCE_INTERVAL then
+      U.log.d(fmt("[camera] debounced %s (%.2fs since last, threshold: %.2fs)", camera:name(), timeSinceLastProcess, DEBOUNCE_INTERVAL))
+      return
+    end
+
+    lastProcessedTime = now
+    P({ camera:name(), property })
+
     if camera:isInUse() then
       cameraActive(camera, property)
     else

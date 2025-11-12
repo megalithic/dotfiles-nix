@@ -47,7 +47,9 @@ obj.placeInSequence = function(movements, modal, interval)
     sequenceNumber = sequenceNumber % cycleLength + 1
 
     if modal ~= nil then
-      modal.indicator:show()
+      if modal.indicator then
+        modal.indicator:show()
+      end
 
       if interval ~= nil then
         modal:delayedExit(interval)
@@ -56,7 +58,7 @@ obj.placeInSequence = function(movements, modal, interval)
       end
     end
 
-    if modal ~= nil then
+    if modal ~= nil and modal.toggleIndicator then
       modal.toggleIndicator(win, true)
     end
   end

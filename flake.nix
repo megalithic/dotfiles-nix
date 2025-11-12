@@ -21,6 +21,11 @@
       url = "github:LnL7/nix-darwin/nix-darwin-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    agenix = {
+      url = "github:ryantm/agenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.darwin.follows = "nix-darwin";
+    };
     # nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
     # homebrew-core = {
     #   url = "github:homebrew/homebrew-core";
@@ -87,6 +92,7 @@
     nixpkgs-unstable,
     nix-darwin,
     home-manager,
+    agenix,
     fenix,
     ...
   } @ inputs: let
@@ -193,6 +199,9 @@
         ./hosts/${hostname}.nix
         ./modules/shared/darwin/system.nix
         # ./modules/shared/darwin/kanata.nix
+
+        # agenix module for darwin-level secrets
+        agenix.darwinModules.default
 
         home-manager.darwinModules.default
         {

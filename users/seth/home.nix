@@ -13,6 +13,7 @@
   inherit (pkgs.stdenv.hostPlatform) isDarwin;
 in {
   imports = [
+    ./agenix.nix
     ./packages.nix
     ./packages-casks.nix
     ./packages-fonts.nix

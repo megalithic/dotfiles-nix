@@ -107,7 +107,7 @@ function obj.jump(url)
     })();
     ]])
 
-    note(fmt("[RUN] %s.jump/%s (%s)", obj.name, app:bundleID(), jumpedTab or url))
+    U.log.i(fmt("[RUN] %s.jump/%s (%s)", obj.name, app:bundleID(), jumpedTab or url))
     return jumpedTab
   else
     return nil
@@ -134,13 +134,13 @@ function obj:splitTab(to_next_screen)
       if to_next_screen then
         app:selectMenuItem({ "Window", fmt("Move to %s", C.displays.internal) })
         wm.place(C.grid.full)
-        note(fmt("[RUN] %s.splitTab/%s (next screen, full)", obj.name, app:bundleID()))
+        U.log.i(fmt("[RUN] %s.splitTab/%s (next screen, full)", obj.name, app:bundleID()))
       else
         wm.place(C.grid.halves.right)
-        note(fmt("[RUN] %s.splitTab/%s (same screen, half)", obj.name, app:bundleID()))
+        U.log.i(fmt("[RUN] %s.splitTab/%s (same screen, half)", obj.name, app:bundleID()))
       end
     else
-      warn(fmt("[RUN] %s.splitTab/%s unsupported browser", obj.name, app:bundleID()))
+      U.log.w(fmt("[RUN] %s.splitTab/%s unsupported browser", obj.name, app:bundleID()))
     end
   end)
 end
