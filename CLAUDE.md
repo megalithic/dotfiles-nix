@@ -64,3 +64,4 @@ jj edit def456  # Work on Feature B
 ### Current State
 
 This repo is already jj-initialized with git coexistence. Always check `jj status` before starting work to see current state.
+- when creating shell scripts that take arguments, always assume we want long and short form arguments supported.

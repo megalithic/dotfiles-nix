@@ -304,11 +304,13 @@ function M.buildMenu()
       table.insert(tooltip, fmt("Message: %s", notif.message or ""))
       table.insert(tooltip, fmt("App: %s", notif.app_id or "Unknown"))
       table.insert(tooltip, fmt("Focus Mode: %s", notif.focus_mode or "None"))
-      table.insert(tooltip, fmt("Time: %s", os.date("%H:%M:%S", notif.timestamp)))
+      table.insert(tooltip, fmt("Date: %s", os.date("%A, %B %d, %Y", notif.timestamp)))
+      table.insert(tooltip, fmt("Time: %s", os.date("%I:%M:%S %p", notif.timestamp)))
     else
       -- Network event tooltip
       table.insert(tooltip, fmt("Event: %s", event.title))
-      table.insert(tooltip, fmt("Time: %s", os.date("%H:%M:%S", event.timestamp)))
+      table.insert(tooltip, fmt("Date: %s", os.date("%A, %B %d, %Y", event.timestamp)))
+      table.insert(tooltip, fmt("Time: %s", os.date("%I:%M:%S %p", event.timestamp)))
     end
     menuItem.tooltip = table.concat(tooltip, "\n")
 
