@@ -12,6 +12,7 @@ source "$SCRIPT_DIR/notifier"
 # Default configuration
 DEFAULT_VPN_URL="vpn.edge.launchdeck.tech"
 DEFAULT_METHOD="gui"
+ENABLE_NOTIFICATIONS=false
 
 # Paths to Cisco Secure Client
 if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -55,12 +56,13 @@ Connect to Cisco Secure Client VPN using CLI or GUI method.
 OPTIONS:
     -m, --method <cli|gui>     Connection method (default: $DEFAULT_METHOD)
     -u, --url <url>            VPN server URL (default: $DEFAULT_VPN_URL)
+    -n, --notify               Enable notifications (default: disabled)
     -s, --status               Check VPN connection status
     -d, --disconnect           Disconnect from VPN
     -h, --help                 Show this help message
 
 Long options also support = syntax:
-    --method=gui --url=vpn.example.com
+    --method=gui --url=vpn.example.com --notify
 
 EXAMPLES:
     # Connect using GUI method (default)
@@ -104,6 +106,15 @@ EXAMPLES:
 
     # Disconnect from VPN (long form)
     vpn-connect --disconnect
+
+    # Connect with notifications enabled (short form)
+    vpn-connect -n
+
+    # Connect with notifications enabled (long form)
+    vpn-connect --notify
+
+    # Connect with CLI method and notifications
+    vpn-connect -m cli -n
 
 METHODS:
     gui     - Launch Cisco Secure Client GUI and open connection URL
@@ -178,7 +189,9 @@ disconnect_vpn() {
     if [[ -f "$VPNCLI" ]]; then
         $VPNCLI disconnect
         log_success "Disconnected from VPN"
-        notify_user "VPN Disconnected" "Successfully disconnected from VPN" false normal
+        if [[ "$ENABLE_NOTIFICATIONS" == true ]]; then
+            notify_user "VPN Disconnected" "Successfully disconnected from VPN" false normal
+        fi
     else
         log_error "VPN CLI not found, cannot disconnect"
         return 1
@@ -199,12 +212,76 @@ connect_gui() {
         # Wait a moment for app to launch
         sleep 2
 
-        # Open the connection URL (Cisco Secure Client registers vpn:// protocol)
-        open "vpn://$vpn_url"
+        # Use AppleScript to automate connection and watch for auth dialogs
+        log_info "Setting VPN URL and connecting..."
 
-        log_success "Cisco Secure Client launched"
-        log_info "Please complete authentication in the GUI"
-        notify_user "VPN Connection" "Cisco Secure Client launched. Complete authentication in GUI." false normal
+        osascript <<-EOF
+        tell application "System Events"
+            tell process "Cisco Secure Client"
+                -- Wait for main window to be available
+                repeat 10 times
+                    if exists window "Cisco Secure Client" then
+                        exit repeat
+                    end if
+                    delay 0.5
+                end repeat
+
+                tell window "Cisco Secure Client"
+                    -- Set the VPN URL in the combo box
+                    set value of combo box 1 to "$vpn_url"
+                    delay 0.5
+
+                    -- Click Connect button
+                    if exists button "Connect" then
+                        click button "Connect"
+                    else
+                        error "Connect button not found. May already be connected."
+                    end if
+                end tell
+
+                -- Monitor for authentication dialog
+                delay 1
+                repeat 15 times
+                    set windowList to name of windows
+
+                    repeat with windowName in windowList
+                        -- Check for auth dialog names
+                        if windowName contains "Login" or windowName contains "Authentication" or windowName contains "Credentials" then
+                            -- Bring Cisco Secure Client to front
+                            tell application "Cisco Secure Client" to activate
+
+                            -- Focus the auth window
+                            if exists window windowName then
+                                set frontmost of window windowName to true
+                            end if
+
+                            return "Auth dialog detected and brought to front"
+                        end if
+                    end repeat
+
+                    delay 0.5
+                end repeat
+
+                return "No auth dialog detected"
+            end tell
+        end tell
+EOF
+
+        local script_result=$?
+
+        if [[ $script_result -eq 0 ]]; then
+            log_success "VPN connection initiated"
+            log_info "Please complete authentication in the GUI if prompted"
+            if [[ "$ENABLE_NOTIFICATIONS" == true ]]; then
+                notify_user "VPN Connection" "Connection to $vpn_url initiated. Complete authentication if prompted." false normal
+            fi
+        else
+            log_error "Failed to automate connection"
+            if [[ "$ENABLE_NOTIFICATIONS" == true ]]; then
+                notify_user "VPN Connection Failed" "Could not automate connection. Please connect manually." false high
+            fi
+            return 1
+        fi
     else
         log_error "GUI method only supported on macOS"
         return 1
@@ -240,11 +317,15 @@ connect_cli() {
         # Show connection details
         $VPNCLI state
 
-        notify_user "VPN Connected" "Successfully connected to $vpn_url" false normal
+        if [[ "$ENABLE_NOTIFICATIONS" == true ]]; then
+            notify_user "VPN Connected" "Successfully connected to $vpn_url" false normal
+        fi
         return 0
     else
         log_error "Failed to connect to VPN"
-        notify_user "VPN Connection Failed" "Could not connect to $vpn_url" false high
+        if [[ "$ENABLE_NOTIFICATIONS" == true ]]; then
+            notify_user "VPN Connection Failed" "Could not connect to $vpn_url" false high
+        fi
         return 1
     fi
 }
@@ -272,6 +353,10 @@ main() {
                 ;;
             --url=*)
                 vpn_url="${1#*=}"
+                shift
+                ;;
+            -n|--notify)
+                ENABLE_NOTIFICATIONS=true
                 shift
                 ;;
             -s|--status)
