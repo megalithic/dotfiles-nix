@@ -37,9 +37,24 @@ while true; do
     pid=$(echo "$line" | awk '{print $1}')
     name=$(echo "$line" | awk '{for(i=6;i<=NF;i++) printf "%s ", $i; print ""}' | sed 's/ $//')
 
+    # Try graceful kill first (SIGTERM)
     if kill "$pid" 2>/dev/null; then
+      # Wait briefly to see if process exits gracefully
+      sleep 0.2
+
+      # If process still exists, force kill it (SIGKILL)
+      if kill -0 "$pid" 2>/dev/null; then
+        kill -9 "$pid" 2>/dev/null || true
+      fi
+
       killed_pids+=("$pid")
       killed_names+=("$name")
+    else
+      # If graceful kill failed (no permission or process already dead), try force kill
+      kill -9 "$pid" 2>/dev/null && {
+        killed_pids+=("$pid")
+        killed_names+=("$name")
+      } || true
     fi
   done <<<"$selected"
 
