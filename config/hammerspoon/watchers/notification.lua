@@ -22,16 +22,10 @@ local notificationSubroles = {
 
 -- Process a notification that appeared in Notification Center
 local function handleNotification(element)
-  -- DEBUG: Log every callback invocation to verify AX observer is working
-  U.log.df("AX callback triggered! Element: %s, Subrole: %s", tostring(element), tostring(element.AXSubrole))
-
   -- Skip if notification drawer is open (user is already looking at notifications)
   local notificationCenterBundleID = "com.apple.notificationcenterui"
   local notificationCenter = hs.axuielement.applicationElement(notificationCenterBundleID)
-  if notificationCenter and notificationCenter:asHSApplication():focusedWindow() then
-    U.log.df("Skipping - notification drawer is open")
-    return
-  end
+  if notificationCenter and notificationCenter:asHSApplication():focusedWindow() then return end
 
   -- Process each notification only once
   if not notificationSubroles[element.AXSubrole] or M.processedNotificationIDs[element.AXIdentifier] then return end
@@ -62,15 +56,9 @@ local function handleNotification(element)
   -- Process routing rules
   local rules = C.notifier.rules or {}
 
-  U.log.df("Processing notification - stackingID: %s, bundleID: %s, title: %s",
-    tostring(stackingID), tostring(bundleID), tostring(title))
-  U.log.df("Total rules to check: %d", #rules)
-
   for _, rule in ipairs(rules) do
-    U.log.df("Checking rule '%s' (appBundleID: %s)", rule.name, rule.appBundleID)
     -- Quick app match (plain string search, not pattern)
     if stackingID:find(rule.appBundleID, 1, true) then
-      U.log.df("Rule '%s' MATCHED!", rule.name)
       -- Check sender if specified
       if rule.senders then
         local senderMatch = false
@@ -114,10 +102,7 @@ local function startObserver()
   local ncPID = notificationCenter:pid()
 
   -- Check if we're already watching this PID
-  if M.currentPID == ncPID and M.observer then
-    U.log.df("Already watching NC PID %d", ncPID)
-    return true
-  end
+  if M.currentPID == ncPID and M.observer then return true end
 
   -- Stop old observer if it exists
   if M.observer then
@@ -127,22 +112,16 @@ local function startObserver()
   end
 
   M.currentPID = ncPID
-  U.log.df("Starting observer for NC PID: %d", ncPID)
 
   -- Create observer for layout changes
   -- NOTE: Using both AXLayoutChanged and AXCreated for maximum compatibility
   -- AXCreated was mentioned as more reliable in some cases
   M.observer = hs.axuielement.observer
     .new(ncPID)
-    :callback(function(observer, element, notification, observerInfo)
-      U.log.df("Observer callback: notification=%s, element=%s", tostring(notification), tostring(element))
-      handleNotification(element)
-    end)
+    :callback(function(_, element) handleNotification(element) end)
     :addWatcher(notificationCenter, "AXLayoutChanged")
     :addWatcher(notificationCenter, "AXCreated")
     :start()
-
-  U.log.df("Observer created and started, watching AXLayoutChanged and AXCreated events")
   return true
 end
 

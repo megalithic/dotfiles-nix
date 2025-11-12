@@ -30,7 +30,6 @@ function M.processRule(rule, title, subtitle, message, stackingID, bundleID)
         for _, pattern in ipairs(patternList) do
           if message:find(pattern) then
             effectivePriority = priority
-            U.log.d(fmt("Pattern '%s' matched -> priority: %s", pattern, priority))
             goto priority_determined -- exit both loops
           end
         end
@@ -48,17 +47,13 @@ function M.processRule(rule, title, subtitle, message, stackingID, bundleID)
   if rule.allowedFocusModes then
     -- Rule explicitly defines allowed focus modes - check if current mode is in the list
     -- Use numeric loop instead of ipairs to handle nil values in the array
-    U.log.d(fmt("Focus check: current=%s, checking %d allowed modes", tostring(currentFocus), #rule.allowedFocusModes))
     for i = 1, #rule.allowedFocusModes do
       local allowed = rule.allowedFocusModes[i]
-      U.log.d(fmt("  [%d] %s == %s ? %s", i, tostring(allowed), tostring(currentFocus), tostring(allowed == currentFocus)))
       if allowed == currentFocus then
         focusAllowed = true
-        U.log.d("  ✓ Match found! focusAllowed = true")
         break
       end
     end
-    U.log.d(fmt("Focus check result: focusAllowed = %s", tostring(focusAllowed)))
   else
     -- No allowedFocusModes defined - only allow if NO focus mode is active
     focusAllowed = (currentFocus == nil)
