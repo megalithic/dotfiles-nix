@@ -6,7 +6,6 @@
   inherit (pkgs.stdenv.hostPlatform) isDarwin;
 in {
   home.packages = with pkgs; [
-    _1password
     _1password-cli
     unstable._1password-gui
     amber

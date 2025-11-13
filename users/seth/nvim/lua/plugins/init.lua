@@ -758,7 +758,7 @@ return {
   {
     "codethread/qmk.nvim",
     ft = "keymap",
-    enabled = true,
+    enabled = false,
     event = "VeryLazy",
     opts = {
       name = "LAYOUT_leeloo",
