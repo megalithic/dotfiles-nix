@@ -106,3 +106,10 @@ uninstall:
 
 check:
   nix flake check --no-allow-import-from-derivation
+
+# edit an agenix secret file (e.g., just age env-vars.age)
+age file:
+  #!/usr/bin/env bash
+  pushd {{justfile_directory()}}/secrets > /dev/null
+  agenix -e {{file}}
+  popd > /dev/null
