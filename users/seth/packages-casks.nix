@@ -7,36 +7,35 @@
   inherit (pkgs.stdenv.hostPlatform) isDarwin;
 in {
   home.packages = with inputs.nix-casks.packages.${pkgs.system}; [
-    alfred
+    # alfred
     brave-browser_nightly
     calibre
     cardhop
     cleanshot
     clickup
-    cloudflare-warp
     colorsnapper
     contexts
     discord
-    docker-desktop
-    espanso
+    # docker
+    # espanso
     # fantastical
     figma
-    firefox
+    # firefox
     flameshot
     # flux
-    ghostty_tip
+    # ghostty_tip
+    ghostty
     hammerspoon
     homerow
     iina
-    inkscape
-    kitty_nightly
+    # inkscape
+    kitty
     macwhisper
-    mailmate_beta
-    microsoft-teams # Only have installed when needed (has some sinister telemetry).
+    # mailmate
     mouseless
-    nimble-commander
-    obs_beta
-    orcaslicer-beta
+    # nimble-commander
+    # obs_beta
+    orcaslicer
     orion
     podman-desktop
     pop-app
@@ -44,23 +43,21 @@ in {
     proton-drive
     protonvpn
     qmk-toolbox
-    qutebrowser
+    # qutebrowser # exists in nixpkgs land already?
     raycast
     signal
     slack
-    soundsource
-    spotify
-    steam
+    soundsource_test
     telegram
     tunnelblick
-    vlc
+    # vlc
     unnaturalscrollwheels
     vial
     visual-studio-code
-    whatsapp
     yubico-authenticator
     zed
-    zen
+    # zen
+
     # # "microsoft-office" # Only have installed when needed (has some sinister telemetry).
     # # "monitorcontrol" # Brightness and volume controls for external monitors.
     # # cursor # AI-powered code editor

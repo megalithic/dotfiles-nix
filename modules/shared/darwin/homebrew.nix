@@ -12,106 +12,109 @@
     global.autoUpdate = true;
     global.brewfile = true;
 
-    brews = [
-      "vfkit" # for podman
-      "openconnect"
-      #   # libvterm is not available in nix for aarch64 so we
-      #   # install it from homebrew
-      "libvterm"
-      #   # this is required for mise be able to install erlang,
-      #   # mise cannot identify openssl version installed in nix so
-      #   # we need to use homebrew version to be able to use erlang
-      #   # with no issues
-      "openssl@3"
-      #   # "qmk"
-      #   # # QMK dependencies
-      #   # "avr-binutils"
-      #   # "avr-gcc@8"
-      #   # "boost"
-      #   # "confuse"
-      #   # "hidapi"
-      #   # "libftdi"
-      #   # "libusb-compat"
-      #   # "avrdude"
-      #   # "bootloadhid"
-      #   # "clang-format"
-      #   # "dfu-programmer"
-      #   # "dfu-util"
-      #   # "libimagequant"
-      #   # "libraqm"
-      #   # "pillow"
-      #   # "teensy_loader_cli"
-      #   # "osx-cross/arm/arm-none-eabi-binutils"
-      #   # "osx-cross/arm/arm-none-eabi-gcc@8"
-      #   # "osx-cross/avr/avr-gcc@9"
-      #   # "qmk/qmk/hid_bootloader_cli"
-      #   # "qmk/qmk/mdloader"
-    ];
+    brews = [];
+    casks = [];
 
-    casks = [
-      "1password"
-      "1password-cli"
-      #"alfred"
-      "betterdisplay" # Custom fractional scaling resolutions, brightness and volume control for non-Apple external displays.
-      "brave-browser@nightly"
-      "calibre"
-      "cardhop"
-      "cleanshot"
-      "clickup"
-      "cloudflare-warp"
-      "colorsnapper"
-      "contexts"
-      "discord"
-      "docker-desktop"
-      "espanso"
-      # "fantastical"
-      "figma"
-      "firefox"
-      "flameshot"
-      # "flux"
-      "ghostty@tip"
-      "hammerspoon"
-      "homerow"
-      "iina"
-      "inkscape"
-      "karabiner-elements"
-      "kitty@nightly"
-      "macwhisper"
-      "mailmate@beta"
-      "microsoft-teams" # Only have installed when needed (has some sinister telemetry).
-      "mouseless"
-      "nimble-commander"
-      "obs@beta"
-      # "orcaslicer-beta"
-      "orion"
-      "podman-desktop"
-      "pop-app"
-      "postbird"
-      "proton-drive"
-      "qmk-toolbox"
-      "qutebrowser"
-      "raycast"
-      "signal"
-      "slack"
-      "soundsource"
-      "spotify"
-      "steam"
-      "telegram"
-      "thunderbird"
-      "tunnelblick"
-      "vlc"
-      "zoom"
-      "unnaturalscrollwheels"
-      "vial"
-      "visual-studio-code"
-      "whatsapp"
-      "yubico-authenticator"
-      "zed"
-      "zen"
-      "zoom"
-      # "microsoft-office" # Only have installed when needed (has some sinister telemetry).
-      # "monitorcontrol" # Brightness and volume controls for external monitors.
-    ];
+    # brews = [
+    #   "vfkit" # for podman; moved to nix packages
+    #   "openconnect" # moved to nix packages
+    #   #   # libvterm is not available in nix for aarch64 so we
+    #   #   # install it from homebrew
+    #   "libvterm" # moved to nix packages as libvterm-neovim
+    #   #   # this is required for mise be able to install erlang,
+    #   #   # mise cannot identify openssl version installed in nix so
+    #   #   # we need to use homebrew version to be able to use erlang
+    #   #   # with no issues
+    #   "openssl@3" # moved to nix packages as openssl_3
+    #   #   # "qmk"
+    #   #   # # QMK dependencies
+    #   #   # "avr-binutils"
+    #   #   # "avr-gcc@8"
+    #   #   # "boost"
+    #   #   # "confuse"
+    #   #   # "hidapi"
+    #   #   # "libftdi"
+    #   #   # "libusb-compat"
+    #   #   # "avrdude"
+    #   #   # "bootloadhid"
+    #   #   # "clang-format"
+    #   #   # "dfu-programmer"
+    #   #   # "dfu-util"
+    #   #   # "libimagequant"
+    #   #   # "libraqm"
+    #   #   # "pillow"
+    #   #   # "teensy_loader_cli"
+    #   #   # "osx-cross/arm/arm-none-eabi-binutils"
+    #   #   # "osx-cross/arm/arm-none-eabi-gcc@8"
+    #   #   # "osx-cross/avr/avr-gcc@9"
+    #   #   # "qmk/qmk/hid_bootloader_cli"
+    #   #   # "qmk/qmk/mdloader"
+    # ];
+
+    # casks = [
+    #   "1password"
+    #   "1password-cli"
+    #   #"alfred"
+    #   "betterdisplay" # Custom fractional scaling resolutions, brightness and volume control for non-Apple external displays.
+    #   "brave-browser@nightly"
+    #   "calibre"
+    #   "cardhop"
+    #   "cleanshot"
+    #   "clickup"
+    #   "cloudflare-warp"
+    #   "colorsnapper"
+    #   "contexts"
+    #   "discord"
+    #   "docker-desktop"
+    #   "espanso"
+    #   # "fantastical"
+    #   "figma"
+    #   "firefox"
+    #   "flameshot"
+    #   # "flux"
+    #   "ghostty@tip"
+    #   "hammerspoon"
+    #   "homerow"
+    #   "iina"
+    #   "inkscape"
+    #   "karabiner-elements"
+    #   "kitty@nightly"
+    #   "macwhisper"
+    #   "mailmate@beta"
+    #   "microsoft-teams" # Only have installed when needed (has some sinister telemetry).
+    #   "mouseless"
+    #   "nimble-commander"
+    #   "obs@beta"
+    #   # "orcaslicer-beta"
+    #   "orion"
+    #   "podman-desktop"
+    #   "pop-app"
+    #   "postbird"
+    #   "proton-drive"
+    #   "qmk-toolbox"
+    #   "qutebrowser"
+    #   "raycast"
+    #   "signal"
+    #   "slack"
+    #   "soundsource"
+    #   "spotify"
+    #   "steam"
+    #   "telegram"
+    #   "thunderbird"
+    #   "tunnelblick"
+    #   "vlc"
+    #   "zoom"
+    #   "unnaturalscrollwheels"
+    #   "vial"
+    #   "visual-studio-code"
+    #   "whatsapp"
+    #   "yubico-authenticator"
+    #   "zed"
+    #   "zen"
+    #   "zoom"
+    #   # "microsoft-office" # Only have installed when needed (has some sinister telemetry).
+    #   # "monitorcontrol" # Brightness and volume controls for external monitors.
+    # ];
 
     taps = [];
 

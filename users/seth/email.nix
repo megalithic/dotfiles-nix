@@ -143,7 +143,7 @@ in {
         };
         aerc.enable = true;
         notmuch.enable = true;
-        thunderbird.enable = true;
+        # thunderbird.enable = true;
         mbsync = {
           enable = true;
           create = "both";
@@ -201,7 +201,7 @@ in {
 
         aerc.enable = true;
         notmuch.enable = true;
-        thunderbird.enable = true;
+        # thunderbird.enable = true;
         mbsync = {
           enable = true;
           create = "both";
@@ -262,7 +262,7 @@ in {
 
         aerc.enable = true;
         notmuch.enable = true;
-        thunderbird.enable = true;
+        # thunderbird.enable = true;
         mbsync = {
           enable = true;
           create = "both";
@@ -315,12 +315,12 @@ in {
       '';
     };
 
-    thunderbird = {
-      enable = true;
-      profiles."default" = {
-        isDefault = true;
-      };
-    };
+    # thunderbird = {
+    #   enable = true;
+    #   profiles."default" = {
+    #     isDefault = true;
+    #   };
+    # };
 
     # notmuch for email indexing and search
     notmuch = {

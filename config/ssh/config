@@ -7,7 +7,6 @@
 Host *
   IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
 
-
 Host github.com gh
   Hostname github.com
   User git
@@ -21,22 +20,23 @@ Host github.com gh
   LogLevel QUIET
   ForwardAgent yes
 
-# i shoudl not need this!
-# Host github.com gh
-#   ControlMaster auto
-#   ControlPersist 120
-#   Hostname github.com
-#   User git
-#   # IdentityFile ~/.ssh/seth-megabookpro
-#   IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
-#   ForwardAgent yes
-#
 # Host megalithic.dev ocean
 #   HostName megalithic.dev
 #   User replicant
 #   ControlPath /tmp/ssh_mux_%r@%h:%p
 #   IdentityFile ~/.ssh/seth-megabookpro
 
+
+Host *.devspace
+  StrictHostKeyChecking no
+  UserKnownHostsFile=/dev/null
+  IdentityAgent "/Users/seth/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+  BatchMode yes
+  PasswordAuthentication no
+  ControlMaster auto
+  ControlPath /Users/seth/.ssh/control-%C
+  ControlPersist 10m
+  LogLevel QUIET
 
 # DevSpace Start launchdeck-portal.devspace
 Host launchdeck-portal.devspace
@@ -58,14 +58,3 @@ Host launchdeck-portal-api.devspace
   UserKnownHostsFile /dev/null
   User devspace
 # DevSpace End launchdeck-portal-api.devspace
-
-Host *.devspace
-  StrictHostKeyChecking no
-  UserKnownHostsFile=/dev/null
-  IdentityAgent "/Users/seth/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
-  BatchMode yes
-  PasswordAuthentication no
-  ControlMaster auto
-  ControlPath /Users/seth/.ssh/control-%C
-  ControlPersist 10m
-  LogLevel QUIET

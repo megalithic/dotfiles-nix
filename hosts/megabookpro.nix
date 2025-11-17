@@ -11,9 +11,9 @@
 }: let
   lang = "en_US.UTF-8";
 in {
-  imports = [
-    ../modules/shared/darwin/homebrew.nix
-  ];
+  # imports = [
+  #   ../modules/shared/darwin/homebrew.nix
+  # ];
 
   home-manager = {
     extraSpecialArgs = {
@@ -256,13 +256,16 @@ in {
       enable = true;
       useBabelfish = true;
     };
+    _1password.enable = true;
+    _1password-gui = {
+      enable = true;
+      package = pkgs.unstable._1password-gui;
+    };
     gnupg.agent = {
       enable = true;
       enableSSHSupport = true;
     };
   };
-  # programs.gnupg.agent.enableSSHSupport = true;
-  # programs._1password.enable = true;
 
   fonts.packages = with pkgs; [
     atkinson-hyperlegible
@@ -298,6 +301,37 @@ in {
     # usbmuxd = { enable = true; };
   };
 
+  # launchd.agents.espanso = {
+  #   enable = true;
+  #   config = {
+  #     ProgramArguments = [
+  #       "${pkgs.espanso}/bin/espanso"
+  #       "service"
+  #       "start"
+  #       "--unmanaged"
+  #     ];
+  #     RunAtLoad = true;
+  #     KeepAlive = true;
+  #     # StandardOutPath = "{{ .chezmoi.homeDir }}/Library/Logs/espanso.log";
+  #     # StandardErrorPath = "{{ .chezmoi.homeDir }}/Library/Logs/espanso.log";
+  #   };
+  # };
+
+  # launchd.agents = {
+  #   espanso = {
+  #     serviceConfig = {
+  #       Label = "org.espanso.daemon";
+  #       Program = "${pkgs.espanso}/bin/espanso";
+  #
+  #       RunAtLoad = true;
+  #       KeepAlive = true;
+  #       # Ensure the daemon runs with the correct environment
+  #       EnvironmentVariables = {
+  #         PATH = "${pkgs.stdenv.lib.makeBinPath [pkgs.espanso]}";
+  #       };
+  #     };
+  #   };
+  # };
   # services.karabiner-elements.enable = true;
   # services.kanata.enable = true;
   # services.kanata.configFile = "/Users/${username}/.config/kanata/active.kbd"; # Symlink managed by Hammerspoon dock watcher

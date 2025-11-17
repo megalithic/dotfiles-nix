@@ -136,13 +136,15 @@ obj.placeApp = function(elementOrAppName, event, app)
               )
             )
             enum.each(standardWindows, function(w)
-              note(fmt([[[RUN] %s/layouts/%s/%s: "%s"]], obj.name, app:bundleID(), utils.eventString(event), w:title()))
+              U.log.n(
+                fmt([[[RUN] %s/layouts/%s/%s: "%s"]], obj.name, app:bundleID(), utils.eventString(event), w:title())
+              )
               hs.grid.set(w, position, obj.targetDisplay(screenNum))
             end)
           end
         end
         if win ~= nil then
-          note(
+          U.log.n(
             fmt(
               [[[RUN] %s/layouts/%s/%s: "%s"]],
               obj.name,
@@ -152,15 +154,15 @@ obj.placeApp = function(elementOrAppName, event, app)
             )
           )
 
-          dbg(
-            fmt(
-              "[wm] rules/%s (%s): %s",
-              type(elementOrAppName) == "string" and elementOrAppName or I(elementOrAppName),
-              win:title(),
-              I(appLayout.rules)
-            ),
-            obj.debug
-          )
+          -- U.log.d(
+          --   fmt(
+          --     "[wm] rules/%s (%s): %s",
+          --     type(elementOrAppName) == "string" and elementOrAppName or I(elementOrAppName),
+          --     win:title(),
+          --     I(appLayout.rules)
+          --   ),
+          --   obj.debug
+          -- )
 
           hs.grid.set(win, position, obj.targetDisplay(screenNum))
         end

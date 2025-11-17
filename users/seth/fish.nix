@@ -115,10 +115,10 @@ in {
     '';
     functions = {
       fish_greeting = "";
-      _prompt_move_to_bottom = {
-        onEvent = "fish_postexec";
-        body = "tput cup $LINES";
-      };
+      # _prompt_move_to_bottom = {
+      #   onEvent = "fish_postexec";
+      #   body = "tput cup $LINES";
+      # };
       nix-shell = {
         wraps = "nix-shell";
         body = ''
@@ -334,8 +334,11 @@ in {
       ll = "${pkgs.eza}/bin/eza -lahF --group-directories-first --color=always --icons=always --hyperlink";
       la = "${pkgs.eza}/bin/eza -lahF --group-directories-first --color=always --icons=always --hyperlink";
       tree = "${pkgs.eza}/bin/eza --tree --color=always";
-      opencode = "op run --no-masking -- opencode";
+      # opencode = "${pkgs.opencode}";
+      oc = "op run --no-masking -- opencode";
       claude = "op run --no-masking -- claude --allow-dangerously-skip-permissions";
+      # claude = "op run --no-masking -- CLAUDE_CONFIG_DIR=~/.claude ${pkgs.ai-tools.claude-code} --allow-dangerously-skip-permissions";
+      # claude-cspire = "op run --no-masking -- ${pkgs.ai-tools.claude-code} --allow-dangerously-skip-permissions";
       rm = "${pkgs.darwin.trash}/bin/trash -v";
       q = "exit";
       ",q" = "exit";
@@ -349,7 +352,7 @@ in {
         then "pbpaste"
         else "xlip -o -selection clipboard";
       cat = "bat";
-      clear = "clear && _prompt_move_to_bottom";
+      # clear = "clear && _prompt_move_to_bottom";
       # inspect $PATH
       pinspect = ''echo "$PATH" | tr ":" "\n"'';
       pathi = ''echo "$PATH" | tr ":" "\n"'';

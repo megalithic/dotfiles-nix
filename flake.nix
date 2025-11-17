@@ -103,24 +103,7 @@
     version = "25.05";
 
     lib = nixpkgs.lib.extend (import ./lib/default.nix inputs);
-    # inherit (lib) foldl recursiveUpdate mapAttrsToList;
-
-    # forAllSystems =
-    #   f:
-    #   lib.genAttrs lib.systems.flakeExposed (
-    #     system:
-    #     f (
-    #       import nixpkgs {
-    #         inherit system;
-    #         config.allowUnfree = true;
-    #         overlays = [ neovim-nightly-overlay.overlays.default ];
-    #       }
-    #     )
-    #   );
-
-    # pkgs = nixpkgs.legacyPackages.${system};
     overlays = [
-      # inputs.jujutsu.overlays.default
       # inputs.yazi.overlays.default
       inputs.nur.overlays.default
       inputs.fenix.overlays.default
@@ -133,9 +116,6 @@
           config.allowUnfreePredicate = _: true;
         };
         ai-tools = inputs.nix-ai-tools.packages.${prev.system};
-
-        # # gh CLI on stable has bugs.
-        # inherit (nixpkgs-unstable.legacyPackages.${prev.system}) gh;
 
         mcphub = inputs.mcp-hub.packages."${prev.system}".default;
         # NOTE: here's how to do a custom neovim-nightly overlay:
@@ -150,8 +130,8 @@
         karabiner-driverkit = prev.callPackage ./packages/karabiner-driverkit {};
       })
 
-      # https://github.com/will-lol/.dotfiles/blob/main/overlays/helium.nix
       (import ./packages/helium.nix {inherit lib;})
+      (import ./packages/teams.nix {inherit lib;})
     ];
 
     mkInit = {

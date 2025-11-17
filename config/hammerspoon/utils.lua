@@ -707,4 +707,6 @@ function M.closeBrowserTabsWith(urlPart)
   -- require("win-management.auto-tile").resetWinCount(browser)
 end
 
+function M.spawn(f) return hs.timer.delayed.new(0, f):start() end
+
 return M

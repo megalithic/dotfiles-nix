@@ -15,7 +15,7 @@ in {
   imports = [
     ./agenix.nix
     ./packages.nix
-    # ./packages-casks.nix
+    ./packages-casks.nix
     ./packages-fonts.nix
     ./packages-langs.nix
     ./email.nix
@@ -163,7 +163,7 @@ in {
   xdg.configFile."1Password/ssh/agent.toml".text = ''
     [[ssh-keys]]
     vault = "Shared"
-    item = "megaenv"
+    item = "megaenv_ssh_key"
   '';
   xdg.configFile."surfingkeys/config.js".text = builtins.readFile surfingkeys/config.js;
   xdg.configFile."starship.toml".text = builtins.readFile starship/starship.toml;
@@ -367,30 +367,24 @@ in {
     #   '';
     # };
 
-    # TODO: enable this when we get things working for nix-casks
-    # _1password.enable = true;
-    # _1password-gui = {
-    #   enable = true;
-    #   package = pkgs.unstable._1password-gui;
-    # };
-
     starship = {enable = true;};
 
-    ghostty = {
-      enable = true;
-      enableFishIntegration = true;
-      enableBashIntegration = false;
-      enableZshIntegration = false;
-      installBatSyntax = !isDarwin;
-      # FIXME: Remove this hack when the nixpkgs pkg works again
-      package =
-        if isDarwin
-        then lib.brew-alias pkgs "ghostty"
-        else pkgs.ghostty;
-      settings = {
-        quit-after-last-window-closed = true;
-      };
-    };
+    # ghostty = {
+    #   enable = true;
+    #   enableFishIntegration = true;
+    #   enableBashIntegration = false;
+    #   enableZshIntegration = false;
+    #   installBatSyntax = !isDarwin;
+    #   # FIXME: Remove this hack when the nixpkgs pkg works again
+    #   # package =
+    #   #   if isDarwin
+    #   #   # then lib.brew-alias pkgs "ghostty"
+    #   #   then inputs.nix-casks.packages.${pkgs.system}.ghostty
+    #   #   else pkgs.ghostty;
+    #   settings = {
+    #     quit-after-last-window-closed = true;
+    #   };
+    # };
 
     git = {
       enable = true;

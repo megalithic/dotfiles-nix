@@ -4,7 +4,9 @@
 # NOTE: Static title commented out to allow tmux/shell to set title dynamically via escape sequences
 # With shell-integration-features=title enabled below, programs can set the window title
 
-auto-update = download
+# download, check, off
+auto-update = off
+# tip, stable
 auto-update-channel = tip
 
 # background-opacity = 0.95

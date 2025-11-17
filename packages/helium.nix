@@ -1,6 +1,7 @@
 # REF:
 # - https://github.com/ayla6/nixcfg/blob/main/modules/home/programs/helium/default.nix
 # - https://github.com/isabelroses/dotfiles/blob/main/modules/home/programs/chromium.nix
+# - https://github.com/will-lol/.dotfiles/blob/main/overlays/helium.nix
 #
 {lib, ...}: (final: prev: {
   helium = prev.stdenv.mkDerivation (finalAttrs: {

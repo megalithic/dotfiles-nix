@@ -21,20 +21,15 @@
         should-sign-off = true;
         show-cryptographic-signatures = true;
       };
-      # signing = {
-      #   behavior = "own";
-      #   backend = "ssh";
-      #   key = "~/.ssh/${username}-${hostname}.pub";
-      # };
-
-      # REF: https://github.com/Misterio77/nix-config/blob/main/home/gabriel/features/cli/jujutsu.nix#L13-L19
-      # signing = let
-      #   gitCfg = config.programs.git.extraConfig;
-      # in {
-      #   backend = "gpg";
-      #   behaviour = if gitCfg.commit.gpgSign then "own" else "never";
-      #   key = gitCfg.user.signing.key;
-      # };
+      signing = {
+        behavior = "own";
+        backend = "ssh";
+        key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICyxphJ0fZhJP6OQeYMsGNQ6E5ZMVc/CQdoYrWYGPDrh";
+        backends.ssh = {
+          program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+          allowed-signers = "${config.home.homeDirectory}/.ssh/allowed_signers";
+        };
+      };
 
       # fix.tools.nixfmt = {
       #   command = [

@@ -93,6 +93,8 @@ end
 local watchers = { "audio", "camera", "dock", "app", "notification", "network" }
 
 hs.loadSpoon("EmmyLua")
+
+req("lib.seal")
 req("bindings")
 req("watchers", { watchers = watchers })
 req("ptt", { push = { { "cmd", "alt" }, nil }, toggle = { { "cmd", "alt" }, "p" } }):start()

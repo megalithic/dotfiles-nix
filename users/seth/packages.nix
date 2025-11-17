@@ -15,10 +15,12 @@ in {
     bash # macOS ships with a very old version of bash for whatever reason
     blueutil
     cachix
+    # cloudflare-warp # not available on nix/darwin at all?
     curlie
     delta
     devbox
     difftastic
+    espanso
     ffmpeg
     flyctl
     gh
@@ -30,15 +32,22 @@ in {
     jwt-cli
     karabiner-elements
     karabiner-elements.driver
+    libvterm-neovim
+    magika
     unstable.obsidian
+    openconnect
+    openssl_3
     poppler
     pre-commit
     procs
+    # raycast
     # qutebrowser
     ripgrep
+    spotify
     sqlite
     # terminal-notifier FIXME: not working with nixpkgs (arch not supported?)
     switchaudio-osx
+    teams
     tmux
     unstable.devenv
     w3m
