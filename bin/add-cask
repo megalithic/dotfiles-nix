@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Add a Homebrew cask to packages-casks.nix
+
+set -euo pipefail
+
+TOKEN="$1"
+if [ -z "$TOKEN" ]; then
+  echo "Usage: $0 <cask-token>" >&2
+  echo "Example: $0 mailmate" >&2
+  exit 1
+fi
+
+CASKS_FILE="users/seth/packages-casks.nix"
+
+# Check if file exists
+if [ ! -f "$CASKS_FILE" ]; then
+  echo "Error: $CASKS_FILE not found" >&2
+  exit 1
+fi
+
+# Get the cask definition
+CASK_DEF=$(./bin/cask-info "$TOKEN")
+
+if [ -z "$CASK_DEF" ]; then
+  echo "Error: Failed to get cask info for '$TOKEN'" >&2
+  exit 1
+fi
+
+# Check if cask already exists
+if grep -q "^\s*${TOKEN}\s*=" "$CASKS_FILE"; then
+  echo "Warning: Cask '$TOKEN' already exists in $CASKS_FILE" >&2
+  echo "Showing the definition anyway:" >&2
+  echo "" >&2
+  echo "$CASK_DEF" >&2
+  exit 0
+fi
+
+echo "Adding cask '$TOKEN' to $CASKS_FILE..."
+echo ""
+echo "Add this to the customCasks section:"
+echo ""
+echo "$CASK_DEF"
+echo ""
+echo "And add '$TOKEN' to the home.packages list:"
+echo "    ++ (with customCasks; ["
+echo "      ..."
+echo "      $TOKEN"
+echo "    ]);"
+echo ""
+echo "Then run: just mac"

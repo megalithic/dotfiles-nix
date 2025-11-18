@@ -53,6 +53,10 @@ inputs: lib: _:
 
   capitalize = str: lib.toUpper (lib.substring 0 1 str) + lib.substring 1 (-1) str;
   compactAttrs = lib.filterAttrs (_: value: value != null);
+
+  # mkCask - Build Homebrew casks without brew-nix
+  # Usage: lib.mkCask { pname = "discord"; version = "1.0"; url = "..."; sha256 = "..."; }
+  mkCask = import ./mkCask.nix;
 }
 # Make sure to add lib extensions from inputs
 // inputs.home-manager.lib
