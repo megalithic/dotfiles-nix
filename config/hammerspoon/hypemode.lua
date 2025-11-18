@@ -16,15 +16,16 @@ function M.focusMainWindow(bundleID, opts)
   end
 
   opts = opts or { h = 800, w = 800, focus = true }
-  local win = hs.fnutils.find(app:allWindows(), function(win)
-    return app:mainWindow() == win and win:isStandard() and win:frame().w >= opts.w and win:frame().h >= opts.h
-  end)
+  local win = hs.fnutils.find(
+    app:allWindows(),
+    function(win)
+      return app:mainWindow() == win and win:isStandard() and win:frame().w >= opts.w and win:frame().h >= opts.h
+    end
+  )
 
-  if win ~= nil and opts.focus then
-    win:focus()
-  end
+  if win ~= nil and opts.focus then win:focus() end
 
-  print(string.format(":: [%s] %s (%s)", M.name, app:bundleID(), app:mainWindow():title()))
+  U.log.n(string.format("%s (%s)", app:bundleID(), app:mainWindow():title()))
 
   return win
 end
@@ -98,9 +99,7 @@ function M:delayedExit(delay)
     M.delayedExitTimer = nil
   end
 
-  M.delayedExitTimer = hs.timer.doAfter(delay, function()
-    M:exit()
-  end)
+  M.delayedExitTimer = hs.timer.doAfter(delay, function() M:exit() end)
 
   return self
 end
@@ -109,9 +108,7 @@ function M:exited()
   M.isOpen = false
   if M.alertUuids ~= nil then
     hs.fnutils.ieach(M.alertUuids, function(uuid)
-      if uuid ~= nil then
-        hs.alert.closeSpecific(uuid)
-      end
+      if uuid ~= nil then hs.alert.closeSpecific(uuid) end
     end)
   end
   M.toggleIndicator(nil, true)
@@ -139,9 +136,7 @@ function M:start(opts)
   hs.window.animationDuration = 0
   M.customOnEntered = opts.on_entered
 
-  M:bind("", "escape", function()
-    M:exit()
-  end)
+  M:bind("", "escape", function() M:exit() end)
 
   -- provide alternate escapes
   -- M:bind("ctrl", "[", function()

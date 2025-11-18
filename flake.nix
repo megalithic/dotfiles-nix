@@ -30,6 +30,7 @@
     mcp-hub.url = "github:ravitemer/mcp-hub";
     flake-parts.url = "github:hercules-ci/flake-parts";
     nix-ai-tools.url = "github:numtide/nix-ai-tools";
+    nix-ai-tools.inputs.nixpkgs.follows = "nixpkgs";
     nur = {
       url = "github:nix-community/nur";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -84,7 +85,6 @@
           config.allowUnfreePredicate = _: true;
         };
         ai-tools = inputs.nix-ai-tools.packages.${prev.system};
-
         mcphub = inputs.mcp-hub.packages."${prev.system}".default;
         # NOTE: here's how to do a custom neovim-nightly overlay:
         # REF: https://github.com/fredrikaverpil/dotfiles/blob/main/nix/shared/overlays/neovim.nix

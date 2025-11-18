@@ -1,7 +1,6 @@
 local M = {}
 
 HYPER = "F19"
-
 BROWSER = "com.brave.Browser.nightly"
 TERMINAL = "com.mitchellh.ghostty"
 
@@ -543,5 +542,16 @@ M.notifier = {
     },
   },
 }
+
+local extra_config = {}
+
+local success, _ = pcall(function() extra_config = require("extra_config") end)
+
+if success then
+  for key, _ in pairs(M) do
+    if extra_config[key] then M[key] = extra_config[key] end
+    if M[key] == "" then M[key] = nil end
+  end
+end
 
 return M

@@ -14,7 +14,7 @@ in {
     awscli2
     bash # macOS ships with a very old version of bash for whatever reason
     blueutil
-    # cachix
+    # cachi
     # cloudflare-warp # not available on nix/darwin at all?
     curlie
     delta
@@ -55,8 +55,10 @@ in {
     zoom-us
 
     # [ai] ----------------------------------------------------------------------------------------
-    ai-tools.opencode
+    # ai-tools.opencode
     ai-tools.claude-code
-    ai-tools.claude-code-acp
+    # ai-tools.claude-code-acp
+    unstable.opencode
+    # unstable.claude-code
   ];
 }

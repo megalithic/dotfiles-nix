@@ -25,9 +25,13 @@ in {
     ./fish.nix
     ./fzf.nix
     ./nvim.nix
+    # (import ./hammerspoon.nix {
+    #   hs_extra_config = ''
+    #     return {}
+    #   '';
+    # })
     # ./kanata
     # ./tmux
-    # ./mail
   ];
 
   home.username = username;
@@ -93,7 +97,6 @@ in {
       echo "░ ✓ symlinked kitty to /Users/${username}/.config/kitty" ||
       echo "░ x failed to symlink kitty to /Users/${username}/.config/kitty"
 
-
     if [[ -d "/Users/${username}/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder" ]]; then
       rm -rf /Users/${username}/protondrive > /dev/null 2>&1;
       ln -sf /Users/${username}/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder /Users/${username}/protondrive > /dev/null 2>&1 &&
@@ -114,9 +117,12 @@ in {
     command cat << EOF
     ░
     ░ fin.
-    ░
 
     EOF
+  '';
+
+  xdg.configFile."hammerspoon/extra_config.lua".text = ''
+    return {}
   '';
 
   xdg.enable = true;
@@ -312,86 +318,7 @@ in {
     # speed up rebuilds // HT: @tmiller
     man.generateCaches = false;
 
-    # neovim = {
-    #   enable = true;
-    #   package = pkgs.nvim-nightly;
-    #   # defaultEditor = true;
-    #   # # extraLuaConfig = lib.fileContents config/nvim/init.lua;
-    #   # plugins = [
-    #   #   {
-    #   #     plugin = pkgs.vimPlugins.sqlite-lua;
-    #   #     config = "let g:sqlite_clib_path = '${pkgs.sqlite.out}/lib/libsqlite3${pkgs.stdenv.hostPlatform.extensions.sharedLibrary}'";
-    #   #   }
-    #   # ];
-    # };
-
-    #   withPython3 = true;
-    #   withNodeJs = true;
-    #   withRuby = true;
-    #
-    #   vimdiffAlias = true;
-    #   vimAlias = true;
-    #   # extraLuaConfig = lib.fileContents config/nvim/init.lua;
-    #   extraPackages = with pkgs; [
-    #     black
-    #     bun
-    #     cmake
-    #     gcc # For treesitter compilation
-    #     git
-    #     gnumake # For various build processes
-    #     golangci-lint
-    #     gopls
-    #     gotools
-    #     hadolint
-    #     isort
-    #     lua-language-server
-    #     markdownlint-cli
-    #     nixd
-    #     nixfmt-rfc-style # cannot be installed via Mason on macOS, so installed here instead
-    #     nodejs # required by github copilot
-    #     nodePackages.bash-language-server
-    #     nodePackages.prettier
-    #     npm-check-updates
-    #     pyright
-    #     python3
-    #     ruby
-    #     ruff
-    #     rustup # run `rustup update stable` to get latest rustc, cargo, rust-analyzer etc.
-    #     shellcheck
-    #     shfmt
-    #     stylua
-    #     terraform-ls
-    #     tflint
-    #     tree-sitter
-    #     uv
-    #     vscode-langservers-extracted
-    #     yaml-language-server
-    #     yarn
-    #   ];
-    #
-    #   extraConfig = ''
-    #     let $PATH = $PATH . ':${pkgs.git}/bin'
-    #   '';
-    # };
-
     starship = {enable = true;};
-
-    # ghostty = {
-    #   enable = true;
-    #   enableFishIntegration = true;
-    #   enableBashIntegration = false;
-    #   enableZshIntegration = false;
-    #   installBatSyntax = !isDarwin;
-    #   # FIXME: Remove this hack when the nixpkgs pkg works again
-    #   # package =
-    #   #   if isDarwin
-    #   #   # then lib.brew-alias pkgs "ghostty"
-    #   #   then inputs.nix-casks.packages.${pkgs.system}.ghostty
-    #   #   else pkgs.ghostty;
-    #   settings = {
-    #     quit-after-last-window-closed = true;
-    #   };
-    # };
 
     git = {
       enable = true;
