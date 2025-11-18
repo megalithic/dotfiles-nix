@@ -14,7 +14,7 @@ in {
     awscli2
     bash # macOS ships with a very old version of bash for whatever reason
     blueutil
-    cachix
+    # cachix
     # cloudflare-warp # not available on nix/darwin at all?
     curlie
     delta
@@ -47,9 +47,8 @@ in {
     sqlite
     # terminal-notifier FIXME: not working with nixpkgs (arch not supported?)
     switchaudio-osx
-    teams
     tmux
-    unstable.devenv
+    # unstable.devenv # TODO: cachix build failing, blocking devenv
     w3m
     yubikey-manager
     yubikey-personalization

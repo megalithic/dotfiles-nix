@@ -65,7 +65,7 @@ in {
     coreutils
     darwin.trash
     delta
-    devenv
+    # devenv # TODO: cachix build failing, blocking devenv
     du-dust # du + rust = dust. Like du but more intuitive.
     eza
     fd
