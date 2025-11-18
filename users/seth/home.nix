@@ -112,8 +112,9 @@ in {
       echo "░ x failed to symlink espanso to /Users/${username}/Library/Application\ Support/espanso"
 
     command cat << EOF
-
+    ░
     ░ fin.
+    ░
 
     EOF
   '';

@@ -46,19 +46,14 @@ echo "░ :: -> Cloning $DOTFILES_NAME repo to $DOTFILES_DIR.." &&
   # git init --bare "$DOTFILES_DIR"
   git clone $DOTFILES_REPO "$DOTFILES_DIR"
 
-if ! command -v brew >/dev/null 2>&1 && [ ! -f "/opt/homebrew/bin/brew" ]; then
-  echo "░ :: -> Installing homebrew.." &&
-    bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-fi
+# FIXME: remove when confirmed no longer needed; nix-casks / mkCask is being used
+# if ! command -v brew >/dev/null 2>&1 && [ ! -f "/opt/homebrew/bin/brew" ]; then
+#   echo "░ :: -> Installing homebrew.." &&
+#     bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+# fi
 
 echo "░ :: -> Running nix-darwin for the first time for $FLAKE.." &&
   (sudo nix --experimental-features 'nix-command flakes' run nix-darwin -- switch --option eval-cache false --flake "$DOTFILES_DIR#$FLAKE" &&
-    # echo "Running home-manager for the first time for $FLAKE.."
-    # sudo nix --experimental-features 'nix-command flakes' run home-manager/master -- switch --flake "$DOTFILES_DIR#$FLAKE"
-    # echo "░ :: -> Setting $DOTFILES_DIR to bare repo.." &&
-    # pushd "$DOTFILES_DIR" > /dev/null &&
-    # git config --bool core.bare true &&
-    # popd > /dev/null &&
     echo "░ [✓] -> Completed installation of $DOTFILES_DIR flake..") || echo "░ [x] -> Errored while installing $DOTFILES_DIR flake.."
 
 echo "░ :: -> Running post-install settings.." &&
