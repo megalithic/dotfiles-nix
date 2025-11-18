@@ -110,6 +110,12 @@ in {
     ln -sf /Users/${username}/.dotfiles-nix/config/espanso /Users/${username}/Library/Application\ Support/ > /dev/null 2>&1 &&
       echo "░ ✓ symlinked espanso to /Users/${username}/Library/Application\ Support/espanso" ||
       echo "░ x failed to symlink espanso to /Users/${username}/Library/Application\ Support/espanso"
+
+    command cat << EOF
+
+    ░ fin.
+
+    EOF
   '';
 
   xdg.enable = true;
