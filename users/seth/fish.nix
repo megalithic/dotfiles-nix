@@ -335,8 +335,8 @@ in {
       la = "${pkgs.eza}/bin/eza -lahF --group-directories-first --color=always --icons=always --hyperlink";
       tree = "${pkgs.eza}/bin/eza --tree --color=always";
       # opencode = "${pkgs.opencode}";
-      oc = "op run --no-masking -- opencode";
-      claude = "op run --no-masking -- claude --allow-dangerously-skip-permissions";
+      # oc = "op run --no-masking -- opencode";
+      # claude = "op run --no-masking -- claude --allow-dangerously-skip-permissions";
       # claude = "op run --no-masking -- CLAUDE_CONFIG_DIR=~/.claude ${pkgs.ai-tools.claude-code} --allow-dangerously-skip-permissions";
       # claude-cspire = "op run --no-masking -- ${pkgs.ai-tools.claude-code} --allow-dangerously-skip-permissions";
       rm = "${pkgs.darwin.trash}/bin/trash -v";
@@ -361,6 +361,7 @@ in {
 
     shellAbbrs = {
       nvim = "nvim -O";
+      "nh mac" = "nh darwin switch ./";
       vim = "nvim -O";
       j = "just";
       ju = "just";

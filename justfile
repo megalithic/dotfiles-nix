@@ -86,12 +86,12 @@ update:
 [macos]
 rebuild:
   # rebuild host=`hostname`:
-  # darwin-rebuild switch --flake ./
-  nh darwin switch .
+  # sudo darwin-rebuild switch --flake ./
+  nh darwin switch ./
 
 [macos]
 mac:
-  nh darwin switch .
+  nh darwin switch ./
 
 # initial nix-darwin build
 [macos]

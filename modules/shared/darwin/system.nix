@@ -295,6 +295,7 @@
 
         # https://tyler.io/2020/04/additional-mailmate-tips/
         "com.freron.MailMate" = {
+          MmCustomKeyBindingsEnabled = true;
           MmCustomKeyBindingsName = "Mega";
           MmComposerInitialFocus = "alwaysTextView";
           MmShowAttachmentsFirst = true;

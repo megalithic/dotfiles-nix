@@ -56,7 +56,7 @@ in {
 
     # [ai] ----------------------------------------------------------------------------------------
     # ai-tools.opencode
-    ai-tools.claude-code
+    # ai-tools.claude-code
     # ai-tools.claude-code-acp
     unstable.opencode
     # unstable.claude-code
