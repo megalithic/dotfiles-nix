@@ -35,14 +35,11 @@ in {
       kitty
       macwhisper
       mouseless
-      # nimble-commander
-      # obs_beta
       orcaslicer
       orion
       podman-desktop
       pop-app
       postbird
-      proton-drive
       protonvpn
       qmk-toolbox
       raycast
@@ -74,11 +71,27 @@ in {
       })
 
       (lib.mkCask {inherit pkgs lib;} {
+        pname = "proton-drive";
+        version = "2.10.1";
+        url = "https://proton.me/download/drive/macos/ProtonDrive-2.10.1.dmg";
+        sha256 = "531367fcf2ff50bd5b2443c38e46d9a5cd80d054c1e28d5cbb68f5a070bded7c";
+        appName = "Proton Drive.app";
+      })
+
+      (lib.mkCask {inherit pkgs lib;} {
         pname = "microsoft-teams";
         version = "25290.302.4044.3989";
         url = "https://statics.teams.cdn.office.net/production-osx/25290.302.4044.3989/MicrosoftTeams.pkg";
         sha256 = "0d7f4ed037e0ed8832e1892f0587e0e336abbc0e6376059bfcb58f278ffcab48";
         appName = "Microsoft Teams.app";
+      })
+
+      (lib.mkCask {inherit pkgs lib;} {
+        pname = "obs";
+        version = "32.0.2";
+        url = "https://cdn-fastly.obsproject.com/downloads/obs-studio-32.0.2-macos-apple.dmg";
+        sha256 = "5c8f0e2349e45b57512e32312b053688e0b2bb9f0e8de8e7e24ee392e77a7cb3";
+        appName = "OBS Studio.app";
       })
     ];
 }

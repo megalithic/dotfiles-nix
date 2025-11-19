@@ -77,8 +77,28 @@ quick-terminal-position = left
 
 
 # Look and Feel
-adjust-cursor-thickness           = 3
+# adjust-underline-position = 99
+# adjust-underline-thickness = 50%
+
+# Leading
+# adjust-cell-height = 5%
+# adjust-cell-width = -5%
+#
+adjust-cell-width = "2%"
+# adjust-cell-height = 10%
+adjust-underline-position = 5
+# adjust-underline-thickness = 100%
+adjust-cursor-thickness = 2
+
+# adjust-cursor-thickness           = 3
+adjust-cell-height = "40%";
+adjust-cursor-height = "40%";
+adjust-cursor-thickness = "100%";
+adjust-box-thickness = "100%";
+adjust-underline-thickness = "400%";
+
 adjust-underline-position         = 3
+
 bold-is-bright                    = true
 link-url                          = true
 mouse-hide-while-typing           = true
@@ -108,20 +128,6 @@ font-style-bold-italic  = "ExtraBold Italic"
 
 font-size = 15
 # font-thicken = false
-
-# adjust-underline-position = 99
-# adjust-underline-thickness = 50%
-
-
-# Leading
-# adjust-cell-height = 5%
-# adjust-cell-width = -5%
-#
-adjust-cell-width = "2%"
-# adjust-cell-height = 10%
-adjust-underline-position = 5
-# adjust-underline-thickness = 100%
-adjust-cursor-thickness = 2
 
 font-feature = zero
 # font-feature = ss01 # serif f
@@ -237,6 +243,9 @@ keybind = cmd+t=text:\x00\x63
 
 keybind = super+shift+r=reload_config
 keybind = global:cmd+ctrl+shift+opt+`=toggle_quick_terminal
+
+# Fix sending shift+enter for Claude Code
+keybind = shift+enter=text:\x1b\r
 
 # DO NOT DELETE THIS:
 # this stops me from hitting this mapping thinking i'm using a browser's inspect and end up with passing `C` to nvim and changing to end of line 🤦

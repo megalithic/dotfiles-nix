@@ -28,12 +28,13 @@ in {
     gitAndTools.transcrypt
     gum
     helium
-    hidden-bar
+    # hidden-bar # FIXME: evaluated it and so far, i'm not loving it
     jwt-cli
     karabiner-elements
     karabiner-elements.driver
     libvterm-neovim
     magika
+    nix-update
     unstable.obsidian
     openconnect
     openssl_3
@@ -56,7 +57,7 @@ in {
 
     # [ai] ----------------------------------------------------------------------------------------
     # ai-tools.opencode
-    # ai-tools.claude-code
+    ai-tools.claude-code
     # ai-tools.claude-code-acp
     unstable.opencode
     # unstable.claude-code

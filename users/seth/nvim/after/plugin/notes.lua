@@ -52,8 +52,8 @@ function M.get_previous_daily_note()
   local notes = vim.split(
     vim.fn.glob(
       "`find "
-        .. vim.env.HOME
-        .. "/Documents/_notes/daily -type f -name '*.md' -print0 | xargs -0 ls -Ur | sort -nr | head -2 | cut -f2- -d' ' | tail -n1`"
+        .. vim.env.NOTES_HOME
+        .. "/daily -type f -name '*.md' -print0 | xargs -0 ls -Ur | sort -nr | head -2 | cut -f2- -d' ' | tail -n1`"
     ),
     "\n",
     { trimempty = true }
@@ -494,7 +494,7 @@ require("config.autocmds").augroup("NotesLoaded", {
         for _, client in ipairs(clients) do
           if
             vim.tbl_contains({ "markdown_oxide", "marksman", "obsidian-ls" }, client.name)
-            and string.match(vim.fn.expand("%:p:h"), "_notes")
+            and string.match(vim.fn.expand("%:p:h"), vim.env.NOTES_HOME)
           then
             map("n", "<leader>w", function()
               vim.schedule(function()

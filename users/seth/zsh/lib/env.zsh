@@ -184,16 +184,18 @@ case "$(uname)" in
 
     export BROWSER="open"
 
-    export SYNC_DIR="${HOME}/Dropbox"
-
-    export ICLOUD_DIR="${HOME}/Library/Mobile Documents/com~apple~CloudDocs"
-    export ICLOUD_DOCUMENTS_DIR="${ICLOUD_DIR}/Documents"
-    export DOCUMENTS_DIR="${ICLOUD_DOCUMENTS_DIR}"
-
-    export NOTES_DIR="${HOME}/Library/Mobile\ Documents/com~apple~CloudDocs/_notes"
-    export OBSIDIAN_VAULT_DIR="${ICLOUD_DOCUMENTS_DIR}/_obsidian"
-    export ZK_NOTEBOOK_DIR="${ICLOUD_DOCUMENTS_DIR}/_zk"
-    export ZK_CONFIG_DIR="${XDG_CONFIG_HOME}/zk"
+    # ---------------------------------------------------------------------------------------------
+    # NOTE: migrated from megabookpro.nix environment.variables:
+    export CODE "$HOME/code"
+    export DOTS "$HOME/.dotfiles-nix"
+    export PROTON_HOME "$HOME/protondrive"
+    export ICLOUD_HOME "$HOME/iclouddrive"
+    export ICLOUD_DOCUMENTS_HOME "$ICLOUD_HOME/Documents"
+    export NOTES_HOME "$PROTON_HOME/notes"
+    export OBSIDIAN_HOME "$NOTES_HOME"
+    export NVIM_DB_HOME "$PROTON_HOME/configs/sql"
+    export TMUX_LAYOUTS "$HOME/.config/tmux/layouts"
+    # ---------------------------------------------------------------------------------------------
 
     export HOMEBREW_CASK_OPTS="--appdir=/Applications"
     export HOMEBREW_NO_ANALYTICS=1

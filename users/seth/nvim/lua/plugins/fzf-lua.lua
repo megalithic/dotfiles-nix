@@ -1,6 +1,4 @@
-if true then
-  return {}
-end
+if true then return {} end
 
 local fmt = string.format
 
@@ -113,9 +111,7 @@ local fzf = setmetatable({}, {
 
       local mode = vim.api.nvim_get_mode().mode
 
-      if mode == "v" or mode == "V" or mode == "" then
-        topts.default_text = table.concat(get_selection())
-      end
+      if mode == "v" or mode == "V" or mode == "" then topts.default_text = table.concat(get_selection()) end
       -- if key == "grepify" or key == "egrepify" then
       --   extensions("egrepify").egrepify(with_title(topts, { title = "live grep (egrepify)" }))
       -- elseif key == "undo" then
@@ -259,19 +255,14 @@ local keys = {
   { "<leader>fp", fzf.registers, desc = "registers" },
   {
     "<leader>fd",
-    function()
-      file_picker(vim.env.DOTFILES)
-    end,
+    function() file_picker(vim.env.DOTFILES) end,
     desc = "dotfiles",
   },
   {
     "<leader>fc",
-    function()
-      file_picker(vim.g.vim_path)
-    end,
+    function() file_picker(vim.g.vim_path) end,
     desc = "nvim config",
   },
-  -- { "<leader>fN", function() file_picker(env.SYNC_DIR .. "/notes/neorg") end, desc = "norg files" },
 
   -- {
   --   "<C-p>",
@@ -585,9 +576,7 @@ return {
             -- symbol_icons = symbol_icons,
             symbol_icons = lsp_kind.symbols,
             -- symbol_hl = symbol_hl,
-            symbol_hl = function(s)
-              return mega.ui.colors.lsp[s]
-            end,
+            symbol_hl = function(s) return mega.ui.colors.lsp[s] end,
             -- actions = { ["ctrl-g"] = false, ["ctrl-r"] = { fzf_lua.actions.sym_lsym } },
           },
           code_actions = {

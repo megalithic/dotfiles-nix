@@ -13,6 +13,7 @@ local enabled_plugins = {
   "term",
   "filetypes",
   "cursorline",
+  "notes",
   -- "fakecolumn",
   -- "term",
   -- "abbreviations",
@@ -31,15 +32,8 @@ local enabled_plugins = {
 
 local uname = vim.uv.os_uname().sysname
 local is_macos = uname == "Darwin"
-local is_linux = uname == "Linux"
-local is_windows = uname == "Windows"
-local home_path = os.getenv("HOME")
-local icloud_path = vim.env.ICLOUD_DIR
-local icloud_documents_path = vim.env.ICLOUD_DOCUMENTS_DIR
-local obsidian_vault_path = vim.env.OBSIDIAN_VAULT_DIR
-local dotfiles_path = vim.env.DOTS or vim.fn.expand("~/.dotfiles")
+local dotfiles_path = vim.env.DOTS
 local hammerspoon_path = string.format("%s/config/hammerspoon", dotfiles_path)
-local proton_path = vim.env.PROTON_DIR
 local BORDER_STYLE = "none"
 local border_chars = {
   none = { " ", " ", " ", " ", " ", " ", " ", " " },
@@ -94,20 +88,20 @@ M.g = {
   netrw_sort_by = "size",
   open_command = is_macos and "open" or "xdg-open",
   is_tmux_popup = vim.env.TMUX_POPUP ~= nil,
-  code_path = string.format("%s/code", home_path),
-  projects_path = string.format("%s/code", home_path),
+  code_path = vim.env.CODE,
+  projects_path = vim.env.CODE,
   vim_path = vim.fn.stdpath("config"),
   nvim_path = vim.fn.stdpath("config"),
-  dotfiles_path = string.format("%s/.dotfiles", home_path),
+  dotfiles_path = vim.env.DOTS,
   cache_path = vim.fn.stdpath("cache"),
   local_state_path = vim.fn.stdpath("state"),
   local_share_path = vim.fn.stdpath("data"),
-  db_ui_path = string.format("%s/_sql", icloud_documents_path),
-  notes_path = string.format("%s/_notes", icloud_documents_path),
-  obsidian_path = string.format("%s/_obsidian", icloud_documents_path),
-  zk_path = string.format("%s/_zk", icloud_documents_path),
-  org_path = string.format("%s/_org", icloud_documents_path),
-  neorg_path = string.format("%s/_org", icloud_documents_path),
+  db_ui_path = vim.env.NVIM_DB_HOME,
+  notes_path = vim.env.NOTES_HOME,
+  obsidian_path = vim.env.OBSIDIAN_HOME,
+  -- zk_path = string.format("%s/_zk", icloud_documents_path),
+  -- org_path = string.format("%s/_org", icloud_documents_path),
+  -- neorg_path = string.format("%s/_org", icloud_documents_path),
   hs_emmy_path = string.format("%s/Spoons/EmmyLua.spoon", hammerspoon_path),
 
   -- python3_host_prog = vim.env.XDG_DATA_HOME .. "/mise/installs/python/latest/bin/python3",

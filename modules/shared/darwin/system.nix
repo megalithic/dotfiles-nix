@@ -158,7 +158,6 @@
         _FXSortFoldersFirst = true;
         QuitMenuItem = true;
         NewWindowTarget = "Home";
-        # NewWindowTargetPath = "file://Users/${username}/Desktop/";
       };
 
       trackpad = {
@@ -295,11 +294,23 @@
 
         # https://tyler.io/2020/04/additional-mailmate-tips/
         "com.freron.MailMate" = {
+          SoftwareUpdateChannel = "beta";
+          MmShowTips = "never";
           MmCustomKeyBindingsEnabled = true;
           MmCustomKeyBindingsName = "Mega";
           MmComposerInitialFocus = "alwaysTextView";
           MmShowAttachmentsFirst = true;
           MmSingleMessageWindowClosesAfterMove = true;
+
+          MmHeadersViewWebKitDefaultFontSize = 13;
+          MmHeadersViewWebKitStandardFont = "Helvetica";
+          MmMessagesWebViewMinimumFontSize = 12;
+          MmMessagesWebViewWebKitDefaultFixedFontSize = 13;
+          MmMessagesWebViewWebKitDefaultFontSize = 13;
+          MmMessagesWebViewWebKitMinimumFontSize = 12;
+          MmMessagesWebViewWebKitStandardFont = "Helvetica";
+          MmMessagesOutlineOpenMessageOnDoubleClick = true;
+          MmMessagesOutlineShowUnreadMessagesInBold = true;
         };
 
         "com.apple.SoftwareUpdate" = {

@@ -490,6 +490,20 @@ addSearchAlias(
   },
 );
 
+addSearchAlias(
+  "k",
+  "kagi",
+  "https://kagi.com/search?q=",
+  "s",
+  "https://kagi.com/search?q=",
+  function (response) {
+    var res = JSON.parse(response.text);
+    return res.map(function (r) {
+      return r.phrase;
+    });
+  },
+);
+
 // -----------------------------------------------------------------------------------------------------------------------
 // -- [ HINTS ]
 // -----------------------------------------------------------------------------------------------------------------------

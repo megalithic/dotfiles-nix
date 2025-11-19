@@ -18,18 +18,8 @@ return {
     workspaces = {
       {
         name = "notes",
-        path = "~/Documents/_notes",
-        -- path = vim.g.notes_path,
+        path = vim.env.NOTES_HOME,
       },
-
-      --         {
-      --           name = "notes",
-      --           path = vim.env.OBSIDIAN_VAULT_DIR,
-      --         },
-      -- {
-      --   name = "work",
-      --   path = "~/vaults/work",
-      -- },
     },
 
     daily_notes = {

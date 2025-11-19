@@ -108,9 +108,9 @@ in {
   ];
 
   environment.shells = [pkgs.fish pkgs.zsh];
-  # environment.shells = [ pkgs.zsh pkgs.fish pkgs.bashInteractive ];
 
   environment.variables = {
+    SHELL = "${pkgs.fish}/bin/fish";
     LANG = "${lang}";
     LC_CTYPE = "${lang}";
     LC_ALL = "${lang}";
@@ -128,6 +128,13 @@ in {
 
     CODE = "/Users/${username}/code";
     DOTS = "/Users/${username}/.dotfiles-nix";
+
+    PROTON_HOME = "/Users/${username}/protondrive";
+    ICLOUD_HOME = "/Users/${username}/iclouddrive";
+    ICLOUD_DOCUMENTS_HOME = "$ICLOUD_HOME/Documents";
+    NOTES_HOME = "$PROTON_HOME/notes";
+    OBSIDIAN_HOME = "$NOTES_HOME";
+    NVIM_DB_HOME = "$PROTON_HOME/configs/sql";
 
     TMUX_LAYOUTS = "/Users/${username}/.config/tmux/layouts";
 
