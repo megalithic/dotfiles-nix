@@ -4,7 +4,7 @@ local enum = require("hs.fnutils")
 local M = {}
 
 local function output()
-  local preferred = { "megabose", "LG UltraFine Display Audio", "MacBook Pro Speakers" }
+  local preferred = { "megabose", "MacBook Pro Speakers", "LG UltraFine Display Audio" }
   local device
 
   local found = enum.find(preferred, function(d)

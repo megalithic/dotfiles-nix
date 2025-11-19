@@ -72,3 +72,5 @@ jj edit def456  # Work on Feature B
 
 This repo is already jj-initialized with git coexistence. Always check `jj status` before starting work to see current state.
 - when creating shell scripts that take arguments, always assume we want long and short form arguments supported.
+- when working through nix-related code, remember, i am on macos, so i use nix-darwin, I am also on aarch64-darwin architecture.
+- any markdown documents you create, without my explicit request, should always go into a _docs folder in the root of the CWD you were called from. So, for this CWD, `.dotfiles-nix` which is the dotfiles-nix repo for my github user @megalithic, any docs that you auto-generate (again, ones that i didn't explicitly ask you to create), should go into .dotfiles-nix/_docs (and that directory should be added to .gitignore)

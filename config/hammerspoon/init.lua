@@ -90,11 +90,11 @@ function _G.P(...)
   hs.console.printStyledtext(U.ts() .. " (" .. callerInfo() .. ")" .. " => " .. contents)
 end
 
-local watchers = { "audio", "camera", "dock", "app", "notification", "network" }
-
 hs.loadSpoon("EmmyLua")
 
-req("lib.seal")
+local watchers = { "audio", "dock", "app", "notification", "network" }
+
+-- req("lib.seal")
 req("bindings")
 req("watchers", { watchers = watchers })
 req("ptt", { push = { { "cmd", "alt" }, nil }, toggle = { { "cmd", "alt" }, "p" } }):start()
@@ -102,7 +102,6 @@ req("ptt", { push = { { "cmd", "alt" }, nil }, toggle = { { "cmd", "alt" }, "p" 
 hs.shutdownCallback = function()
   require("watchers"):stop({ watchers = watchers })
   if N and N.cleanup then N.cleanup() end
-  -- require("hyper"):stop()
 end
 
 hs.notify.withdrawAll()

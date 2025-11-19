@@ -134,6 +134,8 @@ M.augroup("Reading", {
     event = { "BufReadPost" },
     desc = "Restore last cursor location",
     command = function(args)
+      if not vim.api.nvim_buf_is_valid(args.buf) then return end
+
       local mark = vim.api.nvim_buf_get_mark(args.buf, '"')
       local line_count = vim.api.nvim_buf_line_count(args.buf)
       if mark[1] > 0 and mark[1] <= line_count then

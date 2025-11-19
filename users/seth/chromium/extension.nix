@@ -30,6 +30,18 @@
         description = "The ${name} package to use.";
       };
 
+      bundleId = mkOption {
+        inherit visible;
+        type = types.nullOr types.str;
+        default = null;
+        example = "net.imput.helium";
+        description = ''
+          The macOS bundle identifier for ${name}.
+          Used to determine the Application Support directory path.
+          If not set, defaults to the browser name.
+        '';
+      };
+
       commandLineArgs = mkOption {
         inherit visible;
         type = types.listOf types.str;
@@ -150,17 +162,14 @@
   browserConfig = browser: cfg: let
     isProprietaryChrome = lib.hasPrefix "google-chrome" browser;
 
-    darwinDirs = {
-      helium = "net.imput.helium";
-    };
-
-    linuxDirs = {
-    };
+    # Use bundleId if provided, otherwise fall back to browser name
+    darwinDir = if cfg.bundleId != null then cfg.bundleId else browser;
+    linuxDir = browser;
 
     configDir =
       if pkgs.stdenv.isDarwin
-      then "Library/Application Support/" + (darwinDirs."${browser}" or browser)
-      else "${config.xdg.configHome}/" + (linuxDirs."${browser}" or browser);
+      then "Library/Application Support/${darwinDir}"
+      else "${config.xdg.configHome}/${linuxDir}";
 
     extensionJson = ext:
       assert ext.crxPath != null -> ext.version != null;
@@ -193,9 +202,19 @@
         (
           if cfg.commandLineArgs != []
           then
-            cfg.package.override {
-              commandLineArgs = lib.concatStringsSep " " cfg.commandLineArgs;
-            }
+            # Create a wrapper with command-line arguments
+            # Note: This only wraps the CLI binary. macOS .app bundles are not affected.
+            pkgs.runCommand "${cfg.package.name}-wrapped"
+              {
+                nativeBuildInputs = [pkgs.makeWrapper];
+                passthru = cfg.package.passthru or {};
+                meta = cfg.package.meta or {};
+              }
+              ''
+                mkdir -p $out/bin
+                makeWrapper ${cfg.package}/bin/${cfg.package.pname} $out/bin/${cfg.package.pname} \
+                  --add-flags "${lib.escapeShellArgs cfg.commandLineArgs}"
+              ''
           else cfg.package
         )
       ];

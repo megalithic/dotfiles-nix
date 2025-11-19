@@ -10,6 +10,20 @@ obj.actions = {}
 obj.stopComplete = false
 obj.startComplete = false
 
+local function hasMeetingWindow(app)
+  -- Teams: Meeting windows DON'T have "| Microsoft Teams" suffix
+  -- The main window is titled like "Chat | Team Name | Microsoft Teams"
+  -- Meeting windows are just the meeting name (e.g., "Daily Standup")
+  local windows = app:allWindows()
+  for _, window in ipairs(windows) do
+    local title = window:title()
+    if title and window:isStandard() and not title:find("Microsoft Teams", 1, true) then
+      -- Found a window without the Teams suffix - likely a meeting
+      return window
+    end
+  end
+end
+
 function obj:start(opts)
   opts = opts or {}
   local event = opts.event
@@ -21,21 +35,20 @@ function obj:start(opts)
   -- https://github.com/justintout/.hammerspoon/blob/main/teams.lua
   -- https://github.com/fireprophet/TeamsKeepAlive/blob/main/init.lua
 
-  -- if
-  --   enum.contains({
-  --     hs.application.watcher.launched,
-  --     hs.application.watcher.activated,
-  --     hs.uielement.watcher.applicationActivated,
-  --     hs.uielement.watcher.windowCreated,
-  --   }, event)
-  -- then
-  --   hs.timer.waitUntil(function() return appObj:findWindow("Meeting|Launch Deck Standup") end, function()
-  --     -- actions to only run at app startup and if it's a video-related window
-  --     U.dnd(true, "meeting")
-  --     hs.spotify.pause()
-  --     require("ptt").setState("push-to-talk")
-  --   end)
-  -- end
+  if
+    enum.contains({
+      hs.application.watcher.launched,
+      hs.application.watcher.activated,
+      hs.uielement.watcher.applicationActivated,
+      hs.uielement.watcher.windowCreated,
+    }, event)
+  then
+    hs.timer.waitUntil(function() return hasMeetingWindow(appObj) ~= nil end, function()
+      U.dnd(true, "meeting")
+      hs.spotify.pause()
+      require("ptt").setState("push-to-talk")
+    end)
+  end
 
   return self
 end
@@ -47,32 +60,16 @@ function obj:stop(opts)
 
   if obj.modal then obj.modal:exit() end
 
-  -- if event == hs.application.watcher.terminated or event == hs.uielement.watcher.elementDestroyed then
-  --   hs.timer.waitUntil(
-  --     function()
-  --       return appObj == nil
-  --         or not appObj:isRunning()
-  --         or not appObj:findWindow("Meeting|Launch Deck Standup") and not obj.stopComplete
-  --     end,
-  --     function()
-  --       U.dnd(false)
-  --       require("ptt").setState("push-to-talk")
-  --       obj.stopComplete = true
-  --       -- local browser = hs.application.get(BROWSER)
-  --       -- if browser ~= nil then
-  --       --   local browser_win = browser:mainWindow()
-  --       --   if browser_win ~= nil then browser_win:moveToUnit(hs.layout.maximized) end
-  --       -- end
-  --       --
-  --       -- local term = hs.application.get(TERMINAL)
-  --       -- if term ~= nil then
-  --       --   local term_win = term:mainWindow()
-  --       --   if term_win ~= nil then term_win:moveToUnit(hs.layout.maximized) end
-  --       -- end
-  --       --
-  --     end
-  --   )
-  -- end
+  if event == hs.application.watcher.terminated or event == hs.uielement.watcher.elementDestroyed then
+    hs.timer.waitUntil(
+      function() return appObj == nil or not appObj:isRunning() or not hasMeetingWindow(appObj) end,
+      function()
+        U.dnd(false)
+        require("ptt").setState("push-to-talk")
+        --
+      end
+    )
+  end
 
   return self
 end

@@ -54,9 +54,7 @@ local function findMeetingWindow(app)
   local titlePatterns = { "meeting", "standup", "call", "video" }
   for _, pattern in ipairs(titlePatterns) do
     local window = app:findWindow(pattern)
-    if window and window:isStandard() then
-      return window
-    end
+    if window and window:isStandard() then return window end
   end
 
   -- Strategy 2: App-specific detection
@@ -75,18 +73,14 @@ local function findMeetingWindow(app)
   elseif bundleID == "us.zoom.xos" then
     -- Zoom: Meeting window title is "Zoom Meeting" (not just "Zoom")
     local window = app:findWindow("zoom meeting")
-    if window and window:isStandard() then
-      return window
-    end
+    if window and window:isStandard() then return window end
   elseif bundleID == "com.pop.pop.app" then
     -- Pop: Large windows (>1000x1000) are video calls
     local windows = app:allWindows()
     for _, window in ipairs(windows) do
       if window:isStandard() then
         local frame = window:frame()
-        if frame.w > 1000 and frame.h > 1000 then
-          return window
-        end
+        if frame.w > 1000 and frame.h > 1000 then return window end
       end
     end
   end
@@ -96,17 +90,13 @@ local function findMeetingWindow(app)
   local mainWindow = app:mainWindow()
   if mainWindow and mainWindow:isStandard() then
     local frame = mainWindow:frame()
-    if frame.w > 800 and frame.h > 600 then
-      return mainWindow
-    end
+    if frame.w > 800 and frame.h > 600 then return mainWindow end
   end
 
   -- Strategy 4: Fallback to any standard window
   local windows = app:allWindows()
   for _, window in ipairs(windows) do
-    if window:isStandard() then
-      return window
-    end
+    if window:isStandard() then return window end
   end
 
   return nil
@@ -116,9 +106,9 @@ function M.loadMeeting()
   req("hyper", { id = "meeting" }):start():bind({}, "z", nil, function()
     -- Check native meeting apps in priority order
     local meetingApps = {
-      "us.zoom.xos",              -- Zoom
-      "com.microsoft.teams2",     -- Teams
-      "com.pop.pop.app",          -- Pop
+      "com.pop.pop.app", -- Pop
+      "us.zoom.xos", -- Zoom
+      "com.microsoft.teams2", -- Teams
     }
 
     -- Browser-based meeting URL patterns (regex patterns for JavaScript)
@@ -651,7 +641,7 @@ function M:init()
   M.loadNotifications()
 
   -- req("snipper")
-  -- req("clipper")
+  req("clipper")
   U.log.i("initialized")
 end
 

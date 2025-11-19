@@ -361,7 +361,7 @@ in {
 
     shellAbbrs = {
       nvim = "nvim -O";
-      "nh mac" = "nh darwin switch ./";
+      # "nh\ mac" = "nh darwin switch ./";
       vim = "nvim -O";
       j = "just";
       ju = "just";

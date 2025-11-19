@@ -29,8 +29,9 @@
       mkdir -p "$out/Applications/${finalAttrs.sourceRoot}"
       cp -R . "$out/Applications/${finalAttrs.sourceRoot}"
       makeWrapper "$out/Applications/${finalAttrs.sourceRoot}/Contents/MacOS/${prev.lib.strings.removeSuffix ".app" finalAttrs.sourceRoot}" \
-      $out/bin/${finalAttrs.pname};
+      $out/bin/${finalAttrs.pname}
     '';
+
     # Comprehensive metadata (2025 standard)
     meta = with lib; {
       description = "Privacy-focused web browser based on ungoogled-chromium (generated via nix overlay)";

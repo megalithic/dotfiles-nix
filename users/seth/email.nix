@@ -12,18 +12,18 @@
   ca-bundle_path = "${pkgs.cacert}/etc/ssl/certs/";
   ca-bundle_crt = "${ca-bundle_path}/ca-bundle.crt";
 
+  # newMailNotification = pkgs.writeShellScript "new-mail-notification" ''
+  #   #!/usr/bin/env bash
+  #
+  #   osascript -e 'display notification "New mail arrived" with title "Email" sound name "Glass"'
+  # '';
+
   notmuchPreNew = pkgs.writeShellScript "notmuch-pre-new_remove_tagged_deleted" ''
     #!/usr/bin/env bash
 
     # Remove files that are tagged as deleted
     ${pkgs.notmuch}/bin/notmuch search --format=text0 --output=files tag:deleted | \
       xargs -0 --no-run-if-empty rm -v
-  '';
-
-  newMailNotification = pkgs.writeShellScript "new-mail-notification" ''
-    #!/usr/bin/env bash
-
-    osascript -e 'display notification "New mail arrived" with title "Email" sound name "Glass"'
   '';
 
   notmuchPostNew = pkgs.writeShellScript "notmuch-post-new_autotag" ''
@@ -121,13 +121,7 @@ in {
         realName = "Seth Messer";
         address = "seth@megalithic.io";
         userName = "sethmesser@fastmail.com";
-        # Using 1Password CLI for password retrieval
         passwordCommand = "op read op://Shared/Fastmail/apps/tui";
-        # Alternative: macOS keychain (commented out)
-        # To use macOS keychain instead:
-        # 1. Store password: security add-internet-password -a sethmesser@fastmail.com -s mail.fastmail.com -w
-        # 2. Use this passwordCommand:
-        # passwordCommand = "security find-internet-password -s mail.fastmail.com -a sethmesser@fastmail.com -w";
         flavor = "fastmail.com";
         aliases = [
           "seth@megalithic.io"
@@ -170,127 +164,122 @@ in {
           onNotify = "${pkgs.isync}/bin/mbsync fastmail";
           onNotifyPost = ''
             ${pkgs.notmuch}/bin/notmuch new
-            ${newMailNotification}
           '';
         };
       };
 
-      gmail = {
-        primary = false;
-        realName = "Seth Messer";
-        address = "seth.messer@gmail.com";
-        userName = "seth.messer@gmail.com";
-        passwordCommand = "op read op://Shared/aw6tbw4va5bpnippcdqh2mkfq4/tui";
-        # Alternative: macOS keychain (commented out)
-        # passwordCommand = "security find-internet-password -s imap.gmail.com -a seth.messer@gmail.com -w";
-        folders = {
-          inbox = "Inbox";
-          sent = "[Gmail]/Sent Mail";
-          trash = "[Gmail]/Trash";
-          drafts = "[Gmail]/Drafts";
-        };
-        flavor = "gmail.com";
-        signature = {
-          text = ''
-            Regards,
-            Seth Messer
-            seth.messer@gmail.com
-          '';
-          showSignature = "append";
-        };
-
-        aerc.enable = true;
-        notmuch.enable = true;
-        # thunderbird.enable = true;
-        mbsync = {
-          enable = true;
-          create = "both";
-          expunge = "both";
-          remove = "both";
-          extraConfig.channel = {
-            CopyArrivalDate = "yes";
-          };
-        };
-
-        msmtp = {
-          enable = true;
-          extraConfig = {
-            tls_starttls = "on";
-            logfile = "~/.cache/msmtp/msmtp.log";
-          };
-        };
-
-        imapnotify = {
-          enable = true;
-          boxes = ["Inbox"];
-          onNotify = "${pkgs.isync}/bin/mbsync gmail";
-          onNotifyPost = ''
-            ${pkgs.notmuch}/bin/notmuch new
-            ${newMailNotification}
-          '';
-        };
-      };
-
-      nibuild = {
-        primary = false;
-        address = "seth@nibuild.com";
-        realName = "Seth Messer";
-        userName = "seth@nibuild.com";
-        passwordCommand = "op read op://Shared/xk72bkenziy7wxjmxkpxze2nsi/password";
-        # Alternative: macOS keychain (commented out)
-        # passwordCommand = "security find-internet-password -s mail.nibuild.com -a seth@nibuild.com -w";
-        flavor = "plain";
-        aliases = ["smesser@nibuild.com"];
-        imap = {
-          host = "mail.nibuild.com";
-          tls.enable = true;
-          port = 993;
-        };
-        smtp = {
-          host = "smtp.nibuild.com";
-          tls.enable = true;
-          port = 465;
-        };
-        signature = {
-          text = ''
-            Regards,
-            Seth Messer
-            seth@nibuild.com
-          '';
-          showSignature = "append";
-        };
-
-        aerc.enable = true;
-        notmuch.enable = true;
-        # thunderbird.enable = true;
-        mbsync = {
-          enable = true;
-          create = "both";
-          expunge = "both";
-          remove = "both";
-          extraConfig.channel = {
-            CopyArrivalDate = "yes";
-          };
-        };
-
-        msmtp = {
-          enable = true;
-          extraConfig = {
-            tls_starttls = "on";
-            logfile = "~/.cache/msmtp/msmtp.log";
-          };
-        };
-
-        imapnotify = {
-          enable = true;
-          boxes = ["INBOX"];
-          onNotify = "${pkgs.isync}/bin/mbsync nibuild";
-          onNotifyPost = ''
-            ${pkgs.notmuch}/bin/notmuch new
-            ${newMailNotification}
-          '';
-        };
-      };
+      # gmail = {
+      #   primary = false;
+      #   realName = "Seth Messer";
+      #   address = "seth.messer@gmail.com";
+      #   userName = "seth.messer@gmail.com";
+      #   passwordCommand = "op read op://Shared/aw6tbw4va5bpnippcdqh2mkfq4/tui";
+      #   folders = {
+      #     inbox = "Inbox";
+      #     sent = "[Gmail]/Sent Mail";
+      #     trash = "[Gmail]/Trash";
+      #     drafts = "[Gmail]/Drafts";
+      #   };
+      #   flavor = "gmail.com";
+      #   signature = {
+      #     text = ''
+      #       Regards,
+      #       Seth Messer
+      #       seth.messer@gmail.com
+      #     '';
+      #     showSignature = "append";
+      #   };
+      #
+      #   aerc.enable = true;
+      #   notmuch.enable = true;
+      #   # thunderbird.enable = true;
+      #   mbsync = {
+      #     enable = true;
+      #     create = "both";
+      #     expunge = "both";
+      #     remove = "both";
+      #     extraConfig.channel = {
+      #       CopyArrivalDate = "yes";
+      #     };
+      #   };
+      #
+      #   msmtp = {
+      #     enable = true;
+      #     extraConfig = {
+      #       tls_starttls = "on";
+      #       logfile = "~/.cache/msmtp/msmtp.log";
+      #     };
+      #   };
+      #
+      #   imapnotify = {
+      #     enable = true;
+      #     boxes = ["Inbox"];
+      #     onNotify = "${pkgs.isync}/bin/mbsync gmail";
+      #     onNotifyPost = ''
+      #       ${pkgs.notmuch}/bin/notmuch new
+      #       ${newMailNotification}
+      #     '';
+      #   };
+      # };
+      #
+      # nibuild = {
+      #   primary = false;
+      #   address = "seth@nibuild.com";
+      #   realName = "Seth Messer";
+      #   userName = "seth@nibuild.com";
+      #   passwordCommand = "op read op://Shared/xk72bkenziy7wxjmxkpxze2nsi/password";
+      #   flavor = "plain";
+      #   aliases = ["smesser@nibuild.com"];
+      #   imap = {
+      #     host = "mail.nibuild.com";
+      #     tls.enable = true;
+      #     port = 993;
+      #   };
+      #   smtp = {
+      #     host = "smtp.nibuild.com";
+      #     tls.enable = true;
+      #     port = 465;
+      #   };
+      #   signature = {
+      #     text = ''
+      #       Regards,
+      #       Seth Messer
+      #       seth@nibuild.com
+      #     '';
+      #     showSignature = "append";
+      #   };
+      #
+      #   aerc.enable = true;
+      #   notmuch.enable = true;
+      #   # thunderbird.enable = true;
+      #   mbsync = {
+      #     enable = true;
+      #     create = "both";
+      #     expunge = "both";
+      #     remove = "both";
+      #     extraConfig.channel = {
+      #       CopyArrivalDate = "yes";
+      #     };
+      #   };
+      #
+      #   msmtp = {
+      #     enable = true;
+      #     extraConfig = {
+      #       tls_starttls = "on";
+      #       logfile = "~/.cache/msmtp/msmtp.log";
+      #     };
+      #   };
+      #
+      #   imapnotify = {
+      #     enable = true;
+      #     boxes = ["INBOX"];
+      #     onNotify = "${pkgs.isync}/bin/mbsync nibuild";
+      #     onNotifyPost = ''
+      #       ${pkgs.notmuch}/bin/notmuch new
+      #       ${newMailNotification}
+      #     '';
+      #   };
+      # };
     };
   };
 
@@ -989,44 +978,6 @@ in {
         ${pkgs.notmuch}/bin/notmuch search "$@"
       '';
       executable = true;
-    };
-  };
-
-  # Launchd agent for periodic email syncing
-  launchd.agents.mbsync = {
-    enable = true;
-    config = {
-      ProgramArguments = [
-        "${pkgs.writeShellScript "sync-mail-periodic" ''
-          #!/usr/bin/env bash
-
-          # Check if mbsync or notmuch is already running
-          if pgrep -x mbsync >/dev/null || pgrep -x notmuch >/dev/null; then
-            echo "Already running mbsync or notmuch. Skipping..."
-            exit 0
-          fi
-
-          # Clean up deleted messages
-          ${notmuchPreNew}
-
-          # Sync all accounts
-          ${pkgs.isync}/bin/mbsync -a
-
-          # Update notmuch database
-          ${pkgs.notmuch}/bin/notmuch new
-        ''}"
-      ];
-      # Run every 15 minutes using StartCalendarInterval
-      # This will coalesce missed events and run on wake from sleep
-      StartCalendarInterval = [
-        {Minute = 0;} # :00
-        {Minute = 15;} # :15
-        {Minute = 30;} # :30
-        {Minute = 45;} # :45
-      ];
-      StandardOutPath = "${config.home.homeDirectory}/.cache/mbsync/sync.log";
-      StandardErrorPath = "${config.home.homeDirectory}/.cache/mbsync/sync-error.log";
-      RunAtLoad = true; # Run immediately on login
     };
   };
 }

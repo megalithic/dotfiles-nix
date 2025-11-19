@@ -35,7 +35,7 @@ function dbg(s) {
 // -----------------------------------------------------------------------------------------------------------------------
 // -- [ SETTINGS ]
 // -----------------------------------------------------------------------------------------------------------------------
-settings.defaultSearchEngine = "b"; // (b)rave, (n)eeva, etc
+settings.defaultSearchEngine = "k"; // (k)agi, (b)rave, (n)eeva, etc
 settings.focusAfterClosed = "right";
 settings.hintAlign = "left";
 settings.hintExplicit = true;

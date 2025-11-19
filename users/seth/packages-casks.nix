@@ -56,10 +56,7 @@ in {
       zed
       # zen
     ])
-    # Add custom casks
     ++ [
-      # Define custom casks
-      # mkCask is available via lib.mkCask
       # Use ./bin/cask-info <name> to get definitions
       # Use ./bin/add-cask <name> to get full instructions
       (lib.mkCask {inherit pkgs lib;} {
@@ -86,12 +83,22 @@ in {
         appName = "Microsoft Teams.app";
       })
 
-      (lib.mkCask {inherit pkgs lib;} {
-        pname = "obs";
-        version = "32.0.2";
-        url = "https://cdn-fastly.obsproject.com/downloads/obs-studio-32.0.2-macos-apple.dmg";
-        sha256 = "5c8f0e2349e45b57512e32312b053688e0b2bb9f0e8de8e7e24ee392e77a7cb3";
-        appName = "OBS Studio.app";
-      })
+      # Helium now managed by programs.helium module in chromium/default.nix
+      # Using overlay from packages/helium.nix instead of cask
+      # (lib.mkCask {inherit pkgs lib;} {
+      #   pname = "helium";
+      #   version = "0.4.13.1";
+      #   url = "https://github.com/imputnet/helium-macos/releases/download/0.4.13.1/helium_0.4.13.1_arm64-macos.dmg";
+      #   sha256 = "sha256-3j4souWY+4EGPSQR6uURjyqu3bkB5G9xuJbvOk9cZd8=";
+      #   appName = "Helium.app";
+      # })
+
+      # (lib.mkCask {inherit pkgs lib;} {
+      #   pname = "obs";
+      #   version = "32.0.2";
+      #   url = "https://cdn-fastly.obsproject.com/downloads/obs-studio-32.0.2-macos-apple.dmg";
+      #   sha256 = "5c8f0e2349e45b57512e32312b053688e0b2bb9f0e8de8e7e24ee392e77a7cb3";
+      #   appName = "OBS Studio.app";
+      # })
     ];
 }

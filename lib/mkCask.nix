@@ -96,7 +96,7 @@ in
         case "$src" in
           *.dmg)
             echo "Extracting DMG..."
-            undmg $src
+            7zz x -snld $src
             ;;
           *.zip)
             echo "Extracting ZIP..."
@@ -116,16 +116,16 @@ in
             ;;
           *)
             # Fallback: try each method
-            if undmg $src 2>/dev/null; then
-              echo "Extracted DMG successfully"
+            if 7zz x -snld $src >/dev/null 2>&1; then
+              echo "Extracted with 7zip successfully"
             elif unzip -q $src 2>/dev/null; then
               echo "Extracted ZIP successfully"
             elif tar -xjf $src 2>/dev/null; then
               echo "Extracted tar.bz2 successfully"
             elif tar -xzf $src 2>/dev/null; then
               echo "Extracted tar.gz successfully"
-            elif 7zz x -snld $src >/dev/null 2>&1; then
-              echo "Extracted with 7zip successfully"
+            elif undmg $src 2>/dev/null; then
+              echo "Extracted DMG successfully"
             else
               echo "Warning: Failed to extract archive, trying to continue..."
             fi
@@ -217,7 +217,16 @@ in
         mkdir -p $out/bin
         install -Dm755 ./* $out/bin/
       ''
-      else "";
+      else ''
+        echo "Installing via fallback..."
+
+        runHook preInstall
+
+        mkdir -p $out/Applications
+        mv *.app $out/Applications
+
+        runHook postInstall
+      '';
 
     # Remove quarantine attributes to prevent Gatekeeper warnings
     postInstall = lib.optionalString (isApp || isPkg) ''
@@ -238,8 +247,14 @@ in
     '';
 
     meta = {
-      description = if desc != null then desc else "macOS application";
-      homepage = if homepage != null then homepage else "";
+      description =
+        if desc != null
+        then desc
+        else "macOS application";
+      homepage =
+        if homepage != null
+        then homepage
+        else "";
       platforms = lib.platforms.darwin;
       mainProgram =
         if (isBinary && !isApp)
