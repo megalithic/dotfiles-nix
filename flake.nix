@@ -43,6 +43,7 @@
       url = "github:atahanyorganci/nix-casks/archive";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    expert.url = "github:elixir-lang/expert";
     # firefox-addons.url = "gitlab:rycee/nur-expressions?dir=pkgs/firefox-addons";
     # firefox-addons.inputs.nixpkgs.follows = "nixpkgs";
     # zen-browser.url = "github:0xc000022070/zen-browser-flake";
@@ -84,12 +85,16 @@
           config.allowUnfree = true;
           config.allowUnfreePredicate = _: true;
         };
+        stable = import nixpkgs {
+          inherit (prev) system;
+        };
         ai-tools = inputs.nix-ai-tools.packages.${prev.system};
         mcphub = inputs.mcp-hub.packages."${prev.system}".default;
         # NOTE: here's how to do a custom neovim-nightly overlay:
         # REF: https://github.com/fredrikaverpil/dotfiles/blob/main/nix/shared/overlays/neovim.nix
         nvim-nightly = inputs.neovim-nightly-overlay.packages.${prev.system}.default;
         notmuch = prev.notmuch.override {withEmacs = false;};
+        expert = inputs.expert.packages.${prev.system}.default;
 
         neomutt = prev.neomutt.override {
           enableLua = true;
@@ -100,7 +105,6 @@
 
       (import ./packages/helium.nix {inherit lib;})
       (import ./packages/karabiner-elements.nix {inherit lib;})
-      # (import ./packages/teams.nix {inherit lib;})
     ];
 
     mkInit = {

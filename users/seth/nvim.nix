@@ -35,6 +35,7 @@
       copilot-language-server
       deno
       dotenv-linter
+      expert
       gcc # For treesitter compilation
       git
       gnumake # For various build processes
