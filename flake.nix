@@ -99,6 +99,8 @@
       })
 
       (import ./packages/helium.nix {inherit lib;})
+      (import ./packages/karabiner-elements.nix {inherit lib;})
+      # (import ./packages/teams.nix {inherit lib;})
     ];
 
     mkInit = {

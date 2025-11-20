@@ -27,10 +27,11 @@ in {
     git-lfs
     gitAndTools.transcrypt
     gum
+    # helium # Managed by programs.helium module in chromium/default.nix
     # hidden-bar # FIXME: evaluated it and so far, i'm not loving it
     jwt-cli
-    karabiner-elements
-    karabiner-elements.driver
+    # karabiner-elements # Now managed by users/seth/karabiner-elements.nix module
+    # karabiner-elements.driver # Now managed by users/seth/karabiner-elements.nix module
     libvterm-neovim
     magika
     nix-update
