@@ -364,6 +364,7 @@ in {
       # "nh\ mac" = "nh darwin switch ./";
       vim = "nvim -O";
       j = "just";
+      z = "zoxide";
       ju = "just";
       "!!" = "eval \\$history[1]";
     };

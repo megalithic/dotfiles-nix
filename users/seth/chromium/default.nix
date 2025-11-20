@@ -46,10 +46,10 @@
       sha256 = "sha256-BnnCPisSxlhTSoQQeZg06Re8MhgwztRKmET9D93ghiw=";
     })
     # NOTE: 1Password (aeblfdkhhhdcdjpifhhbdiojplfjncoa) not available via Chrome Web Store API
-    # Install manually through Helium UI or use the native app
+    # Install manually
   ];
 in {
-  # REF:
+  # REFS:
   # - https://github.com/will-lol/.dotfiles/blob/main/home/extensions/chromium.nix
   # - https://github.com/isabelroses/dotfiles/blob/main/modules/home/programs/chromium.nix
 
@@ -59,9 +59,10 @@ in {
     dictionaries = [pkgs.hunspellDictsChromium.en_US];
     inherit extensions;
 
-    # Command-line arguments for Helium
-    # See: https://peter.sh/experiments/chromium-command-line-switches/
-    # ungoogled-chromium flags: https://github.com/ungoogled-software/ungoogled-chromium/blob/master/docs/flags.md
+    # REFS: Command-line arguments for Helium:
+    # https://peter.sh/experiments/chromium-command-line-switches/
+    # REFS: ungoogled-chromium flags:
+    # https://github.com/ungoogled-software/ungoogled-chromium/blob/master/docs/flags.md
     commandLineArgs = [
       # Performance
       "--ignore-gpu-blocklist"
@@ -97,7 +98,7 @@ in {
   # ==============================================================================
   # Enable developer mode to allow user scripts (required for SurfingKeys Advanced Mode)
   # This ensures extensions.ui.developer_mode is set in Helium's Secure Preferences
-  home.activation.enableHeliumDeveloperMode = lib.hm.dag.entryAfter ["writeBoundary"] ''
+  home.activation.heliumEnableDeveloperMode = lib.hm.dag.entryAfter ["writeBoundary"] ''
     HELIUM_PREFS="${config.home.homeDirectory}/Library/Application Support/net.imput.helium/Default/Secure Preferences"
 
     # Only modify if Helium profile exists
@@ -129,7 +130,7 @@ in {
   # Widevine DRM Installation (Netflix, Amazon Prime, etc.)
   # ==============================================================================
   # Automatically installs Widevine from Brave Browser Nightly or Google Chrome
-  home.activation.installWidevine = lib.hm.dag.entryAfter ["writeBoundary"] ''
+  home.activation.heliumInstallWidevine = lib.hm.dag.entryAfter ["writeBoundary"] ''
     # Find Helium in nix store
     HELIUM_NIX_APP=$(ls -d /nix/store/*-helium-0.*/Applications/Helium.app 2>/dev/null | grep -v "wrapped" | sort -V | tail -1)
 
