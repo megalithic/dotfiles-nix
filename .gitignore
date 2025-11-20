@@ -1,5 +1,8 @@
 local.nix
 
+# Auto-generated documentation
+_docs/
+
 # Devenv
 .devenv*
 devenv.local.nix
