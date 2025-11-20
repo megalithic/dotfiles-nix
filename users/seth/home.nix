@@ -119,6 +119,9 @@ in {
     ░ fin.
 
     EOF
+
+    # Explicit completion signal for activation script
+    true
   '';
 
   xdg.configFile."hammerspoon/extra_config.lua".text = ''

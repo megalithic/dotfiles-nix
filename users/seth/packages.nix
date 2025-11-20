@@ -27,7 +27,6 @@ in {
     git-lfs
     gitAndTools.transcrypt
     gum
-    helium
     # hidden-bar # FIXME: evaluated it and so far, i'm not loving it
     jwt-cli
     karabiner-elements
