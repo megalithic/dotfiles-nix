@@ -320,11 +320,11 @@ M.launchers = {
   { "com.tinyspeck.slackmacgap", "s", nil },
   { "com.microsoft.teams2", "t", nil },
   { "org.hammerspoon.Hammerspoon", "r", nil },
-  { "com.apple.dt.Xcode", "x", nil },
+  { "com.apple.dt.Xcode", "c", nil },
   -- { "com.kapeli.dashdoc", { { "shift" }, "d" }, { "d" } },
   { "com.electron.postbird", { { "shift" }, "p" }, nil },
   { "com.1password.1password", "1", nil },
-
+  { "commonplace.canonize.app", nil, { { { "shift" }, "s" } } },
   { "com.google.android.studio", "x", nil, true },
   { "com.obsproject.obs-studio", "o", nil, true },
   { "com.microsoft.VSCode", "v", nil, true },

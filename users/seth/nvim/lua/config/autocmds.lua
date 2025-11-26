@@ -232,7 +232,8 @@ M.augroup("Editing", {
     end,
   },
   {
-    event = { "BufWinLeave", "BufLeave", "FocusLost" },
+    event = { "FocusLost" },
+    -- event = { "BufWinLeave", "BufLeave", "FocusLost" },
     desc = "Automatically update and write modified buffer on certain events",
     command = function(ctx)
       local saveInstantly = ctx.event == "FocusLost" or ctx.event == "BufLeave"

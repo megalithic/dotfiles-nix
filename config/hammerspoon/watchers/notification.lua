@@ -23,9 +23,11 @@ local notificationSubroles = {
 -- Process a notification that appeared in Notification Center
 local function handleNotification(element)
   -- Skip if notification drawer is open (user is already looking at notifications)
-  local notificationCenterBundleID = "com.apple.notificationcenterui"
-  local notificationCenter = hs.axuielement.applicationElement(notificationCenterBundleID)
-  if notificationCenter and notificationCenter:asHSApplication():focusedWindow() then return end
+  local ncApp = hs.application.find("com.apple.notificationcenterui")
+  if ncApp then
+    local notificationCenter = hs.axuielement.applicationElement(ncApp)
+    if notificationCenter and notificationCenter:asHSApplication():focusedWindow() then return end
+  end
 
   -- Process each notification only once
   if not notificationSubroles[element.AXSubrole] or M.processedNotificationIDs[element.AXIdentifier] then return end
@@ -91,11 +93,15 @@ end
 
 -- Helper to start/restart the AX observer
 local function startObserver()
-  local notificationCenterBundleID = "com.apple.notificationcenterui"
-  local notificationCenter = hs.axuielement.applicationElement(notificationCenterBundleID)
+  local ncApp = hs.application.find("com.apple.notificationcenterui")
+  if not ncApp then
+    U.log.e("Unable to find Notification Center application")
+    return false
+  end
 
+  local notificationCenter = hs.axuielement.applicationElement(ncApp)
   if not notificationCenter then
-    U.log.e("Unable to find Notification Center AX element")
+    U.log.e("Unable to get Notification Center AX element")
     return false
   end
 
@@ -135,7 +141,15 @@ function M:start()
   -- Monitor Notification Center process for restarts
   -- Check every 30 seconds if NC has restarted (PID changed)
   M.processWatcher = hs.timer.doEvery(30, function()
-    local nc = hs.axuielement.applicationElement("com.apple.notificationcenterui")
+    -- Must get hs.application object first, then pass to applicationElement
+    -- Passing bundle ID string directly is unreliable in timer callbacks
+    local ncApp = hs.application.find("com.apple.notificationcenterui")
+    if not ncApp then
+      U.log.w("Notification Center not found during health check")
+      return
+    end
+
+    local nc = hs.axuielement.applicationElement(ncApp)
     if nc then
       local currentPID = nc:pid()
       if currentPID ~= M.currentPID then
@@ -143,7 +157,7 @@ function M:start()
         startObserver()
       end
     else
-      U.log.w("Notification Center not found during health check")
+      U.log.w("Failed to get AX element for Notification Center")
     end
   end)
 

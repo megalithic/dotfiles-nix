@@ -244,11 +244,13 @@ keybind = super+shift+r=reload_config
 keybind = global:cmd+ctrl+shift+opt+`=toggle_quick_terminal
 
 # Fix sending shift+enter for Claude Code
-keybind = shift+enter=text:\x1b\r
+# keybind = shift+enter=text:\x1b\r
+# keybind = shift+enter=text:"\n"
+# keybind = shift+enter=text:\n
+# keybind = shift+enter=text:\x05
 
 # DO NOT DELETE THIS:
 # this stops me from hitting this mapping thinking i'm using a browser's inspect and end up with passing `C` to nvim and changing to end of line 🤦
 keybind = cmd+shift+c=ignore
 
 # vim: ft=conf
-keybind = shift+enter=text:\n

@@ -30,10 +30,12 @@ in {
     # helium # Managed by programs.helium module in chromium/default.nix
     # hidden-bar # FIXME: evaluated it and so far, i'm not loving it
     jwt-cli
-    # karabiner-elements # Now managed by users/seth/karabiner-elements.nix module
-    # karabiner-elements.driver # Now managed by users/seth/karabiner-elements.nix module
+    karabiner-elements # Now managed by users/seth/karabiner-elements.nix module
+    karabiner-elements.driver # Now managed by users/seth/karabiner-elements.nix module
     libvterm-neovim
+    m-cli
     magika
+    mas
     nix-update
     unstable.obsidian
     openconnect
@@ -44,6 +46,7 @@ in {
     # raycast
     # qutebrowser
     ripgrep
+    s3cmd
     spotify
     sqlite
     # terminal-notifier FIXME: not working with nixpkgs (arch not supported?)
@@ -57,9 +60,9 @@ in {
 
     # [ai] ----------------------------------------------------------------------------------------
     # ai-tools.opencode
-    ai-tools.claude-code
+    # ai-tools.claude-code
     # ai-tools.claude-code-acp
     unstable.opencode
-    # unstable.claude-code
+    unstable.claude-code
   ];
 }

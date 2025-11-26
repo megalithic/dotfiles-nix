@@ -57,6 +57,13 @@ inputs: lib: _:
   # mkCask - Build Homebrew casks without brew-nix
   # Usage: lib.mkCask { pname = "discord"; version = "1.0"; url = "..."; sha256 = "..."; }
   mkCask = import ./mkCask.nix;
+
+  # mkMas - Install Mac App Store applications
+  # Usage: lib.mkMas { "Xcode" = 497799835; "Keynote" = 409183694; }
+  # Returns an attrset with:
+  #   - script: A shell script that can be run directly
+  #   - activationScript: Script content for use in system.activationScripts
+  mkMas = import ./mkMas.nix;
 }
 # Make sure to add lib extensions from inputs
 // inputs.home-manager.lib

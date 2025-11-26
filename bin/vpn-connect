@@ -239,30 +239,56 @@ connect_gui() {
                     end if
                 end tell
 
-                -- Monitor for authentication dialog
-                delay 1
-                repeat 15 times
-                    set windowList to name of windows
+                -- Monitor for authentication dialog with better timing
+                delay 2
+                repeat 30 times
+                    try
+                        set windowList to name of windows
 
-                    repeat with windowName in windowList
-                        -- Check for auth dialog names
-                        if windowName contains "Login" or windowName contains "Authentication" or windowName contains "Credentials" then
-                            -- Bring Cisco Secure Client to front
-                            tell application "Cisco Secure Client" to activate
+                        repeat with windowName in windowList
+                            -- Check for auth dialog names
+                            if windowName contains "Login" or windowName contains "Authentication" or windowName contains "Credentials" then
+                                -- Give the window a moment to stabilize
+                                delay 0.5
 
-                            -- Focus the auth window
-                            if exists window windowName then
-                                set frontmost of window windowName to true
+                                -- Verify window still exists and is ready
+                                if exists window windowName then
+                                    -- Try to bring application to front first
+                                    try
+                                        tell application "Cisco Secure Client" to activate
+                                        delay 0.3
+                                    end try
+
+                                    -- Now try to focus the specific window
+                                    try
+                                        set frontmost of window windowName to true
+                                        return "Auth dialog detected and brought to front: " & windowName
+                                    on error errMsg
+                                        -- Window exists but can't be brought to front yet, continue waiting
+                                        log "Window not ready yet: " & errMsg
+                                    end try
+                                end if
                             end if
+                        end repeat
 
-                            return "Auth dialog detected and brought to front"
+                        -- Check if connection completed without auth dialog
+                        if exists window "Cisco Secure Client" then
+                            tell window "Cisco Secure Client"
+                                -- Look for "Disconnect" button which indicates successful connection
+                                if exists button "Disconnect" then
+                                    return "Connection established without auth dialog"
+                                end if
+                            end tell
                         end if
-                    end repeat
+                    on error errMsg
+                        -- Log but don't fail, window may not be ready yet
+                        log "Monitoring error (will retry): " & errMsg
+                    end try
 
                     delay 0.5
                 end repeat
 
-                return "No auth dialog detected"
+                return "Connection timeout - no auth dialog or completion detected"
             end tell
         end tell
 EOF
@@ -270,17 +296,40 @@ EOF
         local script_result=$?
 
         if [[ $script_result -eq 0 ]]; then
-            log_success "VPN connection initiated"
-            log_info "Please complete authentication in the GUI if prompted"
-            if [[ "$ENABLE_NOTIFICATIONS" == true ]]; then
-                notify_user "VPN Connection" "Connection to $vpn_url initiated. Complete authentication if prompted." false normal
+            log_success "VPN connection process completed"
+
+            # Wait a moment and check final connection status
+            sleep 2
+            if get_vpn_status; then
+                log_success "VPN is now connected"
+                if [[ "$ENABLE_NOTIFICATIONS" == true ]]; then
+                    notify_user "VPN Connected" "Successfully connected to $vpn_url" false normal
+                fi
+            else
+                log_info "VPN handshake in progress or authentication required"
+                log_info "Please complete authentication in the GUI if prompted"
+                if [[ "$ENABLE_NOTIFICATIONS" == true ]]; then
+                    notify_user "VPN Connection" "Connection to $vpn_url initiated. Complete authentication if prompted." false normal
+                fi
             fi
         else
-            log_error "Failed to automate connection"
-            if [[ "$ENABLE_NOTIFICATIONS" == true ]]; then
-                notify_user "VPN Connection Failed" "Could not automate connection. Please connect manually." false high
+            log_warn "VPN automation encountered issues"
+            log_info "Checking connection status..."
+
+            # Even if AppleScript failed, connection might have succeeded
+            sleep 2
+            if get_vpn_status; then
+                log_success "VPN is connected despite automation warnings"
+                if [[ "$ENABLE_NOTIFICATIONS" == true ]]; then
+                    notify_user "VPN Connected" "Connected to $vpn_url" false normal
+                fi
+            else
+                log_error "Failed to initiate VPN connection. Please connect manually and try again."
+                if [[ "$ENABLE_NOTIFICATIONS" == true ]]; then
+                    notify_user "VPN Connection Failed" "Could not automate connection. Please connect manually." false high
+                fi
+                return 1
             fi
-            return 1
         fi
     else
         log_error "GUI method only supported on macOS"

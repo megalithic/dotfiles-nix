@@ -20,21 +20,11 @@ let
   # List of all authorized keys
   allKeys = [megaenv];
 in {
-  # Environment variables for shell/scripts
-  # Contains: export KEY=value format
   "env-vars.age".publicKeys = allKeys;
+  "s3cfg.age".publicKeys = allKeys;
 
-  # API keys and tokens (one per line or JSON format)
-  # Example: PUSHOVER_USER_TOKEN=xxx
-  #          PUSHOVER_APP_TOKEN=yyy
-  "api-keys.age".publicKeys = allKeys;
-
-  # GitHub tokens
-  "github-token.age".publicKeys = allKeys;
-
-  # AWS credentials (if needed)
+  # "api-keys.age".publicKeys = allKeys;
+  # "github-token.age".publicKeys = allKeys;
   # "aws-credentials.age".publicKeys = allKeys;
-
-  # Add more secrets as needed
   # "secret-name.age".publicKeys = allKeys;
 }

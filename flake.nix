@@ -26,6 +26,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.darwin.follows = "nix-darwin";
     };
+    # opnix = {
+    #   url = "github:brizzbuzz/opnix";
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    # };
     neovim-nightly-overlay.url = "github:nix-community/neovim-nightly-overlay";
     mcp-hub.url = "github:ravitemer/mcp-hub";
     flake-parts.url = "github:hercules-ci/flake-parts";
@@ -44,6 +48,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     expert.url = "github:elixir-lang/expert";
+    # op-shell-plugins = {
+    #   url = "github:1password/shell-plugins";
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    # };
     # firefox-addons.url = "gitlab:rycee/nur-expressions?dir=pkgs/firefox-addons";
     # firefox-addons.inputs.nixpkgs.follows = "nixpkgs";
     # zen-browser.url = "github:0xc000022070/zen-browser-flake";
@@ -63,6 +71,7 @@
     nix-darwin,
     home-manager,
     agenix,
+    # opnix,
     fenix,
     ...
   } @ inputs: let
@@ -95,16 +104,13 @@
         nvim-nightly = inputs.neovim-nightly-overlay.packages.${prev.system}.default;
         notmuch = prev.notmuch.override {withEmacs = false;};
         expert = inputs.expert.packages.${prev.system}.default;
-
         neomutt = prev.neomutt.override {
           enableLua = true;
         };
-
-        karabiner-driverkit = prev.callPackage ./packages/karabiner-driverkit {};
+        # karabiner-driverkit = prev.callPackage ./packages/karabiner-driverkit {};
       })
 
       (import ./packages/helium.nix {inherit lib;})
-      (import ./packages/karabiner-elements.nix {inherit lib;})
     ];
 
     mkInit = {
@@ -149,6 +155,7 @@
         ./modules/shared/darwin/system.nix
 
         agenix.darwinModules.default
+        # opnix.darwinModules.default
 
         home-manager.darwinModules.default
         {

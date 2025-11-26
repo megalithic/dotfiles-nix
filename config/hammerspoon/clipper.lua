@@ -31,30 +31,58 @@ function obj.captureImage(image, openImageUrl)
   local savedImage = image:saveToFile(capturedImage)
 
   if savedImage then
-    local std_out, success, type, rc =
-      hs.execute(fmt("%s -ci '%s/.dotfiles-nix/bin/capper %s'", os.getenv("SHELL"), os.getenv("HOME"), capturedImage))
+    -- Create async task instead of blocking hs.execute
+    local capperPath = fmt("%s/.dotfiles-nix/bin/capper", os.getenv("HOME"))
 
-    local std_out_lines = {}
-    for s in std_out:gmatch("[^\r\n]+") do
-      table.insert(std_out_lines, s)
-    end
-    local url = std_out_lines[#std_out_lines]
+    local task = hs.task.new("/bin/zsh", function(exitCode, stdOut, stdErr)
+      if exitCode == 0 then
+        -- Extract URL from last line of output
+        local lines = {}
+        for line in stdOut:gmatch("[^\r\n]+") do
+          table.insert(lines, line)
+        end
+        local url = lines[#lines]
 
-    U.log.d(fmt("capper:\r\n%s\r\n%s\r\n%s\r\n%s\r\n%s\r\n%s", capturedImage, savedImage, url, success, type, rc))
+        U.log.d(fmt("capper:\n%s\n%s\n%s", capturedImage, savedImage, url))
 
-    if success then
-      hs.pasteboard.setContents(imageName, "imageName")
-      hs.pasteboard.setContents(url, "imageUrl")
-      hs.pasteboard.setContents(image, "image")
-      if openImageUrl then
-        hs.urlevent.openURLWithBundle(
-          url,
-          hs.urlevent.getDefaultHandler("https") or hs.urlevent.getDefaultHandler("http")
+        -- Update pasteboard
+        hs.pasteboard.setContents(imageName, "imageName")
+        hs.pasteboard.setContents(url, "imageUrl")
+        hs.pasteboard.setContents(image, "image")
+
+        -- Send notification with the screenshot as thumbnail
+        -- Click on notification to open remote URL in browser
+        local notification = hs.notify.new(function(notif)
+          if notif:activationType() == hs.notify.activationTypes.contentsClicked then
+            hs.urlevent.openURLWithBundle(
+              url,
+              hs.urlevent.getDefaultHandler("https") or hs.urlevent.getDefaultHandler("http")
+            )
+          end
+        end, {
+          title = "Screenshot Uploaded",
+          informativeText = fmt("Click to open\n%s", url),
+          contentImage = hs.image.imageFromPath(capturedImage),
+          withdrawAfter = 5,
+        })
+        notification:send()
+      else
+        U.log.e(
+          fmt("[%s] captureImage: failed to upload image to spaces\nexit: %s\nstderr: %s", obj.name, exitCode, stdErr)
         )
+
+        -- Notification on failure
+        hs.notify
+          .new(function() end, {
+            title = "Screenshot Upload Failed",
+            informativeText = "Check logs for details",
+            withdrawAfter = 5,
+          })
+          :send()
       end
-    else
-      U.log.e(fmt("[%s] captureImage: failed to upload image to spaces (%s/%s/%s)", obj.name, url, type, rc))
-    end
+    end, { "-c", fmt("%s %s", capperPath, capturedImage) })
+
+    task:start()
   else
     U.log.e(fmt("[%s] captureImage: failed to save image for uploading", obj.name, capturedImage))
   end

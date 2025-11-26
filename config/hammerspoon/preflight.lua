@@ -1,4 +1,5 @@
 local con = hs.console
+local fmt = string.format
 
 hs.allowAppleScript(true)
 hs.application.enableSpotlightForNameSearches(false)

@@ -38,7 +38,19 @@ function M.loadApps()
       end
     end
 
-    if localBinds then enum.each(localBinds, function(key) hyper:bindPassThrough(key, bundleID) end) end
+    if localBinds then
+      enum.each(localBinds, function(binds)
+        local mods = {}
+        local key = binds
+
+        if type(binds) == "table" and #binds == 2 and type(binds[1]) == "table" then
+          mods, key = table.unpack(binds)
+          U.log.n({ mods, key, bundleID })
+        end
+
+        hyper:bindPassThrough(mods, key, bundleID)
+      end)
+    end
   end)
 end
 
@@ -122,28 +134,26 @@ function M.loadMeeting()
     }
 
     local targetWindow = nil
-    local targetApp = nil
 
-    -- Find first running meeting app with a valid meeting window
-    for _, bundleID in ipairs(meetingApps) do
-      local app = hs.application.find(bundleID)
-      if app then
-        targetApp = app
-        targetWindow = findMeetingWindow(app)
-        if targetWindow then
-          break -- Found a meeting window, stop searching
+    -- Check browser-based meetings as fallback
+    local urlPattern = table.concat(meetingUrlPatterns, "|")
+    if req("browser").hasTab(urlPattern) then
+      req("browser").jump(urlPattern)
+    else
+      -- Find first running meeting app with a valid meeting window
+      for _, bundleID in ipairs(meetingApps) do
+        local app = hs.application.find(bundleID)
+        if app then
+          targetWindow = findMeetingWindow(app)
+          if targetWindow then
+            break -- Found a meeting window, stop searching
+          end
         end
       end
-    end
 
-    -- Focus the meeting window if found
-    if targetWindow then
-      targetWindow:focus()
-    else
-      -- Check browser-based meetings as fallback
-      local urlPattern = table.concat(meetingUrlPatterns, "|")
-      if req("browser").hasTab(urlPattern) then
-        req("browser").jump(urlPattern)
+      -- Focus the meeting window if found
+      if targetWindow then
+        targetWindow:focus()
       else
         -- No meeting found
         U.log.w("No active meeting window found")

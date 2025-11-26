@@ -5,7 +5,7 @@
 }:
 stdenv.mkDerivation rec {
   pname = "karabiner-driverkit";
-  version = "5.0.0";
+  version = "6.6.0";
   src = fetchurl {
     url = "https://github.com/pqrs-org/Karabiner-DriverKit-VirtualHIDDevice/releases/download/v${version}/Karabiner-DriverKit-VirtualHIDDevice-${version}.pkg";
     hash = "sha256-hKi2gmIdtjl/ZaS7RPpkpSjb+7eT0259sbUUbrn5mMc=";

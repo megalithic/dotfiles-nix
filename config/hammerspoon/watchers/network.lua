@@ -8,8 +8,8 @@ M.internetWatcher = nil
 M.routerWatcher = nil
 
 -- State tracking
-M.internetStatus = nil  -- true = connected, false = disconnected, nil = unknown
-M.routerStatus = nil    -- true = connected, false = disconnected, nil = unknown
+M.internetStatus = nil -- true = connected, false = disconnected, nil = unknown
+M.routerStatus = nil -- true = connected, false = disconnected, nil = unknown
 
 -- Log connection event to database
 local function logConnectionEvent(eventType)
@@ -41,14 +41,12 @@ end
 -- Update menubar with new event
 local function updateMenubar()
   local menubar = require("lib.notifications.menubar")
-  if menubar and menubar.update then
-    menubar.update()
-  end
+  if menubar and menubar.update then menubar.update() end
 end
 
 -- Handle internet connection status changes
 local function handleInternetStatus(flags)
-  local isConnected = (flags & hs.network.reachability.flags.reachable) ~= 0
+  local isConnected = (flags and hs.network.reachability.flags.reachable) ~= 0
 
   -- Skip if status hasn't changed
   if M.internetStatus == isConnected then return end
@@ -80,7 +78,7 @@ end
 
 -- Handle router connection status changes
 local function handleRouterStatus(flags)
-  local isConnected = (flags & hs.network.reachability.flags.reachable) ~= 0
+  local isConnected = (flags and hs.network.reachability.flags.reachable) ~= 0
 
   -- Skip if status hasn't changed
   if M.routerStatus == isConnected then return end

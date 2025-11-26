@@ -16,6 +16,7 @@ in {
     ./agenix.nix
     ./packages.nix
     ./packages-casks.nix
+    ./packages-mas.nix
     ./packages-fonts.nix
     ./packages-langs.nix
     ./email.nix
@@ -65,6 +66,7 @@ in {
     ".ignore".source = git/tool_ignore;
     ".gitignore".source = git/gitignore;
     ".gitconfig".source = git/gitconfig;
+    # ".s3cfg".source = config.age.secrets.s3cfg.path;
   };
 
   home.file.".claude/CLAUDE.md".text = ''

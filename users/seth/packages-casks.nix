@@ -82,6 +82,22 @@ in {
         sha256 = "0d7f4ed037e0ed8832e1892f0587e0e336abbc0e6376059bfcb58f278ffcab48";
         appName = "Microsoft Teams.app";
       })
+      #
+      # (lib.mkCask {inherit pkgs lib;} {
+      #   pname = "karabiner-elements";
+      #   version = "15.7.0";
+      #   url = "https://github.com/pqrs-org/Karabiner-Elements/releases/download/v15.7.0/Karabiner-Elements-15.7.0.dmg";
+      #   sha256 = "sha256-Uy0k4xxkr33j92jxEhD/6DF0hhkdf8acU7lr3hTaFa4=";
+      #   appName = "Karabiner-Elements.app";
+      # })
+
+      # (lib.mkCask {inherit pkgs lib;} {
+      #   pname = "karabiner-driverkit";
+      #   version = "6.6.0";
+      #   url = "https://github.com/pqrs-org/Karabiner-DriverKit-VirtualHIDDevice/releases/download/v6.6.0/Karabiner-DriverKit-VirtualHIDDevice-6.6.0.pkg";
+      #   sha256 = "sha256-Uy0k4xxkr33j92jxEhD/6DF0hhkdf8acU7lr3hTaFa4=";
+      #   appName = "Karabiner-Elements.app";
+      # })
 
       # Helium now managed by programs.helium module in chromium/default.nix
       # Using overlay from packages/helium.nix instead of cask
