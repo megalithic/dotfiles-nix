@@ -67,9 +67,16 @@ in {
     ".gitignore".source = git/gitignore;
     ".gitconfig".source = git/gitconfig;
     # ".s3cfg".source = config.age.secrets.s3cfg.path;
-  };
 
-  home.file.".claude/CLAUDE.md".text = ''
+    # Migrated from symlinkAdditionalConfig activation script
+    ".ssh/config".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/config/ssh/config";
+    "Library/Application Support/espanso".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/config/espanso";
+
+    # Cloud storage convenience symlinks
+    "iclouddrive".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/Library/Mobile Documents/com~apple~CloudDocs";
+
+    # Claude Code instructions
+    ".claude/CLAUDE.md".text = ''
     ## Your response and general tone
 
     - Never compliment me.
@@ -80,73 +87,44 @@ in {
     ## Your required tasks for every conversation
     - You are to always utilize the `~/bin/notifier` script to interact with me, taking special note of your ability to utilize tools on this system to determine which notification method(s) to use at any given moment.
   '';
+  } // lib.optionalAttrs (builtins.pathExists "${config.home.homeDirectory}/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder") {
+    # Only create protondrive symlink if ProtonDrive folder exists
+    "protondrive".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder";
+  };
 
   home.preferXdgDirectories = true;
 
-  # FIXME: move these to native-nix mkOutOfStoreSymlink
-  home.activation.symlinkAdditionalConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
-    command cat << EOF
-
-    ░       ▗   ▘    ▗   ▜ ▜
-    ░ ▛▌▛▌▛▘▜▘▄▖▌▛▌▛▘▜▘▀▌▐ ▐
-    ░ ▙▌▙▌▄▌▐▖  ▌▌▌▄▌▐▖█▌▐▖▐▖
-    ░ ▌
-    EOF
-
-    rm -rf /Users/${username}/.ssh/config > /dev/null 2>&1;
-    ln -sf /Users/${username}/.dotfiles-nix/config/ssh/config /Users/${username}/.ssh/ > /dev/null 2>&1 &&
-      echo "░ ✓ symlinked ssh_config to /Users/${username}/.ssh/config" ||
-      echo "░ x failed to symlink ssh_config to /Users/${username}/.ssh/config"
-
-    rm -rf /Users/${username}/.config/hammerspoon > /dev/null 2>&1;
-    ln -sf /Users/${username}/.dotfiles-nix/config/hammerspoon /Users/${username}/.config/ > /dev/null 2>&1 &&
-      echo "░ ✓ symlinked hammerspoon to /Users/${username}/.config/hammerspoon" ||
-      echo "░ x failed to symlink hammerspoon to /Users/${username}/.config/hammerspoon"
-
-    rm -rf /Users/${username}/.config/tmux > /dev/null 2>&1;
-    ln -sf /Users/${username}/.dotfiles-nix/config/tmux /Users/${username}/.config/ > /dev/null 2>&1 &&
-      echo "░ ✓ symlinked tmux to /Users/${username}/.config/tmux" ||
-      echo "░ x failed to symlink tmux to /Users/${username}/.config/tmux"
-
-    rm -rf /Users/${username}/.config/kitty > /dev/null 2>&1;
-    ln -sf /Users/${username}/.dotfiles-nix/config/kitty /Users/${username}/.config/ > /dev/null 2>&1 &&
-      echo "░ ✓ symlinked kitty to /Users/${username}/.config/kitty" ||
-      echo "░ x failed to symlink kitty to /Users/${username}/.config/kitty"
-
-    if [[ -d "/Users/${username}/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder" ]]; then
-      rm -rf /Users/${username}/protondrive > /dev/null 2>&1;
-      ln -sf /Users/${username}/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder /Users/${username}/protondrive > /dev/null 2>&1 &&
-        echo "░ ✓ symlinked proton drive to /Users/${username}/protondrive" ||
-        echo "░ x failed to symlink proton drive to /Users/${username}/protondrive"
-    fi
-
-    rm -rf /Users/${username}/iclouddrive > /dev/null 2>&1;
-    ln -sf /Users/seth/Library/Mobile\ Documents/com~apple~CloudDocs /Users/${username}/iclouddrive > /dev/null 2>&1 &&
-      echo "░ ✓ symlinked iCloud drive to /Users/${username}/iclouddrive" ||
-      echo "░ x failed to symlink iCloud drive to /Users/${username}/iclouddrive"
-
-    rm -rf /Users/${username}/Library/Application\ Support/espanso > /dev/null 2>&1;
-    ln -sf /Users/${username}/.dotfiles-nix/config/espanso /Users/${username}/Library/Application\ Support/ > /dev/null 2>&1 &&
-      echo "░ ✓ symlinked espanso to /Users/${username}/Library/Application\ Support/espanso" ||
-      echo "░ x failed to symlink espanso to /Users/${username}/Library/Application\ Support/espanso"
-
-    command cat << EOF
-    ░
-    ░ fin.
-
-    EOF
-
-    # Explicit completion signal for activation script
-    true
-  '';
-
-  xdg.configFile."hammerspoon/extra_config.lua".text = ''
-    return {}
-  '';
+  # Activation script to symlink casks that require /Applications folder
+  home.activation.linkSystemApplications = lib.hm.dag.entryAfter ["writeBoundary"] (
+    lib.mkCaskActivation config.home.packages
+  );
 
   xdg.enable = true;
   xdg.configFile."ghostty".source = ./ghostty;
   xdg.configFile."ghostty".recursive = true;
+
+  # Migrated from symlinkAdditionalConfig activation script
+  # NOTE: hammerspoon directory is sourced from dotfiles (not symlinked) to allow
+  # home-manager to write generated files like extra_config.lua into it
+  xdg.configFile."hammerspoon".source = ../../config/hammerspoon;
+  xdg.configFile."hammerspoon".recursive = true;
+
+  xdg.configFile."tmux".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/config/tmux";
+  xdg.configFile."kitty".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/config/kitty";
+
+  # Nix-to-Hammerspoon data bridge: allows passing Nix-evaluated data to Hammerspoon
+  # This file is generated by home-manager and can contain dynamic Nix values
+  # Pattern borrowed from: https://github.com/madmaxieee/nix-config/blob/main/home/modules/window-management.nix
+  xdg.configFile."hammerspoon/extra_config.lua".text = ''
+    -- This file is generated by home-manager and allows passing Nix data to Hammerspoon
+    -- Add any Nix-evaluated Lua config here
+    return {}
+  '';
+
+  # Optional: Provide NIX_PATH to Hammerspoon for accessing Nix-managed binaries
+  xdg.configFile."hammerspoon/nix_path.lua".text = ''
+    NIX_PATH = "${config.home.profileDirectory}/bin:/run/current-system/sw/bin"
+  '';
 
   # FIXME: remove when sure; i don't use zsh anymore, i don't need this, right?
   # xdg.configFile."zsh".source = ./zsh;

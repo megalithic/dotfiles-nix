@@ -13,6 +13,8 @@
   homepage ? null,
   artifactType ? "app", # "app", "pkg", or "binary"
   binaries ? [], # List of binary names for "binary" type
+  requireSystemApplicationsFolder ? false, # If true, creates activation script to manage app in /Applications
+  copyToApplications ? false, # If true, copies (not symlinks) to /Applications - required for apps that check realpath()
 }: let
   # Detect artifact type based on URL if not specified
   detectedType =
@@ -192,7 +194,9 @@ in
       ''
       else if isApp
       then ''
-        echo "Installing application bundle..."
+        runHook preInstall
+
+        echo "Installing application bundle for ${finalAttrs.sourceRoot}..."
         mkdir -p "$out/Applications/${finalAttrs.sourceRoot}"
         cp -R . "$out/Applications/${finalAttrs.sourceRoot}"
 
@@ -210,6 +214,8 @@ in
         else
           echo "Note: Could not find main executable for wrapper"
         fi
+
+        runHook postInstall
       ''
       else if (isBinary && !isApp)
       then ''
@@ -245,6 +251,16 @@ in
         xattr -dr com.apple.quarantine "$out/Library" 2>/dev/null || true
       fi
     '';
+
+    # Add passthru attributes for activation scripts
+    passthru = lib.optionalAttrs requireSystemApplicationsFolder {
+      # Store the app name for the activation script
+      inherit appName;
+      # Flag to indicate this package needs system /Applications symlink
+      needsSystemApplicationsFolder = true;
+      # Flag to indicate whether to copy (true) or symlink (false)
+      inherit copyToApplications;
+    };
 
     meta = {
       description =

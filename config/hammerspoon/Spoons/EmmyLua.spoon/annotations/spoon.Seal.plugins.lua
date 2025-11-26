@@ -1,8 +1,1 @@
---# selene: allow(unused_variable)
----@diagnostic disable: unused-local
-
--- Various APIs for Seal plugins
----@class spoon.Seal.plugins
-local M = {}
-spoon.Seal.plugins = M
-
+/nix/store/zn2zh5azfz8vcf4g4p9j1ccpsg9wrr7g-home-manager-files/.config/hammerspoon/Spoons/EmmyLua.spoon/annotations/spoon.Seal.plugins.lua

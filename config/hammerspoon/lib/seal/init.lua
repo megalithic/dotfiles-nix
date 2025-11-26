@@ -1,18 +1,1 @@
-hs.loadSpoon("Seal")
-
-spoon.Seal:loadPlugins({ "walruses", "macos", "shortcuts", "hs" })
-spoon.Seal:refreshAllCommands()
-spoon.Seal:bindHotkeys({
-  show = { { "cmd", "ctrl" }, "Space" },
-})
-
--- spoon.Seal.plugins.useractions.actions = {
---   ["restart"] = {
---     fn = function() hs.caffeinate.restartSystem() end,
---   },
---   ["shutdown"] = {
---     fn = function() hs.caffeinate.shutdownSystem() end,
---   },
--- }
-
-spoon.Seal:start()
+/nix/store/zn2zh5azfz8vcf4g4p9j1ccpsg9wrr7g-home-manager-files/.config/hammerspoon/lib/seal/init.lua

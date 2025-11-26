@@ -1,11 +1,1 @@
---# selene: allow(unused_variable)
----@diagnostic disable: unused-local
-
--- A plugin to capture the screen in various ways
----@class spoon.Seal.plugins.screencapture
-local M = {}
-spoon.Seal.plugins.screencapture = M
-
--- Whether or not to show the screen capture UI in macOS 10.14 or later
-M.showPostUI = nil
-
+/nix/store/zn2zh5azfz8vcf4g4p9j1ccpsg9wrr7g-home-manager-files/.config/hammerspoon/Spoons/EmmyLua.spoon/annotations/spoon.Seal.plugins.screencapture.lua
