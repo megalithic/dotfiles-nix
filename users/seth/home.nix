@@ -26,11 +26,6 @@ in {
     ./fish.nix
     ./fzf.nix
     ./nvim.nix
-    # (import ./hammerspoon.nix {
-    #   hs_extra_config = ''
-    #     return {}
-    #   '';
-    # })
     # ./kanata
     # ./tmux
   ];
@@ -45,52 +40,53 @@ in {
     "${config.home.homeDirectory}/.cargo/bin"
   ];
 
-  home.file = {
-    "code/.keep".text = "";
-    "src/.keep".text = "";
-    "tmp/.keep".text = "";
-    ".hushlogin".text = "";
-    "bin".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/bin";
-    ".editorconfig".text = ''
-      root = true
+  home.file =
+    {
+      "code/.keep".text = "";
+      "src/.keep".text = "";
+      "tmp/.keep".text = "";
+      ".hushlogin".text = "";
+      "bin".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/bin";
+      ".editorconfig".text = ''
+        root = true
 
-      [*]
-      indent_style = space
-      indent_size = 2
-      end_of_line = lf
-      insert_final_newline = true
-      trim_trailing_whitespace=true
-      # max_line_length = 80
-      charset = utf-8
-    '';
-    ".ignore".source = git/tool_ignore;
-    ".gitignore".source = git/gitignore;
-    ".gitconfig".source = git/gitconfig;
-    # ".s3cfg".source = config.age.secrets.s3cfg.path;
+        [*]
+        indent_style = space
+        indent_size = 2
+        end_of_line = lf
+        insert_final_newline = true
+        trim_trailing_whitespace=true
+        # max_line_length = 80
+        charset = utf-8
+      '';
+      ".ignore".source = git/tool_ignore;
+      ".gitignore".source = git/gitignore;
+      ".gitconfig".source = git/gitconfig;
 
-    # Migrated from symlinkAdditionalConfig activation script
-    ".ssh/config".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/config/ssh/config";
-    "Library/Application Support/espanso".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/config/espanso";
+      # Migrated from symlinkAdditionalConfig activation script
+      ".ssh/config".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/config/ssh/config";
+      "Library/Application Support/espanso".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/config/espanso";
 
-    # Cloud storage convenience symlinks
-    "iclouddrive".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/Library/Mobile Documents/com~apple~CloudDocs";
+      # Cloud storage convenience symlinks
+      "iclouddrive".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/Library/Mobile Documents/com~apple~CloudDocs";
 
-    # Claude Code instructions
-    ".claude/CLAUDE.md".text = ''
-    ## Your response and general tone
+      # Claude Code instructions
+      ".claude/CLAUDE.md".text = ''
+        ## Your response and general tone
 
-    - Never compliment me.
-    - Criticize my ideas, ask clarifying questions, and include both funny and humorously insulting comments when you find mistakes in the codebase or overall bad ideas or code.
-    - Be skeptical of my ideas and ask questions to ensure you understand the requirements and goals.
-    - Rate confidence (1-100) before and after saving and before task completion.
+        - Never compliment me.
+        - Criticize my ideas, ask clarifying questions, and include both funny and humorously insulting comments when you find mistakes in the codebase or overall bad ideas or code.
+        - Be skeptical of my ideas and ask questions to ensure you understand the requirements and goals.
+        - Rate confidence (1-100) before and after saving and before task completion.
 
-    ## Your required tasks for every conversation
-    - You are to always utilize the `~/bin/notifier` script to interact with me, taking special note of your ability to utilize tools on this system to determine which notification method(s) to use at any given moment.
-  '';
-  } // lib.optionalAttrs (builtins.pathExists "${config.home.homeDirectory}/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder") {
-    # Only create protondrive symlink if ProtonDrive folder exists
-    "protondrive".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder";
-  };
+        ## Your required tasks for every conversation
+        - You are to always utilize the `~/bin/notifier` script to interact with me, taking special note of your ability to utilize tools on this system to determine which notification method(s) to use at any given moment.
+      '';
+    }
+    // lib.optionalAttrs (builtins.pathExists "${config.home.homeDirectory}/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder") {
+      # Only create protondrive symlink if ProtonDrive folder exists
+      "protondrive".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder";
+    };
 
   home.preferXdgDirectories = true;
 
@@ -106,25 +102,18 @@ in {
   # Migrated from symlinkAdditionalConfig activation script
   # NOTE: hammerspoon directory is sourced from dotfiles (not symlinked) to allow
   # home-manager to write generated files like extra_config.lua into it
-  xdg.configFile."hammerspoon".source = ../../config/hammerspoon;
-  xdg.configFile."hammerspoon".recursive = true;
+  xdg.configFile."hammerspoon".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/config/hammerspoon";
 
   xdg.configFile."tmux".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/config/tmux";
   xdg.configFile."kitty".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/config/kitty";
 
-  # Nix-to-Hammerspoon data bridge: allows passing Nix-evaluated data to Hammerspoon
-  # This file is generated by home-manager and can contain dynamic Nix values
-  # Pattern borrowed from: https://github.com/madmaxieee/nix-config/blob/main/home/modules/window-management.nix
-  xdg.configFile."hammerspoon/extra_config.lua".text = ''
-    -- This file is generated by home-manager and allows passing Nix data to Hammerspoon
-    -- Add any Nix-evaluated Lua config here
-    return {}
-  '';
-
-  # Optional: Provide NIX_PATH to Hammerspoon for accessing Nix-managed binaries
-  xdg.configFile."hammerspoon/nix_path.lua".text = ''
-    NIX_PATH = "${config.home.profileDirectory}/bin:/run/current-system/sw/bin"
-  '';
+  # NOTE: extra_config.lua and nix_path.lua are now managed directly in the dotfiles
+  # directory (config/hammerspoon/) since we symlink the entire directory.
+  # They can be edited directly in the dotfiles repo.
+  #
+  # Previously these were generated by home-manager, but that conflicts with symlinking
+  # the entire directory. The files have been copied to the dotfiles repo and can be
+  # edited there if needed.
 
   # FIXME: remove when sure; i don't use zsh anymore, i don't need this, right?
   # xdg.configFile."zsh".source = ./zsh;

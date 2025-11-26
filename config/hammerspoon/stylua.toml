@@ -1,1 +1,8 @@
-/nix/store/zn2zh5azfz8vcf4g4p9j1ccpsg9wrr7g-home-manager-files/.config/hammerspoon/stylua.toml
+syntax = "LuaJIT"
+column_width = 120
+line_endings = "Unix"
+indent_type = "Spaces"
+indent_width = 2
+call_parentheses = "Always"
+quote_style = "AutoPreferDouble"
+collapse_simple_statement = "Always"

@@ -1,1 +1,1 @@
-/nix/store/zn2zh5azfz8vcf4g4p9j1ccpsg9wrr7g-home-manager-files/.config/hammerspoon/nix_path.lua
+NIX_PATH = "/etc/profiles/per-user/seth/bin:/run/current-system/sw/bin"

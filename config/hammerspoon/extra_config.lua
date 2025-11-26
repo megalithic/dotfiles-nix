@@ -1,1 +1,1 @@
-/nix/store/zn2zh5azfz8vcf4g4p9j1ccpsg9wrr7g-home-manager-files/.config/hammerspoon/extra_config.lua
+return {}
