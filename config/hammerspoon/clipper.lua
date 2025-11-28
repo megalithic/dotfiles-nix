@@ -16,11 +16,7 @@ obj.helpCanvas = nil
 function obj.captureImage(image, openImageUrl)
   image = image or hs.pasteboard.readImage()
 
-  if not image then
-    -- U.log.w(fmt("[%s] captureImage: no image on clipboard", obj.name))
-
-    return
-  end
+  if not image then return end
 
   -- clear previous image url
   hs.pasteboard.clearContents("imageUrl")
@@ -31,7 +27,6 @@ function obj.captureImage(image, openImageUrl)
   local savedImage = image:saveToFile(capturedImage)
 
   if savedImage then
-    -- Create async task instead of blocking hs.execute
     local capperPath = fmt("%s/.dotfiles-nix/bin/capper", os.getenv("HOME"))
 
     local task = hs.task.new("/bin/zsh", function(exitCode, stdOut, stdErr)
@@ -43,15 +38,11 @@ function obj.captureImage(image, openImageUrl)
         end
         local url = lines[#lines]
 
-        U.log.d(fmt("capper:\n%s\n%s\n%s", capturedImage, savedImage, url))
-
         -- Update pasteboard
         hs.pasteboard.setContents(imageName, "imageName")
         hs.pasteboard.setContents(url, "imageUrl")
         hs.pasteboard.setContents(image, "image")
 
-        -- Send notification with the screenshot as thumbnail
-        -- Click on notification to open remote URL in browser
         local notification = hs.notify.new(function(notif)
           if notif:activationType() == hs.notify.activationTypes.contentsClicked then
             hs.urlevent.openURLWithBundle(
@@ -61,7 +52,7 @@ function obj.captureImage(image, openImageUrl)
           end
         end, {
           title = "Screenshot Uploaded",
-          informativeText = fmt("Click to open\n%s", url),
+          informativeText = url,
           contentImage = hs.image.imageFromPath(capturedImage),
           withdrawAfter = 5,
         })
