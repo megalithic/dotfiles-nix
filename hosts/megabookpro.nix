@@ -306,6 +306,10 @@ in {
       inactive_color = "0x33867A74";
     };
     # usbmuxd = { enable = true; };
+
+    # Karabiner-Elements keyboard customizer (custom module for v15+)
+    # Note: using karabiner-elements-nix to avoid conflict with broken built-in module
+    karabiner-elements-nix.enable = true;
   };
 
   # launchd.agents.espanso = {

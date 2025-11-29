@@ -153,6 +153,7 @@
 
         ./hosts/${hostname}.nix
         ./modules/shared/darwin/system.nix
+        ./modules/shared/darwin/karabiner-elements.nix
 
         agenix.darwinModules.default
         # opnix.darwinModules.default

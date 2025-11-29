@@ -43,12 +43,12 @@ default
 fix-shell-files # fix shell files. this happens sometimes with nix-darwin
 hm              # run home-manager switch
 news
-rebuild      # rebuild nix darwin
-uninstall    # uninstalls the nix determinate installer
-update       # updates brew, flake, and runs home-manager
-update-brew  # update and upgrade homebrew packages
-update-flake # update your flake.lock
-upgrade-nix  # upgrades nix
+mac | rebuild # rebuild nix darwin
+uninstall     # uninstalls the nix determinate installer
+update        # updates brew, flake, and runs home-manager
+update-brew   # update and upgrade homebrew packages
+update-flake  # update your flake.lock
+upgrade-nix   # upgrades nix
 ```
 
 > **_NOTE_**: this nix setup is super unstable at the moment.
@@ -80,7 +80,6 @@ A few of the _must-have_ tools I roll with:
 - [mise](https://github.com/jdx/mise)
 - [tmux](https://github.com/tmux/tmux/wiki)
 - [fish](https://fishshell.com/)
-- ~~[zsh](https://www.zsh.org/)~~
 - [neovim](https://github.com/neovim/neovim)
 - [weechat](https://www.weechat.org/)
 - `megaforest` for all the colours/themes
