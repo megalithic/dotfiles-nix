@@ -48,6 +48,8 @@ in {
         cp -R "${driverSupportPath}" "/Library/Application Support/org.pqrs/"
         chmod -R 755 "${systemDriverPath}"
         chown -R root:wheel "${systemDriverPath}"
+        # Clear xattrs to prevent "damaged" errors on copied files
+        xattr -cr "${systemDriverPath}" 2>/dev/null || true
       else
         echo "[karabiner-elements] WARNING: DriverKit support path not found at ${driverSupportPath}"
       fi
@@ -58,6 +60,8 @@ in {
         rm -rf "${nixKarabinerApps}/.Karabiner-VirtualHIDDevice-Manager.app"
         cp -R "${driverManagerApp}" "${nixKarabinerApps}/"
         chmod -R 755 "${nixKarabinerApps}/.Karabiner-VirtualHIDDevice-Manager.app"
+        # Clear xattrs to prevent "damaged" errors
+        xattr -cr "${nixKarabinerApps}/.Karabiner-VirtualHIDDevice-Manager.app" 2>/dev/null || true
       else
         echo "[karabiner-elements] WARNING: VirtualHIDDevice-Manager not found at ${driverManagerApp}"
       fi
@@ -69,6 +73,8 @@ in {
         cp -R "${karabinerSupportPath}" "/Library/Application Support/org.pqrs/"
         chmod -R 755 "${systemKarabinerPath}"
         chown -R root:wheel "${systemKarabinerPath}"
+        # Clear xattrs to prevent "damaged" errors on copied files
+        xattr -cr "${systemKarabinerPath}" 2>/dev/null || true
 
         # Set suid on session monitor (required for proper permissions)
         if [ -f "${systemKarabinerPath}/bin/karabiner_session_monitor" ]; then
