@@ -91,6 +91,9 @@ in {
           ln -sf "$KARABINER_NIX_APP" "$KARABINER_APP"
           echo "[karabiner-elements] Symlinked Karabiner-Elements.app to /Applications"
         fi
+        # Clear quarantine/lock attributes to prevent "damaged" errors
+        xattr -cr "$KARABINER_APP" 2>/dev/null || true
+        xattr -cr "$KARABINER_NIX_APP" 2>/dev/null || true
       fi
 
       # Symlink Karabiner-EventViewer.app to /Applications
@@ -104,6 +107,9 @@ in {
           ln -sf "$EVENTVIEWER_NIX_APP" "$EVENTVIEWER_APP"
           echo "[karabiner-elements] Symlinked Karabiner-EventViewer.app to /Applications"
         fi
+        # Clear quarantine/lock attributes to prevent "damaged" errors
+        xattr -cr "$EVENTVIEWER_APP" 2>/dev/null || true
+        xattr -cr "$EVENTVIEWER_NIX_APP" 2>/dev/null || true
       fi
     '';
 
