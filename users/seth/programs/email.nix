@@ -7,6 +7,7 @@
   config,
   pkgs,
   lib,
+  inputs,
   ...
 }: let
   ca-bundle_path = "${pkgs.cacert}/etc/ssl/certs/";
@@ -379,9 +380,9 @@ in {
     aerc = {
       enable = true;
 
-      stylesets.everforest = builtins.readFile ./mail/stylesets/everforest;
-      stylesets.megaforest = builtins.readFile ./mail/stylesets/megaforest;
-      stylesets.tokyo = builtins.readFile ./mail/stylesets/tokyo;
+      stylesets.everforest = builtins.readFile "${inputs.self}/users/seth/mail/stylesets/everforest";
+      stylesets.megaforest = builtins.readFile "${inputs.self}/users/seth/mail/stylesets/megaforest";
+      stylesets.tokyo = builtins.readFile "${inputs.self}/users/seth/mail/stylesets/tokyo";
 
       # Extra accounts configuration
       extraAccounts = {

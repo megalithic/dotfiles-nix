@@ -11,7 +11,7 @@ in {
     # Keep existing nix-casks packages
     (with inputs.nix-casks.packages.${pkgs.system}; [
       # alfred
-      brave-browser_nightly
+      # brave-browser_nightly  # Now managed by programs.brave-browser-nightly in chromium/default.nix
       calibre
       cardhop
       cleanshot
@@ -61,6 +61,7 @@ in {
     #
     # Note: If an app shows "must be run from /Applications" error, add:
     #   requireSystemApplicationsFolder = true;
+    # DEPRECATED: mkCasks - use mkApps below for new entries
     ++ (lib.mkCasks {inherit pkgs lib;} [
       {
         pname = "mailmate";
@@ -70,15 +71,6 @@ in {
         appName = "MailMate.app";
       }
       {
-        pname = "proton-drive";
-        version = "2.10.1";
-        url = "https://proton.me/download/drive/macos/ProtonDrive-2.10.1.dmg";
-        sha256 = "531367fcf2ff50bd5b2443c38e46d9a5cd80d054c1e28d5cbb68f5a070bded7c";
-        appName = "Proton Drive.app";
-        requireSystemApplicationsFolder = true;
-        copyToApplications = true;
-      }
-      {
         pname = "microsoft-teams";
         version = "25290.302.4044.3989";
         url = "https://statics.teams.cdn.office.net/production-osx/25290.302.4044.3989/MicrosoftTeams.pkg";
@@ -86,36 +78,30 @@ in {
         appName = "Microsoft Teams.app";
       }
     ])
-    # Commented out casks - uncomment and move into the mkCasks list above when needed
-    # ++ (lib.mkCasks {inherit pkgs lib;} [
-    #   {
-    #     pname = "karabiner-elements";
-    #     version = "15.7.0";
-    #     url = "https://github.com/pqrs-org/Karabiner-Elements/releases/download/v15.7.0/Karabiner-Elements-15.7.0.dmg";
-    #     sha256 = "sha256-Uy0k4xxkr33j92jxEhD/6DF0hhkdf8acU7lr3hTaFa4=";
-    #     appName = "Karabiner-Elements.app";
-    #   }
-    #   {
-    #     pname = "karabiner-driverkit";
-    #     version = "6.6.0";
-    #     url = "https://github.com/pqrs-org/Karabiner-DriverKit-VirtualHIDDevice/releases/download/v6.6.0/Karabiner-DriverKit-VirtualHIDDevice-6.6.0.pkg";
-    #     sha256 = "sha256-Uy0k4xxkr33j92jxEhD/6DF0hhkdf8acU7lr3hTaFa4=";
-    #     appName = "Karabiner-Elements.app";
-    #   }
-    #   # Helium now managed by programs.helium module in chromium/default.nix
-    #   # Using overlay from packages/helium.nix instead of cask
-    #   {
-    #     pname = "helium";
-    #     version = "0.4.13.1";
-    #     url = "https://github.com/imputnet/helium-macos/releases/download/0.4.13.1/helium_0.4.13.1_arm64-macos.dmg";
-    #     sha256 = "sha256-3j4souWY+4EGPSQR6uURjyqu3bkB5G9xuJbvOk9cZd8=";
-    #     appName = "Helium.app";
-    #   }
+    # NEW: mkApps - unified macOS app builder
+    # installMethod: "extract" (default) | "native" | "mas"
+    ++ (lib.mkApps {inherit pkgs lib;} [
+      {
+        pname = "proton-drive";
+        version = "2.10.1";
+        src = {
+          url = "https://proton.me/download/drive/macos/ProtonDrive-2.10.1.dmg";
+          sha256 = "531367fcf2ff50bd5b2443c38e46d9a5cd80d054c1e28d5cbb68f5a070bded7c";
+        };
+        appName = "Proton Drive.app";
+        requireSystemApplicationsFolder = true;
+        copyToApplications = true; # Required - app checks realpath()
+      }
+    ])
+    # Commented out casks - uncomment and move into the mkApps list above when needed
+    # ++ (lib.mkApps {inherit pkgs lib;} [
     #   {
     #     pname = "obs";
     #     version = "32.0.2";
-    #     url = "https://cdn-fastly.obsproject.com/downloads/obs-studio-32.0.2-macos-apple.dmg";
-    #     sha256 = "5c8f0e2349e45b57512e32312b053688e0b2bb9f0e8de8e7e24ee392e77a7cb3";
+    #     src = {
+    #       url = "https://cdn-fastly.obsproject.com/downloads/obs-studio-32.0.2-macos-apple.dmg";
+    #       sha256 = "5c8f0e2349e45b57512e32312b053688e0b2bb9f0e8de8e7e24ee392e77a7cb3";
+    #     };
     #     appName = "OBS Studio.app";
     #   }
     # ])

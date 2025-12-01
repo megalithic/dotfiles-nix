@@ -10,9 +10,12 @@
   ...
 }: let
   lang = "en_US.UTF-8";
+
+  # Native installer packages (require official PKG installer)
+  karabiner-elements = import ../packages/karabiner-elements.nix {inherit pkgs lib;};
 in {
   # imports = [
-  #   ../modules/shared/darwin/homebrew.nix
+  #   ../modules/darwin/homebrew.nix
   # ];
 
   home-manager = {
@@ -307,9 +310,12 @@ in {
     };
     # usbmuxd = { enable = true; };
 
-    # Karabiner-Elements keyboard customizer (custom module for v15+)
-    # Note: using karabiner-elements-nix to avoid conflict with broken built-in module
-    karabiner-elements-nix.enable = true;
+    # Native PKG installer for apps requiring system-level installation
+    # (Karabiner-Elements, etc.)
+    native-pkg-installer = {
+      enable = true;
+      packages = [karabiner-elements];
+    };
   };
 
   # launchd.agents.espanso = {
@@ -343,9 +349,6 @@ in {
   #     };
   #   };
   # };
-  # services.karabiner-elements.enable = true;
-  # services.kanata.enable = true;
-  # services.kanata.configFile = "/Users/${username}/.config/kanata/active.kbd"; # Symlink managed by Hammerspoon dock watcher
 
   # launchd.user.agents.mbsync = {
   #   script = ''

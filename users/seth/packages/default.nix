@@ -5,6 +5,13 @@
 }: let
   inherit (pkgs.stdenv.hostPlatform) isDarwin;
 in {
+  imports = [
+    ./casks.nix
+    ./mas.nix
+    ./fonts.nix
+    ./langs.nix
+  ];
+
   home.packages = with pkgs; [
     _1password-cli
     unstable._1password-gui

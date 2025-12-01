@@ -10,8 +10,8 @@
   ];
 
   age.secrets = {
-    env-vars.file = ../../secrets/env-vars.age;
-    s3cfg.file = ../../secrets/s3cfg.age;
+    env-vars.file = "${inputs.self}/secrets/env-vars.age";
+    s3cfg.file = "${inputs.self}/secrets/s3cfg.age";
   };
 
   programs.zsh.initExtra = lib.mkAfter ''

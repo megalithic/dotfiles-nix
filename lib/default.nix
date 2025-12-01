@@ -54,15 +54,38 @@ inputs: lib: _:
   capitalize = str: lib.toUpper (lib.substring 0 1 str) + lib.substring 1 (-1) str;
   compactAttrs = lib.filterAttrs (_: value: value != null);
 
-  # mkCask - Build Homebrew casks without brew-nix
-  # Usage: lib.mkCask { pname = "discord"; version = "1.0"; url = "..."; sha256 = "..."; }
+  # mkApp - Unified macOS application builder
+  # Supports three installation methods:
+  #   - "extract" (default): Extract DMG/ZIP/PKG to nix store
+  #   - "native": Run native PKG installer during activation
+  #   - "mas": Install from Mac App Store
+  #
+  # Usage:
+  #   lib.mkApp { pname = "mailmate"; version = "5673"; src = { url = "..."; sha256 = "..."; }; }
+  #   lib.mkApp { pname = "karabiner"; installMethod = "native"; src = { ... }; pkgName = "Karabiner.pkg"; }
+  #   lib.mkApp { pname = "xcode"; installMethod = "mas"; appStoreId = 497799835; }
+  mkApp = import ./mkApp.nix;
+
+  # mkApps - Build multiple apps from a list
+  # Usage: lib.mkApps { inherit pkgs lib; } [
+  #   { pname = "mailmate"; version = "5673"; src = { url = "..."; sha256 = "..."; }; }
+  #   { pname = "karabiner"; installMethod = "native"; src = { ... }; pkgName = "..."; }
+  # ]
+  mkApps = {
+    pkgs,
+    lib ? pkgs.lib,
+    stdenvNoCC ? pkgs.stdenvNoCC,
+  }: appDefinitions:
+    builtins.map (
+      appDef: (import ./mkApp.nix) {inherit pkgs lib stdenvNoCC;} appDef
+    ) appDefinitions;
+
+  # DEPRECATED: mkCask is now an alias for mkApp with installMethod = "extract"
+  # Kept for backward compatibility during migration
   mkCask = import ./mkCask.nix;
 
-  # mkCasks - Build multiple Homebrew casks from a list
-  # Usage: lib.mkCasks { inherit pkgs lib; } [
-  #   { pname = "discord"; version = "1.0"; url = "..."; sha256 = "..."; }
-  #   { pname = "slack"; version = "2.0"; url = "..."; sha256 = "..."; }
-  # ]
+  # DEPRECATED: mkCasks is now an alias for mkApps
+  # Kept for backward compatibility during migration
   mkCasks = {
     pkgs,
     lib ? pkgs.lib,

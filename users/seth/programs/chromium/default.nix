@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  inputs,
   ...
 }: let
   # Helper to create extension with local CRX file
@@ -85,6 +86,32 @@ in {
       # Feature flags (comma-separated)
       "--enable-features=TouchpadOverscrollHistoryNavigation,NoReferrers"
     ];
+  };
+
+  # ==============================================================================
+  # Brave Browser Nightly Configuration
+  # ==============================================================================
+  # Configured with remote debugging port for browser automation/debugging
+  programs.brave-browser-nightly = {
+    enable = true;
+    package = inputs.nix-casks.packages.${pkgs.system}.brave-browser_nightly;
+    bundleId = "com.brave.Browser.nightly"; # For Application Support path
+    appName = "Brave Browser Nightly.app";
+    executableName = "Brave Browser Nightly";
+    iconFile = "app.icns";
+
+    # Enable remote debugging for browser automation, debugging, etc.
+    # Verify at: http://localhost:9222/json/version
+    commandLineArgs = [
+      "--remote-debugging-port=9222"
+    ];
+
+    # Create a wrapper .app that can be launched from Dock/Spotlight with debug args
+    darwinWrapperApp = {
+      enable = true;
+      name = "Brave Browser Nightly (Debug)";
+      bundleId = "com.nix.brave-browser-nightly-debug";
+    };
   };
 
   imports = [./extension.nix];

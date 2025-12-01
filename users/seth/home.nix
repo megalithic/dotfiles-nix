@@ -13,19 +13,15 @@
   inherit (pkgs.stdenv.hostPlatform) isDarwin;
 in {
   imports = [
-    ./agenix.nix
-    ./packages.nix
-    ./packages-casks.nix
-    ./packages-mas.nix
-    ./packages-fonts.nix
-    ./packages-langs.nix
-    ./email.nix
-    ./chromium
-    ./jujutsu.nix
-    ./qutebrowser.nix
-    ./fish.nix
-    ./fzf.nix
-    ./nvim.nix
+    ./packages
+    ./programs/agenix.nix
+    ./programs/email.nix
+    ./programs/chromium
+    ./programs/jujutsu.nix
+    ./programs/qutebrowser.nix
+    ./programs/fish.nix
+    ./programs/fzf.nix
+    ./programs/nvim.nix
     # ./kanata
     # ./tmux
   ];
