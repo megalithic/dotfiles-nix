@@ -38,8 +38,8 @@ notifier notify '{"title":"Title","message":"Message","urgency":"high"}'
 ## General Workflow
 
 - When working in this repo (dotfiles-nix), always check the `justfile` to see available commands
-- To rebuild darwin in this repo, use `just mac` (which handles the darwin-rebuild process)
-- Alternative: You can also use `nh`, so for a darwin-rebuild it'd be `nh darwin switch .`, and for home-manager, it'd be `nh home switch .`
+- To rebuild darwin, use `sudo darwin-rebuild switch --flake ./` - this produces clean, verifiable output
+- Avoid `just mac` and `nh darwin switch` as they produce excessive animated output that's hard to verify success/failure
 
 ## Hammerspoon
 
