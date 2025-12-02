@@ -22,7 +22,7 @@ in {
     nerd-fonts.fira-code
     nerd-fonts.jetbrains-mono
     nerd-fonts.symbols-only
-    noto-fonts-emoji
+    noto-fonts-color-emoji
     nerd-fonts.fantasque-sans-mono
     nerd-fonts.iosevka
     nerd-fonts.victor-mono

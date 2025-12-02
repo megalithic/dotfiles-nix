@@ -24,7 +24,7 @@ in {
     docker
     docker-compose
     docker-compose-language-service
-    dockerfile-language-server-nodejs
+    dockerfile-language-server
     # node/js/ts ----------------------------------------------------------------------------------
     nodejs_22
     # nodePackages_latest.nodejs

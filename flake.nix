@@ -11,14 +11,15 @@
   description = "🗿 megadotfiles (nix'd)";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.05";
+      url = "github:nix-community/home-manager/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-darwin = {
-      url = "github:LnL7/nix-darwin/nix-darwin-25.05";
+      url = "github:LnL7/nix-darwin/nix-darwin-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     agenix = {
@@ -76,21 +77,20 @@
     ...
   } @ inputs: let
     username = "seth";
-    system = "aarch64-darwin";
-    arch = system;
+    arch = "aarch64-darwin";
     hostname = "megabookpro";
-    version = "25.05";
+    version = "25.11";
 
     lib = nixpkgs.lib.extend (import ./lib/default.nix inputs);
     overlays = import ./overlays.nix {inherit inputs nixpkgs nixpkgs-unstable lib;};
 
     mkInit = {
-      system,
+      arch,
       script ? ''
         echo "no default app init script set."
       '',
     }: let
-      pkgs = nixpkgs.legacyPackages.${system};
+      pkgs = nixpkgs.legacyPackages.${arch};
       # REF: https://gist.github.com/monadplus/3a4eb505633f5b03ef093514cf8356a1
       init = pkgs.writeShellApplication {
         name = "init";
@@ -103,19 +103,17 @@
   in {
     inherit (self) outputs;
 
-    # apps."x86_64-linux".default = mkInit { system = "x86_64-linux"; };
-    # apps."aarch64-linux".default = mkInit { system = "aarch64-linux"; };
     apps."${arch}".default = mkInit {
-      system = "${arch}";
+      inherit arch;
       script = builtins.readFile scripts/${arch}_bootstrap.sh;
     };
 
     packages.${arch}.default = fenix.packages.${arch}.minimal.toolchain;
 
     darwinConfigurations.${hostname} = nix-darwin.lib.darwinSystem {
-      inherit system lib;
+      inherit lib;
 
-      specialArgs = {inherit self inputs username system hostname version overlays;};
+      specialArgs = {inherit self inputs username arch hostname version overlays lib;};
       modules = [
         {system.configurationRevision = self.rev or self.dirtyRev or null;}
 
@@ -135,7 +133,7 @@
             useGlobalPkgs = true;
             useUserPackages = true;
             users.${username} = import ./users/${username}/home.nix;
-            extraSpecialArgs = {inherit inputs username system hostname version overlays;};
+            extraSpecialArgs = {inherit inputs username arch hostname version overlays lib;};
           };
         }
       ];

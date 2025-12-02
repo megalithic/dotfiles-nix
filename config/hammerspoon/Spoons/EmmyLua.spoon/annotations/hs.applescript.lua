@@ -1,1 +1,10 @@
-/nix/store/1srf6bala4av4g7rfljxnvgjxa15zsd9-home-manager-files/.config/hammerspoon/Spoons/EmmyLua.spoon/annotations/hs.applescript.lua
+--# selene: allow(unused_variable)
+---@diagnostic disable: unused-local
+
+-- Execute AppleScript code
+--
+-- This module has been replaced by: [hs.osascript.applescript](./hs.osascript.html#applescript)
+---@class hs.applescript
+local M = {}
+hs.applescript = M
+

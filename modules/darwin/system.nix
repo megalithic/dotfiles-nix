@@ -31,6 +31,14 @@
       allowSleepByPowerButton = false;
     };
   };
+
+  networking = {
+    applicationFirewall.enableStealthMode = true;
+    applicationFirewall.allowSignedApp = true;
+    applicationFirewall.allowSigned = true;
+    applicationFirewall.enable = true;
+  };
+
   system = {
     primaryUser = "${username}";
     # Used for backwards compatibility, please read the changelog before changing.
@@ -57,14 +65,6 @@
       # Reduce motion.
       CustomSystemPreferences."com.apple.Accessibility".ReduceMotionEnabled = 1;
       # universalaccess.reduceMotion = true;
-
-      alf = {
-        allowdownloadsignedenabled = 1;
-        allowsignedenabled = 1;
-        globalstate = 1;
-        loggingenabled = 1;
-        stealthenabled = 1;
-      };
 
       controlcenter = {
         BatteryShowPercentage = true;

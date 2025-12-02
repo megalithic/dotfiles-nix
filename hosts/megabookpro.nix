@@ -4,7 +4,7 @@
   config,
   lib,
   username,
-  system,
+  arch,
   hostname,
   version,
   ...
@@ -69,7 +69,7 @@ in {
     darwin.trash
     delta
     # devenv # TODO: cachix build failing, blocking devenv
-    du-dust # du + rust = dust. Like du but more intuitive.
+    dust # du + rust = dust. Like du but more intuitive.
     eza
     fd
     # fish
@@ -97,7 +97,6 @@ in {
     p7zip
     ripgrep
     starship
-    terminal-notifier
     # tmux
     vim
     wget
@@ -277,29 +276,6 @@ in {
     };
   };
 
-  fonts.packages = with pkgs; [
-    atkinson-hyperlegible
-    inter
-    jetbrains-mono
-    emacs-all-the-icons-fonts
-    # joypixels
-    fira-code
-    fira-mono
-    font-awesome
-    victor-mono
-    maple-mono.NF
-    maple-mono.truetype
-    maple-mono.variable
-    nerd-fonts.fira-code
-    nerd-fonts.jetbrains-mono
-    nerd-fonts.symbols-only
-    noto-fonts-emoji
-    nerd-fonts.fantasque-sans-mono
-    nerd-fonts.iosevka
-    nerd-fonts.victor-mono
-    twemoji-color-font
-  ];
-
   services = {
     jankyborders = {
       enable = false;
@@ -375,5 +351,5 @@ in {
   # };
 
   # The platform the configuration will be used on.
-  nixpkgs.hostPlatform = "${system}";
+  nixpkgs.hostPlatform = "${arch}";
 }

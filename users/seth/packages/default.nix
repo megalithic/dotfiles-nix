@@ -17,7 +17,7 @@ in {
     unstable._1password-gui
     amber
     argc
-    aws-sam-cli
+    # aws-sam-cli
     awscli2
     bash # macOS ships with a very old version of bash for whatever reason
     blueutil
@@ -32,12 +32,9 @@ in {
     flyctl
     gh
     git-lfs
-    gitAndTools.transcrypt
+    transcrypt
     gum
-    # helium # Managed by programs.helium module in chromium/default.nix
-    # hidden-bar # FIXME: evaluated it and so far, i'm not loving it
     jwt-cli
-    # karabiner-elements and driver now managed by services.karabiner-elements module in nix-darwin
     libvterm-neovim
     m-cli
     magika
@@ -55,8 +52,8 @@ in {
     s3cmd
     spotify
     sqlite
-    # terminal-notifier FIXME: not working with nixpkgs (arch not supported?)
     switchaudio-osx
+    terminal-notifier
     tmux
     # unstable.devenv # TODO: cachix build failing, blocking devenv
     w3m
@@ -65,7 +62,7 @@ in {
     zoom-us
 
     # [ai] ----------------------------------------------------------------------------------------
-    # ai-tools.opencode
+    ai-tools.opencode
     ai-tools.claude-code
     ai-tools.claude-code-acp
     # opencode

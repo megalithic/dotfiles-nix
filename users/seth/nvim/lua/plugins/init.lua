@@ -518,12 +518,12 @@ return {
   --     })
   --   end,
   -- },
-  {
-    "ghostty",
-    -- dir = "/Applications/Ghostty.app/Contents/Resources/vim/vimfiles/",
-    dir = "/nix/store/a0qaly4bc5g6ml49jr76daz915mb74l1-home-manager-applications/Applications/Ghostty.app/Contents/Resources/vim/vimfiles/",
-    lazy = false,
-  },
+  -- {
+  --   "ghostty",
+  --   -- dir = "/Applications/Ghostty.app/Contents/Resources/vim/vimfiles/",
+  --   dir = "/nix/store/a0qaly4bc5g6ml49jr76daz915mb74l1-home-manager-applications/Applications/Ghostty.app/Contents/Resources/vim/vimfiles/",
+  --   lazy = false,
+  -- },
   {
     "wurli/contextindent.nvim",
     -- This is the only config option; you can use it to restrict the files

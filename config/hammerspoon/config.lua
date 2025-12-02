@@ -1,7 +1,8 @@
 local M = {}
 
 HYPER = "F19"
-BROWSER = "com.brave.Browser.nightly"
+BROWSER = "com.nix.brave-browser-nightly-debug"
+-- BROWSER = "com.brave.Browser.nightly"
 TERMINAL = "com.mitchellh.ghostty"
 
 ---@class NotificationRule

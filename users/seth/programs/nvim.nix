@@ -54,7 +54,7 @@
       shfmt # Doesn't work with zsh, only sh & bash
       statix
       stylelint-lsp
-      (tailwindcss-language-server.override {nodejs_latest = nodejs_22;})
+      # (tailwindcss-language-server.override {nodejs_latest = nodejs_22;})
       taplo # TOML linter and formatter
       tree-sitter # required for treesitter "auto-install" option to work
       typos

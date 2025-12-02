@@ -138,7 +138,6 @@ in {
         };
         aerc.enable = true;
         notmuch.enable = true;
-        # thunderbird.enable = true;
         mbsync = {
           enable = true;
           create = "both";
@@ -193,7 +192,6 @@ in {
       #
       #   aerc.enable = true;
       #   notmuch.enable = true;
-      #   # thunderbird.enable = true;
       #   mbsync = {
       #     enable = true;
       #     create = "both";
@@ -252,7 +250,6 @@ in {
       #
       #   aerc.enable = true;
       #   notmuch.enable = true;
-      #   # thunderbird.enable = true;
       #   mbsync = {
       #     enable = true;
       #     create = "both";
@@ -304,13 +301,6 @@ in {
         logfile ~/.cache/msmtp/msmtp.log
       '';
     };
-
-    # thunderbird = {
-    #   enable = true;
-    #   profiles."default" = {
-    #     isDefault = true;
-    #   };
-    # };
 
     # notmuch for email indexing and search
     notmuch = {
@@ -380,9 +370,8 @@ in {
     aerc = {
       enable = true;
 
-      stylesets.everforest = builtins.readFile "${inputs.self}/users/seth/mail/stylesets/everforest";
-      stylesets.megaforest = builtins.readFile "${inputs.self}/users/seth/mail/stylesets/megaforest";
-      stylesets.tokyo = builtins.readFile "${inputs.self}/users/seth/mail/stylesets/tokyo";
+      stylesets.everforest = builtins.readFile "${inputs.self}/users/seth/programs/email/stylesets/everforest";
+      stylesets.megaforest = builtins.readFile "${inputs.self}/users/seth/programs/email/stylesets/megaforest";
 
       # Extra accounts configuration
       extraAccounts = {

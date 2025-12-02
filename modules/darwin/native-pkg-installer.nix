@@ -31,8 +31,9 @@ with lib; let
         ? passthru
         && pkg.passthru
         ? isNativeInstaller
-        && pkg.passthru.isNativeInstaller == true
-    ) packages;
+        && pkg.passthru.isNativeInstaller
+    )
+    packages;
 
   # Get packages to install - either explicit list or auto-discovered
   packagesToInstall =
@@ -52,8 +53,7 @@ with lib; let
     then ''
       echo "[native-pkg-installer] No native packages to install"
     ''
-    else
-      lib.concatMapStringsSep "\n\n" mkInstallScript packagesToInstall;
+    else lib.concatMapStringsSep "\n\n" mkInstallScript packagesToInstall;
 in {
   options.services.native-pkg-installer = {
     enable = mkEnableOption "Native PKG installer for macOS apps requiring system-level installation";
@@ -95,18 +95,18 @@ in {
     ];
 
     # Log which packages are managed by this module
-    warnings =
-      if packagesToInstall != []
-      then [
-        ''
-          native-pkg-installer is managing ${toString (length packagesToInstall)} package(s):
-          ${lib.concatMapStringsSep ", " (pkg: pkg.pname) packagesToInstall}
-
-          These apps are installed via native macOS PKG installers during activation.
-          They live in /Applications (not nix store) and may require manual approval
-          in System Settings > Privacy & Security for system extensions.
-        ''
-      ]
-      else [];
+    # warnings =
+    #   if packagesToInstall != []
+    #   then [
+    #     ''
+    #       native-pkg-installer is managing ${toString (length packagesToInstall)} package(s):
+    #       ${lib.concatMapStringsSep ", " (pkg: pkg.pname) packagesToInstall}
+    #
+    #       These apps are installed via native macOS PKG installers during activation.
+    #       They live in /Applications (not nix store) and may require manual approval
+    #       in System Settings > Privacy & Security for system extensions.
+    #     ''
+    #   ]
+    #   else [];
   };
 }

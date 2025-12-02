@@ -1,1 +1,3 @@
-/nix/store/1srf6bala4av4g7rfljxnvgjxa15zsd9-home-manager-files/.config/hammerspoon/contexts/com.microsoft.VSCode.lua
+local M = {}
+
+return M

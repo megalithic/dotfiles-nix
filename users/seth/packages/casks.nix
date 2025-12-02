@@ -9,13 +9,13 @@
 in {
   home.packages =
     # Keep existing nix-casks packages
-    (with inputs.nix-casks.packages.${pkgs.system}; [
+    (with inputs.nix-casks.packages.${pkgs.stdenv.hostPlatform.system}; [
       # alfred
       # brave-browser_nightly  # Now managed by programs.brave-browser-nightly in chromium/default.nix
-      calibre
-      cardhop
-      cleanshot
-      clickup
+      # calibre
+      # cardhop
+      # cleanshot
+      # clickup
       colorsnapper
       contexts
       discord
@@ -24,7 +24,7 @@ in {
       # fantastical
       figma
       # firefox
-      flameshot
+      # flameshot
       # flux
       # ghostty_tip
       ghostty
@@ -37,7 +37,7 @@ in {
       mouseless
       orcaslicer
       orion
-      podman-desktop
+      # podman-desktop
       pop-app
       postbird
       protonvpn
@@ -46,8 +46,8 @@ in {
       signal
       slack
       soundsource_test
-      telegram
-      tunnelblick
+      # telegram
+      # tunnelblick
       # vlc
       unnaturalscrollwheels
       vial
