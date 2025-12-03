@@ -82,12 +82,9 @@ fix-shell-files:
 update:
   update-brew update-flake hm
 
-
 [macos]
 rebuild:
-  # rebuild host=`hostname`:
-  # sudo darwin-rebuild switch --flake ./
-  nh darwin switch ./
+  sudo darwin-rebuild switch --flake ./
 
 [macos]
 mac:
@@ -104,8 +101,14 @@ build host=`hostname`:
 uninstall:
   sudo /nix/nix-installer uninstall
 
+[macos]
+macbuild:
+  sudo darwin-rebuild build --flake ./
+
+[macos]
 check:
-  nix flake check --no-allow-import-from-derivation
+  sudo darwin-rebuild check --flake ./
+  # nix flake check --no-allow-import-from-derivation
 
 # edit an agenix secret file (e.g., just age env-vars.age)
 age file:

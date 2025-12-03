@@ -7,14 +7,14 @@
 in {
   imports = [
     ./casks.nix
-    ./mas.nix
+    # ./mas.nix
     ./fonts.nix
     ./langs.nix
   ];
 
   home.packages = with pkgs; [
-    _1password-cli
-    unstable._1password-gui
+    # _1password-cli
+    # _1password-gui
     amber
     argc
     # aws-sam-cli
@@ -36,26 +36,22 @@ in {
     gum
     jwt-cli
     libvterm-neovim
-    m-cli
+    # m-cli
     magika
     mas
     nix-update
-    unstable.obsidian
+    obsidian
     openconnect
     openssl_3
     poppler
     pre-commit
     procs
-    # raycast
-    # qutebrowser
     ripgrep
     s3cmd
-    spotify
     sqlite
     switchaudio-osx
     terminal-notifier
     tmux
-    # unstable.devenv # TODO: cachix build failing, blocking devenv
     w3m
     yubikey-manager
     yubikey-personalization
@@ -65,7 +61,61 @@ in {
     ai-tools.opencode
     ai-tools.claude-code
     ai-tools.claude-code-acp
-    # opencode
-    # claude-code
+
+    # TODO: sort these with the stuff above
+    # [migrated from megabookpro.nix] -------------------------------------------------------------
+    # (fenix.complete.withComponents [
+    #   "cargo"
+    #   "clippy"
+    #   "rust-src"
+    #   "rustc"
+    #   "rustfmt"
+    # ])
+    # rust-analyzer-nightly
+    #
+    # bat
+    # curl
+    # coreutils
+    # darwin.trash
+    # delta
+    # # devenv # TODO: cachix build failing, blocking devenv
+    # dust # du + rust = dust. Like du but more intuitive.
+    # eza
+    # fd
+    # # fish
+    # # fzf
+    # git
+    # git-lfs
+    # gnumake
+    # inetutils
+    # jq
+    # jujutsu
+    # just
+    # kanata
+    # # karabiner-elements.driver
+    # ldns # supplies drill replacement for dig
+    # libwebp # WebP image format library
+    # # m-cli # A macOS cli tool to manage macOS - a true swis army knife
+    # mise
+    # netcat
+    # nix-index
+    # nmap
+    # nurl
+    # nvim-nightly
+    # openssl
+    # unzip
+    # p7zip
+    # ripgrep
+    # starship
+    # # tmux
+    # vim
+    # wget
+    # yazi
+    # yq
+    # zip
+    # zoxide
+    # # zsh
+    # zsh-autosuggestions
+    # zsh-syntax-highlighting
   ];
 }

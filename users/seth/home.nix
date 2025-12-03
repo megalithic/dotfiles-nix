@@ -321,7 +321,7 @@ in {
 
     nh = {
       enable = true;
-      package = pkgs.unstable.nh;
+      package = pkgs.nh;
       clean.enable = true;
       flake = ../../.;
     };

@@ -9,7 +9,7 @@
 in {
   home.packages =
     # Keep existing nix-casks packages
-    (with inputs.nix-casks.packages.${pkgs.stdenv.hostPlatform.system}; [
+    (with inputs.nix-casks.packages.${pkgs.system}; [
       # alfred
       # brave-browser_nightly  # Now managed by programs.brave-browser-nightly in chromium/default.nix
       # calibre

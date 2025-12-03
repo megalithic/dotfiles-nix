@@ -179,6 +179,7 @@ M.g = {
   },
 
   lsp_lookup = {
+    expert = "exp",
     elixirls = "ex",
     nextls = "next",
     lua_ls = "lua",
@@ -199,7 +200,7 @@ M.g = {
   enabled_elixir_ls = (function()
     local ls = "elixirls"
     if vim.env.ELIXIR_LS ~= nil then ls = vim.env.ELIXIR_LS end
-    return { ls, "", "", "" } --- opts: {"expert", "elixirls", "nextls", "lexical"}
+    return { ls, "expert", "", "" } --- opts: {"expert", "elixirls", "nextls", "lexical"}
   end)(),
   completion_exclusions = {},
   formatter_exclusions = { "emmylua_ls" },

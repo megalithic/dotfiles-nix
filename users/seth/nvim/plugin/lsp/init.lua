@@ -846,6 +846,7 @@ if not ok_servers then
 end
 
 local enabled_servers = {}
+-- local lsp_cmds = require("lsp_cmds")
 
 vim.iter(servers):each(function(name, config)
   if type(config) == "function" then config = config() end
@@ -868,8 +869,12 @@ vim.iter(servers):each(function(name, config)
       config["on_attach"] = M.on_attach
     end
 
-    vim.lsp.config[name] = config
+    -- if lsp_cmds[name] then
+    --   vim.inspect(lsp_cmds[name])
+    --   config.cmd = lsp_cmds[name]
+    -- end
 
+    vim.lsp.config[name] = config
     vim.lsp.enable(name, true)
   end
 end)

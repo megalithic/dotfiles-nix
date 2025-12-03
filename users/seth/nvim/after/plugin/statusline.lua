@@ -80,9 +80,7 @@ Augroup("mega.ui.statusline", {
       local progress = ctx.data.params.value
       local progress_icons = { "󰫃", "󰫄", "󰫅", "󰫆", "󰫇", "󰫈" }
 
-      if not (progress and progress.title) then
-        return
-      end
+      if not (progress and progress.title) then return end
 
       local idx = math.floor(#progress_icons / 2)
       local percentage = string.format("%.0f󱉸 ", 0)
@@ -157,9 +155,7 @@ local function seg(contents, hl, cond, opts)
     cond = true
   end
 
-  if cond ~= nil and not cond then
-    return ""
-  end
+  if cond ~= nil and not cond then return "" end
 
   --[[
 
@@ -219,9 +215,7 @@ end
 -- viml regex: https://stackoverflow.com/a/42911668
 -- lua pattern: stolen from Akinsho
 local function group_number(num, sep)
-  if num < 999 then
-    return tostring(num)
-  end
+  if num < 999 then return tostring(num) end
 
   num = tostring(num)
   return num:reverse():gsub("(%d%d%d)", "%1" .. sep):reverse():gsub("^,", "")
@@ -254,9 +248,7 @@ local MODES = setmetatable({
   ["r?"] = { long = "Confirm", short = "?", hl = "StModeOther", separator_hl = "StSeparator" },
 }, {
   -- By default return 'Unknown' but this shouldn't be needed
-  __index = function()
-    return { long = "Unknown", short = "U", hl = "StModeOther", separator_hl = "StSeparator" }
-  end,
+  __index = function() return { long = "Unknown", short = "U", hl = "StModeOther", separator_hl = "StSeparator" } end,
 })
 
 local plain_types = {
@@ -388,9 +380,7 @@ local exception_types = {
       return seg(string.format("megaterm#%d(%s)", bufnr, shell), mode_hl)
     end,
     ["dap-repl"] = "Debugger REPL",
-    firenvim = function(fname, buf)
-      return seg(fmt("%s firenvim (%s)", Icons.misc.flames, M.ctx.filetype))
-    end,
+    firenvim = function(fname, buf) return seg(fmt("%s firenvim (%s)", Icons.misc.flames, M.ctx.filetype)) end,
   },
 }
 
@@ -423,9 +413,7 @@ local function is_truncated(trunc)
   local check = vim.api.nvim_win_get_width(0) < (trunc or -1)
 
   -- gets the whole nvim window
-  if vim.api.nvim_get_option("laststatus") == 3 then
-    check = vim.o.columns < (trunc or -1)
-  end
+  if vim.api.nvim_get_option("laststatus") == 3 then check = vim.o.columns < (trunc or -1) end
 
   return check
 end
@@ -435,17 +423,13 @@ end
 --- @param max_size integer
 --- @return string
 local function truncate_str(str, max_size)
-  if not max_size or strwidth(str) < max_size then
-    return str
-  end
+  if not max_size or strwidth(str) < max_size then return str end
   local match, count = str:gsub("(['\"]).*%1", "%1" .. Icons.misc.ellipsis .. "%1")
   return count > 0 and match or str:sub(1, max_size - 1) .. Icons.misc.ellipsis
 end
 
 local function matches(str, list)
-  return #vim.tbl_filter(function(item)
-    return item == str or string.match(str, item)
-  end, list) > 0
+  return #vim.tbl_filter(function(item) return item == str or string.match(str, item) end, list) > 0
 end
 
 --- This function allow me to specify titles for special case buffers
@@ -456,21 +440,11 @@ local function special_buffers()
   local is_loc_list = location_list.filewinid > 0
   local normal_term = M.ctx.buftype == "terminal" and M.ctx.filetype == ""
 
-  if is_loc_list then
-    return "Location List"
-  end
-  if vim.g.started_by_firenvim then
-    return exception_types.names.firenvim()
-  end
-  if M.ctx.buftype == "quickfix" then
-    return "Quickfix List"
-  end
-  if normal_term then
-    return "Terminal(" .. fnamemodify(vim.env.SHELL, ":t") .. ")"
-  end
-  if M.ctx.preview then
-    return "preview"
-  end
+  if is_loc_list then return "Location List" end
+  if vim.g.started_by_firenvim then return exception_types.names.firenvim() end
+  if M.ctx.buftype == "quickfix" then return "Quickfix List" end
+  if normal_term then return "Terminal(" .. fnamemodify(vim.env.SHELL, ":t") .. ")" end
+  if M.ctx.preview then return "preview" end
 
   return nil
 end
@@ -494,12 +468,8 @@ end
 
 local function get_diagnostics(seg_formatters_status)
   seg_formatters_status = seg_formatters_status or ""
-  local function count(lvl)
-    return #vim.diagnostic.get(M.ctx.bufnr, { severity = lvl })
-  end
-  if vim.tbl_isempty(vim.lsp.get_clients({ bufnr = M.ctx.bufnr })) then
-    return ""
-  end
+  local function count(lvl) return #vim.diagnostic.get(M.ctx.bufnr, { severity = lvl }) end
+  if vim.tbl_isempty(vim.lsp.get_clients({ bufnr = M.ctx.bufnr })) then return "" end
 
   local diags = {
     { num = count(vim.diagnostic.severity.ERROR), sign = Icons.lsp.error, hl = "StError" },
@@ -529,16 +499,12 @@ local function get_lsp_status(messages)
 end
 
 local function parse_filename(truncate_at)
-  local function buf_expand(bufnr, mod)
-    return expand("#" .. bufnr .. mod)
-  end
+  local function buf_expand(bufnr, mod) return expand("#" .. bufnr .. mod) end
 
   local modifier = ":t"
   local special_file_names = special_buffers()
   local special_buf = special_buffers()
-  if special_buf then
-    return "", "", special_buf
-  end
+  if special_buf then return "", "", special_buf end
 
   local fname = buf_expand(M.ctx.bufnr, modifier)
 
@@ -553,17 +519,11 @@ local function parse_filename(truncate_at)
     name = exception_types.filenames[current_file().name]
   end
   local exception_icon = exception_types.filetypes[M.ctx.filetype] or ""
-  if type(name) == "function" then
-    return "", "", fmt("%s %s", exception_icon, name(fname, M.ctx.bufnr))
-  end
+  if type(name) == "function" then return "", "", fmt("%s %s", exception_icon, name(fname, M.ctx.bufnr)) end
 
-  if name then
-    return "", "", name
-  end
+  if name then return "", "", name end
 
-  if not fname or U.empty(fname) then
-    return "", "", "No Name"
-  end
+  if not fname or U.empty(fname) then return "", "", "No Name" end
 
   local path = (M.ctx.buftype == "" and not M.ctx.preview) and buf_expand(M.ctx.bufnr, ":~:.:h") or nil
   local is_root = path and #path == 1 -- "~" or "."
@@ -638,9 +598,7 @@ local function seg_buffer_count(truncate_at)
   local msg = (is_truncated(truncate_at) or vim.g.started_by_firenvim) and ""
     or fmt("%s%s", Icons.misc.buffers, buffer_count)
 
-  if buffer_count <= 1 then
-    return ""
-  end
+  if buffer_count <= 1 then return "" end
   return seg(msg, "StBufferCount", { padding = { 0, 0 } })
 end
 
@@ -658,20 +616,14 @@ local function seg_lsp_clients(truncate_at)
   local bufnr = vim.api.nvim_get_current_buf()
   local clients = vim.lsp.get_clients({ bufnr = bufnr })
 
-  if next(clients) == nil then
-    return ""
-  end
+  if next(clients) == nil then return "" end
 
   local client_names = {}
 
   local function lsp_lookup(name)
-    if U.tlen(clients) <= 2 then
-      return name
-    end
-    local ls = SETTINGS.lsp_lookup[name]
-    if ls == nil then
-      ls = name
-    end
+    if U.tlen(clients) <= 2 then return name end
+    local ls = vim.g.lsp_lookup[name]
+    if ls == nil then ls = name end
 
     return ls
   end
@@ -688,9 +640,7 @@ local function seg_lsp_clients(truncate_at)
 end
 
 local function seg_lsp_status(truncate_at)
-  if is_truncated(truncate_at) then
-    return ""
-  end
+  if is_truncated(truncate_at) then return "" end
 
   -- local enabled = not vim.g.disable_autoformat
   -- return get_diagnostics(seg(icons.kind.Null, "StModeInsert", enabled))
@@ -712,9 +662,7 @@ end
 
 local function seg_selection_info()
   local sep_hl = "StLineSep"
-  if not vim.fn.mode():find("[Vv]") then
-    return ""
-  end
+  if not vim.fn.mode():find("[Vv]") then return "" end
 
   local wc = vim.fn.wordcount()
   local starts = vim.fn.line("v")
@@ -746,9 +694,7 @@ local function seg_lineinfo(truncate_at)
   if vim.fn.mode():find("[Vv]") then
     return seg_selection_info()
   else
-    if is_truncated(truncate_at) then
-      return "%l/%L:%v"
-    end
+    if is_truncated(truncate_at) then return "%l/%L:%v" end
 
     return seg(
       table.concat({
@@ -770,29 +716,21 @@ local function get_git_hunks()
   local status_dict = vim.b[M.ctx.bufnr].gitsigns_status_dict
 
   if status then
-    if not U.falsy(status) then
-      return head, status_dict, status
-    end
+    if not U.falsy(status) then return head, status_dict, status end
     return head, {}, nil
   end
 
-  if head then
-    return head, {}, nil
-  end
+  if head then return head, {}, nil end
 
   return nil, {}, nil
 end
 
 local function seg_git_status(truncate_at)
-  if is_abnormal_buffer() then
-    return ""
-  end
+  if is_abnormal_buffer() then return "" end
 
   local truncate_branch_at, truncate_symbol_at = unpack(truncate_at)
   local git_branch, git_status_dict, git_status = get_git_hunks()
-  if U.falsy(git_branch) then
-    return ""
-  end
+  if U.falsy(git_branch) then return "" end
 
   local branch = is_truncated(truncate_branch_at) and truncate_str(git_branch or "", 14) or git_branch
 
@@ -820,29 +758,21 @@ local function seg_git_status(truncate_at)
 end
 
 local function seg_megaterms()
-  if Megaterm == nil then
-    return ""
-  end
+  if Megaterm == nil then return "" end
   local megaterms = Megaterm.list()
   --        or icons.misc.terminal
-  if #megaterms > 0 then
-    return seg(fmt("%s %s", "", #megaterms))
-  end
+  if #megaterms > 0 then return seg(fmt("%s %s", "", #megaterms)) end
   return ""
 end
 
 local function seg_rec_macro()
   local recording_register = vim.fn.reg_recording()
   local str = ""
-  if recording_register ~= "" then
-    str = " " .. recording_register
-  end
+  if recording_register ~= "" then str = " " .. recording_register end
   return seg(str, "StGitBranch", { margin = { 1, 1 }, padding = { 1, 0 } })
 end
 
-local function is_focused()
-  return tonumber(vim.g.actual_curwin) == vim.api.nvim_get_current_win()
-end
+local function is_focused() return tonumber(vim.g.actual_curwin) == vim.api.nvim_get_current_win() end
 
 -- ( STATUSLINE ) --------------------------------------------------------------
 

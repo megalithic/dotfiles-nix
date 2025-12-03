@@ -55,7 +55,7 @@ in {
   # - https://github.com/isabelroses/dotfiles/blob/main/modules/home/programs/chromium.nix
 
   programs.helium = {
-    enable = true;
+    enable = false;
     bundleId = "net.imput.helium"; # macOS bundle identifier for Application Support path
     dictionaries = [pkgs.hunspellDictsChromium.en_US];
     inherit extensions;
@@ -94,7 +94,7 @@ in {
   # Configured with remote debugging port for browser automation/debugging
   programs.brave-browser-nightly = {
     enable = true;
-    package = inputs.nix-casks.packages.${pkgs.stdenv.hostPlatform.system}.brave-browser_nightly;
+    package = inputs.nix-casks.packages.${pkgs.system}.brave-browser_nightly;
     bundleId = "com.brave.Browser.nightly"; # For Application Support path
     appName = "Brave Browser Nightly.app";
     executableName = "Brave Browser Nightly";

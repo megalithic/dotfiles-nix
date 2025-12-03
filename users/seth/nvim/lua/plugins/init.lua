@@ -476,22 +476,24 @@ return {
   --     },
   --   },
   -- },
-  -- {
-  --   "folke/lazydev.nvim",
-  --   ft = "lua",
-  --   opts = {
-  --     library = {
-  --       { path = "${3rd}/luv/library", words = { "vim%.uv" } },
-  --       { path = "lazy.nvim", words = { "LazyVim" } },
-  --       { path = "luvit-meta/library", words = { "vim%.uv" } },
-  --       { path = "wezterm-types", mods = { "wezterm" } },
-  --       {
-  --         path = vim.env.HOME .. "/.hammerspoon/Spoons/EmmyLua.spoon/annotations",
-  --         words = { "hs" },
-  --       },
-  --     },
-  --   },
-  -- },
+  {
+    "folke/lazydev.nvim",
+    ft = "lua",
+    opts = function()
+      local paths = {
+        { path = "${3rd}/luv/library", words = { "vim%.uv" } },
+        { path = "lazy.nvim", words = { "LazyVim" } },
+        { path = "luvit-meta/library", words = { "vim%.uv" } },
+        { path = "wezterm-types", mods = { "wezterm" } },
+        {
+          path = vim.env.HOME .. ".config/hammerspoon/Spoons/EmmyLua.spoon/annotations",
+          words = { "hs" },
+        },
+      }
+
+      return { library = paths }
+    end,
+  },
   -- {
   --   -- Meta type definitions for the Lua platform Luvit.
   --   -- SEE: https://github.com/Bilal2453/luvit-meta

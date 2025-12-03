@@ -11,8 +11,9 @@
   description = "🗿 megadotfiles (nix'd)";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-25.11";
 
     home-manager = {
       url = "github:nix-community/home-manager/release-25.11";
@@ -22,15 +23,20 @@
       url = "github:LnL7/nix-darwin/nix-darwin-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
+    homebrew-core = {
+      url = "github:homebrew/homebrew-core";
+      flake = false;
+    };
+    homebrew-cask = {
+      url = "github:homebrew/homebrew-cask";
+      flake = false;
+    };
     agenix = {
       url = "github:ryantm/agenix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.darwin.follows = "nix-darwin";
     };
-    # opnix = {
-    #   url = "github:brizzbuzz/opnix";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
     neovim-nightly-overlay.url = "github:nix-community/neovim-nightly-overlay";
     mcp-hub.url = "github:ravitemer/mcp-hub";
     flake-parts.url = "github:hercules-ci/flake-parts";
@@ -44,11 +50,16 @@
       url = "github:nix-community/fenix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    expert.url = "github:elixir-lang/expert";
     nix-casks = {
       url = "github:atahanyorganci/nix-casks/archive";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    expert.url = "github:elixir-lang/expert";
+
+    # opnix = {
+    #   url = "github:brizzbuzz/opnix";
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    # };
     # op-shell-plugins = {
     #   url = "github:1password/shell-plugins";
     #   inputs.nixpkgs.follows = "nixpkgs";
@@ -72,7 +83,7 @@
     nix-darwin,
     home-manager,
     agenix,
-    # opnix,
+    nix-homebrew,
     fenix,
     ...
   } @ inputs: let
@@ -83,6 +94,20 @@
 
     lib = nixpkgs.lib.extend (import ./lib/default.nix inputs);
     overlays = import ./overlays.nix {inherit inputs nixpkgs nixpkgs-unstable lib;};
+
+    brew_config = {username}: {
+      nix-homebrew = {
+        enable = true;
+        enableRosetta = true;
+        autoMigrate = true;
+        mutableTaps = false;
+        user = username;
+        taps = {
+          "homebrew/core" = inputs.homebrew-core;
+          "homebrew/cask" = inputs.homebrew-cask;
+        };
+      };
+    };
 
     mkInit = {
       arch,
@@ -103,11 +128,13 @@
   in {
     inherit (self) outputs;
 
+    # bootstrap the nix install based on the current arch
     apps."${arch}".default = mkInit {
       inherit arch;
       script = builtins.readFile scripts/${arch}_bootstrap.sh;
     };
 
+    # rust env setup based on the current arch
     packages.${arch}.default = fenix.packages.${arch}.minimal.toolchain;
 
     darwinConfigurations.${hostname} = nix-darwin.lib.darwinSystem {
@@ -116,17 +143,17 @@
       specialArgs = {inherit self inputs username arch hostname version overlays lib;};
       modules = [
         {system.configurationRevision = self.rev or self.dirtyRev or null;}
-
         {nixpkgs.overlays = overlays;}
         {nixpkgs.config.allowUnfree = true;}
-
+        {nixpkgs.config.allowUnfreePredicate = _: true;}
         ./hosts/${hostname}.nix
         ./modules/darwin/system.nix
         ./modules/darwin/native-pkg-installer.nix
-
         agenix.darwinModules.default
-        # opnix.darwinModules.default
 
+        nix-homebrew.darwinModules.nix-homebrew
+        (brew_config {inherit username;})
+        (import ./modules/darwin/brew.nix)
         home-manager.darwinModules.default
         {
           home-manager = {

@@ -15,7 +15,28 @@
   '';
 
   xdg.configFile."nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/users/${username}/nvim";
-
+  # xdg.configFile."nvim/lua/nix_provided.lua" = with pkgs; {
+  #   text = ''
+  #     return {
+  #       -- bashls = { "${unstable.nodePackages.bash-language-server}/bin/bash-language-server", "start" },
+  #       -- dockerls = { "${unstable.dockerfile-language-server}/bin/docker-langserver", "--stdio" },
+  #       -- elixirls = { "${unstable.elixir-ls}/bin/elixir-ls" },
+  #       -- eslint = { "${unstable.vscode-langservers-extracted}/bin/vscode-eslint-language-server", "--stdio" },
+  #       -- html = { "${unstable.vscode-langservers-extracted}/bin/vscode-html-language-server", "--stdio" },
+  #       -- jsonls = { "${unstable.vscode-langservers-extracted}/bin/vscode-json-language-server", "--stdio" },
+  #       -- cssls = { "${unstable.vscode-langservers-extracted}/bin/vscode-css-language-server", "--stdio" },
+  #       -- ts_ls = { "${unstable.nodePackages.typescript-language-server}/bin/typescript-language-server", "--stdio" },
+  #       -- vue_ls = { "${unstable.vue-language-server}/bin/vue-language-server", "--stdio" },
+  #       -- nil_ls = { "${unstable.nil}/bin/nil" },
+  #       -- lua_ls = { "${unstable.lua-language-server}/bin/lua-language-server" },
+  #       -- vue_ts_plugin = "${unstable.vue-language-server}/lib/node_modules/@vue/language-server",
+  #       -- vtsls = { "${unstable.vtsls}/bin/vtsls", "--stdio" },
+  #       -- awesomewm_lib = "${pkgs.awesome-git}/share/awesome/lib",
+  #       -- expert = { "${pkgs.expert-lsp}/bin/expert-lsp", "--stdio" }
+  #     }
+  #   '';
+  # };
+  #
   programs.neovim = {
     enable = true;
     defaultEditor = true;

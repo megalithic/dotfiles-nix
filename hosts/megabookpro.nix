@@ -13,15 +13,11 @@
 
   # Native installer packages (require official PKG installer)
   karabiner-elements = import ../packages/karabiner-elements.nix {inherit pkgs lib;};
+  icloud_home = "/Users/${username}/iclouddrive";
+  proton_home = "/Users/${username}/protondrive";
 in {
-  # imports = [
-  #   ../modules/darwin/homebrew.nix
-  # ];
-
   home-manager = {
-    extraSpecialArgs = {
-      inherit inputs;
-    };
+    extraSpecialArgs = {inherit inputs;};
     backupFileExtension = "hm-backup";
   };
 
@@ -45,6 +41,7 @@ in {
     #   "9.9.9.9" # Quad9
     # ];
   };
+
   system.defaults.smb.NetBIOSName = hostname;
 
   time.timeZone = "America/New_York";
@@ -53,62 +50,6 @@ in {
   # system wide packages (all users)
   environment.systemPath = ["/opt/homebrew/bin"];
   environment.pathsToLink = ["/Applications"];
-  environment.systemPackages = with pkgs; [
-    (fenix.complete.withComponents [
-      "cargo"
-      "clippy"
-      "rust-src"
-      "rustc"
-      "rustfmt"
-    ])
-    rust-analyzer-nightly
-
-    bat
-    curl
-    coreutils
-    darwin.trash
-    delta
-    # devenv # TODO: cachix build failing, blocking devenv
-    dust # du + rust = dust. Like du but more intuitive.
-    eza
-    fd
-    # fish
-    # fzf
-    git
-    git-lfs
-    gnumake
-    inetutils
-    jq
-    jujutsu
-    just
-    kanata
-    # karabiner-elements.driver
-    ldns # supplies drill replacement for dig
-    libwebp # WebP image format library
-    m-cli # A macOS cli tool to manage macOS - a true swis army knife
-    mise
-    netcat
-    nix-index
-    nmap
-    nurl
-    nvim-nightly
-    openssl
-    unzip
-    p7zip
-    ripgrep
-    starship
-    # tmux
-    vim
-    wget
-    yazi
-    yq
-    zip
-    zoxide
-    # zsh
-    zsh-autosuggestions
-    zsh-syntax-highlighting
-  ];
-
   environment.shells = [pkgs.fish pkgs.zsh];
 
   environment.variables = {
@@ -131,12 +72,13 @@ in {
     CODE = "/Users/${username}/code";
     DOTS = "/Users/${username}/.dotfiles-nix";
 
-    PROTON_HOME = "/Users/${username}/protondrive";
-    ICLOUD_HOME = "/Users/${username}/iclouddrive";
-    ICLOUD_DOCUMENTS_HOME = "$ICLOUD_HOME/Documents";
-    NOTES_HOME = "$PROTON_HOME/notes";
+    PROTON_HOME = "${proton_home}";
+    ICLOUD_HOME = "${icloud_home}";
+    ICLOUD_DOCUMENTS_HOME = "${icloud_home}/Documents";
+    # NOTES_HOME = "/Users/${username}/protondrive/notes";
+    NOTES_HOME = "${icloud_home}/Documents/_notes";
     OBSIDIAN_HOME = "$NOTES_HOME";
-    NVIM_DB_HOME = "$PROTON_HOME/configs/sql";
+    NVIM_DB_HOME = "${proton_home}/configs/sql";
 
     TMUX_LAYOUTS = "/Users/${username}/.config/tmux/layouts";
 
@@ -174,6 +116,62 @@ in {
   environment.extraInit = ''
     export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
   '';
+
+  environment.systemPackages = with pkgs; [
+    (fenix.complete.withComponents [
+      "cargo"
+      "clippy"
+      "rust-src"
+      "rustc"
+      "rustfmt"
+    ])
+    rust-analyzer-nightly
+
+    bat
+    curl
+    coreutils
+    darwin.trash
+    delta
+    # devenv # TODO: cachix build failing, blocking devenv
+    dust # du + rust = dust. Like du but more intuitive.
+    eza
+    fd
+    # fish
+    # fzf
+    git
+    git-lfs
+    gnumake
+    inetutils
+    jq
+    jujutsu
+    just
+    kanata
+    # karabiner-elements.driver
+    ldns # supplies drill replacement for dig
+    libwebp # WebP image format library
+    # m-cli # A macOS cli tool to manage macOS - a true swis army knife
+    mise
+    netcat
+    nix-index
+    nmap
+    nurl
+    nvim-nightly
+    openssl
+    unzip
+    p7zip
+    ripgrep
+    starship
+    # tmux
+    vim
+    wget
+    yazi
+    yq
+    zip
+    zoxide
+    # zsh
+    zsh-autosuggestions
+    zsh-syntax-highlighting
+  ];
 
   # We use determinate nix installer; so we don't need this enabled..
   nix = {
@@ -233,7 +231,7 @@ in {
     };
     # nixPath = [ "nixpkgs=flake:nixpkgs" ]; # We only use flakes
     nixPath = {
-      inherit (inputs) nixpkgs;
+      inherit (inputs) nixpkgs nixpkgs-stable nixpkgs-unstable;
       inherit (inputs) darwin;
       inherit (inputs) home-manager;
     };
@@ -246,7 +244,7 @@ in {
     };
     u.to = {
       type = "path";
-      path = inputs.nixpkgs-unstable;
+      path = inputs.nixpkgs;
     };
   };
 
@@ -265,11 +263,11 @@ in {
       enable = true;
       useBabelfish = true;
     };
-    _1password.enable = true;
-    _1password-gui = {
-      enable = true;
-      package = pkgs.unstable._1password-gui;
-    };
+    # _1password.enable = true;
+    # _1password-gui = {
+    #   enable = true;
+    #   package = pkgs._1password-gui;
+    # };
     gnupg.agent = {
       enable = true;
       enableSSHSupport = true;
@@ -293,62 +291,6 @@ in {
       packages = [karabiner-elements];
     };
   };
-
-  # launchd.agents.espanso = {
-  #   enable = true;
-  #   config = {
-  #     ProgramArguments = [
-  #       "${pkgs.espanso}/bin/espanso"
-  #       "service"
-  #       "start"
-  #       "--unmanaged"
-  #     ];
-  #     RunAtLoad = true;
-  #     KeepAlive = true;
-  #     # StandardOutPath = "{{ .chezmoi.homeDir }}/Library/Logs/espanso.log";
-  #     # StandardErrorPath = "{{ .chezmoi.homeDir }}/Library/Logs/espanso.log";
-  #   };
-  # };
-
-  # launchd.agents = {
-  #   espanso = {
-  #     serviceConfig = {
-  #       Label = "org.espanso.daemon";
-  #       Program = "${pkgs.espanso}/bin/espanso";
-  #
-  #       RunAtLoad = true;
-  #       KeepAlive = true;
-  #       # Ensure the daemon runs with the correct environment
-  #       EnvironmentVariables = {
-  #         PATH = "${pkgs.stdenv.lib.makeBinPath [pkgs.espanso]}";
-  #       };
-  #     };
-  #   };
-  # };
-
-  # launchd.user.agents.mbsync = {
-  #   script = ''
-  #     #!/bin/sh
-  #     ${pkgs.mbsync}/bin/mbsync -a
-  #     ${pkgs.notmuch}/bin/notmuch new
-  #   '';
-  #   serviceConfig = {
-  #     Label = "mbsync";
-  #     ProgramArguments = ["/bin/sh" "-c" "${config.xdg.dataHome}/aerc/launchd-mbsync.sh"];
-  #     StartInterval = 300; # Run every 5 minutes
-  #     RunAtLoad = true;
-  #   };
-  #   # Ensure the script directory exists
-  #   preStart = ''
-  #     mkdir -p ${config.xdg.dataHome}/aerc
-  #     cat > ${config.xdg.dataHome}/aerc/launchd-mbsync.sh << 'EOF'
-  #     #!/bin/sh
-  #     ${pkgs.mbsync}/bin/mbsync -a
-  #     ${pkgs.notmuch}/bin/notmuch new
-  #     EOF
-  #     chmod +x ${config.xdg.dataHome}/aerc/launchd-mbsync.sh
-  #   '';
-  # };
 
   # The platform the configuration will be used on.
   nixpkgs.hostPlatform = "${arch}";

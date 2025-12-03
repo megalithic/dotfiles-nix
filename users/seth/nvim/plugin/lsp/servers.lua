@@ -207,7 +207,7 @@ M = {
 
     return {
       manual_install = true,
-      cmd = { "expert" },
+      cmd = { "expert", "--stdio" },
       -- cmd = { string.format("%s/lsp/expert/%s", vim.env.XDG_DATA_HOME, "expert_darwin_arm64") },
       filetypes = { "elixir", "eelixir", "heex", "surface" },
       root_markers = { "mix.exs", ".git" },
