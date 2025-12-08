@@ -4,6 +4,30 @@ M.name = "notifier"
 
 local config = C.notifier.config
 
+-- Smart truncate text at word boundary with remaining character count
+-- @param text string: text to truncate
+-- @param maxLen number: maximum length before truncation
+-- @return string: truncated text with "(+N)..." suffix if truncated
+local function smartTruncate(text, maxLen)
+  if not text or #text <= maxLen then return text end
+
+  -- Find last word boundary before maxLen
+  local truncateAt = maxLen
+
+  -- Look backwards from maxLen for a space (up to 30 chars back)
+  for i = maxLen, math.max(1, maxLen - 30), -1 do
+    if text:sub(i, i):match("%s") then
+      truncateAt = i - 1
+      break
+    end
+  end
+
+  local truncated = text:sub(1, truncateAt)
+  local remaining = #text - truncateAt
+
+  return truncated .. " (+" .. remaining .. ")..."
+end
+
 -- Global references to active notification canvas and timer
 _G.activeNotificationCanvas = nil
 _G.activeNotificationTimer = nil
@@ -427,18 +451,21 @@ function M.sendCanvasNotification(title, message, duration, opts)
   -- Show dimming overlay if requested
   if opts.dimBackground then M.showOverlay(opts.dimAlpha or 0.6) end
 
-  -- Limit message to 3 lines, truncate with ellipsis if longer
-  local lines = {}
-  for line in message:gmatch("[^\n]+") do
-    table.insert(lines, line)
+  -- Process message: truncate to fit visible area (~90 chars for 3 lines)
+  local maxTotalChars = 90
+  local originalLength = #message
+
+  -- Replace newlines with spaces for consistent display
+  message = message:gsub("\n", " ")
+
+  -- Apply smart truncation if message exceeds limit
+  if originalLength > maxTotalChars then
+    message = smartTruncate(message, maxTotalChars)
   end
-  local lineCount = #lines
-  if lineCount > 3 then
-    lines = { table.unpack(lines, 1, 3) }
-    lines[3] = lines[3] .. "..."
-    message = table.concat(lines, "\n")
-    lineCount = 3
-  end
+
+  -- Count lines for height calculation (let canvas wordWrap handle wrapping)
+  local estimatedLines = math.ceil(#message / 30)
+  local lineCount = math.min(estimatedLines, 3)
 
   local screen = hs.screen.mainScreen()
   local screenFrame = screen:frame()
