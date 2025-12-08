@@ -96,6 +96,7 @@ function M:start()
 
   hs.audiodevice.watcher.setCallback(audioDeviceChanged)
   hs.audiodevice.watcher.start()
+
   showCurrentlyConnected()
 end
 

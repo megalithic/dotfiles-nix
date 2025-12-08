@@ -12,7 +12,7 @@ local fmt = string.format
 ---@param message string Notification message body
 ---@param stackingID string Full stacking identifier from notification center
 ---@param bundleID string Parsed bundle ID from stacking identifier
-function M.processRule(rule, title, subtitle, message, stackingID, bundleID)
+function M.process(rule, title, subtitle, message, stackingID, bundleID)
   local notify = require("lib.notifications.notifier")
   local db = require("lib.notifications.db")
   local menubar = require("lib.notifications.menubar")

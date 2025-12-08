@@ -30,9 +30,7 @@ function M.init()
   U.log.i("Initializing notification system...")
 
   -- 1. Initialize database first
-  local dbOk, dbErr = pcall(function()
-    return M.db.init()
-  end)
+  local dbOk, dbErr = pcall(function() return M.db.init() end)
 
   if not dbOk then
     U.log.ef("CRITICAL: Failed to initialize notification database: %s", tostring(dbErr))
@@ -47,9 +45,7 @@ function M.init()
   end
 
   -- 2. Initialize menubar
-  local menubarOk, menubarErr = pcall(function()
-    return M.menubar.init()
-  end)
+  local menubarOk, menubarErr = pcall(function() return M.menubar.init() end)
 
   if not menubarOk then
     U.log.wf("Failed to initialize notification menubar: %s", tostring(menubarErr))
@@ -64,9 +60,7 @@ function M.init()
   U.log.i("Notification system initialized ✓")
 
   -- Start health check (delayed to allow watchers to start)
-  hs.timer.doAfter(3, function()
-    M.startHealthCheck()
-  end)
+  hs.timer.doAfter(3, function() M.startHealthCheck() end)
 
   return true
 end
@@ -84,13 +78,9 @@ function M.cleanup()
     M.healthCheckTimer = nil
   end
 
-  if M.menubar then
-    M.menubar.cleanup()
-  end
+  if M.menubar then M.menubar.cleanup() end
 
-  if M.db then
-    M.db.close()
-  end
+  if M.db then M.db.close() end
 
   M.initialized = false
   U.log.i("Notification system cleaned up")
@@ -98,17 +88,13 @@ end
 
 -- Health check system - runs every 5 minutes to verify notification system is working
 function M.startHealthCheck()
-  if M.healthCheckTimer then
-    M.healthCheckTimer:stop()
-  end
+  if M.healthCheckTimer then M.healthCheckTimer:stop() end
 
   -- Run initial health check
   M.performHealthCheck()
 
   -- Set up periodic health check (every 5 minutes)
-  M.healthCheckTimer = hs.timer.doEvery(300, function()
-    M.performHealthCheck()
-  end)
+  M.healthCheckTimer = hs.timer.doEvery(300, function() M.performHealthCheck() end)
 
   U.log.i("Notification health check started (5 minute interval)")
 end
@@ -119,27 +105,19 @@ function M.performHealthCheck()
   local isFirstCheck = M.lastHealthCheck == nil
 
   -- Check 1: Initialized flag
-  if not M.initialized then
-    table.insert(issues, "System not initialized")
-  end
+  if not M.initialized then table.insert(issues, "System not initialized") end
 
   -- Check 2: Database connection
-  if not DB.db then
-    table.insert(issues, "Database connection lost")
-  end
+  if not DB.db then table.insert(issues, "Database connection lost") end
 
   -- Check 3: Notification watcher (skip on first check as it might not be started yet)
   if not isFirstCheck then
     local watcherOk, watcher = pcall(require, "watchers.notification")
-    if not watcherOk or not watcher.observer then
-      table.insert(issues, "Notification watcher not running")
-    end
+    if not watcherOk or not watcher.observer then table.insert(issues, "Notification watcher not running") end
   end
 
   -- Check 4: Menubar
-  if M.menubar and not M.menubar.menubar then
-    table.insert(issues, "Menubar indicator lost")
-  end
+  if M.menubar and not M.menubar.menubar then table.insert(issues, "Menubar indicator lost") end
 
   M.lastHealthCheck = os.time()
 
@@ -193,7 +171,7 @@ function M.process(rule, title, subtitle, message, stackingID, bundleID)
   end
 
   -- Delegate to processor
-  M.processor.processRule(rule, title, subtitle, message, stackingID, bundleID)
+  M.processor.process(rule, title, subtitle, message, stackingID, bundleID)
 end
 
 ---Send a canvas notification directly
@@ -241,50 +219,38 @@ end
 ---@param data table Notification data { sender, message, bundle_id, action_taken, focus_mode, urgency, etc. }
 ---@return boolean success True if logged successfully
 ---@usage N.log({ sender = "Test", message = "Test message", bundle_id = "com.test", action_taken = "shown" })
-function M.log(data)
-  return M.db.log(data)
-end
+function M.log(data) return M.db.log(data) end
 
 ---Get recent notifications from the database
 ---@param hours number|nil Number of hours to look back (default: 24)
 ---@return table notifications Array of notification records
 ---@usage local recent = N.getRecent(12) -- get notifications from last 12 hours
-function M.getRecent(hours)
-  return M.db.getRecent(hours)
-end
+function M.getRecent(hours) return M.db.getRecent(hours) end
 
 ---Get notifications that were blocked by focus mode
 ---@return table notifications Array of blocked notification records
 ---@usage local blocked = N.getBlocked()
-function M.getBlocked()
-  return M.db.getBlockedByFocus()
-end
+function M.getBlocked() return M.db.getBlockedByFocus() end
 
 ---Search notifications by query string
 ---@param query string Search query (searches sender, message, bundle_id)
 ---@param limit number|nil Maximum results to return (default: 50)
 ---@return table notifications Array of matching notification records
 ---@usage local results = N.search("Abby", 10)
-function M.search(query, limit)
-  return M.db.search(query, limit)
-end
+function M.search(query, limit) return M.db.search(query, limit) end
 
 ---Get notification statistics
 ---@param hours number|nil Number of hours to analyze (default: 24)
 ---@return table stats Statistics including total count, by sender, by app, by action
 ---@usage local stats = N.getStats(24)
-function M.getStats(hours)
-  return M.db.getStats(hours)
-end
+function M.getStats(hours) return M.db.getStats(hours) end
 
 ---Update the menubar indicator
 ---Call this after database changes to refresh the menubar display
 ---@return nil
 ---@usage N.updateMenubar()
 function M.updateMenubar()
-  if M.menubar then
-    M.menubar.update()
-  end
+  if M.menubar then M.menubar.update() end
 end
 
 return M

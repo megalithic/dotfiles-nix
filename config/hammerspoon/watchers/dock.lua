@@ -82,18 +82,24 @@ local function switchKanataProfile(profile)
 end
 
 local function keyboardChangedState(state)
+  local karabiner_cli = [[/Library/Application\ Support/org.pqrs/Karabiner-Elements/bin/karabiner_cli]]
+
   if state == "removed" then
-    local _status = U.run(fmt([[karabiner_cli --select-profile %s &]], C.dock.keyboard.disconnected), true)
-    U.log.of("%s keyboard profile activated", C.dock.keyboard.disconnected)
+    local status = U.run(fmt([[%s --select-profile %s]], karabiner_cli, C.dock.keyboard.disconnected), true)
+    if status then
+      U.log.of("%s keyboard profile activated", C.dock.keyboard.disconnected)
 
-    -- Switch Kanata profile
-    if C.dock.kanata.enabled then switchKanataProfile(C.dock.kanata.disconnected) end
+      -- Switch Kanata profile
+      if C.dock.kanata.enabled then switchKanataProfile(C.dock.kanata.disconnected) end
+    end
   elseif state == "added" then
-    local _status = U.run(fmt([[karabiner_cli --select-profile %s &]], C.dock.keyboard.connected), true)
-    U.log.of("%s keyboard profile activated", C.dock.keyboard.connected)
+    local status = U.run(fmt([[%s --select-profile %s]], karabiner_cli, C.dock.keyboard.connected), true)
+    if status then
+      U.log.of("%s keyboard profile activated", C.dock.keyboard.connected)
 
-    -- Switch Kanata profile
-    if C.dock.kanata.enabled then switchKanataProfile(C.dock.kanata.connected) end
+      -- Switch Kanata profile
+      if C.dock.kanata.enabled then switchKanataProfile(C.dock.kanata.connected) end
+    end
   else
     U.log.wf("unknown keyboard state: ", state)
   end

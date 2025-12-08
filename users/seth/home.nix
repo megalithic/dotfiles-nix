@@ -151,12 +151,7 @@ in {
   '';
   xdg.configFile."surfingkeys/config.js".text = builtins.readFile surfingkeys/config.js;
   xdg.configFile."starship.toml".text = builtins.readFile starship/starship.toml;
-  xdg.configFile."karabiner/karabiner.json" = {
-    # NOTE: If karabiner ever stops working and restarts don't fix the problem, try:
-    # /Applications/.Nix-Karabiner/.Karabiner-VirtualHIDDevice-Manager.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager deactivate
-    # then restarting and re-allowing Karabiner when prompted.
-    source = ./karabiner/karabiner.json;
-  };
+  xdg.configFile."karabiner/karabiner.json".text = builtins.readFile karabiner/karabiner.json;
   xdg.configFile."eza/theme.yml".text = ''
     colourful: true
 

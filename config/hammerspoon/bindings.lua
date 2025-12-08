@@ -45,7 +45,6 @@ function M.loadApps()
 
         if type(binds) == "table" and #binds == 2 and type(binds[1]) == "table" then
           mods, key = table.unpack(binds)
-          U.log.n({ mods, key, bundleID })
         end
 
         hyper:bindPassThrough(mods, key, bundleID)
@@ -55,58 +54,35 @@ function M.loadApps()
 end
 
 -- Generic meeting window finder
--- Searches for windows matching video call patterns (title keywords or large windows)
+-- Searches for windows using U.app.isMeetingWindow for classification
 local function findMeetingWindow(app)
   if not app then return nil end
 
-  local bundleID = app:bundleID()
-
-  -- Strategy 1: Find window by title pattern (most reliable)
-  -- Check multiple patterns in order of specificity
-  local titlePatterns = { "meeting", "standup", "call", "video" }
-  for _, pattern in ipairs(titlePatterns) do
-    local window = app:findWindow(pattern)
-    if window and window:isStandard() then return window end
-  end
-
-  -- Strategy 2: App-specific detection
-  if bundleID == "com.microsoft.teams2" then
-    -- Teams: Meeting windows DON'T have "| Microsoft Teams" suffix
-    -- The main window is titled like "Chat | Team Name | Microsoft Teams"
-    -- Meeting windows are just the meeting name (e.g., "Daily Standup")
-    local windows = app:allWindows()
-    for _, window in ipairs(windows) do
-      local title = window:title()
-      if title and window:isStandard() and not title:find("Microsoft Teams", 1, true) then
-        -- Found a window without the Teams suffix - likely a meeting
-        return window
-      end
-    end
-  elseif bundleID == "us.zoom.xos" then
-    -- Zoom: Meeting window title is "Zoom Meeting" (not just "Zoom")
-    local window = app:findWindow("zoom meeting")
-    if window and window:isStandard() then return window end
-  elseif bundleID == "com.pop.pop.app" then
-    -- Pop: Large windows (>1000x1000) are video calls
-    local windows = app:allWindows()
-    for _, window in ipairs(windows) do
-      if window:isStandard() then
-        local frame = window:frame()
-        if frame.w > 1000 and frame.h > 1000 then return window end
-      end
-    end
-  end
-
-  -- Strategy 3: Find large window (likely video call)
-  -- Video calls typically use large windows (> 800x600)
-  local mainWindow = app:mainWindow()
-  if mainWindow and mainWindow:isStandard() then
-    local frame = mainWindow:frame()
-    if frame.w > 800 and frame.h > 600 then return mainWindow end
-  end
-
-  -- Strategy 4: Fallback to any standard window
   local windows = app:allWindows()
+
+  -- Pass 1: Find a window confirmed as a meeting by isMeetingWindow
+  for _, window in ipairs(windows) do
+    if window:isStandard() then
+      local isMeeting, _ = U.app.isMeetingWindow(app, window)
+      if isMeeting == true then return window end
+    end
+  end
+
+  -- Pass 2: For unknown windows, use size heuristic (large window on external screen = likely meeting)
+  for _, window in ipairs(windows) do
+    if window:isStandard() then
+      local isMeeting, _ = U.app.isMeetingWindow(app, window)
+      local windowScreen = window:screen()
+      local screenName = windowScreen and windowScreen:name() or ""
+      local isOnExternalScreen = screenName ~= C.displays.internal and screenName ~= ""
+      if isMeeting ~= false and isOnExternalScreen then -- unknown or nil, not explicitly settings
+        local frame = window:frame()
+        if frame.w >= 2000 and frame.h >= 1400 then return window end
+      end
+    end
+  end
+
+  -- Pass 3: Fallback to any standard window
   for _, window in ipairs(windows) do
     if window:isStandard() then return window end
   end

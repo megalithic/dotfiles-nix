@@ -43,6 +43,12 @@ notifier notify '{"title":"Title","message":"Message","urgency":"high"}'
 
 ## Hammerspoon
 
+- **Configuration file**: Always check `config/hammerspoon/config.lua` first for settings, constants, and configuration including:
+  - Display names (`C.displays.internal`, `C.displays.external`)
+  - App bundle IDs and layouts (`C.launchers`, `C.layouts`)
+  - Paths to resources (`C.paths`)
+  - Notification settings
+  - Any hardcoded values - prefer using config over hardcoding
 - **Reloading Hammerspoon**: Use `timeout` to prevent hanging, then verify via notification database:
   ```bash
   RELOAD_TIME=$(date +%s)
@@ -53,13 +59,26 @@ notifier notify '{"title":"Title","message":"Message","urgency":"high"}'
   - The timeout is expected and normal - reload succeeds even though the command times out
   - Notification database path: `~/.local/share/hammerspoon/hammerspoon.db`
   - Do NOT use sleep - check the database immediately after the timeout
-- Check config.lua for paths to database, icons, and other resources
-- When looking for paths to things for hammerspoon stuff, check config.lua first
 - for any and all changes to hammerspoon, you must verify that there are NO workspace or document diagnostic errors before attempting to reload hammerspoon; that you always check online documentation and references (never assume); and that cpu and memory efficiency are of absolute importance (we can't have the operating system crash or become laggy because of hammerspoon scripts).
 
 ## Version Control with Jujutsu (jj)
 
-**IMPORTANT**: All work must be tracked using jujutsu (jj) with clean, well-documented history.
+**CRITICAL**: ALWAYS use `jj` commands instead of `git` for ALL version control operations in this repo. NEVER use raw git commands directly.
+
+### Command Mappings (use jj, not git)
+
+| Instead of...              | Use...                                      |
+|----------------------------|---------------------------------------------|
+| `git status`               | `jj status`                                 |
+| `git diff`                 | `jj diff`                                   |
+| `git add` + `git commit`   | `jj describe` (changes are auto-tracked)   |
+| `git log`                  | `jj log`                                    |
+| `git stash`                | Not needed (jj auto-snapshots)             |
+| `git pull --rebase`        | `jj git fetch` + `jj rebase -d main`       |
+| `git push`                 | `jj git push`                              |
+| `git fetch`                | `jj git fetch`                             |
+| `git checkout -b`          | `jj new -m "description"`                  |
+| `git branch`               | `jj branch list` or `jj log`               |
 
 ### Core Workflow (Recommended)
 

@@ -273,3 +273,109 @@ function Windows(appString)
 
   return windows
 end
+
+function Screens()
+  return hs.fnutils.each(hs.screen.allScreens(), function(s)
+    print(hs.inspect({
+      name = s:name(),
+      id = s:id(),
+      position = s:position(),
+      frame = s:frame(),
+    }))
+    return s
+  end)
+end
+
+function Usb()
+  return hs.fnutils.each(hs.usb.attachedDevices(), function(d)
+    print(hs.inspect({
+      productID = d.productID,
+      productName = d.productName,
+      vendorID = d.vendorID,
+      vendorName = d.vendorName,
+    }))
+    return d
+  end)
+end
+
+function AudioInput()
+  hs.fnutils.each(
+    hs.audiodevice.allInputDevices(),
+    function(d)
+      print(hs.inspect({
+        name = d:name(),
+        uid = d:uid(),
+        muted = d:muted(),
+        volume = d:volume(),
+        device = d,
+      }))
+    end
+  )
+  local d = hs.audiodevice.defaultInputDevice()
+  U.log.w("current input device: ")
+  U.log.d(hs.inspect({
+    name = d:name(),
+    uid = d:uid(),
+    muted = d:muted(),
+    volume = d:volume(),
+    device = d,
+  }))
+end
+
+function AudioOutput()
+  hs.fnutils.each(
+    hs.audiodevice.allOutputDevices(),
+    function(d)
+      print(hs.inspect({
+        name = d:name(),
+        uid = d:uid(),
+        muted = d:muted(),
+        volume = d:volume(),
+        device = d,
+      }))
+    end
+  )
+  local d = hs.audiodevice.defaultOutputDevice()
+  U.log.w("current output device: ")
+  U.log.d(hs.inspect({
+    name = d:name(),
+    uid = d:uid(),
+    muted = d:muted(),
+    volume = d:volume(),
+    device = d,
+  }))
+end
+
+function Audio()
+  local i = hs.audiodevice.current(true)
+  local o = hs.audiodevice.current()
+
+  U.log.w("current input device: ")
+  U.log.d(hs.inspect({
+    name = i.name,
+    uid = i.uid,
+    muted = i.muted,
+    volume = i.volume,
+  }))
+
+  U.log.w("\r\ncurrent output device: ")
+  U.log.d(hs.inspect({
+    name = o.name,
+    uid = o.uid,
+    muted = o.muted,
+    volume = o.volume,
+    device = o,
+  }))
+end
+
+function Hostname()
+  local hostname = ""
+  local handle = io.popen("hostname")
+
+  if handle then
+    hostname = handle:read("*l")
+    handle:close()
+  end
+
+  return hostname
+end

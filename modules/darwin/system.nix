@@ -247,9 +247,38 @@
           AppleSpacesSwitchOnActivate = true;
           WebAutomaticSpellingCorrectionEnabled = false;
         };
-        # "com.raycast.macos" = {
-        #   raycastGlobalHotkey = "Command-15";
-        # };
+        "com.mitchellh.ghostty" = {
+          SUAutomaticallyUpdate = false;
+          SUEnableAutomaticChecks = false;
+          SUHasLaunchedBefore = true;
+          SUSendProfileInfo = false;
+        };
+        "com.raycast.macos" = {
+          # cmd-space
+          initialSpotlightHotkey = "Command-49";
+          raycastGlobalHotkey = "Command-49";
+          raycastPreferredWindowMode = "compact";
+          raycastShouldFollowSystemAppearance = true;
+          "NSStatusItem Visible raycastIcon" = false;
+          showGettingStartedLink = false;
+          onboardingCompleted = true;
+          developerFlags = false;
+          organizationsPreferencesTabVisited = 1;
+          popToRootTimeout = 60;
+          raycastAPIOptions = 8;
+          suggestedPreferredGoogleBrowser = 1;
+          "permissions.folders.read:/Users/${username}/Desktop" = true;
+          "permissions.folders.read:/Users/${username}/Documents" = true;
+          "permissions.folders.read:/Users/${username}/Downloads" = true;
+          "permissions.folders.read:cloudStorage" = true;
+          # "raycast_hyperKey_state" = {
+          #   enabled = 1;
+          #   includeShiftKey = 1;
+          #   # use Right Option for hyper key
+          #   keyCode = 230;
+          # };
+          # useHyperKeyIcon = 1;
+        };
         # REF: https://medium.com/@zmre/nix-darwin-quick-tip-activate-your-preferences-f69942a93236
         "com.apple.messages.text" = {
           Autocapitalization = 1;

@@ -27,7 +27,7 @@ function obj.captureImage(image, openImageUrl)
   local savedImage = image:saveToFile(capturedImage)
 
   if savedImage then
-    local capperPath = fmt("%s/.dotfiles-nix/bin/capper", os.getenv("HOME"))
+    local capperBin = fmt("%s/.dotfiles-nix/bin/capper", os.getenv("HOME"))
 
     local task = hs.task.new("/bin/zsh", function(exitCode, stdOut, stdErr)
       if exitCode == 0 then
@@ -71,7 +71,7 @@ function obj.captureImage(image, openImageUrl)
           })
           :send()
       end
-    end, { "-c", fmt("%s %s", capperPath, capturedImage) })
+    end, { "-c", fmt("%s %s", capperBin, capturedImage) })
 
     task:start()
   else
@@ -247,7 +247,8 @@ function obj:init(opts)
 
   obj.clipWatcher:start()
 
-  U.log.i(fmt("[INIT] bindings.%s", self.name))
+  U.log.i("initialized")
+  -- U.log.i(fmt("[INIT] bindings.%s", self.name))
 
   return self
 end

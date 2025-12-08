@@ -37,7 +37,7 @@ tmux -2 send-keys -t "$SESSION":2.1 "cd ~/code/work/cspire/launchdeck" C-m
 # AI
 tmux -2 new-window -c "$CWD" -t "$SESSION":3 -n agents
 tmux send-keys -t "$SESSION":3.1 "cd ~/code/work/cspire/launchdeck" C-m
-tmux send-keys -t "$SESSION":3.1 "opencode "
+tmux send-keys -t "$SESSION":3.1 "claude --allow-dangerously-skip-permissions"
 
 # PERSISTENT SERVICES
 tmux -2 new-window -c "$CWD" -t "$SESSION":4 -n services

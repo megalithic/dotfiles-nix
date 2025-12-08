@@ -19,8 +19,12 @@ function M.bin(cmd) return string.format([[%s/.dotfiles-nix/bin/%s]], os.getenv(
 
 function M.run(cmd, use_env)
   local output = hs.execute(cmd, use_env)
+  U.log.d(output)
+
   return string.gsub(output, "^%s*(.-)%s*$", "%1")
 end
+
+-- function M.async_run(cmd, args, cb_fn) return hs.task.new(cmd, cb_fn, args):start() end
 
 function M.ts(date)
   date = date or hs.timer.secondsSinceEpoch()
@@ -708,5 +712,82 @@ function M.closeBrowserTabsWith(urlPart)
 end
 
 function M.spawn(f) return hs.timer.delayed.new(0, f):start() end
+
+-- Known video conferencing apps and their bundle IDs
+M.app.VIDEO_BUNDLES = {
+  ["zoom.us"] = "us.zoom.xos",
+  ["Microsoft Teams"] = "com.microsoft.teams2",
+  ["Pop"] = "com.pop.pop.app",
+  ["Google Chrome"] = "com.google.Chrome",
+  ["Arc"] = "company.thebrowser.Browser",
+  ["Brave Browser"] = "com.brave.Browser",
+  ["Safari"] = "com.apple.Safari",
+  ["Firefox"] = "org.mozilla.firefox",
+}
+
+M.app.BROWSER_BUNDLES = {
+  ["com.google.Chrome"] = true,
+  ["company.thebrowser.Browser"] = true,
+  ["com.brave.Browser"] = true,
+  ["com.apple.Safari"] = true,
+  ["org.mozilla.firefox"] = true,
+}
+
+--- Check if a window appears to be a meeting (vs settings/preview)
+--- Returns: isMeeting (true/false/nil), reason (string)
+---@param app hs.application|nil
+---@param window hs.window|nil
+---@return boolean|nil isMeeting true if meeting, false if settings, nil if unknown
+---@return string reason explanation of the detection
+function M.app.isMeetingWindow(app, window)
+  if not app or not window then return nil, "no_app_or_window" end
+
+  local bundleID = app:bundleID()
+  local title = window:title() or ""
+  local titleLower = title:lower()
+
+  -- Settings indicators (likely NOT a meeting)
+  local settingsPatterns = { "settings", "preferences", "audio", "video settings", "devices" }
+  for _, pattern in ipairs(settingsPatterns) do
+    if titleLower:find(pattern, 1, true) then return false, "settings_title" end
+  end
+
+  -- Meeting indicators (likely IS a meeting)
+  local meetingPatterns = { "meeting", "standup", "call", "webinar" }
+  for _, pattern in ipairs(meetingPatterns) do
+    if titleLower:find(pattern, 1, true) then return true, "meeting_title" end
+  end
+
+  -- App-specific detection (mirrors bindings.lua findMeetingWindow)
+  if bundleID == "com.microsoft.teams2" then
+    -- Teams: Meeting windows DON'T have "| Microsoft Teams" suffix
+    if not title:find("Microsoft Teams", 1, true) and title ~= "" then
+      return true, "teams_meeting_window"
+    else
+      return false, "teams_main_window"
+    end
+  elseif bundleID == "us.zoom.xos" then
+    -- Zoom: "Zoom Meeting" = in call, just "Zoom" or "Settings" = not in call
+    if titleLower:find("zoom meeting", 1, true) then
+      return true, "zoom_meeting_window"
+    elseif title == "Zoom" or titleLower:find("settings", 1, true) then
+      return false, "zoom_main_or_settings"
+    end
+  elseif bundleID == "com.pop.pop.app" then
+    -- Pop: Large windows (>1000x1000) are video calls
+    local frame = window:frame()
+    if frame.w > 1000 and frame.h > 1000 then return true, "pop_large_window" end
+  end
+
+  -- Browser-based: check for meeting URLs in title
+  if M.app.BROWSER_BUNDLES[bundleID] then
+    local meetingUrlPatterns = { "meet.google.com", "teams.microsoft.com", "zoom.us/j", "whereby.com" }
+    for _, pattern in ipairs(meetingUrlPatterns) do
+      if titleLower:find(pattern, 1, true) then return true, "browser_meeting_url" end
+    end
+  end
+
+  return nil, "unknown"
+end
 
 return M

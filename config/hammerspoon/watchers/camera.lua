@@ -9,120 +9,168 @@ local DEBOUNCE_INTERVAL = 1.0 -- 1 second - ignore events within this window
 
 -- Detect which application is using the camera
 -- Uses multiple detection methods with fallbacks
--- Returns: bundleID (string or nil), method (string)
+-- Returns: bundleID (string or nil), method (string), isMeeting (bool or nil)
 local function detectCameraApp()
-  -- Method 1: Check for video capture service processes
-  -- Teams, Zoom, etc. spawn helper processes with "video_capture" or "VideoCaptureService"
-  local output, status = hs.execute("ps aux | grep -E 'video_capture|VideoCaptureService' | grep -v grep 2>/dev/null")
+  -- Method 1: VDC (Video Device Control) via lsof - most reliable
+  -- Any app using the camera MUST have a handle to the VDC plugin
+  local vdcOutput, vdcStatus = hs.execute("lsof 2>/dev/null | grep -i VDC | head -5")
 
-  if status and output and output ~= "" then
-    -- First try to match running applications by checking if their names appear in the process output
-    -- This handles apps with video capture helper processes
+  if vdcStatus and vdcOutput and vdcOutput ~= "" then
+    -- Parse the process name from lsof output (first column)
+    local processName = vdcOutput:match("^(%S+)")
+    if processName then
+      -- Try to find the running application by name
+      local app = hs.application.get(processName)
+      if app then
+        local bundleID = app:bundleID()
+        local window = app:focusedWindow() or app:mainWindow()
+        local isMeeting, meetingMethod = U.app.isMeetingWindow(app, window)
+        U.log.df("Detected via VDC: %s (meeting: %s, %s)", bundleID, tostring(isMeeting), meetingMethod or "n/a")
+        return bundleID, "vdc", isMeeting
+      end
+
+      -- Fallback: check VIDEO_BUNDLES mapping
+      local bundleID = U.app.VIDEO_BUNDLES[processName]
+      if bundleID then
+        local app = hs.application.get(bundleID)
+        local window = app and (app:focusedWindow() or app:mainWindow())
+        local isMeeting, meetingMethod = U.app.isMeetingWindow(app, window)
+        U.log.df("Detected via VDC mapping: %s (meeting: %s, %s)", bundleID, tostring(isMeeting), meetingMethod or "n/a")
+        return bundleID, "vdc_mapped", isMeeting
+      end
+    end
+  end
+
+  -- Method 2: Check for video capture service processes (app-specific optimization)
+  local vcOutput, vcStatus = hs.execute("ps aux | grep -E 'video_capture|VideoCaptureService' | grep -v grep 2>/dev/null")
+
+  if vcStatus and vcOutput and vcOutput ~= "" then
     for _, app in ipairs(hs.application.runningApplications()) do
       local appName = app:name()
       local appPath = app:path()
 
-      -- Check if this app's name or path appears in the video capture process output
-      if appName and (output:match(appName) or (appPath and output:match(appPath, 1, true))) then
-        -- For helper processes (e.g., "Microsoft Teams WebView Helper"), extract main app
+      if appName and (vcOutput:match(appName) or (appPath and vcOutput:match(appPath, 1, true))) then
         if appPath and appPath:match("/Contents/") then
-          -- Extract main .app path (e.g., /Applications/Microsoft Teams.app)
           local mainAppPath = appPath:match("(.-%.app)")
           if mainAppPath then
             local mainAppInfo = hs.application.infoForBundlePath(mainAppPath)
             if mainAppInfo and mainAppInfo.CFBundleIdentifier then
-              U.log.nf("Detected via video_capture process: %s (from %s)", mainAppInfo.CFBundleIdentifier, mainAppPath)
-              return mainAppInfo.CFBundleIdentifier, "video_capture_process"
+              local mainApp = hs.application.get(mainAppInfo.CFBundleIdentifier)
+              local window = mainApp and (mainApp:focusedWindow() or mainApp:mainWindow())
+              local isMeeting, meetingMethod = U.app.isMeetingWindow(mainApp, window)
+              U.log.df("Detected via video_capture: %s (meeting: %s, %s)", mainAppInfo.CFBundleIdentifier, tostring(isMeeting), meetingMethod or "n/a")
+              return mainAppInfo.CFBundleIdentifier, "video_capture", isMeeting
             end
           end
         else
-          -- Main app itself (not a helper)
           local bundleID = app:bundleID()
           if bundleID then
-            U.log.nf("Detected via video_capture process: %s", bundleID)
-            return bundleID, "video_capture_process"
+            local window = app:focusedWindow() or app:mainWindow()
+            local isMeeting, meetingMethod = U.app.isMeetingWindow(app, window)
+            U.log.df("Detected via video_capture: %s (meeting: %s, %s)", bundleID, tostring(isMeeting), meetingMethod or "n/a")
+            return bundleID, "video_capture", isMeeting
           end
         end
       end
     end
   end
 
-  -- Method 2: Check TCC database for very recent camera access (within last 5 seconds)
-  -- This helps identify if an app just started using the camera
-  local tccQuery = [[
-    sqlite3 ~/Library/Application\ Support/com.apple.TCC/TCC.db \
-    "SELECT client, last_modified FROM access WHERE service = 'kTCCServiceCamera' \
-     ORDER BY last_modified DESC LIMIT 1" 2>/dev/null
-  ]]
-
-  local tccOutput, tccStatus = hs.execute(tccQuery)
-  if tccStatus and tccOutput and tccOutput ~= "" then
-    local bundleID, timestamp = tccOutput:match("([^|]+)|(%d+)")
-    if bundleID and timestamp then
-      local now = os.time()
-      local accessTime = tonumber(timestamp)
-      -- If accessed within last 5 seconds, likely the current user
-      if accessTime and math.abs(now - accessTime) < 5 then
-        U.log.nf("Detected via recent TCC access: %s", bundleID)
-        return bundleID, "tcc_recent"
-      end
-    end
-  end
-
-  -- Method 3: Use frontmost application as heuristic
-  -- This is often correct, especially for video calling apps
+  -- Method 3: Frontmost application with meeting window check
   local frontmost = hs.application.frontmostApplication()
   if frontmost then
     local bundleID = frontmost:bundleID()
-    U.log.nf("Detected via frontmost app heuristic: %s", bundleID)
-    return bundleID, "frontmost_heuristic"
+    local window = frontmost:focusedWindow() or frontmost:mainWindow()
+    local isMeeting, meetingMethod = U.app.isMeetingWindow(frontmost, window)
+    U.log.df("Detected via frontmost: %s (meeting: %s, %s)", bundleID, tostring(isMeeting), meetingMethod or "n/a")
+    return bundleID, "frontmost", isMeeting
   end
 
-  U.log.n("Could not detect which app is using camera")
-  return nil, "unknown"
+  U.log.w("Could not detect which app is using camera")
+  return nil, "unknown", nil
 end
 
-local function cameraActive(camera, property)
-  -- Detect which app is using the camera
-  local appBundleID, detectionMethod = detectCameraApp()
+-- Timer for delayed meeting confirmation (when detection is uncertain)
+local meetingConfirmTimer = nil
+local MEETING_CONFIRM_DELAY = 30 -- seconds to wait before confirming uncertain meeting
 
-  if appBundleID then
-    -- Get app name for display
-    local app = hs.application.get(appBundleID)
-    local appName = app and app:name() or appBundleID
-
-    U.log.of("%s active: %s (%s)", camera:name(), appName, detectionMethod)
-  else
-    U.log.of("%s active", camera:name())
-  end
-
+-- Actions to run when we're confident user is in a meeting
+local function startMeetingMode(appName, reason)
+  U.log.f("Starting meeting mode: %s (%s)", appName or "unknown", reason)
   U.dnd(true, "meeting")
   hs.spotify.pause()
   require("ptt").setState("push-to-talk")
 
   -- hs.shortcuts.run("Meeting Start")
-  --
-  -- if hs.application.find("Stretchly") ~= nil then
-  --   U.log.n("Pausing stretchly")
-  --   run.cmd("/Applications/Stretchly.app/Contents/MacOS/Stretchly", { "pause" })
-  -- end
-  --
   -- Elgato.cameraStart()
 end
---
-local function cameraInactive(camera, property)
-  P({ property, camera })
+
+local function cameraActive(camera, property)
+  -- Detect which app is using the camera
+  local appBundleID, detectionMethod, isMeeting = detectCameraApp()
+
+  -- Get app name for display
+  local app = appBundleID and hs.application.get(appBundleID)
+  local appName = app and app:name() or appBundleID or "unknown"
+
+  U.log.f("%s active: %s (method: %s, meeting: %s)", camera:name(), appName, detectionMethod, tostring(isMeeting))
+
+  -- Cancel any pending confirmation timer
+  if meetingConfirmTimer then
+    meetingConfirmTimer:stop()
+    meetingConfirmTimer = nil
+  end
+
+  if isMeeting == true then
+    -- High confidence: definitely in a meeting
+    startMeetingMode(appName, "confirmed_meeting")
+  elseif isMeeting == false then
+    -- High confidence: NOT a meeting (settings, preview, etc.)
+    U.log.f("Camera active but not a meeting (likely settings): %s", appName)
+    -- Don't trigger meeting mode
+  else
+    -- Unknown: wait and recheck after delay
+    U.log.f("Camera active, uncertain if meeting. Will recheck in %ds: %s", MEETING_CONFIRM_DELAY, appName)
+    meetingConfirmTimer = hs.timer.doAfter(MEETING_CONFIRM_DELAY, function()
+      -- Recheck if camera is still in use
+      if camera:isInUse() then
+        local recheckBundleID, recheckMethod, recheckIsMeeting = detectCameraApp()
+        local recheckApp = recheckBundleID and hs.application.get(recheckBundleID)
+        local recheckAppName = recheckApp and recheckApp:name() or recheckBundleID or "unknown"
+
+        if recheckIsMeeting == false then
+          -- Still looks like settings after 30s - unusual but respect it
+          U.log.f("Still not a meeting after %ds: %s", MEETING_CONFIRM_DELAY, recheckAppName)
+        else
+          -- Either confirmed meeting OR still unknown after 30s = treat as meeting
+          startMeetingMode(recheckAppName, "confirmed_after_delay")
+        end
+      end
+      meetingConfirmTimer = nil
+    end)
+  end
+end
+
+-- Actions to run when meeting ends
+local function stopMeetingMode()
+  U.log.f("Stopping meeting mode")
   U.dnd(false)
   require("ptt").setState("push-to-talk")
 
   -- hs.shortcuts.run("Meeting End")
-  --
-  -- if hs.application.find("Stretchly") ~= nil then
-  --   U.log.n("Resuming stretchly")
-  --   run.cmd("/Applications/Stretchly.app/Contents/MacOS/Stretchly", { "resume" })
-  -- end
-  --
   -- Elgato.cameraEnd()
+end
+
+local function cameraInactive(camera, property)
+  U.log.f("%s inactive", camera:name())
+
+  -- Cancel any pending confirmation timer
+  if meetingConfirmTimer then
+    meetingConfirmTimer:stop()
+    meetingConfirmTimer = nil
+    U.log.d("Cancelled pending meeting confirmation (camera turned off)")
+  end
+
+  stopMeetingMode()
 end
 
 local function watchCameraProperty(camera, property)
@@ -143,7 +191,6 @@ local function watchCameraProperty(camera, property)
       cameraActive(camera, property)
     else
       cameraInactive(camera, property)
-      U.log.of("%s inactive", camera:name())
     end
   end
 end

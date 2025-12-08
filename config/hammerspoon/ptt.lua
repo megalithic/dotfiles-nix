@@ -18,6 +18,7 @@ M.app_switcher = {}
 local function showState()
   local device = hs.audiodevice.defaultInputDevice()
   local muted = false
+
   if M.state == "unmute" then
     M.menubar:setIcon(hs.image.imageFromPath("assets/speak.pdf"))
   elseif M.state == "mute" then
@@ -57,7 +58,11 @@ local function showState()
     end
   end
 
-  device:setInputMuted(muted)
+  M.toggleInputState(device, muted)
+end
+
+function M.toggleInputState(device, state)
+  device:setInputMuted(state)
   device:setInputVolume(M.inputVolume)
 end
 
