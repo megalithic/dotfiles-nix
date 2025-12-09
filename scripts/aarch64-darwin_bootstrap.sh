@@ -42,9 +42,10 @@ if [ -d "$DOTFILES_DIR" ]; then
 fi
 
 echo "░ :: -> Cloning $DOTFILES_NAME repo to $DOTFILES_DIR.." &&
-  # git clone --bare $DOTFILES_REPO "$DOTFILES_DIR"
-  # git init --bare "$DOTFILES_DIR"
   git clone $DOTFILES_REPO "$DOTFILES_DIR"
+
+echo "░ :: -> Configuring git hooks.." &&
+  git -C "$DOTFILES_DIR" config core.hooksPath .githooks
 
 # FIXME: remove when confirmed no longer needed; nix-casks / mkCask is being used
 # if ! command -v brew >/dev/null 2>&1 && [ ! -f "/opt/homebrew/bin/brew" ]; then

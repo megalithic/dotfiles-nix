@@ -213,6 +213,17 @@ fd -e lua -x rg "require"
 fd -e lua --changed-within 1d
 ```
 
+## Git Hooks
+
+**Pre-commit hook** (`.githooks/pre-commit`): Blocks commits containing symlinks to `/nix/store/`. These are ephemeral build artifacts that should never be version controlled.
+
+To install hooks after cloning:
+```bash
+git config core.hooksPath .githooks
+```
+
+**CRITICAL**: Never commit symlinks pointing to `/nix/store/` - they are machine-specific and will break on other systems or after garbage collection.
+
 ## General Conventions
 
 - When creating shell scripts that take arguments, always assume we want long and short form arguments supported.
