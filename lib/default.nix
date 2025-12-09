@@ -80,21 +80,6 @@ inputs: lib: _:
       appDef: (import ./mkApp.nix) {inherit pkgs lib stdenvNoCC;} appDef
     ) appDefinitions;
 
-  # DEPRECATED: mkCask is now an alias for mkApp with installMethod = "extract"
-  # Kept for backward compatibility during migration
-  mkCask = import ./mkCask.nix;
-
-  # DEPRECATED: mkCasks is now an alias for mkApps
-  # Kept for backward compatibility during migration
-  mkCasks = {
-    pkgs,
-    lib ? pkgs.lib,
-    stdenvNoCC ? pkgs.stdenvNoCC,
-  }: caskDefinitions:
-    builtins.map (
-      caskDef: (import ./mkCask.nix) {inherit pkgs lib stdenvNoCC;} caskDef
-    ) caskDefinitions;
-
   # mkCaskActivation - Generate home-manager activation scripts for casks requiring /Applications
   # Usage: Add to home.activation:
   #   home.activation.linkSystemApplications = lib.hm.dag.entryAfter ["writeBoundary"] (

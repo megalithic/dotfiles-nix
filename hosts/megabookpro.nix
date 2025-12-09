@@ -12,7 +12,7 @@
   lang = "en_US.UTF-8";
 
   # Native installer packages (require official PKG installer)
-  karabiner-elements = import ../packages/karabiner-elements.nix {inherit pkgs lib;};
+  # karabiner-elements = import ../pkgs/karabiner-elements.nix {inherit pkgs lib;};
   icloud_home = "/Users/${username}/iclouddrive";
   proton_home = "/Users/${username}/protondrive";
 in {
@@ -286,10 +286,10 @@ in {
 
     # Native PKG installer for apps requiring system-level installation
     # (Karabiner-Elements, etc.)
-    native-pkg-installer = {
-      enable = true;
-      packages = [karabiner-elements];
-    };
+    # native-pkg-installer = {
+    #   enable = true;
+    #   packages = [karabiner-elements];
+    # };
   };
 
   # The platform the configuration will be used on.

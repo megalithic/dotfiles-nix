@@ -20,6 +20,7 @@
       "iina"
       "inkscape"
       "jordanbaird-ice"
+      "karabiner-elements"
       "kitty"
       "macwhisper"
       "mouseless"
