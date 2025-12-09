@@ -129,6 +129,18 @@ in
             fi
             ;;
         esac
+
+        # Handle nested DMG extraction (some DMGs extract to a subdirectory)
+        # If appName isn't in root but exists nested, move it up
+        if [[ ! -d "${appName}" ]]; then
+          echo "App not in root, searching for nested .app..."
+          nested_app=$(find . -maxdepth 2 -name "${appName}" -type d 2>/dev/null | head -1)
+          if [[ -n "$nested_app" && -d "$nested_app" ]]; then
+            echo "Found nested app at: $nested_app"
+            mv "$nested_app" .
+            echo "Moved ${appName} to root"
+          fi
+        fi
       ''
       else if isBinary
       then ''
