@@ -94,7 +94,7 @@
 
   browserModule = browser: name: visible: let
     isProprietaryChrome = lib.hasPrefix "Google Chrome" name;
-    # Brave needs special handling since it comes from nix-casks with different naming
+    # Brave needs special handling since it uses a custom mkApp derivation
     isBrave = lib.hasPrefix "brave" browser;
   in
     {
@@ -111,7 +111,7 @@
         type = types.nullOr types.package;
         default =
           if isBrave
-          then null # Brave package must be explicitly provided from nix-casks
+          then null # Brave package must be explicitly provided (pkgs.brave-browser-nightly)
           else pkgs.${browser} or null;
         defaultText = literalExpression "pkgs.${browser}";
         description = "The ${name} package to use.";

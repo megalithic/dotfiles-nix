@@ -94,7 +94,7 @@ in {
   # Configured with remote debugging port for browser automation/debugging
   programs.brave-browser-nightly = {
     enable = true;
-    package = inputs.nix-casks.packages.${pkgs.system}.brave-browser_nightly;
+    package = pkgs.brave-browser-nightly;
     bundleId = "com.brave.Browser.nightly"; # For Application Support path
     appName = "Brave Browser Nightly.app";
     executableName = "Brave Browser Nightly";

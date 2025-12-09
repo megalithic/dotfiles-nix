@@ -289,8 +289,8 @@ in {
     # msmtp for sending emails with queue support (msmtpq)
     msmtp = {
       enable = true;
-      # Enable offline queue
-      extraConfig = ''
+      # Enable offline queue - use configContent with mkBefore (extraConfig is deprecated)
+      configContent = lib.mkBefore ''
         # Global msmtp configuration
         defaults
         auth on
@@ -370,8 +370,8 @@ in {
     aerc = {
       enable = true;
 
-      stylesets.everforest = builtins.readFile "${inputs.self}/users/seth/programs/email/stylesets/everforest";
-      stylesets.megaforest = builtins.readFile "${inputs.self}/users/seth/programs/email/stylesets/megaforest";
+      stylesets.everforest = builtins.readFile "${inputs.self}/home/programs/email/stylesets/everforest";
+      stylesets.megaforest = builtins.readFile "${inputs.self}/home/programs/email/stylesets/megaforest";
 
       # Extra accounts configuration
       extraAccounts = {

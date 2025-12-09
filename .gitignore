@@ -43,6 +43,6 @@ todo.txt
 **/.jj
 
 weechat
-users/seth/config/weechat
+home/config/weechat
 .direnv/
 _planned

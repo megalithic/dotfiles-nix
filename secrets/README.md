@@ -77,7 +77,7 @@ agenix -e env-vars.age
    "my-new-secret.age".publicKeys = allKeys;
    ```
 
-2. Edit `users/seth/agenix.nix` and add to `age.secrets`:
+2. Edit `home/agenix.nix` and add to `age.secrets`:
    ```nix
    my-new-secret = {
      file = ../../secrets/my-new-secret.age;

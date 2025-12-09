@@ -117,9 +117,9 @@ in {
 
   home.preferXdgDirectories = true;
 
-  # Activation script to symlink casks that require /Applications folder
+  # Activation script to symlink apps that require /Applications folder
   home.activation.linkSystemApplications = lib.hm.dag.entryAfter ["writeBoundary"] (
-    lib.mkCaskActivation config.home.packages
+    lib.mkAppActivation config.home.packages
   );
 
   # Create symlinks in ~/.local/bin for nix-managed binaries

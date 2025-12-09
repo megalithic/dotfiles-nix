@@ -6,8 +6,6 @@
   inherit (pkgs.stdenv.hostPlatform) isDarwin;
 in {
   imports = [
-    # ./casks.nix
-    # ./mas.nix
     ./fonts.nix
     ./langs.nix
   ];

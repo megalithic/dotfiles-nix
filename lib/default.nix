@@ -80,25 +80,25 @@ inputs: lib: _:
       appDef: (import ./mkApp.nix) {inherit pkgs lib stdenvNoCC;} appDef
     ) appDefinitions;
 
-  # mkCaskActivation - Generate home-manager activation scripts for casks requiring /Applications
+  # mkAppActivation - Generate home-manager activation scripts for apps requiring /Applications
   # Usage: Add to home.activation:
   #   home.activation.linkSystemApplications = lib.hm.dag.entryAfter ["writeBoundary"] (
-  #     lib.mkCaskActivation config.home.packages
+  #     lib.mkAppActivation config.home.packages
   #   );
-  mkCaskActivation = packages: let
+  mkAppActivation = packages: let
     # Filter packages that need system /Applications folder
-    casksNeedingSystemFolder = builtins.filter (
+    appsNeedingSystemFolder = builtins.filter (
       pkg: (pkg.passthru or {}).needsSystemApplicationsFolder or false
     ) packages;
 
     # Build list of current app names for cleanup
-    currentAppNames = builtins.map (pkg: pkg.passthru.appName) casksNeedingSystemFolder;
+    currentAppNames = builtins.map (pkg: pkg.passthru.appName) appsNeedingSystemFolder;
     currentAppsString = lib.strings.concatStringsSep "\n" currentAppNames;
 
     # Cleanup script for orphaned apps
     cleanupScript = ''
-      # Cleanup orphaned nix-cask managed apps
-      METADATA_DIR="$HOME/.local/share/nix-casks"
+      # Cleanup orphaned nix-managed apps
+      METADATA_DIR="$HOME/.local/share/nix-apps"
       mkdir -p "$METADATA_DIR"
 
       # Current apps that should be installed
@@ -136,7 +136,7 @@ inputs: lib: _:
         echo "Copying ${appName} to /Applications..."
 
         # Use a metadata directory outside the app bundle to avoid breaking code signatures
-        METADATA_DIR="$HOME/.local/share/nix-casks"
+        METADATA_DIR="$HOME/.local/share/nix-apps"
         mkdir -p "$METADATA_DIR"
         METADATA_FILE="$METADATA_DIR/${appName}.nixpath"
 
@@ -193,7 +193,7 @@ inputs: lib: _:
         fi
       '';
 
-    activationScripts = builtins.map mkActivationScript casksNeedingSystemFolder;
+    activationScripts = builtins.map mkActivationScript appsNeedingSystemFolder;
     allScripts = [cleanupScript] ++ activationScripts;
   in
     lib.strings.concatStringsSep "\n\n" allScripts;

@@ -55,10 +55,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     expert.url = "github:elixir-lang/expert";
-    nix-casks = {
-      url = "github:atahanyorganci/nix-casks/archive";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
 
     # opnix = {
     #   url = "github:brizzbuzz/opnix";
@@ -163,7 +159,7 @@
           home-manager = {
             useGlobalPkgs = true;
             useUserPackages = true;
-            users.${username} = import ./users/${username}/home.nix;
+            users.${username} = import ./home;
             extraSpecialArgs = {inherit inputs username arch hostname version overlays lib;};
           };
         }
