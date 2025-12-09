@@ -80,16 +80,24 @@ notifier notify '{"title":"Title","message":"Message","urgency":"high"}'
 | `git checkout -b`          | `jj new -m "description"`                  |
 | `git branch`               | `jj branch list` or `jj log`               |
 
-### Core Workflow (Recommended)
+### Core Workflow (CRITICAL - Must Follow)
 
-1. **Start a unit of work**: Run `jj new -m "Brief description of task"` before starting work
-2. **Work iteratively**: Make changes, test, iterate
-3. **Document when complete**: Run `jj describe` and write a comprehensive description including:
+**BEFORE starting ANY new unit of work or task:**
+1. **ALWAYS run `jj new -m "Brief description of task"`** - This is non-negotiable
+2. **When switching tasks**: Claude MUST confirm with Seth: "We're changing tasks - should I run `jj new -m '...'` before we start?"
+3. **Accountability**: Claude helps keep Seth accountable too - if Seth asks to start something new without a `jj new`, remind him
+
+**During work:**
+1. **Work iteratively**: Make changes, test, iterate
+2. **Document when complete**: Run `jj describe` and write a comprehensive description including:
    - What was changed and why
    - Key implementation details
    - Any breaking changes or important notes
    - Related context (e.g., "Fixes notification system regression on macOS Sequoia")
-4. **Next task**: Run `jj new` to start fresh change on top of current work
+
+**After completing a unit of work:**
+1. **Next task**: Run `jj new` to start fresh change on top of current work
+2. **If work accumulated without proper commits**: Use `jj split` with filesets to organize retroactively
 
 ### Key Commands
 
