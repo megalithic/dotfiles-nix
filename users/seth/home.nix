@@ -26,7 +26,10 @@
       };
       fetch.enable = true;
       git.enable = true;
-      memory.enable = true;
+      memory = {
+        enable = true;
+        env.MEMORY_FILE_PATH = "${config.home.homeDirectory}/.local/share/claude/memory.jsonl";
+      };
       time.enable = true;
       context7.enable = true;
       playwright.enable = true;
@@ -71,6 +74,7 @@ in {
       "code/.keep".text = "";
       "src/.keep".text = "";
       "tmp/.keep".text = "";
+      ".local/share/claude/.keep".text = "";  # For MCP memory server storage
       ".hushlogin".text = "";
       "bin".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/bin";
       ".editorconfig".text = ''
