@@ -14,7 +14,7 @@ while true; do
       --reverse \
       --border=none \
       --padding="1" \
-      --header=" $(tput sitm)$(tput setaf 5)processes: $(tput sgr 0)[ $(tput setaf 255)enter$(tput sgr 0): $(tput setaf 245)kill selected process(s) $(tput sgr 0)]" \
+      --header=" $(tput sitm)$(tput setaf 5)processes: $(tput sgr 0)[ $(tput setaf 255)<c-k>$(tput sgr 0): $(tput setaf 245)kill selected process(s) $(tput sgr 0)]" \
       --header-first \
       --prompt="search processes » " \
       --query="$query" \

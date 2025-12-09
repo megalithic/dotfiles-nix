@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Chrome DevTools MCP wrapper script
+# Automatically resolves browser executable from Hammerspoon BROWSER variable
+
+set -e
+
+# Get browser bundle ID from Hammerspoon
+BROWSER_ID=$(hs -c "return BROWSER" 2>/dev/null || echo "")
+
+if [ -z "$BROWSER_ID" ]; then
+    echo "Error: Could not get BROWSER from Hammerspoon" >&2
+    exit 1
+fi
+
+# Get executable path from bundle ID
+BROWSER_PATH=$(osascript -e "tell application \"System Events\" to POSIX path of (path to application id \"$BROWSER_ID\")" 2>/dev/null || echo "")
+
+if [ -z "$BROWSER_PATH" ]; then
+    echo "Error: Could not resolve browser path for $BROWSER_ID" >&2
+    exit 1
+fi
+
+# Find the actual executable inside the .app bundle
+# For Chromium-based browsers, it's usually in Contents/MacOS/
+APP_NAME=$(basename "$BROWSER_PATH" .app)
+EXECUTABLE_PATH="$BROWSER_PATH/Contents/MacOS/$APP_NAME"
+
+if [ ! -x "$EXECUTABLE_PATH" ]; then
+    # Try to find any executable in MacOS folder
+    EXECUTABLE_PATH=$(find "$BROWSER_PATH/Contents/MacOS" -type f -perm +111 2>/dev/null | head -1)
+fi
+
+if [ ! -x "$EXECUTABLE_PATH" ]; then
+    echo "Error: Could not find executable in $BROWSER_PATH" >&2
+    exit 1
+fi
+
+# Run chrome-devtools-mcp with the resolved path and accept insecure certs for internal dev URLs
+exec npx chrome-devtools-mcp --executablePath "$EXECUTABLE_PATH" --acceptInsecureCerts "$@"
