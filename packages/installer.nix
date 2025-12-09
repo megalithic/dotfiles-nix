@@ -3,120 +3,58 @@
 # - https://github.com/isabelroses/dotfiles/blob/main/modules/home/programs/chromium.nix
 # - https://github.com/will-lol/.dotfiles/blob/main/overlays/helium.nix
 #
-{lib, ...}: let
-  # empty for now
+{
+  lib,
+  inputs,
+  ...
+}: let
+  # Import mkApp - unified macOS app builder
+  mkApp = pkgs:
+    import ../lib/mkApp.nix {
+      inherit pkgs lib;
+      stdenvNoCC = pkgs.stdenvNoCC;
+    };
 in
   final: prev: {
-    # neovim-custom = prev.neovim-unwrapped.overrideAttrs (old: {
-    #     version = rev;
-    #     src = prev.fetchFromGitHub {
-    #       owner = "neovim";
-    #       repo = "neovim";
-    #       rev = rev;
-    #       sha256 = sha;
-    #     };
-    #     # Skip version checks for nightly builds
-    #     doCheck = false;
-    #     doInstallCheck = false;
-    #   });
+    # MCP Servers (not available in nixpkgs)
+    chrome-devtools-mcp = prev.callPackage ./chrome-devtools-mcp.nix {};
 
-    # https://cdn.flexibits.com/Fantastical_3.8.23.zip
-    fantastical = prev.stdenv.mkDerivation (finalAttrs: {
+    # macOS Apps via mkApp
+    # Usage: (mkApp prev) { pname, version, appName, src = { url, sha256 }, desc?, homepage? }
+
+    brave-browser-nightly = (mkApp prev) {
+      pname = "brave-browser-nightly";
+      version = "1.87.61.0";
+      appName = "Brave Browser Nightly.app";
+      src = {
+        url = "https://updates-cdn.bravesoftware.com/sparkle/Brave-Browser/nightly-arm64/187.61/Brave-Browser-Nightly-arm64.dmg";
+        sha256 = "0i8j94d9b24djv3wpnx1rszxrn0h4r0md2djx8104by1kyi11vby";
+      };
+      desc = "Privacy-focused web browser - Nightly build";
+      homepage = "https://brave.com/download-nightly/";
+    };
+
+    fantastical = (mkApp prev) {
       pname = "fantastical";
-      version = "3.8.23";
-
-      src = prev.fetchurl {
-        url = "https://cdn.flexibits.com/Fantastical_${finalAttrs.version}.zip";
-        hash = "sha256-3j4souWY+4EGPSQR6uURjyqu3bkB5G9xuJbvOk9cZd8=";
+      version = "4.1.5";
+      appName = "Fantastical.app";
+      src = {
+        url = "https://cdn.flexibits.com/Fantastical_4.1.5.zip";
+        sha256 = "095747c4f1b1syyzfhcv651rmy6y4cx4pm9qy4sdqsxp8kqgrm97";
       };
+      desc = "Calendar and tasks app";
+      homepage = "https://flexibits.com/fantastical";
+    };
 
-      nativeBuildInputs = [
-        prev._7zz
-        prev.makeWrapper
-      ];
-
-      unpackPhase = ''
-        7zz x -snld $src
-      '';
-
-      dontPatchShebangs = true;
-      sourceRoot = "Fantastical.app";
-
-      installPhase = ''
-        mkdir -p "$out/Applications/${finalAttrs.sourceRoot}"
-        cp -R . "$out/Applications/${finalAttrs.sourceRoot}"
-        makeWrapper "$out/Applications/${finalAttrs.sourceRoot}/Contents/MacOS/${prev.lib.strings.removeSuffix ".app" finalAttrs.sourceRoot}" \
-        $out/bin/${finalAttrs.pname}
-      '';
-
-      meta = with lib; {
-        description = "Fantastical 2";
-        homepage = "https://flexibits.com/support/kb/81";
-        downloadPage = "https://flexibits.com/support/kb/81";
-        license = licenses.gpl3Only;
-        platforms = platforms.darwin;
-        # maintainers = with maintainers; [
-        #   # Add your maintainer info here
-        # ];
-        sourceProvenance = with sourceTypes; [binaryNativeCode];
-        # Mark as unfree if needed
-        # unfree = true;
-        mainProgram = "fantastical";
-        # Supported macOS versions
-        broken = prev.stdenv.isDarwin && prev.stdenv.system == "x86_64-darwin" && lib.versionOlder prev.stdenv.hostPlatform.darwinMinVersion "10.15";
-      };
-    });
-
-    helium = prev.stdenv.mkDerivation (finalAttrs: {
+    helium = (mkApp prev) {
       pname = "helium";
       version = "0.4.13.1";
-
-      src = prev.fetchurl {
-        url = "https://github.com/imputnet/helium-macos/releases/download/${finalAttrs.version}/helium_${finalAttrs.version}_arm64-macos.dmg";
-        hash = "sha256-3j4souWY+4EGPSQR6uURjyqu3bkB5G9xuJbvOk9cZd8=";
+      appName = "Helium.app";
+      src = {
+        url = "https://github.com/imputnet/helium-macos/releases/download/0.4.13.1/helium_0.4.13.1_arm64-macos.dmg";
+        sha256 = "sha256-3j4souWY+4EGPSQR6uURjyqu3bkB5G9xuJbvOk9cZd8=";
       };
-
-      nativeBuildInputs = [
-        prev._7zz
-        prev.makeWrapper
-      ];
-
-      unpackPhase = ''
-        7zz x -snld $src
-      '';
-
-      dontPatchShebangs = true;
-      sourceRoot = "Helium.app";
-
-      installPhase = ''
-        mkdir -p "$out/Applications/${finalAttrs.sourceRoot}"
-        cp -R . "$out/Applications/${finalAttrs.sourceRoot}"
-        makeWrapper "$out/Applications/${finalAttrs.sourceRoot}/Contents/MacOS/${prev.lib.strings.removeSuffix ".app" finalAttrs.sourceRoot}" \
-        $out/bin/${finalAttrs.pname}
-      '';
-
-      # Comprehensive metadata (2025 standard)
-      meta = with lib; {
-        description = "Privacy-focused web browser based on ungoogled-chromium (generated via nix overlay)";
-        longDescription = ''
-          Helium is a "bs-free" web browser built on ungoogled-chromium
-          that prioritizes privacy and user experience. It aims to provide an
-          honest, comfortable, privacy-respecting, and non-invasive browsing experience.
-        '';
-        homepage = "https://github.com/imputnet/helium-chromium";
-        downloadPage = "https://github.com/imputnet/helium-macos/releases";
-        changelog = "https://github.com/imputnet/helium-macos/releases/tag/${version}";
-        license = licenses.gpl3Only;
-        platforms = platforms.darwin;
-        # maintainers = with maintainers; [
-        #   # Add your maintainer info here
-        # ];
-        sourceProvenance = with sourceTypes; [binaryNativeCode];
-        # Mark as unfree if needed
-        # unfree = true;
-        mainProgram = "helium";
-        # Supported macOS versions
-        broken = prev.stdenv.isDarwin && prev.stdenv.system == "x86_64-darwin" && lib.versionOlder prev.stdenv.hostPlatform.darwinMinVersion "10.15";
-      };
-    });
+      desc = "Privacy-focused web browser based on ungoogled-chromium";
+      homepage = "https://github.com/imputnet/helium-chromium";
+    };
   }
