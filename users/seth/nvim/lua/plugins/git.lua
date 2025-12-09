@@ -138,6 +138,11 @@ end
 
 return {
   {
+    "esmuellert/vscode-diff.nvim",
+    dependencies = { "MunifTanjim/nui.nvim" },
+    cmd = "CodeDiff",
+  },
+  {
     "nvim-mini/mini.diff",
     version = false,
     config = function()

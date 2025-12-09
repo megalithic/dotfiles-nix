@@ -7,7 +7,7 @@
     casks = [
       "1password"
       "1password-cli"
-      "brave-browser@nightly"
+      # "brave-browser@nightly"
       "colorsnapper"
       "contexts"
       "discord"

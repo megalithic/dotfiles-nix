@@ -153,52 +153,6 @@ in {
           else "xdg-open"
         } "https://github.com/$PROJECT_PATH/compare/$MASTER_BRANCH...$GIT_BRANCH"
       '';
-      chk = ''
-        # Directly use ps command because it is often aliased to a different command entirely
-        # or with options that dirty the search results and preview output
-        set -f ps_cmd (command -v ps || echo "ps")
-        # use all caps to be consistent with ps default format
-        # snake_case because ps doesn't seem to allow spaces in the field names
-        set -f ps_preview_fmt (string join ',' 'pid' 'ppid=PARENT' 'user' '%cpu' 'rss=RSS_IN_KB' 'start=START_TIME' 'command')
-        set -f processes_selected (
-            $ps_cmd -A -opid,command | \
-            ${pkgs.fzf}/bin/fzf --multi \
-                        --prompt="search processes » " \
-                        --query (commandline --current-token) \
-                        --ansi \
-                        --header=" $(tput sitm)$(tput setaf 5)processes: $(tput sgr 0)[ $(tput setaf 255)ctrl-x$(tput sgr 0): $(tput setaf 245)kill single process $(tput sgr 0)]" \
-                        # first line outputted by ps is a header, so we need to mark it as so
-                        --header-lines=1 \
-                        # ps uses exit code 1 if the process was not found, in which case show an message explaining so
-                        --preview="$ps_cmd -o '$ps_preview_fmt' -p {1} || echo 'Cannot preview {1} because it exited.'" \
-                        --preview-window="right:60%:wrap" \
-                        # --preview-window="top:4:wrap" \
-                        --bind="ctrl-x:execute(kill {1})+change-prompt(⚡ )+reload($ps_cmd -A -opid,command)" \
-                        --bind="ctrl-x:execute-silent(
-                          for line in {+}; do
-                            pid=\$(echo \"\$line\" | awk '{print \$2}')
-                            cmd=\$(echo \"\$line\" | awk '{for(i=11;i<=NF;i++) printf \$i\" \"}' | cut -c1-60)
-                            kill $pid
-                            if kill \$pid 2>/dev/null; then
-                              echo \"\$pid|\$cmd\" >> $killed_pids_file
-                            else
-                              osascript -e \"display notification 'Failed to kill PID: '\$pid' ('\$cmd')' with title 'Kill Failed' sound name 'Basso'\"
-                            fi
-                          done
-                        )+reload(ps aux | grep -vE \"(ps aux|fzf)\")"
-        )
-
-        if test $status -eq 0
-            for process in $processes_selected
-                set -f --append pids_selected (string split --no-empty --field=1 -- " " $process)
-            end
-
-            # string join to replace the newlines outputted by string split with spaces
-            commandline --current-token --replace -- (string join '; ' $pids_selected)
-        end
-
-        commandline --function repaint
-      '';
 
       fzf-jj-bookmarks = ''
         set -l selected_bookmark (jj bookmark list | fzf --height 40%)

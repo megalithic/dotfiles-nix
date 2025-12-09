@@ -278,6 +278,7 @@ local ft_ignores = {
   "pager",
   "dialog",
   "oil",
+  "vscode-diff-explorer",
 }
 
 local bt_ignores = {
@@ -415,16 +416,22 @@ function mega.resize_windows(bufnr)
   -- necessary to avoid split widths from going tooo small
   vim.o.cmdheight = cmdheight
   -- vim.o.cmdwinheight = 4
-  vim.opt.winfixheight = true
-  vim.opt.winfixwidth = true
+  vim.o.winfixheight = true
+  vim.o.winfixwidth = true
 
   bufnr = bufnr or 0
+  local winnr = vim.api.nvim_get_current_win()
 
   if is_ignored(bufnr) or is_disabled() then
-    -- vim.o.winminwidth = 20
-    -- vim.o.winminheight = 10
-    -- vim.o.winwidth = 20
-    -- vim.o.winheight = 10
+    P(winnr, bufnr, vim.o.winwidth)
+
+    -- vim.o.winminwidth = vim.api.nvim_win_get_width(0)
+    -- vim.o.winminheight = vim.api.nvim_win_get_height(0)
+
+    --
+    -- vim.o.winwidth = vim.api.nvim_win_get_width(0)
+    -- vim.o.winheight = vim.api.nvim_win_get_height(0)
+
     return
   end
 

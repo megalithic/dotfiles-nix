@@ -127,7 +127,87 @@ jj edit def456  # Work on Feature B
 ### Current State
 
 This repo is already jj-initialized with git coexistence. Always check `jj status` before starting work to see current state.
-- when creating shell scripts that take arguments, always assume we want long and short form arguments supported.
-- when working through nix-related code, remember, i am on macos, so i use nix-darwin, I am also on aarch64-darwin architecture.
-- any markdown documents you create, without my explicit request, should always go into a _docs folder in the root of the CWD you were called from. So, for this CWD, `.dotfiles-nix` which is the dotfiles-nix repo for my github user @megalithic, any docs that you auto-generate (again, ones that i didn't explicitly ask you to create), should go into .dotfiles-nix/_docs (and that directory should be added to .gitignore)
+
+## CLI Tool Preferences
+
+**CRITICAL**: Use modern CLI tools instead of legacy UNIX commands:
+
+| Instead of... | Use...   | Notes                                      |
+|---------------|----------|--------------------------------------------|
+| `find`        | `fd`     | Faster, respects .gitignore by default     |
+| `grep`        | `rg`     | Faster, respects .gitignore, better output |
+
+### fd (find replacement)
+
+```bash
+# Find files by name pattern
+fd "\.lua$"                      # Find all .lua files
+fd -e lua                        # Same, using extension flag
+fd config                        # Find files/dirs containing "config"
+fd -t f config                   # Files only (-t d for directories)
+
+# Find in specific directory
+fd -e nix modules/               # Find .nix files in modules/
+
+# Include hidden/ignored files
+fd -H "\.env"                    # Include hidden files
+fd -I node_modules               # Include gitignored files
+fd -HI "secret"                  # Include both
+
+# Execute command on results
+fd -e lua -x wc -l               # Count lines in each lua file
+fd -e test.ts -X prettier -w     # Format all test files (all at once)
+```
+
+### rg (grep replacement)
+
+```bash
+# Basic search
+rg "TODO"                        # Search for TODO in current dir
+rg -i "error"                    # Case-insensitive search
+rg -w "app"                      # Whole word only (not "application")
+
+# File filtering
+rg "import" -t lua               # Search only in Lua files
+rg "config" -g "*.nix"           # Search with glob pattern
+rg "test" -g "!*.md"             # Exclude markdown files
+
+# Context
+rg "function" -A 3               # Show 3 lines after match
+rg "function" -B 2               # Show 2 lines before match
+rg "function" -C 2               # Show 2 lines before and after
+
+# File listing (like find)
+rg --files                       # List all files (respects .gitignore)
+rg --files -g "*.lua"            # List only .lua files
+rg --files | rg config           # Pipe to filter filenames
+
+# Advanced
+rg -l "TODO"                     # List files with matches only
+rg -c "TODO"                     # Count matches per file
+rg --json "pattern"              # JSON output for parsing
+rg -U "multi\nline"              # Multiline matching
+```
+
+### Combined Examples
+
+```bash
+# Find large Lua files
+fd -e lua -x wc -l | sort -n
+
+# Search for pattern in specific file types
+rg "hs\." -t lua
+
+# Find and search in one go
+fd -e lua -x rg "require"
+
+# Find files modified recently (fd doesn't do this, use find or ls)
+fd -e lua --changed-within 1d
+```
+
+## General Conventions
+
+- When creating shell scripts that take arguments, always assume we want long and short form arguments supported.
+- When working through nix-related code, remember, I am on macOS, so I use nix-darwin. I am also on aarch64-darwin architecture.
+- Any markdown documents you create, without my explicit request, should always go into a _docs folder in the root of the CWD you were called from. So, for this CWD, `.dotfiles-nix` which is the dotfiles-nix repo for my github user @megalithic, any docs that you auto-generate (again, ones that i didn't explicitly ask you to create), should go into .dotfiles-nix/_docs (and that directory should be added to .gitignore)
 - Always check that the remote origin/main isn't ahead of us before trying to push to main on github. Remember that we have a github workflow that gets the latest flake updates, so we need to pull the latest lock file from remote origin/main.
