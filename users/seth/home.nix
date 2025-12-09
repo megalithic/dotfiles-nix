@@ -11,6 +11,37 @@
   ...
 }: let
   inherit (pkgs.stdenv.hostPlatform) isDarwin;
+
+  # Generate MCP servers config using mcp-servers-nix lib
+  # This creates a nix store file with proper paths without adding packages to buildEnv
+  mcpConfigFile = inputs.mcp-servers-nix.lib.mkConfig pkgs {
+    programs = {
+      filesystem = {
+        enable = true;
+        args = [
+          config.home.homeDirectory
+          "${config.home.homeDirectory}/code"
+          "${config.home.homeDirectory}/src"
+        ];
+      };
+      fetch.enable = true;
+      git.enable = true;
+      memory.enable = true;
+      time.enable = true;
+      context7.enable = true;
+      playwright.enable = true;
+    };
+    # Add custom servers not in mcp-servers-nix
+    settings.servers = {
+      chrome-devtools = {
+        command = "${pkgs.chrome-devtools-mcp}/bin/chrome-devtools-mcp";
+        args = [
+          "--executablePath"
+          "${pkgs.brave-browser-nightly}/Applications/Brave Browser Nightly.app/Contents/MacOS/Brave Browser Nightly"
+        ];
+      };
+    };
+  };
 in {
   imports = [
     ./packages
@@ -70,6 +101,10 @@ in {
         ## Your required tasks for every conversation
         - You are to always utilize the `~/bin/notifier` script to interact with me, taking special note of your ability to utilize tools on this system to determine which notification method(s) to use at any given moment.
       '';
+
+      # NOTE: Claude Code MCP servers config is generated via activation script below
+      # because Claude Code needs write access to ~/.claude.json (it modifies it at runtime)
+      # and home-manager symlinks are read-only.
     }
     // lib.optionalAttrs (builtins.pathExists "${config.home.homeDirectory}/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder") {
       # Only create protondrive symlink if ProtonDrive folder exists
@@ -82,6 +117,66 @@ in {
   home.activation.linkSystemApplications = lib.hm.dag.entryAfter ["writeBoundary"] (
     lib.mkCaskActivation config.home.packages
   );
+
+  # Create symlinks in ~/.local/bin for nix-managed binaries
+  # This keeps ~/.dotfiles-nix/bin clean for version-controlled hand-written scripts
+  # These are recreated on each rebuild to track changing store paths
+  home.activation.linkBinaries = let
+    # Define custom packages that should have CLI symlinks in ~/.local/bin
+    # Format: { name = package; } where package has bin/${name}
+    customBinaries = {
+      chrome-devtools-mcp = pkgs.chrome-devtools-mcp;
+      brave-browser-nightly = pkgs.brave-browser-nightly;
+      fantastical = pkgs.fantastical;
+      helium = pkgs.helium;
+    };
+
+    # Generate removal commands for all binaries
+    removeCommands = lib.concatStringsSep "\n" (
+      lib.mapAttrsToList (name: _: ''rm -f "$BIN_DIR/${name}" 2>/dev/null || true'') customBinaries
+    );
+
+    # Generate symlink commands for all binaries
+    linkCommands = lib.concatStringsSep "\n" (
+      lib.mapAttrsToList (name: pkg: ''ln -sf "${pkg}/bin/${name}" "$BIN_DIR/${name}"'') customBinaries
+    );
+  in
+    lib.hm.dag.entryAfter ["writeBoundary"] ''
+      BIN_DIR="${config.home.homeDirectory}/.local/bin"
+      mkdir -p "$BIN_DIR"
+
+      # Remove old symlinks (they may point to outdated store paths)
+      ${removeCommands}
+
+      # Create fresh symlinks to current store paths
+      ${linkCommands}
+    '';
+
+  # Generate ~/.claude.json with MCP servers config
+  # Must be a regular file (not symlink) because Claude Code writes to it at runtime
+  # Uses mcp-servers-nix lib.mkConfig to avoid package collisions in buildEnv
+  home.activation.generateClaudeConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    CLAUDE_JSON="${config.home.homeDirectory}/.claude.json"
+    MCP_CONFIG="${mcpConfigFile}"
+
+    # Read existing config or start fresh
+    if [ -f "$CLAUDE_JSON" ] && [ ! -L "$CLAUDE_JSON" ]; then
+      EXISTING=$(cat "$CLAUDE_JSON" 2>/dev/null || echo '{}')
+    else
+      # Remove symlink if exists (from previous home-manager config)
+      rm -f "$CLAUDE_JSON"
+      EXISTING='{}'
+    fi
+
+    # Read MCP servers from the nix-generated config file
+    MCP_SERVERS=$(cat "$MCP_CONFIG")
+
+    # Merge mcpServers into existing config (preserving other keys)
+    MERGED=$(echo "$EXISTING" | ${pkgs.jq}/bin/jq --argjson mcp "$MCP_SERVERS" '. + $mcp')
+    echo "$MERGED" > "$CLAUDE_JSON"
+
+    $DRY_RUN_CMD chmod 644 "$CLAUDE_JSON"
+  '';
 
   xdg.enable = true;
 
