@@ -35,20 +35,20 @@ function obj:start(opts)
   -- https://github.com/justintout/.hammerspoon/blob/main/teams.lua
   -- https://github.com/fireprophet/TeamsKeepAlive/blob/main/init.lua
 
-  if
-    enum.contains({
-      hs.application.watcher.launched,
-      hs.application.watcher.activated,
-      hs.uielement.watcher.applicationActivated,
-      hs.uielement.watcher.windowCreated,
-    }, event)
-  then
-    hs.timer.waitUntil(function() return hasMeetingWindow(appObj) ~= nil end, function()
-      U.dnd(true, "meeting")
-      hs.spotify.pause()
-      require("ptt").setState("push-to-talk")
-    end)
-  end
+  -- if
+  --   enum.contains({
+  --     hs.application.watcher.launched,
+  --     hs.application.watcher.activated,
+  --     hs.uielement.watcher.applicationActivated,
+  --     hs.uielement.watcher.windowCreated,
+  --   }, event)
+  -- then
+  --   hs.timer.waitUntil(function() return hasMeetingWindow(appObj) ~= nil end, function()
+  --     U.dnd(true, "meeting")
+  --     hs.spotify.pause()
+  --     require("ptt").setState("push-to-talk")
+  --   end)
+  -- end
 
   return self
 end
@@ -60,16 +60,16 @@ function obj:stop(opts)
 
   if obj.modal then obj.modal:exit() end
 
-  if event == hs.application.watcher.terminated or event == hs.uielement.watcher.elementDestroyed then
-    hs.timer.waitUntil(
-      function() return appObj == nil or not appObj:isRunning() or not hasMeetingWindow(appObj) end,
-      function()
-        U.dnd(false)
-        require("ptt").setState("push-to-talk")
-        --
-      end
-    )
-  end
+  -- if event == hs.application.watcher.terminated or event == hs.uielement.watcher.elementDestroyed then
+  --   hs.timer.waitUntil(
+  --     function() return appObj == nil or not appObj:isRunning() or not hasMeetingWindow(appObj) end,
+  --     function()
+  --       U.dnd(false)
+  --       require("ptt").setState("push-to-talk")
+  --       --
+  --     end
+  --   )
+  -- end
 
   return self
 end

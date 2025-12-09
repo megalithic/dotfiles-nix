@@ -718,20 +718,11 @@ M.app.VIDEO_BUNDLES = {
   ["zoom.us"] = "us.zoom.xos",
   ["Microsoft Teams"] = "com.microsoft.teams2",
   ["Pop"] = "com.pop.pop.app",
-  ["Google Chrome"] = "com.google.Chrome",
-  ["Arc"] = "company.thebrowser.Browser",
-  ["Brave Browser"] = "com.brave.Browser",
-  ["Safari"] = "com.apple.Safari",
-  ["Firefox"] = "org.mozilla.firefox",
+  ["Brave Browser Nightly"] = "com.brave.Browser.nightly",
+  ["Helium"] = "net.imput.helium",
 }
 
-M.app.BROWSER_BUNDLES = {
-  ["com.google.Chrome"] = true,
-  ["company.thebrowser.Browser"] = true,
-  ["com.brave.Browser"] = true,
-  ["com.apple.Safari"] = true,
-  ["org.mozilla.firefox"] = true,
-}
+M.app.BROWSER_BUNDLES = { BROWSER, "com.brave.Browser.nightly", "net.imput.helium" }
 
 --- Check if a window appears to be a meeting (vs settings/preview)
 --- Returns: isMeeting (true/false/nil), reason (string)
@@ -780,8 +771,16 @@ function M.app.isMeetingWindow(app, window)
   end
 
   -- Browser-based: check for meeting URLs in title
-  if M.app.BROWSER_BUNDLES[bundleID] then
-    local meetingUrlPatterns = { "meet.google.com", "teams.microsoft.com", "zoom.us/j", "whereby.com" }
+  if hs.fnutils.contains(M.app.BROWSER_BUNDLES, bundleID) then
+    local meetingUrlPatterns = {
+      "meet.google.com",
+      "teams.microsoft.com",
+      "zoom.us",
+      "whereby.com",
+      "hangouts.google.com.call",
+      "www.valant.io",
+      "telehealth.px.athena.io",
+    }
     for _, pattern in ipairs(meetingUrlPatterns) do
       if titleLower:find(pattern, 1, true) then return true, "browser_meeting_url" end
     end

@@ -7,49 +7,73 @@ local M = {}
 local lastProcessedTime = 0
 local DEBOUNCE_INTERVAL = 1.0 -- 1 second - ignore events within this window
 
+-- Path to VDC plugin binary (camera framework)
+local VDC_PATH = "/System/Library/Frameworks/CoreMediaIO.framework/Versions/A/Resources/VDC.plugin/Contents/MacOS/VDC"
+
+-- System processes to ignore when detecting camera usage
+-- These always have VDC loaded but aren't the actual camera-using app
+local VDC_IGNORE_PROCESSES = {
+  ["ControlCe"] = true, -- Control Center
+  ["Hammerspo"] = true, -- Hammerspoon itself
+  ["avconfere"] = true, -- AV conference daemon
+  ["VDCAssist"] = true, -- VDC Assistant
+  ["coreaudio"] = true, -- Core Audio daemon
+}
+
 -- Detect which application is using the camera
 -- Uses multiple detection methods with fallbacks
 -- Returns: bundleID (string or nil), method (string), isMeeting (bool or nil)
 local function detectCameraApp()
   -- Method 1: VDC (Video Device Control) via lsof - most reliable
-  -- Any app using the camera MUST have a handle to the VDC plugin
-  local vdcOutput, vdcStatus = hs.execute("lsof 2>/dev/null | grep -i VDC | head -5")
+  -- Query the specific VDC binary instead of scanning all open files
+  local vdcOutput, vdcStatus = hs.execute(fmt("lsof '%s' 2>/dev/null | tail -n +2 | head -10", VDC_PATH))
 
   if vdcStatus and vdcOutput and vdcOutput ~= "" then
-    -- Parse the process name from lsof output (first column)
-    local processName = vdcOutput:match("^(%S+)")
-    if processName then
-      -- Try to find the running application by name
-      local app = hs.application.get(processName)
-      if app then
-        local bundleID = app:bundleID()
-        local window = app:focusedWindow() or app:mainWindow()
-        local isMeeting, meetingMethod = U.app.isMeetingWindow(app, window)
-        U.log.df("Detected via VDC: %s (meeting: %s, %s)", bundleID, tostring(isMeeting), meetingMethod or "n/a")
-        return bundleID, "vdc", isMeeting
-      end
+    -- Iterate through each line to find a real app (skip system processes)
+    for line in vdcOutput:gmatch("[^\r\n]+") do
+      local processName = line:match("^(%S+)")
+      if processName and not VDC_IGNORE_PROCESSES[processName] then
+        -- Try to find the running application by name
+        local app = hs.application.get(processName)
+        if app then
+          local bundleID = app:bundleID()
+          -- Skip Hammerspoon itself
+          if bundleID ~= "org.hammerspoon.Hammerspoon" then
+            local window = app:focusedWindow() or app:mainWindow()
+            local isMeeting, meetingMethod = U.app.isMeetingWindow(app, window)
+            U.log.df("Detected via VDC: %s (meeting: %s, %s)", bundleID, tostring(isMeeting), meetingMethod or "n/a")
+            return bundleID, "vdc", isMeeting
+          end
+        end
 
-      -- Fallback: check VIDEO_BUNDLES mapping
-      local bundleID = U.app.VIDEO_BUNDLES[processName]
-      if bundleID then
-        local app = hs.application.get(bundleID)
-        local window = app and (app:focusedWindow() or app:mainWindow())
-        local isMeeting, meetingMethod = U.app.isMeetingWindow(app, window)
-        U.log.df("Detected via VDC mapping: %s (meeting: %s, %s)", bundleID, tostring(isMeeting), meetingMethod or "n/a")
-        return bundleID, "vdc_mapped", isMeeting
+        -- Fallback: check VIDEO_BUNDLES mapping
+        local bundleID = U.app.VIDEO_BUNDLES[processName]
+        if bundleID then
+          local mappedApp = hs.application.get(bundleID)
+          local window = mappedApp and (mappedApp:focusedWindow() or mappedApp:mainWindow())
+          local isMeeting, meetingMethod = U.app.isMeetingWindow(mappedApp, window)
+          U.log.df(
+            "Detected via VDC mapping: %s (meeting: %s, %s)",
+            bundleID,
+            tostring(isMeeting),
+            meetingMethod or "n/a"
+          )
+          return bundleID, "vdc_mapped", isMeeting
+        end
       end
     end
   end
 
   -- Method 2: Check for video capture service processes (app-specific optimization)
-  local vcOutput, vcStatus = hs.execute("ps aux | grep -E 'video_capture|VideoCaptureService' | grep -v grep 2>/dev/null")
+  local vcOutput, vcStatus =
+    hs.execute("ps aux | grep -E 'video_capture|VideoCaptureService' | grep -v grep 2>/dev/null")
 
   if vcStatus and vcOutput and vcOutput ~= "" then
     for _, app in ipairs(hs.application.runningApplications()) do
       local appName = app:name()
       local appPath = app:path()
 
-      if appName and (vcOutput:match(appName) or (appPath and vcOutput:match(appPath, 1, true))) then
+      if appName and (vcOutput:find(appName, 1, true) or (appPath and vcOutput:find(appPath, 1, true))) then
         if appPath and appPath:match("/Contents/") then
           local mainAppPath = appPath:match("(.-%.app)")
           if mainAppPath then
@@ -58,7 +82,12 @@ local function detectCameraApp()
               local mainApp = hs.application.get(mainAppInfo.CFBundleIdentifier)
               local window = mainApp and (mainApp:focusedWindow() or mainApp:mainWindow())
               local isMeeting, meetingMethod = U.app.isMeetingWindow(mainApp, window)
-              U.log.df("Detected via video_capture: %s (meeting: %s, %s)", mainAppInfo.CFBundleIdentifier, tostring(isMeeting), meetingMethod or "n/a")
+              U.log.df(
+                "Detected via video_capture: %s (meeting: %s, %s)",
+                mainAppInfo.CFBundleIdentifier,
+                tostring(isMeeting),
+                meetingMethod or "n/a"
+              )
               return mainAppInfo.CFBundleIdentifier, "video_capture", isMeeting
             end
           end
@@ -67,7 +96,12 @@ local function detectCameraApp()
           if bundleID then
             local window = app:focusedWindow() or app:mainWindow()
             local isMeeting, meetingMethod = U.app.isMeetingWindow(app, window)
-            U.log.df("Detected via video_capture: %s (meeting: %s, %s)", bundleID, tostring(isMeeting), meetingMethod or "n/a")
+            U.log.df(
+              "Detected via video_capture: %s (meeting: %s, %s)",
+              bundleID,
+              tostring(isMeeting),
+              meetingMethod or "n/a"
+            )
             return bundleID, "video_capture", isMeeting
           end
         end
@@ -75,14 +109,39 @@ local function detectCameraApp()
     end
   end
 
-  -- Method 3: Frontmost application with meeting window check
+  -- Method 3: Frontmost application - but ONLY if it's a known video app
+  -- This prevents misattribution when camera activates in background
+  -- (e.g., Zoom starts camera while user is in Terminal)
   local frontmost = hs.application.frontmostApplication()
   if frontmost then
     local bundleID = frontmost:bundleID()
-    local window = frontmost:focusedWindow() or frontmost:mainWindow()
-    local isMeeting, meetingMethod = U.app.isMeetingWindow(frontmost, window)
-    U.log.df("Detected via frontmost: %s (meeting: %s, %s)", bundleID, tostring(isMeeting), meetingMethod or "n/a")
-    return bundleID, "frontmost", isMeeting
+    local appName = frontmost:name()
+
+    -- Check if frontmost is a known video app (by name or bundleID)
+    local isKnownVideoApp = U.app.VIDEO_BUNDLES[appName] ~= nil
+    if not isKnownVideoApp then
+      -- Also check by bundleID (values in VIDEO_BUNDLES)
+      for _, knownBundleID in pairs(U.app.VIDEO_BUNDLES) do
+        if knownBundleID == bundleID then
+          isKnownVideoApp = true
+          break
+        end
+      end
+    end
+
+    if isKnownVideoApp then
+      local window = frontmost:focusedWindow() or frontmost:mainWindow()
+      local isMeeting, meetingMethod = U.app.isMeetingWindow(frontmost, window)
+      U.log.df(
+        "Detected via frontmost (known video app): %s (meeting: %s, %s)",
+        bundleID,
+        tostring(isMeeting),
+        meetingMethod or "n/a"
+      )
+      return bundleID, "frontmost", isMeeting
+    else
+      U.log.df("Frontmost app %s is not a known video app, skipping", bundleID)
+    end
   end
 
   U.log.w("Could not detect which app is using camera")
@@ -99,9 +158,6 @@ local function startMeetingMode(appName, reason)
   U.dnd(true, "meeting")
   hs.spotify.pause()
   require("ptt").setState("push-to-talk")
-
-  -- hs.shortcuts.run("Meeting Start")
-  -- Elgato.cameraStart()
 end
 
 local function cameraActive(camera, property)
@@ -155,9 +211,6 @@ local function stopMeetingMode()
   U.log.f("Stopping meeting mode")
   U.dnd(false)
   require("ptt").setState("push-to-talk")
-
-  -- hs.shortcuts.run("Meeting End")
-  -- Elgato.cameraEnd()
 end
 
 local function cameraInactive(camera, property)
@@ -180,9 +233,7 @@ local function watchCameraProperty(camera, property)
     local timeSinceLastProcess = now - lastProcessedTime
 
     -- Debounce: ignore events that occur too soon after the last one
-    if timeSinceLastProcess < DEBOUNCE_INTERVAL then
-      return
-    end
+    if timeSinceLastProcess < DEBOUNCE_INTERVAL then return end
 
     lastProcessedTime = now
     P({ camera:name(), property })

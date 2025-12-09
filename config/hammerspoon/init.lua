@@ -92,7 +92,7 @@ end
 
 hs.loadSpoon("EmmyLua")
 
-local watchers = { "audio", "dock", "app", "notification", "network", "camera" }
+local watchers = { "audio", "dock", "app", "notification", "camera" }
 
 -- req("lib.seal")
 req("bindings")
