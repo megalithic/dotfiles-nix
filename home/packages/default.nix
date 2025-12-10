@@ -55,17 +55,6 @@ in {
     yubikey-personalization
     zoom-us
 
-    # [ai] ----------------------------------------------------------------------------------------
-    ai-tools.opencode
-    ai-tools.claude-code
-    ai-tools.claude-code-acp
-
-    # [mcp-servers] -------------------------------------------------------------------------------
-    # NOTE: MCP servers are NOT installed as home.packages because they conflict
-    # (they share node_modules paths from @modelcontextprotocol/servers monorepo).
-    # Instead, they're referenced directly by store path in ~/.claude.json config.
-    # See: home.nix ".claude.json" configuration
-
     # TODO: sort these with the stuff above
     # [migrated from megabookpro.nix] -------------------------------------------------------------
     # (fenix.complete.withComponents [

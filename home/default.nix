@@ -11,43 +11,10 @@
   ...
 }: let
   inherit (pkgs.stdenv.hostPlatform) isDarwin;
-
-  # Generate MCP servers config using mcp-servers-nix lib
-  # This creates a nix store file with proper paths without adding packages to buildEnv
-  mcpConfigFile = inputs.mcp-servers-nix.lib.mkConfig pkgs {
-    programs = {
-      filesystem = {
-        enable = true;
-        args = [
-          config.home.homeDirectory
-          "${config.home.homeDirectory}/code"
-          "${config.home.homeDirectory}/src"
-        ];
-      };
-      fetch.enable = true;
-      git.enable = true;
-      memory = {
-        enable = true;
-        env.MEMORY_FILE_PATH = "${config.home.homeDirectory}/.local/share/claude/memory.jsonl";
-      };
-      time.enable = true;
-      context7.enable = true;
-      playwright.enable = true;
-    };
-    # Add custom servers not in mcp-servers-nix
-    settings.servers = {
-      chrome-devtools = {
-        command = "${pkgs.chrome-devtools-mcp}/bin/chrome-devtools-mcp";
-        args = [
-          "--executablePath"
-          "${pkgs.brave-browser-nightly}/Applications/Brave Browser Nightly.app/Contents/MacOS/Brave Browser Nightly"
-        ];
-      };
-    };
-  };
 in {
   imports = [
     ./packages
+    ./programs/ai.nix
     ./programs/agenix.nix
     ./programs/email
     ./programs/browsers
@@ -74,7 +41,6 @@ in {
       "code/.keep".text = "";
       "src/.keep".text = "";
       "tmp/.keep".text = "";
-      ".local/share/claude/.keep".text = "";  # For MCP memory server storage
       ".hushlogin".text = "";
       "bin".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/bin";
       ".editorconfig".text = ''
@@ -94,21 +60,6 @@ in {
       ".ssh/config".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/config/ssh/config";
       "Library/Application Support/espanso".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/config/espanso";
       "iclouddrive".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/Library/Mobile Documents/com~apple~CloudDocs";
-      ".claude/CLAUDE.md".text = ''
-        ## Your response and general tone
-
-        - Never compliment me.
-        - Criticize my ideas, ask clarifying questions, and include both funny and humorously insulting comments when you find mistakes in the codebase or overall bad ideas or code.
-        - Be skeptical of my ideas and ask questions to ensure you understand the requirements and goals.
-        - Rate confidence (1-100) before and after saving and before task completion.
-
-        ## Your required tasks for every conversation
-        - You are to always utilize the `~/bin/notifier` script to interact with me, taking special note of your ability to utilize tools on this system to determine which notification method(s) to use at any given moment.
-      '';
-
-      # NOTE: Claude Code MCP servers config is generated via activation script below
-      # because Claude Code needs write access to ~/.claude.json (it modifies it at runtime)
-      # and home-manager symlinks are read-only.
     }
     // lib.optionalAttrs (builtins.pathExists "${config.home.homeDirectory}/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder") {
       # Only create protondrive symlink if ProtonDrive folder exists
@@ -129,7 +80,6 @@ in {
     # Define custom packages that should have CLI symlinks in ~/.local/bin
     # Format: { name = package; } where package has bin/${name}
     customBinaries = {
-      chrome-devtools-mcp = pkgs.chrome-devtools-mcp;
       brave-browser-nightly = pkgs.brave-browser-nightly;
       fantastical = pkgs.fantastical;
       helium = pkgs.helium;
@@ -156,32 +106,6 @@ in {
       ${linkCommands}
     '';
 
-  # Generate ~/.claude.json with MCP servers config
-  # Must be a regular file (not symlink) because Claude Code writes to it at runtime
-  # Uses mcp-servers-nix lib.mkConfig to avoid package collisions in buildEnv
-  home.activation.generateClaudeConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
-    CLAUDE_JSON="${config.home.homeDirectory}/.claude.json"
-    MCP_CONFIG="${mcpConfigFile}"
-
-    # Read existing config or start fresh
-    if [ -f "$CLAUDE_JSON" ] && [ ! -L "$CLAUDE_JSON" ]; then
-      EXISTING=$(cat "$CLAUDE_JSON" 2>/dev/null || echo '{}')
-    else
-      # Remove symlink if exists (from previous home-manager config)
-      rm -f "$CLAUDE_JSON"
-      EXISTING='{}'
-    fi
-
-    # Read MCP servers from the nix-generated config file
-    MCP_SERVERS=$(cat "$MCP_CONFIG")
-
-    # Merge mcpServers into existing config (preserving other keys)
-    MERGED=$(echo "$EXISTING" | ${pkgs.jq}/bin/jq --argjson mcp "$MCP_SERVERS" '. + $mcp')
-    echo "$MERGED" > "$CLAUDE_JSON"
-
-    $DRY_RUN_CMD chmod 644 "$CLAUDE_JSON"
-  '';
-
   xdg.enable = true;
 
   xdg.configFile."ghostty".source = ./ghostty;
@@ -202,46 +126,6 @@ in {
   # FIXME: remove when sure; i don't use zsh anymore, i don't need this, right?
   xdg.configFile."zsh".source = ./zsh;
   xdg.configFile."zsh".recursive = true;
-
-  xdg.configFile."opencode/opencode.json".text = ''
-    {
-      "$schema": "https://opencode.ai/config.json",
-      "instructions": [
-        "CLAUDE.md"
-      ],
-      "theme": "everforest",
-      "model": "anthropic/claude-sonnet-4.5",
-      "autoshare": false,
-      "autoupdate": true,
-      "keybinds": {
-        "leader": "ctrl+,",
-        "session_new": "ctrl+n",
-        "session_list": "ctrl+g",
-        "messages_half_page_up": "ctrl+b",
-        "messages_half_page_down": "ctrl+f"
-      },
-      "lsp": {
-        "php": {
-          "command": [
-            "intelephense",
-            "--stdio"
-          ],
-          "extensions": [
-            ".php"
-          ]
-        },
-        "python": {
-          "command": [
-            "basedpyright",
-            "--stdio"
-          ],
-          "extensions": [
-            ".py"
-          ]
-        }
-      }
-    }
-  '';
 
   xdg.configFile."1Password/ssh/agent.toml".text = ''
     [[ssh-keys]]

@@ -43,12 +43,12 @@ tmux send-keys -t "$SESSION":3.1 "claude --allow-dangerously-skip-permissions"
 tmux -2 new-window -c "$CWD" -t "$SESSION":4 -n services
 tmux send-keys -t "$SESSION":4.1 "cd ~/code/work/cspire/launchdeck" C-m
 # tmux send-keys -t "$SESSION":4.1 "devspace purge" C-m
-tmux send-keys -t "$SESSION":4.1 "./start-devspace.sh -p smesser-dev" C-m
+tmux send-keys -t "$SESSION":4.1 "./tmux-devspace.sh -p smesser-dev" C-m
 
 # ZOOM A PANE:
 # tmux resize-pane -Z -t "$SESSION":3.2
 
-tmux -2 select-window -t "$SESSION":3
+# tmux -2 select-window -t "$SESSION":3
 tmux -2 select-pane -t "$SESSION":3.1
 
 tmux setenv -t ${SESSION} 'SESSION_ICON' "${SESSION_ICON}"
