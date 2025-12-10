@@ -66,7 +66,7 @@ in
 
         extract_payload() {
           local payload="$1"
-          if head -c 4 "$payload" | grep -q "pbzx"; then
+          if head -c 4 "$payload" | rg -q "pbzx"; then
             echo "  (using pbzx decompression)"
             pbzx - < "$payload" | cpio -i 2>/dev/null || true
           else
@@ -134,7 +134,8 @@ in
         # If appName isn't in root but exists nested, move it up
         if [[ ! -d "${appName}" ]]; then
           echo "App not in root, searching for nested .app..."
-          nested_app=$(find . -maxdepth 2 -name "${appName}" -type d 2>/dev/null | head -1)
+          # fd: -d 2 = max depth 2, -t d = type directory, -g = glob pattern, -1 = first match only
+          nested_app=$(fd -d 2 -t d -g "${appName}" . 2>/dev/null | head -1)
           if [[ -n "$nested_app" && -d "$nested_app" ]]; then
             echo "Found nested app at: $nested_app"
             mv "$nested_app" .

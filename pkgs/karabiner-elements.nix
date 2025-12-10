@@ -31,9 +31,11 @@ in
     # Activate the system extension after installation
     postNativeInstall = ''
       echo "[karabiner] Checking system extension status..."
-      SYSEXT_STATUS=$(systemextensionsctl list 2>/dev/null | grep -i "org.pqrs.Karabiner-DriverKit-VirtualHIDDevice" || true)
+      # rg: -i = case insensitive
+      SYSEXT_STATUS=$(systemextensionsctl list 2>/dev/null | ${pkgs.ripgrep}/bin/rg -i "org.pqrs.Karabiner-DriverKit-VirtualHIDDevice" || true)
 
-      if echo "$SYSEXT_STATUS" | grep -q "activated enabled"; then
+      # rg: -q = quiet (exit status only)
+      if echo "$SYSEXT_STATUS" | ${pkgs.ripgrep}/bin/rg -q "activated enabled"; then
         echo "[karabiner] System extension already activated"
       else
         echo "[karabiner] Activating system extension..."

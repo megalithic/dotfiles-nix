@@ -79,7 +79,8 @@
         PKG_PATH="$MOUNT_POINT/$PKG_NAME"
       else
         # Try to find a .pkg file
-        PKG_PATH=$(find "$MOUNT_POINT" -maxdepth 1 -name "*.pkg" | head -1)
+        # fd: -d 1 = max depth 1, -e pkg = extension .pkg, -1 = first match only
+        PKG_PATH=$(${pkgs.fd}/bin/fd -d 1 -e pkg . "$MOUNT_POINT" | head -1)
       fi
 
       if [ ! -f "$PKG_PATH" ]; then

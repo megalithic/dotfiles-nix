@@ -249,13 +249,10 @@ in {
         set -l fzf_query $commandline[2]
         set -l prefix $commandline[3]
 
-        # "-path \$dir'*/\\.*'" matches hidden files/folders inside $dir but not
-        # $dir itself, even if hidden.
+        # fd: -L = follow symlinks, --min-depth 1 = skip root dir, -tf -td -tl = files, dirs, symlinks
+        # fd excludes hidden files by default (use -H to include them)
         test -n "$FZF_CTRL_T_COMMAND"; or set -l FZF_CTRL_T_COMMAND "
-        command find -L \$dir -mindepth 1 \\( -path \$dir'*/\\.*' -o -fstype 'sysfs' -o -fstype 'devfs' -o -fstype 'devtmpfs' \\) -prune \
-        -o -type f -print \
-        -o -type d -print \
-        -o -type l -print 2> /dev/null | sed 's@^\./@@'"
+        fd -L --min-depth 1 -tf -td -tl . \$dir 2>/dev/null"
 
         test -n "$FZF_TMUX_HEIGHT"; or set FZF_TMUX_HEIGHT 40%
         begin

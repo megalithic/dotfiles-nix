@@ -32,7 +32,8 @@
 
     ${lib.concatMapStringsSep "\n" (app: ''
       # Check if app is already installed
-      if echo "$INSTALLED_APPS" | grep -q "^${toString app.id} "; then
+      # rg: -q = quiet, regex matches start of line with app ID
+      if echo "$INSTALLED_APPS" | ${pkgs.ripgrep}/bin/rg -q "^${toString app.id} "; then
         echo -e "''${GREEN}✓''${NC} ${app.name} (${toString app.id}) - already installed"
       else
         echo -e "''${BLUE}→''${NC} Installing ${app.name} (${toString app.id})..."
@@ -41,7 +42,8 @@
         # Note: mas install returns 0 even on failure, so we need to check output
         INSTALL_OUTPUT=$(${pkgs.mas}/bin/mas install ${toString app.id} 2>&1)
 
-        if echo "$INSTALL_OUTPUT" | grep -qE "(Warning|Error):"; then
+        # rg: -q = quiet, regex matches Warning or Error
+        if echo "$INSTALL_OUTPUT" | ${pkgs.ripgrep}/bin/rg -q "(Warning|Error):"; then
           # Installation failed, check if we can find it by name
           echo -e "''${YELLOW}⚠''${NC}  Failed to install by ID ${toString app.id}, searching by name..."
 
@@ -55,7 +57,7 @@
             echo -e "''${BLUE}→''${NC} Attempting install with ID $FOUND_ID..."
 
             INSTALL_OUTPUT2=$(${pkgs.mas}/bin/mas install "$FOUND_ID" 2>&1)
-            if ! echo "$INSTALL_OUTPUT2" | grep -qE "(Warning|Error):"; then
+            if ! echo "$INSTALL_OUTPUT2" | ${pkgs.ripgrep}/bin/rg -q "(Warning|Error):"; then
               echo -e "''${GREEN}✓''${NC} Installed $FOUND_NAME ($FOUND_ID)"
               echo -e "''${YELLOW}⚠''${NC}  Note: Original ID ${toString app.id} was incorrect. Use ID $FOUND_ID instead."
             else

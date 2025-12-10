@@ -185,7 +185,8 @@ in {
           $DRY_RUN_CMD echo "✓ Developer mode enabled for Helium"
         fi
       else
-        $DRY_RUN_CMD echo "✓ Developer mode already enabled for Helium"
+        # $DRY_RUN_CMD echo "✓ Developer mode already enabled for Helium"
+        :
       fi
     else
       $DRY_RUN_CMD echo "Helium profile not found - developer mode will be set on first run"
@@ -200,7 +201,8 @@ in {
   # Brave Browser Nightly is installed in /Applications first.
   home.activation.heliumInstallWidevine = lib.hm.dag.entryAfter ["writeBoundary" "linkSystemApplications"] ''
     # Find Helium in nix store
-    HELIUM_NIX_APP=$(ls -d /nix/store/*-helium-0.*/Applications/Helium.app 2>/dev/null | grep -v "wrapped" | sort -V | tail -1)
+    # rg: -v = invert match (exclude lines containing "wrapped")
+    HELIUM_NIX_APP=$(ls -d /nix/store/*-helium-0.*/Applications/Helium.app 2>/dev/null | ${pkgs.ripgrep}/bin/rg -v "wrapped" | sort -V | tail -1)
 
     if [ -z "$HELIUM_NIX_APP" ] || [ ! -d "$HELIUM_NIX_APP" ]; then
       $DRY_RUN_CMD echo "Helium package not found in nix store, skipping Widevine installation"
@@ -226,7 +228,8 @@ in {
 
         # Check if Widevine is already installed
         if [ -d "$HELIUM_WIDEVINE" ] && [ -f "$HELIUM_WIDEVINE/_platform_specific/mac_arm64/libwidevinecdm.dylib" ]; then
-          $DRY_RUN_CMD echo "✓ Widevine already installed in Helium"
+          # $DRY_RUN_CMD echo "✓ Widevine already installed in Helium"
+          :
         else
           # Try to extract from Brave Browser Nightly first
           BRAVE_NIGHTLY="/Applications/Brave Browser Nightly.app"
@@ -235,7 +238,8 @@ in {
 
           if [ -d "$BRAVE_NIGHTLY" ] && [ -d "$BRAVE_WIDEVINE_DIR" ]; then
             # Find the latest Widevine version directory
-            LATEST_WIDEVINE=$(find "$BRAVE_WIDEVINE_DIR" -maxdepth 1 -type d -name "[0-9]*" | sort -V | tail -1)
+            # fd: -d 1 = max depth 1, -t d = type directory, regex matches dirs starting with digit
+            LATEST_WIDEVINE=$(${pkgs.fd}/bin/fd -d 1 -t d '^[0-9]' "$BRAVE_WIDEVINE_DIR" 2>/dev/null | sort -V | tail -1)
 
             if [ -n "$LATEST_WIDEVINE" ] && [ -f "$LATEST_WIDEVINE/manifest.json" ]; then
               $DRY_RUN_CMD echo "Found Widevine in Brave Nightly: $LATEST_WIDEVINE"

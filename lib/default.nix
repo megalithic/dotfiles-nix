@@ -83,9 +83,9 @@ inputs: lib: _:
   # mkAppActivation - Generate home-manager activation scripts for apps requiring /Applications
   # Usage: Add to home.activation:
   #   home.activation.linkSystemApplications = lib.hm.dag.entryAfter ["writeBoundary"] (
-  #     lib.mkAppActivation config.home.packages
+  #     lib.mkAppActivation { inherit pkgs; packages = config.home.packages; }
   #   );
-  mkAppActivation = packages: let
+  mkAppActivation = {pkgs, packages}: let
     # Filter packages that need system /Applications folder
     appsNeedingSystemFolder = builtins.filter (
       pkg: (pkg.passthru or {}).needsSystemApplicationsFolder or false
@@ -112,7 +112,8 @@ inputs: lib: _:
         for metadata_file in "$METADATA_DIR"/*.nixpath; do
           if [[ -f "$metadata_file" ]]; then
             app_name=$(basename "$metadata_file" .nixpath)
-            if ! echo "$CURRENT_APPS" | grep -qFx "$app_name"; then
+            # rg: -q = quiet, -F = fixed string, -x = match whole line
+            if ! echo "$CURRENT_APPS" | ${pkgs.ripgrep}/bin/rg -qFx "$app_name"; then
               echo "Removing orphaned app: $app_name"
               if [[ -e "/Applications/$app_name" ]]; then
                 chmod -R u+w "/Applications/$app_name" 2>/dev/null || true
