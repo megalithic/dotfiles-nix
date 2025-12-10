@@ -114,9 +114,9 @@ in {
     };
   };
 
-  imports = [./extension.nix];
+  imports = [./mkChromiumBrowser.nix];
 
-  # Extension files are managed by extension.nix module
+  # Extension files are managed by mkChromiumBrowser.nix
   # which correctly handles the Helium directory path:
   # Library/Application Support/net.imput.helium/External Extensions/
 

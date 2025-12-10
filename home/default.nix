@@ -50,7 +50,7 @@ in {
     ./packages
     ./programs/agenix.nix
     ./programs/email
-    ./programs/chromium
+    ./programs/browsers
     ./programs/jujutsu.nix
     ./programs/fish.nix
     ./programs/fzf.nix
