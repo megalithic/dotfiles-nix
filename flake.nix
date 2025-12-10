@@ -147,13 +147,13 @@
         {nixpkgs.config.allowUnfree = true;}
         {nixpkgs.config.allowUnfreePredicate = _: true;}
         ./hosts/${hostname}.nix
-        ./modules/darwin/system.nix
-        ./modules/darwin/native-pkg-installer.nix
+        ./modules/system.nix
+        ./modules/native-pkg-installer.nix
         agenix.darwinModules.default
 
         nix-homebrew.darwinModules.nix-homebrew
         (brew_config {inherit username;})
-        (import ./modules/darwin/brew.nix)
+        (import ./modules/brew.nix)
         home-manager.darwinModules.default
         {
           home-manager = {
