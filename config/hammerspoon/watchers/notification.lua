@@ -20,6 +20,27 @@ local notificationSubroles = {
   AXNotificationCenterBanner = true,
 }
 
+-- Find nested notification element in macOS Sequoia's new structure
+-- Sequoia wraps notifications in AXSystemDialog > AXHostingView > ... > AXNotificationCenterAlert
+local function findNotificationElement(element, depth)
+  depth = depth or 0
+  if depth > 6 then return nil end -- Prevent infinite recursion
+
+  local subrole = element.AXSubrole
+  if notificationSubroles[subrole] then
+    return element
+  end
+
+  -- Recurse into children
+  local children = element:attributeValue("AXChildren") or {}
+  for _, child in ipairs(children) do
+    local found = findNotificationElement(child, depth + 1)
+    if found then return found end
+  end
+
+  return nil
+end
+
 -- Process a notification that appeared in Notification Center
 local function handleNotification(element)
   -- Skip if notification drawer is open (user is already looking at notifications)
@@ -29,22 +50,32 @@ local function handleNotification(element)
     if notificationCenter and notificationCenter:asHSApplication():focusedWindow() then return end
   end
 
-  -- Process each notification only once
-  if not notificationSubroles[element.AXSubrole] or M.processedNotificationIDs[element.AXIdentifier] then return end
+  -- macOS Sequoia (15+) changed notification structure:
+  -- Events fire with AXSystemDialog at the top level, but the actual
+  -- AXNotificationCenterAlert/Banner is nested inside. We need to traverse.
+  local notificationElement = element
+  if element.AXSubrole == "AXSystemDialog" then
+    notificationElement = findNotificationElement(element)
+    if not notificationElement then return end -- No notification found in tree
+  end
 
-  M.processedNotificationIDs[element.AXIdentifier] = true
+  -- Process each notification only once
+  if not notificationSubroles[notificationElement.AXSubrole] or M.processedNotificationIDs[notificationElement.AXIdentifier] then return end
+
+  M.processedNotificationIDs[notificationElement.AXIdentifier] = true
 
   -- Get the stacking identifier to determine which app sent the notification
-  local stackingID = element.AXStackingIdentifier or "unknown"
+  -- Use notificationElement (the actual alert/banner), not the outer container
+  local stackingID = notificationElement.AXStackingIdentifier or "unknown"
 
   -- Extract bundle ID from stackingID
   -- Format: bundleIdentifier=com.example.app,threadIdentifier=...
   -- Try to extract bundleIdentifier value first, fallback to simple extraction
   local bundleID = stackingID:match("bundleIdentifier=([^,;%s]+)") or stackingID:match("^([^;%s]+)") or stackingID
 
-  -- Extract notification text elements
+  -- Extract notification text elements from the actual notification element
   local staticTexts = hs.fnutils.imap(
-    hs.fnutils.ifilter(element, function(value) return value.AXRole == "AXStaticText" end),
+    hs.fnutils.ifilter(notificationElement, function(value) return value.AXRole == "AXStaticText" end),
     function(value) return value.AXValue end
   )
 
