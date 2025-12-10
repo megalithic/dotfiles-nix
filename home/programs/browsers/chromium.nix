@@ -19,41 +19,84 @@
     };
   };
 
-  # Extension list - update with: bin/chrome-ext-info <id> --name <name> --hash
+  # ===========================================================================
+  # Shared Extension List
+  # ===========================================================================
+  # Both Helium and Brave Browser Nightly use the same extensions.
+  # Update hashes with: nix-prefetch-url "<crx-url>" --name "<name>.crx"
+  #
+  # NOTE: 1Password (aeblfdkhhhdcdjpifhhbdiojplfjncoa) not available via
+  # Chrome Web Store API - install manually in each browser.
   extensions = [
     (mkExtension {
-      id = "egnjhciaieeiiohknchakcodbpgjnchh"; # tab wrangler
-      version = "7.9.0";
-      sha256 = "sha256-vUKTo1UFRoTKv0KeAvGx4kmVi5CEqxtIPMP1H/owI3Q=";
+      id = "ponfpcnoihfmfllpaingbgckeeldkhle"; # Enhancer for YouTube
+      version = "2.0.131";
+      sha256 = "0mdqa9w1p6cmli6976v4wi0sw9r4p5prkj7lzfd1877wk11c9c73";
     })
     (mkExtension {
-      id = "gfbliohnnapiefjpjlpjnehglfpaknnc"; # surfingkeys
+      id = "gfbliohnnapiefjpjlpjnehglfpaknnc"; # SurfingKeys
       version = "1.17.11";
       sha256 = "sha256-JO4w4a7ASorWMwITy7YtJgI3if3NcrWBijpABnQAi0c=";
     })
     (mkExtension {
-      id = "egpjdkipkomnmjhjmdamaniclmdlobbo"; # firenvim
+      id = "egpjdkipkomnmjhjmdamaniclmdlobbo"; # Firenvim
       version = "0.2.16";
       sha256 = "sha256-QFQjBG7fOyj7rRNSby7enwCIhjXqyRPpm+AwqBM9sv4=";
     })
     (mkExtension {
-      id = "cdglnehniifkbagbbombnjghhcihifij"; # kagi
+      id = "gmdfnfcigbfkmghbjeelmbkbiglbmbpe"; # LiveDebugger DevTools
+      version = "0.6.3";
+      sha256 = "1jdm92arkrsj8l0g03g66ml86inn75i91bcxxajdg87s25lls9f4";
+    })
+    (mkExtension {
+      id = "cdglnehniifkbagbbombnjghhcihifij"; # Kagi Search
       version = "1.2.2.5";
       sha256 = "sha256-weiUUUiZeeIlz/k/d9VDSKNwcQtmAahwSIHt7Frwh7E=";
     })
     (mkExtension {
-      id = "dpaefegpjhgeplnkomgbcmmlffkijbgp"; # kagi-summariser
+      id = "dpaefegpjhgeplnkomgbcmmlffkijbgp"; # Kagi Summarizer
       version = "1.0.1";
       sha256 = "sha256-BnnCPisSxlhTSoQQeZg06Re8MhgwztRKmET9D93ghiw=";
     })
-    # NOTE: 1Password (aeblfdkhhhdcdjpifhhbdiojplfjncoa) not available via Chrome Web Store API
-    # Install manually
+    (mkExtension {
+      id = "cfcmijalplpjkfihjkdjdkckkglehgcf"; # Clear Downloads
+      version = "1.4";
+      sha256 = "14wg8bcjbwvr9mmp4rhhfk8hnbaibclav2gqjnfi5lx78dppaic4";
+    })
+  ];
+
+  # ===========================================================================
+  # Shared Command-Line Arguments
+  # ===========================================================================
+  # Common args for both browsers
+  sharedCommandLineArgs = [
+    # Remote debugging for browser automation (MCP servers, etc.)
+    # Verify at: http://localhost:9222/json/version
+    "--remote-debugging-port=9222"
+
+    # Performance
+    "--ignore-gpu-blocklist"
+
+    # Startup behavior
+    "--no-first-run"
+    "--no-default-browser-check"
+    "--hide-crashed-bubble"
+
+    # Privacy enhancements
+    "--disable-breakpad" # Disable crash reporter
+    "--disable-wake-on-wifi"
+    "--no-pings" # Disable hyperlink auditing pings
   ];
 in {
   # REFS:
   # - https://github.com/will-lol/.dotfiles/blob/main/home/extensions/chromium.nix
   # - https://github.com/isabelroses/dotfiles/blob/main/modules/home/programs/chromium.nix
 
+  # ===========================================================================
+  # Helium Browser Configuration
+  # ===========================================================================
+  # Privacy-focused browser based on ungoogled-chromium
+  # Requires Widevine from Brave Browser Nightly for DRM content
   programs.helium = {
     enable = false;
     bundleId = "net.imput.helium"; # macOS bundle identifier for Application Support path
@@ -64,34 +107,26 @@ in {
     # https://peter.sh/experiments/chromium-command-line-switches/
     # REFS: ungoogled-chromium flags:
     # https://github.com/ungoogled-software/ungoogled-chromium/blob/master/docs/flags.md
-    commandLineArgs = [
-      # Performance
-      "--ignore-gpu-blocklist"
-      "--disk-cache=${config.home.homeDirectory}/Library/Caches/helium"
+    commandLineArgs =
+      sharedCommandLineArgs
+      ++ [
+        # Helium-specific cache location
+        "--disk-cache=${config.home.homeDirectory}/Library/Caches/helium"
 
-      # Startup behavior
-      "--no-first-run"
-      "--no-default-browser-check"
-      "--hide-crashed-bubble"
+        # Helium-specific privacy/performance
+        "--disable-search-engine-collection" # Prevent automatic search engine scraping
+        "--energy-saver-fps-limit=30" # Limit FPS when on battery
 
-      # Privacy enhancements
-      "--disable-breakpad" # Disable crash reporter
-      "--disable-wake-on-wifi"
-      "--no-pings" # Disable hyperlink auditing pings
-      "--disable-search-engine-collection" # Prevent automatic search engine scraping
-
-      # Helium-specific
-      "--energy-saver-fps-limit=30" # Limit FPS when on battery to improve battery life
-
-      # Feature flags (comma-separated)
-      "--enable-features=TouchpadOverscrollHistoryNavigation,NoReferrers"
-    ];
+        # Feature flags (comma-separated)
+        "--enable-features=TouchpadOverscrollHistoryNavigation,NoReferrers"
+      ];
   };
 
-  # ==============================================================================
+  # ===========================================================================
   # Brave Browser Nightly Configuration
-  # ==============================================================================
-  # Configured with remote debugging port for browser automation/debugging
+  # ===========================================================================
+  # Primary browser with remote debugging for MCP servers
+  # Also provides Widevine DRM for Helium
   programs.brave-browser-nightly = {
     enable = true;
     package = pkgs.brave-browser-nightly;
@@ -99,12 +134,15 @@ in {
     appName = "Brave Browser Nightly.app";
     executableName = "Brave Browser Nightly";
     iconFile = "app.icns";
+    dictionaries = [pkgs.hunspellDictsChromium.en_US];
+    inherit extensions;
 
-    # Enable remote debugging for browser automation, debugging, etc.
-    # Verify at: http://localhost:9222/json/version
-    commandLineArgs = [
-      "--remote-debugging-port=9222"
-    ];
+    commandLineArgs =
+      sharedCommandLineArgs
+      ++ [
+        # Brave-specific cache location
+        "--disk-cache=${config.home.homeDirectory}/Library/Caches/brave-browser-nightly"
+      ];
 
     # Create a wrapper .app that can be launched from Dock/Spotlight with debug args
     darwinWrapperApp = {
@@ -117,14 +155,15 @@ in {
   imports = [./mkChromiumBrowser.nix];
 
   # Extension files are managed by mkChromiumBrowser.nix
-  # which correctly handles the Helium directory path:
-  # Library/Application Support/net.imput.helium/External Extensions/
+  # which correctly handles the browser-specific directory paths:
+  # - Helium: Library/Application Support/net.imput.helium/External Extensions/
+  # - Brave:  Library/Application Support/com.brave.Browser.nightly/External Extensions/
 
-  # ==============================================================================
+  # ===========================================================================
   # Developer Mode & User Scripts Configuration
-  # ==============================================================================
+  # ===========================================================================
   # Enable developer mode to allow user scripts (required for SurfingKeys Advanced Mode)
-  # This ensures extensions.ui.developer_mode is set in Helium's Secure Preferences
+  # This ensures extensions.ui.developer_mode is set in each browser's Secure Preferences
   home.activation.heliumEnableDeveloperMode = lib.hm.dag.entryAfter ["writeBoundary"] ''
     HELIUM_PREFS="${config.home.homeDirectory}/Library/Application Support/net.imput.helium/Default/Secure Preferences"
 
@@ -153,11 +192,13 @@ in {
     fi
   '';
 
-  # ==============================================================================
+  # ===========================================================================
   # Widevine DRM Installation (Netflix, Amazon Prime, etc.)
-  # ==============================================================================
-  # Automatically installs Widevine from Brave Browser Nightly or Google Chrome
-  home.activation.heliumInstallWidevine = lib.hm.dag.entryAfter ["writeBoundary"] ''
+  # ===========================================================================
+  # Automatically installs Widevine from Brave Browser Nightly to Helium.
+  # This activation script runs AFTER linkSystemApplications to ensure
+  # Brave Browser Nightly is installed in /Applications first.
+  home.activation.heliumInstallWidevine = lib.hm.dag.entryAfter ["writeBoundary" "linkSystemApplications"] ''
     # Find Helium in nix store
     HELIUM_NIX_APP=$(ls -d /nix/store/*-helium-0.*/Applications/Helium.app 2>/dev/null | grep -v "wrapped" | sort -V | tail -1)
 
