@@ -17,11 +17,11 @@
           env.MEMORY_FILE_PATH = "${config.home.homeDirectory}/.local/share/claude/memory.jsonl";
         };
         context7.enable = true;
-        terraform.enable = true;
-        nixos.enable = true;
-        codex.enable = true;
+        terraform.enable = false;
+        nixos.enable = false;
+        codex.enable = false;
         serena = {
-          enable = true;
+          enable = false;
           args = [
             "--context"
             "ide-assistant"
