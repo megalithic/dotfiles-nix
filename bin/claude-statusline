@@ -31,6 +31,15 @@ input=$(cat)
 # ===========================================================================
 get_json() { echo "$input" | jq -r "$1 // \"$2\""; }
 
+# Time-based arc spinner - cycles through frames based on current second
+# Gives illusion of animation since statusline refreshes periodically
+# Uses same spinner as aerc email client for consistency
+get_spinner() {
+  local frames=("◜" "◠" "◝" "◞" "◡" "◟")
+  local idx=$(( $(date +%s) % ${#frames[@]} ))
+  echo "${frames[$idx]}"
+}
+
 get_model_name() { get_json '.model.display_name' 'Unknown'; }
 get_current_dir() { get_json '.workspace.current_dir' '.'; }
 get_project_dir() { get_json '.workspace.project_dir' '.'; }
@@ -105,7 +114,7 @@ get_token_usage() {
   transcript_path=$(get_json '.transcript_path' '')
 
   if [ -z "$transcript_path" ] || [ ! -f "$transcript_path" ]; then
-    echo "?"
+    echo "$(get_spinner)"
     return
   fi
 
@@ -123,7 +132,7 @@ get_token_usage() {
   # Default to 0 if parsing failed
   total_tokens=${total_tokens:-0}
   if [ "$total_tokens" = "null" ] || [ -z "$total_tokens" ]; then
-    echo "?"
+    echo "$(get_spinner)"
     return
   fi
 
