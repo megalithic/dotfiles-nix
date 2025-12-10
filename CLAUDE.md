@@ -95,9 +95,17 @@ notifier notify '{"title":"Title","message":"Message","urgency":"high"}'
    - Any breaking changes or important notes
    - Related context (e.g., "Fixes notification system regression on macOS Sequoia")
 
-**After completing a unit of work:**
-1. **Next task**: Run `jj new` to start fresh change on top of current work
-2. **If work accumulated without proper commits**: Use `jj split` with filesets to organize retroactively
+**After completing a unit of work (when user says to push/commit):**
+1. **Move main to current commit**: `jj bookmark set main -r @`
+2. **Push main to GitHub**: `jj git push --bookmark main`
+3. **Start fresh for next task**: `jj new`
+4. **If work accumulated without proper commits**: Use `jj split` with filesets to organize retroactively
+
+**Bookmark workflow:**
+- Feature bookmarks (e.g., `feat/cool-thing`) are for tracking work-in-progress
+- `main` bookmark should always reflect what's on GitHub origin/main
+- After pushing to main, the feature bookmark becomes historical (can delete or leave)
+- Statusline shows: `jj:bookmark-name* (change_id)` where `*` = unpushed changes
 
 ### Key Commands
 
