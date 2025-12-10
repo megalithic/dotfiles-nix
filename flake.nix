@@ -93,7 +93,7 @@
     version = "25.11";
 
     lib = nixpkgs.lib.extend (import ./lib/default.nix inputs);
-    overlays = import ./overlays.nix {inherit inputs nixpkgs nixpkgs-unstable lib;};
+    overlays = import ./overlays {inherit inputs lib;};
 
     brew_config = {username}: {
       nix-homebrew = {

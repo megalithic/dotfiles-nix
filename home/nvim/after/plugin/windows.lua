@@ -423,8 +423,6 @@ function mega.resize_windows(bufnr)
   local winnr = vim.api.nvim_get_current_win()
 
   if is_ignored(bufnr) or is_disabled() then
-    P(winnr, bufnr, vim.o.winwidth)
-
     -- vim.o.winminwidth = vim.api.nvim_win_get_width(0)
     -- vim.o.winminheight = vim.api.nvim_win_get_height(0)
 
