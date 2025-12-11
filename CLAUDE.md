@@ -122,8 +122,8 @@ notifier notify '{"title":"Title","message":"Message","urgency":"high"}'
 
 **BEFORE starting ANY new unit of work or task:**
 1. **ALWAYS run `jj new -m "Brief description of task"`** - This is non-negotiable
-2. **When switching tasks**: Claude MUST confirm with Seth: "We're changing tasks - should I run `jj new -m '...'` before we start?"
-3. **Accountability**: Claude helps keep Seth accountable too - if Seth asks to start something new without a `jj new`, remind him
+2. **When switching tasks**: Claude MUST confirm with the user: "We're changing tasks - should I run `jj new -m '...'` before we start?"
+3. **Accountability**: Claude helps keep the user accountable too - if they ask to start something new without a `jj new`, remind them
 
 **During work:**
 1. **Work iteratively**: Make changes, test, iterate
