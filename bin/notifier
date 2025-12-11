@@ -408,9 +408,11 @@ notify_user() {
   # Send notifications based on attention state
   if [ $should_notify -eq 1 ] || [ "$urgency" = "critical" ]; then
     # Canvas notification with HAL 9000 icon (on-screen overlay)
-    # Note: We skip macOS notification here because the canvas notification
-    # will be caught by the watcher and re-processed, which would override our positioning
     send_canvas_notification "$title" "$message" "$duration" "$urgency"
+
+    # Also send via macOS Notification Center for watcher to log to database
+    # The canvas handles the visual alert, NC handles the logging/history
+    send_macos_notification "$title" "" "$message"
 
     # Remote notifications (for important events or if requested)
     if [ "$send_to_phone" = "true" ] || [ "$urgency" = "critical" ]; then
@@ -420,7 +422,7 @@ notify_user() {
       send_pushover_notification "$title" "$message" "$urgency"
     fi
   else
-    # User is paying attention - only send subtle notification
+    # User is paying attention - only send subtle notification (also logged via NC)
     send_macos_notification "$title" "" "$message"
   fi
 }
