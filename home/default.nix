@@ -71,7 +71,7 @@ in {
 
   # Activation script to symlink apps that require /Applications folder
   home.activation.linkSystemApplications = lib.hm.dag.entryAfter ["writeBoundary"] (
-    lib.mkAppActivation {inherit pkgs; packages = config.home.packages;}
+    lib.mega.mkAppActivation {inherit pkgs; packages = config.home.packages;}
   );
 
   # Create symlinks in ~/.local/bin for nix-managed binaries

@@ -13,7 +13,7 @@
     # "Numbers" = 409203825;
   };
 
-  masInstaller = lib.mkMas {inherit pkgs lib;} masApps;
+  masInstaller = lib.mega.mkMas {inherit pkgs lib;} masApps;
 in {
   home.activation.installMasApps = lib.hm.dag.entryAfter ["writeBoundary"] masInstaller.activationScript;
 }

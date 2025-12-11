@@ -12,7 +12,7 @@
 }: let
   version = "15.7.0";
 in
-  lib.mkApp {inherit pkgs lib;} {
+  lib.mega.mkApp {inherit pkgs lib;} {
     pname = "karabiner-elements";
     inherit version;
 
