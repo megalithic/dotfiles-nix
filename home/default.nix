@@ -13,7 +13,8 @@
   inherit (pkgs.stdenv.hostPlatform) isDarwin;
 in {
   imports = [
-    ./packages
+    ./lib.nix # Custom helpers (linkConfig, linkHome, etc.)
+    ./packages.nix
     ./programs/ai.nix
     ./programs/agenix.nix
     ./programs/email
@@ -42,7 +43,7 @@ in {
       "src/.keep".text = "";
       "tmp/.keep".text = "";
       ".hushlogin".text = "";
-      "bin".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/bin";
+      "bin".source = config.lib.mega.linkBin;
       ".editorconfig".text = ''
         root = true
         [*]
@@ -57,8 +58,8 @@ in {
       ".ignore".source = git/tool_ignore;
       ".gitignore".source = git/gitignore;
       ".gitconfig".source = git/gitconfig;
-      ".ssh/config".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/config/ssh/config";
-      "Library/Application Support/espanso".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/config/espanso";
+      ".ssh/config".source = config.lib.mega.linkConfig "ssh/config";
+      "Library/Application Support/espanso".source = config.lib.mega.linkConfig "espanso";
       "iclouddrive".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/Library/Mobile Documents/com~apple~CloudDocs";
     }
     // lib.optionalAttrs (builtins.pathExists "${config.home.homeDirectory}/Library/CloudStorage/ProtonDrive-seth@megalithic.io-folder") {
@@ -111,15 +112,15 @@ in {
   xdg.configFile."ghostty".source = ./ghostty;
   xdg.configFile."ghostty".recursive = true;
 
-  xdg.configFile."hammerspoon".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/config/hammerspoon";
+  xdg.configFile."hammerspoon".source = config.lib.mega.linkConfig "hammerspoon";
   xdg.configFile."hammerspoon".recursive = true;
   xdg.configFile."hammerspoon".force = true;
 
-  xdg.configFile."tmux".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/config/tmux";
+  xdg.configFile."tmux".source = config.lib.mega.linkConfig "tmux";
   xdg.configFile."tmux".recursive = true;
   xdg.configFile."tmux".force = true;
 
-  xdg.configFile."kitty".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/config/kitty";
+  xdg.configFile."kitty".source = config.lib.mega.linkConfig "kitty";
   xdg.configFile."kitty".recursive = true;
   xdg.configFile."kitty".force = true;
 

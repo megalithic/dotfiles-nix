@@ -722,7 +722,14 @@ M.app.VIDEO_BUNDLES = {
   ["Helium"] = "net.imput.helium",
 }
 
-M.app.BROWSER_BUNDLES = { BROWSER, "com.brave.Browser.nightly", "net.imput.helium" }
+M.app.BROWSER_BUNDLES = {
+  BROWSER,
+  "com.brave.Browser.nightly",
+  "net.imput.helium",
+  "company.thebrowser.Browser",  -- Arc
+  "com.google.Chrome",           -- Chrome
+  "com.apple.Safari",            -- Safari
+}
 
 --- Check if a window appears to be a meeting (vs settings/preview)
 --- Returns: isMeeting (true/false/nil), reason (string)
@@ -751,11 +758,26 @@ function M.app.isMeetingWindow(app, window)
 
   -- App-specific detection (mirrors bindings.lua findMeetingWindow)
   if bundleID == "com.microsoft.teams2" then
-    -- Teams: Meeting windows DON'T have "| Microsoft Teams" suffix
-    if not title:find("Microsoft Teams", 1, true) and title ~= "" then
+    -- Teams window title patterns:
+    --   Meeting: "Meeting Name | Microsoft Teams" (1 pipe, ends with MS Teams)
+    --   Chat:    "Chat | Meeting Name | Microsoft Teams" (2+ pipes, starts with "Chat |")
+    --   Main:    "Microsoft Teams" (no pipe) or "Activity | Microsoft Teams"
+    local pipeCount = select(2, title:gsub("|", "|"))
+    local hasChatPrefix = title:find("^Chat |") ~= nil
+    local hasActivityPrefix = title:find("^Activity |") ~= nil
+    local hasCalendarPrefix = title:find("^Calendar |") ~= nil
+    local hasTeamsPrefix = title:find("^Teams |") ~= nil
+    local hasMSTeams = title:find("Microsoft Teams", 1, true) ~= nil
+
+    -- Meeting window: ends with "Microsoft Teams", has 1 pipe, no navigation prefix
+    if hasMSTeams and pipeCount == 1 and not hasChatPrefix and not hasActivityPrefix and not hasCalendarPrefix and not hasTeamsPrefix then
       return true, "teams_meeting_window"
-    else
+    -- Main/navigation windows
+    elseif hasMSTeams and (pipeCount == 0 or hasChatPrefix or hasActivityPrefix or hasCalendarPrefix or hasTeamsPrefix) then
       return false, "teams_main_window"
+    -- Unknown Teams window - assume not meeting
+    else
+      return nil, "teams_unknown"
     end
   elseif bundleID == "us.zoom.xos" then
     -- Zoom: "Zoom Meeting" = in call, just "Zoom" or "Settings" = not in call

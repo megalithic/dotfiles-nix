@@ -23,6 +23,7 @@
       "karabiner-elements"
       "kitty"
       "macwhisper"
+      "microsoft-teams"
       "mouseless"
       "protonvpn"
       "proton-drive"

@@ -7,6 +7,11 @@ local M = {}
 local lastProcessedTime = 0
 local DEBOUNCE_INTERVAL = 1.0 -- 1 second - ignore events within this window
 
+-- Lobby debounce: delay before treating camera-off as "meeting ended"
+-- This handles the lobby→room transition where camera briefly goes inactive
+local MEETING_END_DELAY = 3.0 -- seconds to wait before stopping meeting mode
+local pendingMeetingEnd = nil -- timer for delayed meeting end
+
 -- Path to VDC plugin binary (camera framework)
 local VDC_PATH = "/System/Library/Frameworks/CoreMediaIO.framework/Versions/A/Resources/VDC.plugin/Contents/MacOS/VDC"
 
@@ -22,14 +27,18 @@ local VDC_IGNORE_PROCESSES = {
 
 -- Detect which application is using the camera
 -- Uses multiple detection methods with fallbacks
+-- PRIORITY: Apps with confirmed meeting windows > frontmost known video app > any VDC app
 -- Returns: bundleID (string or nil), method (string), isMeeting (bool or nil)
 local function detectCameraApp()
+  -- Collect all candidate apps from VDC
+  local candidates = {} -- { {bundleID, app, isMeeting, method, reason} }
+
   -- Method 1: VDC (Video Device Control) via lsof - most reliable
   -- Query the specific VDC binary instead of scanning all open files
   local vdcOutput, vdcStatus = hs.execute(fmt("lsof '%s' 2>/dev/null | tail -n +2 | head -10", VDC_PATH))
 
   if vdcStatus and vdcOutput and vdcOutput ~= "" then
-    -- Iterate through each line to find a real app (skip system processes)
+    -- Collect ALL apps with VDC loaded (don't return on first match)
     for line in vdcOutput:gmatch("[^\r\n]+") do
       local processName = line:match("^(%S+)")
       if processName and not VDC_IGNORE_PROCESSES[processName] then
@@ -41,27 +50,67 @@ local function detectCameraApp()
           if bundleID ~= "org.hammerspoon.Hammerspoon" then
             local window = app:focusedWindow() or app:mainWindow()
             local isMeeting, meetingMethod = U.app.isMeetingWindow(app, window)
-            U.log.df("Detected via VDC: %s (meeting: %s, %s)", bundleID, tostring(isMeeting), meetingMethod or "n/a")
-            return bundleID, "vdc", isMeeting
+            U.log.df("VDC candidate: %s (meeting: %s, %s)", bundleID, tostring(isMeeting), meetingMethod or "n/a")
+            table.insert(candidates, { bundleID = bundleID, app = app, isMeeting = isMeeting, method = "vdc", reason = meetingMethod })
           end
-        end
-
-        -- Fallback: check VIDEO_BUNDLES mapping
-        local bundleID = U.app.VIDEO_BUNDLES[processName]
-        if bundleID then
-          local mappedApp = hs.application.get(bundleID)
-          local window = mappedApp and (mappedApp:focusedWindow() or mappedApp:mainWindow())
-          local isMeeting, meetingMethod = U.app.isMeetingWindow(mappedApp, window)
-          U.log.df(
-            "Detected via VDC mapping: %s (meeting: %s, %s)",
-            bundleID,
-            tostring(isMeeting),
-            meetingMethod or "n/a"
-          )
-          return bundleID, "vdc_mapped", isMeeting
+        else
+          -- Fallback: check VIDEO_BUNDLES mapping
+          local bundleID = U.app.VIDEO_BUNDLES[processName]
+          if bundleID then
+            local mappedApp = hs.application.get(bundleID)
+            local window = mappedApp and (mappedApp:focusedWindow() or mappedApp:mainWindow())
+            local isMeeting, meetingMethod = U.app.isMeetingWindow(mappedApp, window)
+            U.log.df("VDC mapped candidate: %s (meeting: %s, %s)", bundleID, tostring(isMeeting), meetingMethod or "n/a")
+            table.insert(candidates, { bundleID = bundleID, app = mappedApp, isMeeting = isMeeting, method = "vdc_mapped", reason = meetingMethod })
+          end
         end
       end
     end
+  end
+
+  -- Prioritize candidates: browser meetings > confirmed meetings > frontmost > unknown > false
+  -- Browser meetings (Google Meet, etc.) are most reliable detection
+  if #candidates > 0 then
+    -- First pass: return browser app with confirmed meeting URL (most reliable)
+    for _, c in ipairs(candidates) do
+      if c.isMeeting == true and c.reason == "browser_meeting_url" then
+        U.log.df("Selected (browser meeting URL): %s via %s", c.bundleID, c.method)
+        return c.bundleID, c.method, c.isMeeting
+      end
+    end
+
+    -- Second pass: return any app with confirmed meeting (isMeeting=true)
+    for _, c in ipairs(candidates) do
+      if c.isMeeting == true then
+        U.log.df("Selected (confirmed meeting): %s via %s (%s)", c.bundleID, c.method, c.reason or "n/a")
+        return c.bundleID, c.method, c.isMeeting
+      end
+    end
+
+    -- Third pass: check if frontmost app is among candidates
+    local frontmost = hs.application.frontmostApplication()
+    if frontmost then
+      local frontmostBundleID = frontmost:bundleID()
+      for _, c in ipairs(candidates) do
+        if c.bundleID == frontmostBundleID then
+          U.log.df("Selected (frontmost candidate): %s via %s", c.bundleID, c.method)
+          return c.bundleID, c.method, c.isMeeting
+        end
+      end
+    end
+
+    -- Fourth pass: return first candidate with unknown state (nil)
+    for _, c in ipairs(candidates) do
+      if c.isMeeting == nil then
+        U.log.df("Selected (unknown state): %s via %s", c.bundleID, c.method)
+        return c.bundleID, c.method, c.isMeeting
+      end
+    end
+
+    -- Fifth pass: return first candidate (even if isMeeting=false)
+    local c = candidates[1]
+    U.log.df("Selected (fallback): %s via %s", c.bundleID, c.method)
+    return c.bundleID, c.method, c.isMeeting
   end
 
   -- Method 2: Check for video capture service processes (app-specific optimization)
@@ -161,6 +210,13 @@ local function startMeetingMode(appName, reason)
 end
 
 local function cameraActive(camera, property)
+  -- Cancel any pending meeting end (lobby→room transition)
+  if pendingMeetingEnd then
+    U.log.d("Camera reactivated - cancelling pending meeting end (likely lobby→room transition)")
+    pendingMeetingEnd:stop()
+    pendingMeetingEnd = nil
+  end
+
   -- Detect which app is using the camera
   local appBundleID, detectionMethod, isMeeting = detectCameraApp()
 
@@ -223,7 +279,23 @@ local function cameraInactive(camera, property)
     U.log.d("Cancelled pending meeting confirmation (camera turned off)")
   end
 
-  stopMeetingMode()
+  -- Delay meeting end to handle lobby→room transitions
+  -- If camera reactivates within MEETING_END_DELAY, we won't stop meeting mode
+  if pendingMeetingEnd then
+    pendingMeetingEnd:stop()
+  end
+
+  U.log.df("Scheduling meeting end in %.1fs (lobby debounce)", MEETING_END_DELAY)
+  pendingMeetingEnd = hs.timer.doAfter(MEETING_END_DELAY, function()
+    -- Verify camera is still inactive before stopping meeting mode
+    if not camera:isInUse() then
+      U.log.d("Camera still inactive after delay - stopping meeting mode")
+      stopMeetingMode()
+    else
+      U.log.d("Camera reactivated during delay - keeping meeting mode")
+    end
+    pendingMeetingEnd = nil
+  end)
 end
 
 local function watchCameraProperty(camera, property)

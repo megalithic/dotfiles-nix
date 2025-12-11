@@ -14,7 +14,7 @@
     mkdir -p $HOME/.config/nvim/backups $HOME/.config/nvim/swaps $HOME/.config/nvim/undo
   '';
 
-  xdg.configFile."nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles-nix/home/nvim";
+  xdg.configFile."nvim".source = config.lib.mega.linkConfig "nvim";
   # xdg.configFile."nvim/lua/nix_provided.lua" = with pkgs; {
   #   text = ''
   #     return {
