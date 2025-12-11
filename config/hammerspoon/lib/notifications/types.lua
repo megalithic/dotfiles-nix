@@ -67,4 +67,37 @@ M.POSITION = {
   SE = "SE", -- Southeast (bottom-right)
 }
 
+-- Attention states for AI agent notifications
+-- Used by N.send() to determine notification routing
+M.ATTENTION = {
+  PAYING_ATTENTION = "paying_attention", -- User viewing this terminal session
+  NOT_PAYING_ATTENTION = "not_paying_attention", -- Terminal focused but different session/window
+  TERMINAL_NOT_FOCUSED = "terminal_not_focused", -- Different app is frontmost
+  DISPLAY_ASLEEP = "display_asleep", -- Screen is off
+  SCREEN_LOCKED = "screen_locked", -- Lock screen is active
+  LOGGED_OUT = "logged_out", -- User logged out of console
+}
+
+-- Urgency levels for AI agent notifications
+M.URGENCY = {
+  NORMAL = "normal",
+  HIGH = "high",
+  CRITICAL = "critical",
+}
+
+---@class SendOpts
+---@field title string Required - notification title
+---@field message string Required - notification body
+---@field urgency? "normal"|"high"|"critical" Default: "normal"
+---@field phone? boolean Send iMessage (default: false, auto-true if critical)
+---@field pushover? boolean Send to Pushover (default: false, auto-true if critical)
+---@field question? boolean Track for retry (default: false)
+---@field context? string Calling context for attention detection (tmux session:window or tty)
+
+---@class SendResult
+---@field sent boolean Whether notification was sent
+---@field channels string[] List of channels used (e.g., {"canvas", "macos", "pushover"})
+---@field reason string Explanation of routing decision
+---@field questionId? string If question=true, the tracking ID for the question
+
 return M

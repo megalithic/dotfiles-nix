@@ -428,20 +428,42 @@ function M.notifications.dismiss(notificationId)
   return M.db:execute(query) ~= nil
 end
 
--- Cleanup old notifications
+-- Cleanup old notifications with statistics and space reclamation
 function M.notifications.cleanup(days)
   days = days or 30
   local cutoff = os.time() - (days * 86400)
 
-  local query = fmt([[
-    DELETE FROM notifications WHERE timestamp < %d
-  ]], cutoff)
+  -- Count rows to be deleted first (using nrows iterator)
+  local countQuery = fmt([[SELECT COUNT(*) as count FROM notifications WHERE timestamp < %d]], cutoff)
+  local rowsToDelete = 0
+  for row in M.db:nrows(countQuery) do
+    rowsToDelete = row.count
+  end
 
-  local result = M.db:execute(query)
+  if rowsToDelete == 0 then
+    U.log.f("Notification cleanup: no records older than %d days", days)
+    return true
+  end
 
-  if result then U.log.f("Cleaned up notifications older than %d days", days) end
+  -- Delete old notifications
+  local deleteQuery = fmt([[DELETE FROM notifications WHERE timestamp < %d]], cutoff)
+  local result = M.db:execute(deleteQuery)
 
-  return result ~= nil
+  if not result then
+    U.log.ef("Failed to cleanup notifications older than %d days", days)
+    return false
+  end
+
+  -- Clean orphaned FTS entries (if FTS table exists)
+  M.db:execute([[
+    DELETE FROM ft_notifications WHERE rowid NOT IN (SELECT id FROM notifications)
+  ]])
+
+  -- Reclaim disk space
+  M.db:execute("VACUUM")
+
+  U.log.f("Notification cleanup: deleted %d records older than %d days", rowsToDelete, days)
+  return true
 end
 
 -- Print query results

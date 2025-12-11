@@ -7,6 +7,9 @@ local M = {}
 M.initialized = false
 M.healthCheckTimer = nil
 M.lastHealthCheck = nil
+M.lastCleanup = nil
+M.cleanupTimer = nil
+M.initDelayTimer = nil  -- Reference to prevent GC of doAfter timer
 
 -- SUBMODULES (re-exported for direct access: N.db.log(), N.menubar.update(), etc.)
 M.types = require("lib.notifications.types")
@@ -14,6 +17,7 @@ M.db = require("lib.notifications.db")
 M.processor = require("lib.notifications.processor")
 M.menubar = require("lib.notifications.menubar")
 M.notifier = require("lib.notifications.notifier")
+M.sender = require("lib.notifications.send")
 
 -- LIFECYCLE
 
@@ -60,7 +64,11 @@ function M.init()
   U.log.i("Notification system initialized ✓")
 
   -- Start health check (delayed to allow watchers to start)
-  hs.timer.doAfter(3, function() M.startHealthCheck() end)
+  -- Store reference to prevent garbage collection during reload
+  M.initDelayTimer = hs.timer.doAfter(5, function()
+    M.initDelayTimer = nil  -- Clear reference after execution
+    M.startHealthCheck()
+  end)
 
   return true
 end
@@ -72,10 +80,22 @@ end
 function M.cleanup()
   U.log.i("Cleaning up notification system...")
 
+  -- Stop init delay timer if still pending
+  if M.initDelayTimer then
+    M.initDelayTimer:stop()
+    M.initDelayTimer = nil
+  end
+
   -- Stop health check
   if M.healthCheckTimer then
     M.healthCheckTimer:stop()
     M.healthCheckTimer = nil
+  end
+
+  -- Stop cleanup timer
+  if M.cleanupTimer then
+    M.cleanupTimer:stop()
+    M.cleanupTimer = nil
   end
 
   if M.menubar then M.menubar.cleanup() end
@@ -86,17 +106,56 @@ function M.cleanup()
   U.log.i("Notification system cleaned up")
 end
 
--- Health check system - runs every 5 minutes to verify notification system is working
+-- Health check system - runs every 15 minutes to verify notification system is working
 function M.startHealthCheck()
   if M.healthCheckTimer then M.healthCheckTimer:stop() end
 
   -- Run initial health check
   M.performHealthCheck()
 
-  -- Set up periodic health check (every 5 minutes)
-  M.healthCheckTimer = hs.timer.doEvery(300, function() M.performHealthCheck() end)
+  -- Set up periodic health check (every 15 minutes)
+  M.healthCheckTimer = hs.timer.doEvery(900, function() M.performHealthCheck() end)
 
-  U.log.i("Notification health check started (5 minute interval)")
+  U.log.i("Notification health check started (15 minute interval)")
+
+  -- Start daily cleanup timer
+  M.startCleanupSchedule()
+end
+
+-- Cleanup scheduler - runs cleanup once per day
+function M.startCleanupSchedule()
+  if M.cleanupTimer then M.cleanupTimer:stop() end
+
+  -- Run cleanup shortly after startup (30 seconds delay to let system settle)
+  hs.timer.doAfter(30, function() M.performCleanupIfNeeded() end)
+
+  -- Schedule daily cleanup check (every 6 hours, but only runs if 24h have passed)
+  M.cleanupTimer = hs.timer.doEvery(21600, function() M.performCleanupIfNeeded() end)
+
+  U.log.f("Notification cleanup scheduled (%d day retention)", C.notifier.config.retentionDays)
+end
+
+-- Perform cleanup only if 24 hours have passed since last cleanup
+function M.performCleanupIfNeeded()
+  local now = os.time()
+  local oneDayAgo = now - 86400
+
+  -- Skip if we've cleaned up in the last 24 hours
+  if M.lastCleanup and M.lastCleanup > oneDayAgo then
+    U.log.df("Skipping cleanup - last run was %d hours ago", math.floor((now - M.lastCleanup) / 3600))
+    return
+  end
+
+  -- Perform the cleanup
+  local DB = require("lib.db")
+  local success = DB.notifications.cleanup(C.notifier.config.retentionDays)
+
+  if success then
+    M.lastCleanup = now
+    U.log.i("Daily notification cleanup completed")
+  else
+    U.log.e("Daily notification cleanup failed")
+  end
 end
 
 function M.performHealthCheck()
@@ -140,9 +199,8 @@ function M.performHealthCheck()
         U.log.e("Failed to reinitialize notification system!")
       end
     end
-  else
-    U.log.d("Notification system health check passed")
   end
+  -- No log on success - only log errors
 end
 
 -- Health check
@@ -252,5 +310,35 @@ function M.getStats(hours) return M.db.getStats(hours) end
 function M.updateMenubar()
   if M.menubar then M.menubar.update() end
 end
+
+-- AI AGENT SEND API (convenience re-exports from sender module)
+
+---Send a notification via the unified AI agent API
+---Routes to appropriate channels based on attention state
+---@param opts SendOpts { title, message, urgency?, phone?, pushover?, question?, context? }
+---@return SendResult { sent, channels, reason, questionId? }
+---@usage N.send({ title = "Done", message = "Tests passed", urgency = "normal" })
+---@usage N.send({ title = "Question", message = "Continue?", question = true, context = "main:claude" })
+function M.send(opts) return M.sender.send(opts) end
+
+---Mark a question as answered (stops retry reminders)
+---@param questionId string|nil Question ID returned by send()
+---@param title string|nil Title to look up if no questionId
+---@param message string|nil Message to look up if no questionId
+---@return boolean success
+---@usage N.answerQuestion(questionId)
+---@usage N.answerQuestion(nil, "Question Title", "Question message")
+function M.answerQuestion(questionId, title, message) return M.sender.answerQuestion(questionId, title, message) end
+
+---Get list of pending questions awaiting answers
+---@return table[] Array of { id, title, timestamp, retryCount, age }
+---@usage local pending = N.getPendingQuestions()
+function M.getPendingQuestions() return M.sender.getPendingQuestions() end
+
+---Check current attention state
+---@param context string|nil Calling context (e.g., "main:claude")
+---@return { state: string, shouldNotify: string }
+---@usage local attention = N.checkAttention("main:claude")
+function M.checkAttention(context) return M.sender.checkAttention(context) end
 
 return M

@@ -16,6 +16,44 @@
 
 ### Notifier Usage
 
+There are two notifier scripts available:
+- `ntfy` (recommended) - Slim wrapper using unified Hammerspoon N.send() API
+- `notifier` (legacy) - Original 685-line shell script with same interface
+
+#### ntfy (Recommended)
+
+```bash
+# Basic usage
+ntfy send -t "Title" -m "Message"
+
+# With urgency levels: normal|high|critical
+ntfy send -t "Title" -m "Message" -u high
+
+# Send via Pushover (for remote notifications when away from desk)
+ntfy send -t "Title" -m "Message" -P
+
+# Send to phone via iMessage
+ntfy send -t "Title" -m "Message" -p
+
+# Track as question (will retry with reminders if unanswered)
+ntfy send -t "Question" -m "Should I continue?" -q
+
+# Mark a question as answered
+ntfy answer -t "Question" -m "Should I continue?"
+
+# List pending questions
+ntfy pending
+```
+
+**Routing behavior**: ntfy automatically detects attention state:
+- `paying_attention` → subtle macOS notification only
+- `terminal_not_focused` → canvas overlay + macOS notification
+- `display_asleep`/`screen_locked` → Pushover + phone (if critical/requested)
+
+**Phone notifications**: Uses iMessage with `[from hammerspork]` prefix. Phone number is auto-fetched from macOS Contacts (looks up current user's iPhone number).
+
+#### notifier (Legacy)
+
 ```bash
 # Basic usage (requires `notify` subcommand first!)
 notifier notify -t "Title" -m "Message"

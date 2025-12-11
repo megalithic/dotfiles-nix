@@ -540,6 +540,39 @@ M.notifier = {
         timestamp = { red = 0.56, green = 0.56, blue = 0.58, alpha = 0.85 }, -- #8e8e93
       },
     },
+    -- Database retention settings
+    retentionDays = 30, -- Keep notifications for 30 days before cleanup
+
+    -- AI agent notification settings (used by N.send() API)
+    aiAgent = {
+      -- Urgency → duration mapping (in seconds)
+      durations = {
+        normal = 5,
+        high = 10,
+        critical = 15,
+      },
+
+      -- Question retry settings (for unanswered questions)
+      questionRetry = {
+        enabled = true,
+        intervalSeconds = 300, -- 5 minutes between retries
+        maxRetries = 3, -- Give up after 3 retries
+        escalateOnRetry = true, -- Send to phone on retry
+      },
+
+      -- Pushover settings (tokens via agenix env vars)
+      pushover = {
+        enabled = true,
+        -- Tokens read from env: PUSHOVER_USER_TOKEN, PUSHOVER_APP_TOKEN
+      },
+
+      -- Phone notification settings (iMessage)
+      phone = {
+        enabled = true,
+        -- Phone number read from env: IMESSAGE_PHONE_NUMBER
+        cacheTTL = 604800, -- 7 days in seconds for caching phone number
+      },
+    },
   },
 }
 
