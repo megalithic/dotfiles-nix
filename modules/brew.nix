@@ -3,6 +3,9 @@
   homebrew = {
     enable = true;
     brews = [];
+
+    # Remove quarantine attribute from casks so they don't prompt on first launch
+    caskArgs.no_quarantine = true;
     # taps = [];
     casks = [
       "1password"
