@@ -13,7 +13,7 @@ TERMINAL = "com.mitchellh.ghostty"
 ---@field duration? number              # How long to show notification in seconds
 ---@field alwaysShowInTerminal? boolean # Show even when terminal is focused (high priority only)
 ---@field showWhenAppFocused? boolean   # Show even when source app is focused (high priority only)
----@field allowedFocusModes? (string|nil)[] # Focus modes where notification is allowed. If undefined: blocks during ANY focus mode. If defined: only shows if current focus mode is in the list (nil = no focus mode)
+---@field overrideFocusModes? string[]|true  # Focus modes this notification can bypass/override. If undefined: blocks during ANY focus mode. If true: overrides ALL focus modes. If array: shows during those specific focus modes. (always shows when no focus mode active)
 ---@field appImageID? string            # Custom icon identifier (e.g. "hal9000")
 
 M.displays = {
@@ -375,6 +375,36 @@ M.notifier = {
     -- Notification Routing Rules
     -- Rules are evaluated in order. First match wins.
     -- Each rule is a table defining matching criteria and behavior.
+
+    -- Fantastical Calendar Alerts (TIME SENSITIVE = imminent, usually 1-minute warnings)
+    -- These get highest priority to ensure you never miss imminent meetings
+    -- Note: Fantastical sends "TIME SENSITIVE" as the title for urgent alerts
+    {
+      name = "Fantastical Urgent Alerts",
+      appBundleID = "com.flexibits.fantastical2.mac",
+      senders = { "TIME SENSITIVE" }, -- Fantastical marks imminent alerts this way
+      duration = 15, -- Show for 15 seconds (urgent!)
+      alwaysShowInTerminal = true, -- Interrupt coding for imminent meetings!
+      showWhenAppFocused = false, -- Don't double-notify if Fantastical is open
+      overrideFocusModes = true, -- Override ALL focus modes
+      appImageID = "com.flexibits.fantastical2.mac",
+      -- Force high priority for all TIME SENSITIVE alerts
+      patterns = {
+        high = { "." }, -- Match anything (all TIME SENSITIVE alerts are high priority)
+      },
+    },
+
+    -- Fantastical Calendar Alerts (non-urgent, like 15/30 min warnings)
+    {
+      name = "Fantastical Calendar Alerts",
+      appBundleID = "com.flexibits.fantastical2.mac",
+      duration = 10,
+      alwaysShowInTerminal = false,
+      showWhenAppFocused = false,
+      overrideFocusModes = { "Personal", "Work" },
+      appImageID = "com.flexibits.fantastical2.mac",
+    },
+
     {
       name = "Important Messages",
       appBundleID = "com.apple.MobileSMS",
@@ -403,14 +433,14 @@ M.notifier = {
       },
       alwaysShowInTerminal = true,
       showWhenAppFocused = false,
-      allowedFocusModes = { nil, "Personal" },
+      overrideFocusModes = true, -- Override ALL focus modes
     },
 
     -- Example: All other Messages notifications (lower priority)
     {
       name = "Messages",
       appBundleID = "com.apple.MobileSMS",
-      -- No allowedFocusModes = always show, no focus check
+      -- No overrideFocusModes = blocks during any focus mode
     },
 
     -- AI Agent Notifications (from bin/notifier via hs.notify)
@@ -441,7 +471,7 @@ M.notifier = {
       },
       alwaysShowInTerminal = true,
       showWhenAppFocused = false,
-      allowedFocusModes = { nil, "Personal", "Work" },
+      overrideFocusModes = { "Personal", "Work" },
       appImageID = "hal9000", -- Special marker for HAL icon
     },
 
@@ -465,7 +495,7 @@ M.notifier = {
         },
         -- "succeeded", "completed" = normal (default)
       },
-      allowedFocusModes = { nil, "Work" },
+      overrideFocusModes = { "Work" },
     },
   },
   config = {

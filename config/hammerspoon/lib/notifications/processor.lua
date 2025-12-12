@@ -39,24 +39,28 @@ function M.process(rule, title, subtitle, message, stackingID, bundleID)
   end
 
   -- Check focus mode
-  -- Default behavior: if no allowedFocusModes defined, block when ANY focus mode is active
-  -- If allowedFocusModes is defined, allow only if current focus mode is in the list
+  -- When no focus mode is active → always show (default behavior)
+  -- When focus mode IS active → only show if overrideFocusModes allows it
   local currentFocus = notify.getCurrentFocusMode and notify.getCurrentFocusMode() or nil
   local focusAllowed = false
 
-  if rule.allowedFocusModes then
-    -- Rule explicitly defines allowed focus modes - check if current mode is in the list
-    -- Use numeric loop instead of ipairs to handle nil values in the array
-    for i = 1, #rule.allowedFocusModes do
-      local allowed = rule.allowedFocusModes[i]
-      if allowed == currentFocus then
+  if currentFocus == nil then
+    -- No focus mode active - always allow
+    focusAllowed = true
+  elseif rule.overrideFocusModes == true then
+    -- Override ALL focus modes
+    focusAllowed = true
+  elseif type(rule.overrideFocusModes) == "table" then
+    -- Check if current focus mode is in the override list
+    for _, mode in ipairs(rule.overrideFocusModes) do
+      if mode == currentFocus then
         focusAllowed = true
         break
       end
     end
   else
-    -- No allowedFocusModes defined - only allow if NO focus mode is active
-    focusAllowed = (currentFocus == nil)
+    -- Focus mode is active and no overrides defined - block
+    focusAllowed = false
   end
 
   if not focusAllowed then
