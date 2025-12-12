@@ -19,7 +19,7 @@ function M.bin(cmd) return string.format([[%s/.dotfiles-nix/bin/%s]], os.getenv(
 
 function M.run(cmd, use_env)
   local output = hs.execute(cmd, use_env)
-  U.log.d(output)
+  -- U.log.d(output)
 
   return string.gsub(output, "^%s*(.-)%s*$", "%1")
 end
@@ -726,9 +726,9 @@ M.app.BROWSER_BUNDLES = {
   BROWSER,
   "com.brave.Browser.nightly",
   "net.imput.helium",
-  "company.thebrowser.Browser",  -- Arc
-  "com.google.Chrome",           -- Chrome
-  "com.apple.Safari",            -- Safari
+  "company.thebrowser.Browser", -- Arc
+  "com.google.Chrome", -- Chrome
+  "com.apple.Safari", -- Safari
 }
 
 --- Check if a window appears to be a meeting (vs settings/preview)
@@ -770,10 +770,19 @@ function M.app.isMeetingWindow(app, window)
     local hasMSTeams = title:find("Microsoft Teams", 1, true) ~= nil
 
     -- Meeting window: ends with "Microsoft Teams", has 1 pipe, no navigation prefix
-    if hasMSTeams and pipeCount == 1 and not hasChatPrefix and not hasActivityPrefix and not hasCalendarPrefix and not hasTeamsPrefix then
+    if
+      hasMSTeams
+      and pipeCount == 1
+      and not hasChatPrefix
+      and not hasActivityPrefix
+      and not hasCalendarPrefix
+      and not hasTeamsPrefix
+    then
       return true, "teams_meeting_window"
     -- Main/navigation windows
-    elseif hasMSTeams and (pipeCount == 0 or hasChatPrefix or hasActivityPrefix or hasCalendarPrefix or hasTeamsPrefix) then
+    elseif
+      hasMSTeams and (pipeCount == 0 or hasChatPrefix or hasActivityPrefix or hasCalendarPrefix or hasTeamsPrefix)
+    then
       return false, "teams_main_window"
     -- Unknown Teams window - assume not meeting
     else

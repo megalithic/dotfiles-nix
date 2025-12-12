@@ -39,7 +39,10 @@ local function input()
   if found and device then
     device:setDefaultInputDevice()
     local status = hs.execute(fmt("SwitchAudioSource -t input -s '%s' &", device:name()), true)
-    U.log.of("%s", string.gsub(status, "^%s*(.-)%s*$", "%1"))
+    local icon = device:name() == "Samson GoMic" and "🎙️ " or ""
+
+    U.log.of("%s%s", icon, string.gsub(status, "^%s*(.-)%s*$", "%1"))
+    -- U.log.of("%s", string.gsub(status, "^%s*(.-)%s*$", "%1"))
     device = nil
 
     return 0
@@ -85,9 +88,11 @@ local function showCurrentlyConnected()
   local i = hs.audiodevice.current(true)
   local o = hs.audiodevice.current()
 
-  local icon = o.name == "megabose" and "🎧 " or ""
-  U.log.of("input: %s (%s)", i.name, i.muted and "muted" or "unmuted")
-  U.log.of("output: %s%s", icon, o.name)
+  local oIcon = o.name == "megabose" and "🎧 " or ""
+  local iIcon = i.name == "Samson GoMic" and "🎙️ " or ""
+
+  U.log.of("input: %s%s (%s)", iIcon, i.name, i.muted and "muted" or "unmuted")
+  U.log.of("output: %s%s", oIcon, o.name)
 end
 
 function M:start()
