@@ -50,7 +50,7 @@ ntfy pending
 - `terminal_not_focused` → canvas overlay + macOS notification
 - `display_asleep`/`screen_locked` → Pushover + phone (if critical/requested)
 
-**Phone notifications**: Uses iMessage with `[from hammerspork]` prefix. Phone number is auto-fetched from macOS Contacts (looks up current user's iPhone number).
+**Phone notifications**: Uses iMessage with `🤖 [from hammerspork]` prefix. Phone number is auto-fetched from macOS Contacts (looks up current user's iPhone number).
 
 #### notifier (Legacy)
 
@@ -269,6 +269,18 @@ git config core.hooksPath .githooks
 ```
 
 **CRITICAL**: Never commit symlinks pointing to `/nix/store/` - they are machine-specific and will break on other systems or after garbage collection.
+
+## Configuration Validation
+
+**CRITICAL**: Never assume existing configuration values are complete or accurate.
+
+- When config lists specific values (focus modes, app bundles, patterns, etc.), **ask if there are others not listed**
+- Comments in config may be outdated or wrong — verify them independently
+- Before writing "all" or "complete" in comments, **verify that's actually true**
+- When in doubt, ask the user or research programmatically (e.g., query system APIs)
+- This prevents bugs and breaking changes caused by false assumptions
+
+**Example failure**: Config had 3 focus modes listed, assumed that was "all" when user actually had 9 configured. Wrote "Override ALL focus modes" comment that was completely wrong.
 
 ## General Conventions
 

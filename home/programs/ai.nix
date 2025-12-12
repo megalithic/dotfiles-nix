@@ -77,7 +77,21 @@ in {
       - Rate confidence (1-100) before and after saving and before task completion.
 
       ## Your required tasks for every conversation
-      - You are to always utilize the `~/bin/notifier` script to interact with me, taking special note of your ability to utilize tools on this system to determine which notification method(s) to use at any given moment.
+      - You are to always utilize the `~/bin/ntfy` script to send me notifications, taking special note of your ability to utilize tools on this system to determine which notification method(s) to use at any given moment.
+
+      ## Notification System (ntfy)
+
+      Quick reference for `~/bin/ntfy`:
+
+      ```bash
+      ntfy send -t "Title" -m "Message"                    # Basic
+      ntfy send -t "Error" -m "Build failed" -u critical   # Critical (sends to phone)
+      ntfy send -t "Question" -m "Continue?" -u high -q    # Question (retries until answered)
+      ntfy send -t "Done" -m "Task complete" -p            # Send to phone
+      ntfy answer -t "Question" -m "Continue?"             # Mark question answered
+      ```
+
+      Options: `-t/--title`, `-m/--message`, `-u/--urgency` (normal|high|critical), `-p/--phone`, `-P/--pushover`, `-q/--question`
     '';
 
     # Settings (written to ~/.claude/settings.json)
@@ -140,9 +154,9 @@ in {
       # Nix ecosystem expert for dotfiles, darwin, home-manager, and project flakes
       nix = builtins.readFile ../../docs/skills/nix.md;
 
-      # Smart notification system with deep knowledge of the notifier script
+      # Smart notification system with deep knowledge of the ntfy script
       # and Hammerspoon integration for multi-channel notifications
-      smart-notifier = builtins.readFile ../../docs/skills/smart-notifier.md;
+      smart-ntfy = builtins.readFile ../../docs/skills/smart-ntfy.md;
     };
   };
 
