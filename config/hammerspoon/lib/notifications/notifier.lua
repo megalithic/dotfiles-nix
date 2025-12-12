@@ -60,6 +60,8 @@ function M.getActiveProgram()
   if command then
     -- Clean up command name (remove arguments)
     command = command:match("^(%S+)") or command
+    -- Extract basename (handles /nix/store/.../bin/node -> node)
+    command = command:match("[^/]+$") or command
     return command
   end
 

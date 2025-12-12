@@ -311,7 +311,7 @@ function M.routeNotification(opts, attention)
   if shouldNotify == "full" then
     M.sendCanvas(opts.title, opts.message, duration, {
       appImageID = "hal9000",
-      includeProgram = true,
+      includeProgram = false, -- AI agent notifications already have [source] in title
     })
     table.insert(channels, "canvas")
   elseif shouldNotify == "subtle" then
