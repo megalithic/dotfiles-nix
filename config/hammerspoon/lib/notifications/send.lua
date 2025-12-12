@@ -42,8 +42,29 @@ function M.getFocusedWindowTitle()
   return notifier.getFocusedWindowTitle(TERMINAL)
 end
 
+---Get the currently active tmux session:window:pane
+---Queries tmux directly for authoritative pane-level detection
+---Uses list-clients to find what the attached client is viewing
+---@return string|nil Format: "session:window_index:pane_index" or nil if no tmux client
+local function getActiveTmuxContext()
+  -- Query tmux for the attached client's active session:window:pane
+  -- list-clients gives us the actual context of what the user is viewing
+  -- (display-message without -t target can return stale/wrong session)
+  local cmd = "tmux list-clients -F '#{session_name}:#{window_index}:#{pane_index}' 2>/dev/null | head -1"
+  local output, status = hs.execute(cmd)
+
+  if status and output then
+    local trimmed = output:match("^%s*(.-)%s*$")
+    if trimmed and trimmed ~= "" then
+      return trimmed
+    end
+  end
+
+  return nil
+end
+
 ---Check user attention state with context awareness
----@param context string|nil Calling context (e.g., "main:claude" for tmux session:window)
+---@param context string|nil Calling context (e.g., "mega:1:0" for tmux session:window:pane)
 ---@return { state: string, shouldNotify: "full"|"subtle"|"remote_only" }
 function M.checkAttention(context)
   -- 1. Check display state first (cheapest check, short-circuits everything)
@@ -58,10 +79,10 @@ function M.checkAttention(context)
     return { state = ATTENTION.TERMINAL_NOT_FOCUSED, shouldNotify = "full" }
   end
 
-  -- 3. Terminal is focused - check if user viewing THIS session
+  -- 3. Terminal is focused - check if user viewing THIS exact pane
   if context then
-    local windowTitle = M.getFocusedWindowTitle()
-    if windowTitle and windowTitle:find(context, 1, true) then
+    local activeContext = getActiveTmuxContext()
+    if activeContext and activeContext == context then
       return { state = ATTENTION.PAYING_ATTENTION, shouldNotify = "subtle" }
     end
   end
@@ -234,7 +255,7 @@ function M.sendPhone(title, message)
   end
 
   -- Format message for SMS/iMessage with hammerspork prefix
-  local fullMessage = string.format("[from hammerspork] %s: %s", title, message)
+  local fullMessage = string.format("🤖 [from hammerspork] %s: %s", title, message)
 
   -- Use hs.messages for iMessage
   local success = pcall(function()
@@ -286,17 +307,13 @@ function M.routeNotification(opts, attention)
   -- Determine which channels to use based on attention state
   local shouldNotify = attention.shouldNotify
 
-  -- Canvas + macOS for full notifications
+  -- Canvas only for full notifications (no macOS NC - it triggers duplicate canvas via watcher)
   if shouldNotify == "full" then
     M.sendCanvas(opts.title, opts.message, duration, {
       appImageID = "hal9000",
       includeProgram = true,
     })
     table.insert(channels, "canvas")
-
-    -- Also send to macOS NC for logging/history
-    M.sendMacOS(opts.title, opts.message)
-    table.insert(channels, "macos")
   elseif shouldNotify == "subtle" then
     -- User is paying attention - just log to macOS NC (no visual interrupt)
     M.sendMacOS(opts.title, opts.message)
@@ -304,11 +321,10 @@ function M.routeNotification(opts, attention)
   end
   -- "remote_only" = no local notifications (display asleep/locked)
 
-  -- Phone: send if critical, or explicitly requested, or display is asleep
+  -- Phone: send if critical, explicitly requested, or remote_only (replaces Pushover)
   local shouldSendPhone = opts.phone
     or opts.urgency == URGENCY.CRITICAL
-    or (attention.state == ATTENTION.DISPLAY_ASLEEP and opts.urgency == URGENCY.HIGH)
-    or attention.state == ATTENTION.SCREEN_LOCKED
+    or shouldNotify == "remote_only"
 
   if shouldSendPhone then
     local ok, _ = M.sendPhone(opts.title, opts.message)
@@ -317,12 +333,8 @@ function M.routeNotification(opts, attention)
     end
   end
 
-  -- Pushover: send if critical, explicitly requested, or remote only
-  local shouldSendPushover = opts.pushover
-    or opts.urgency == URGENCY.CRITICAL
-    or shouldNotify == "remote_only"
-
-  if shouldSendPushover then
+  -- Pushover: DISABLED - only send if explicitly requested with -P flag
+  if opts.pushover then
     local ok, _ = M.sendPushover(opts.title, opts.message, opts.urgency)
     if ok then
       table.insert(channels, "pushover")
