@@ -10,17 +10,11 @@
 
 ## Your required tasks for every conversation
 
-- You are to always utilize the `~/bin/notifier` script to interact with me,
+- You are to always utilize the `~/bin/ntfy` script to send notifications,
   taking special note of your ability to utilize tools on this system to
   determine which notification method(s) to use at any given moment.
 
-### Notifier Usage
-
-There are two notifier scripts available:
-- `ntfy` (recommended) - Slim wrapper using unified Hammerspoon N.send() API
-- `notifier` (legacy) - Original 685-line shell script with same interface
-
-#### ntfy (Recommended)
+### ntfy Usage
 
 ```bash
 # Basic usage
@@ -45,33 +39,14 @@ ntfy answer -t "Question" -m "Should I continue?"
 ntfy pending
 ```
 
+**Source detection**: ntfy auto-detects the calling program and prefixes the title (e.g., `[claude] Task Done`). Use `-S` to disable or `-s myapp` to override.
+
 **Routing behavior**: ntfy automatically detects attention state:
 - `paying_attention` → subtle macOS notification only
-- `terminal_not_focused` → canvas overlay + macOS notification
-- `display_asleep`/`screen_locked` → Pushover + phone (if critical/requested)
+- `terminal_not_focused` → canvas overlay
+- `display_asleep`/`screen_locked` → phone (if critical/requested)
 
-**Phone notifications**: Uses iMessage with `🤖 [from hammerspork]` prefix. Phone number is auto-fetched from macOS Contacts (looks up current user's iPhone number).
-
-#### notifier (Legacy)
-
-```bash
-# Basic usage (requires `notify` subcommand first!)
-notifier notify -t "Title" -m "Message"
-
-# With urgency levels: normal|high|critical
-notifier notify -t "Title" -m "Message" -u high
-
-# Send to phone via Pushover
-notifier notify -t "Title" -m "Message" -P true
-
-# Long form options
-notifier notify --title "Title" --message "Message" --urgency high --pushover true
-
-# JSON input
-notifier notify '{"title":"Title","message":"Message","urgency":"high"}'
-```
-
-**Common mistake**: Don't use `notifier --title` directly - the `notify` subcommand is required.
+**Phone notifications**: Uses iMessage with `🤖 [from hammerspork]` prefix. Phone number is auto-fetched from macOS Contacts.
 
 ## General Workflow
 

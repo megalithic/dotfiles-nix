@@ -110,7 +110,7 @@ agenix -e env-vars.age
 
 ### Migrate from 1Password
 
-Instead of fetching tokens from 1Password every time (like in `bin/notifier`), store them in agenix:
+Instead of fetching tokens from 1Password every time (like scripts using `op read`), store them in agenix:
 
 1. Get the value from 1Password:
    ```bash
