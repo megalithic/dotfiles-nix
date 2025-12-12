@@ -428,6 +428,9 @@ function M.sendCanvasNotification(title, message, duration, opts)
   duration = duration or config.defaultDuration or 5
   opts = opts or {}
 
+  -- Guard against nil message (some notifications have empty bodies)
+  message = message or ""
+
   -- Optionally prepend program name to title
   if opts.includeProgram ~= false then -- default to true
     local program = M.getActiveProgram()
