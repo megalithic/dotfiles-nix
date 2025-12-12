@@ -3,8 +3,13 @@
   pkgs,
   ...
 }: let
+  # ── gui tools ──────────────────────────────────────────────────────────────────
+  guiPkgs = with pkgs; [
+    telegram-desktop
+  ];
+
   # ── cli tools ──────────────────────────────────────────────────────────────────
-  cliPackages = with pkgs; [
+  cliPkgs = with pkgs; [
     amber
     argc
     awscli2
@@ -45,7 +50,7 @@
   ];
 
   # ── fonts ──────────────────────────────────────────────────────────────────────
-  fontPackages = with pkgs; [
+  fontPkgs = with pkgs; [
     atkinson-hyperlegible
     emacs-all-the-icons-fonts
     fira-code
@@ -68,7 +73,7 @@
   ];
 
   # ── languages & toolchains ─────────────────────────────────────────────────────
-  langPackages = with pkgs; [
+  langPkgs = with pkgs; [
     # rust
     cargo
     harper
@@ -120,5 +125,5 @@
     markdown-oxide
   ];
 in {
-  home.packages = cliPackages ++ fontPackages ++ langPackages;
+  home.packages = cliPkgs ++ fontPkgs ++ langPkgs ++ guiPkgs;
 }

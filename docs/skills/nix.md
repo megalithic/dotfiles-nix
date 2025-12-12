@@ -94,7 +94,10 @@ nix-prefetch-url <url> 2>/dev/null | xargs nix hash to-sri --type sha256
 ### 4. Search Packages
 
 ```bash
-# Search nixpkgs (native)
+# Using nh (PREFERRED - faster, prettier output)
+nh search <query>
+
+# Search nixpkgs (native - slower)
 nix search nixpkgs#<query>
 
 # Search with JSON output (for scripting)
@@ -105,12 +108,24 @@ nix eval nixpkgs#<package>.meta.description --raw
 
 # List package outputs
 nix eval nixpkgs#<package>.outputs --json
-
-# Using nh (preferred - faster, prettier output)
-nh search <query>
 ```
 
-### 5. Using nh (Yet Another Nix Helper)
+### 5. Search Home-Manager Options
+
+Use the web interface to search for home-manager options:
+
+```
+https://home-manager-options.extranix.com/?query=<search-term>
+```
+
+**Examples:**
+- Find git options: `https://home-manager-options.extranix.com/?query=programs.git`
+- Find all program options: `https://home-manager-options.extranix.com/?query=programs`
+- Find xdg options: `https://home-manager-options.extranix.com/?query=xdg`
+
+Use `WebFetch` tool to query this URL when helping the user find home-manager configuration options.
+
+### 6. Using nh (Yet Another Nix Helper)
 
 `nh` provides a nicer UX for common nix operations:
 
@@ -136,7 +151,7 @@ nh clean all          # Clean everything
 nh clean all --keep 5 # Keep last 5 generations
 ```
 
-### 6. Using NUR (Nix User Repository)
+### 7. Using NUR (Nix User Repository)
 
 NUR provides community packages not in nixpkgs:
 
@@ -148,7 +163,7 @@ NUR provides community packages not in nixpkgs:
 # nur.repos.<user>.<package>
 ```
 
-### 7. Debug Evaluation Errors
+### 8. Debug Evaluation Errors
 
 ```bash
 # Show full trace
@@ -163,7 +178,7 @@ darwinConfigurations.megabookpro.config.<path>
 nix eval .#darwinConfigurations.megabookpro.config.home-manager.users.seth.<option>
 ```
 
-### 8. Working with Project Flakes
+### 9. Working with Project Flakes
 
 ```bash
 # Initialize new flake
