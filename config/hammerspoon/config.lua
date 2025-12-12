@@ -443,6 +443,26 @@ M.notifier = {
       -- No overrideFocusModes = blocks during any focus mode
     },
 
+    -- Telegram Desktop notifications
+    {
+      name = "Telegram",
+      appBundleID = "com.tdesktop.Telegram",
+      duration = 5,
+      patterns = {
+        high = {
+          "%?",
+          "urgent",
+          "asap",
+          "!+$",
+          "%?+$",
+        },
+      },
+      alwaysShowInTerminal = true,
+      showWhenAppFocused = false,
+      -- No overrideFocusModes = blocks during any focus mode
+      appImageID = "com.tdesktop.Telegram",
+    },
+
     -- AI Agent Notifications (from bin/notifier via hs.notify)
     {
       name = "AI Agent Notifications",

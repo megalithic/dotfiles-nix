@@ -84,7 +84,9 @@
     kubernetes-helm
     kubie
 
-    # lua
+    # lua (use lowPrio on 5.1 to avoid fish completion collision with 5.4)
+    (lib.lowPrio lua5_1)
+    lua5_4
     lua-language-server
     stylua
 
